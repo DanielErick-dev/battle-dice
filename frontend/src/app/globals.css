@@ -186,3 +186,19 @@
     animation: none;
   }
 }
+
+/* Ki aura: golden glow pulsing around a powered-up sprite (the 3D flames sit behind it). */
+[data-aura="on"] .sprite-strip {
+  animation:
+    sprite-play calc(var(--frames) / var(--fps) * 1s) steps(var(--frames)) infinite,
+    ki-glow 0.35s ease-in-out infinite alternate;
+}
+
+@keyframes ki-glow {
+  from {
+    filter: drop-shadow(0 0 8px rgb(255 213 74 / 1)) drop-shadow(0 0 22px rgb(255 179 0 / 0.85));
+  }
+  to {
+    filter: drop-shadow(0 0 14px rgb(255 236 150 / 1)) drop-shadow(0 0 34px rgb(255 179 0 / 1));
+  }
+}

@@ -29,6 +29,11 @@ export function PlayersPanel({ players, activePlayerId, finishTile }: PlayersPan
               <div className="flex items-center gap-2">
                 <span className="size-2.5 rounded-full" style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}` }} />
                 <span className="flex-1 text-sm font-bold text-zinc-100">{player.name}</span>
+                {player.skipTurns > 0 && (
+                  <span className="rounded-full bg-slate-200/15 px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-slate-200 uppercase">
+                    Perde a vez
+                  </span>
+                )}
                 <span className="font-mono text-xs text-zinc-400">
                   {player.position}/{finishTile}
                 </span>

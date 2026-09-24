@@ -1,4 +1,4 @@
-import type { MatchView } from "../model/matchView";
+import type { MatchView, TileEffectKind } from "../model/matchView";
 import type { MatchSounds } from "./soundEffects";
 
 interface ViewSource {
@@ -20,20 +20,31 @@ export function connectMatchAudio(source: ViewSource, sounds: MatchSounds): () =
   });
 }
 
-export function playTransition(previous: MatchView, next: MatchView, sounds: MatchSounds): void {
-  if (!previous.isRolling && next.isRolling) sounds.diceShake();
-  if (previous.isRolling && !next.isRolling && next.lastRoll !== null) sounds.diceLand();
+const EFFECT_SOUNDS: Record<TileEffectKind, (sounds: MatchSounds) => void> = {
+  portal: (sounds) => sounds.portal(),
+  trap: (sounds) => sounds.trap(),
+  advance: (sounds) => sounds.boost(),
+  extraTurn: (sounds) => sounds.bonus(),
+  skipTurn: (sounds) => sounds.penalty(),
+  turnSkipped: (sounds) => sounds.penalty(),
+};
 
-  if (next.effect && next.effect !== previous.effect) {
-    if (next.effect.kind === "portal") sounds.portal();
-    else sounds.trap();
-  }
+export function playTransition(previous: MatchView, next: MatchView, sounds: MatchSounds): void {
+  // Die impacts come from the 3D throw itself (see DiceThrow), in sync with each bounce.
+  if (!previous.isRolling && next.isRolling) sounds.diceShake();
+  if (next.poweredPlayerId !== null && next.poweredPlayerId !== previous.poweredPlayerId) sounds.powerUp();
+
+  if (next.effect && next.effect !== previous.effect) EFFECT_SOUNDS[next.effect.kind](sounds);
 
   for (const player of next.players) {
     const before = previous.players.find((other) => other.id === player.id);
     if (!before || before.position === player.position) continue;
 
-    const isTeleport = next.effect?.playerId === player.id && next.effect.to === player.position;
+    const effect = next.effect;
+    const isTeleport =
+      (effect?.kind === "portal" || effect?.kind === "trap") &&
+      effect.playerId === player.id &&
+      effect.to === player.position;
     if (isTeleport || Math.abs(player.position - before.position) > 1) sounds.leap();
     else sounds.step();
   }

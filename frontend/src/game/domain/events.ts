@@ -9,6 +9,11 @@ export type GameEvent =
   | { type: "playerMoved"; playerId: PlayerId; path: readonly TileId[] }
   | { type: "portalEntered"; playerId: PlayerId; from: TileId; to: TileId }
   | { type: "trapTriggered"; playerId: PlayerId; from: TileId; to: TileId }
+  /** Followed by a playerMoved with the tiles walked. */
+  | { type: "advanceTriggered"; playerId: PlayerId; from: TileId; to: TileId }
+  | { type: "extraTurnGranted"; playerId: PlayerId; tile: TileId }
+  | { type: "skipTurnGained"; playerId: PlayerId; tile: TileId }
+  | { type: "turnSkipped"; playerId: PlayerId }
   | { type: "playerWon"; playerId: PlayerId }
   | { type: "turnChanged"; playerId: PlayerId }
   | { type: "gameRestarted" };

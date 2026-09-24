@@ -57,18 +57,26 @@ export function skinFor(playerId: PlayerId): PlayerSkin {
   return MATCH_ROSTER.find((entry) => entry.id === playerId)?.skin ?? FALLBACK_SKIN;
 }
 
+export type EffectsQuality = "high" | "low";
+
+/** Post-processing level: "low" trims bloom and antialiasing for weaker GPUs. */
+export const EFFECTS_QUALITY: EffectsQuality = "high";
+
 export interface PlaybackTimings {
   diceRollMs: number;
   diceRevealMs: number;
   stepMs: number;
   effectWarmupMs: number;
   effectTravelMs: number;
+  /** How long a notice without movement (extra turn, lost turn) stays up. */
+  noticeMs: number;
 }
 
 export const DEFAULT_TIMINGS: PlaybackTimings = {
-  diceRollMs: 700,
+  diceRollMs: 1300,
   diceRevealMs: 250,
   stepMs: 520,
   effectWarmupMs: 450,
   effectTravelMs: 750,
+  noticeMs: 1300,
 };

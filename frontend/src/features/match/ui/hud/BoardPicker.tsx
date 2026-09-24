@@ -11,7 +11,7 @@ interface BoardPickerProps {
 /** Choosing a board starts a new match on it. */
 export function BoardPicker({ presets, selectedId, disabled, onSelect }: BoardPickerProps) {
   return (
-    <div role="radiogroup" aria-label="Tabuleiro" className="flex gap-1">
+    <div role="radiogroup" aria-label="Tabuleiro" className="flex flex-wrap gap-1">
       {presets.map((preset) => {
         const selected = preset.id === selectedId;
         return (

@@ -6,6 +6,7 @@ import { useMemo, useRef } from "react";
 import { AdditiveBlending, DoubleSide, type Group, type MeshBasicMaterial, type MeshStandardMaterial } from "three";
 import type { Tile } from "@/game/domain/types";
 import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "./boardLayout";
+import { PortalVortex } from "./PortalVortex";
 import { themeFor } from "./tileTheme";
 import { useTileFaceTexture } from "./useTileFaceTexture";
 
@@ -22,11 +23,13 @@ interface TileMeshProps {
   highlighted: boolean;
   /** Within reach of the active player's next roll: breathes softly. */
   reachable: boolean;
+  /** Face texture size in pixels. */
+  textureSize: number;
 }
 
 const UNDERGLOW_SIZE = TILE_SIZE + 0.28;
 
-export function TileMesh({ tile, position, accent, arrowAngle, highlighted, reachable }: TileMeshProps) {
+export function TileMesh({ tile, position, accent, arrowAngle, highlighted, reachable, textureSize }: TileMeshProps) {
   const theme = useMemo(() => themeFor(tile), [tile]);
   const emissive = theme.glowIntensity > 0 ? theme.glow : HIGHLIGHT_FALLBACK;
   const glowColor = theme.kind === "regular" ? accent : theme.glow;
@@ -35,6 +38,7 @@ export function TileMesh({ tile, position, accent, arrowAngle, highlighted, reac
     theme,
     accent,
     arrowAngle,
+    resolution: textureSize,
   });
   const bodyMaterial = useRef<MeshStandardMaterial>(null);
   const underglow = useRef<MeshBasicMaterial>(null);
@@ -86,36 +90,14 @@ export function TileMesh({ tile, position, accent, arrowAngle, highlighted, reac
           <planeGeometry args={[TILE_SIZE * 0.95, TILE_SIZE * 0.95]} />
           <meshStandardMaterial map={faceTexture} roughness={0.85} />
         </mesh>
+
+        {tile.effect.kind === "portal" && <PortalVortex color={theme.glow} active={highlighted} phase={tile.id * 1.7} />}
+        {tile.effect.kind === "trap" && <TrapSpikes color={theme.glow} />}
+        {tile.effect.kind === "advance" && <AdvanceChevrons color={theme.glow} angle={arrowAngle ?? 0} />}
+        {tile.effect.kind === "extraTurn" && <FloatingDie color={theme.glow} />}
+        {tile.effect.kind === "skipTurn" && <Hourglass color={theme.glow} />}
+        {tile.role === "finish" && <FinishBeacon color={theme.glow} />}
       </group>
-
-      {tile.effect.kind === "portal" && <PortalVortex color={theme.glow} />}
-      {tile.effect.kind === "trap" && <TrapSpikes color={theme.glow} />}
-      {tile.role === "finish" && <FinishBeacon color={theme.glow} />}
-    </group>
-  );
-}
-
-function PortalVortex({ color }: { color: string }) {
-  const ring = useRef<Group>(null);
-
-  useFrame((_, delta) => {
-    if (ring.current) ring.current.rotation.z += delta * 1.6;
-  });
-
-  return (
-    <group position={[0.1, TILE_HEIGHT / 2 + 0.05, -0.08]}>
-      <group ref={ring} rotation-x={-Math.PI / 2}>
-        <mesh>
-          <torusGeometry args={[TILE_SIZE * 0.22, 0.045, 12, 48]} />
-          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={2.5} toneMapped={false} />
-        </mesh>
-        <mesh scale={0.62}>
-          <torusGeometry args={[TILE_SIZE * 0.22, 0.03, 12, 48, Math.PI * 1.4]} />
-          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={2} toneMapped={false} />
-        </mesh>
-      </group>
-      <pointLight color={color} intensity={4} distance={3.5} position-y={0.5} />
-      <Sparkles count={18} scale={[1.2, 1.4, 1.2]} position-y={0.6} size={3} speed={0.6} color={color} />
     </group>
   );
 }
@@ -143,7 +125,90 @@ function TrapSpikes({ color }: { color: string }) {
           />
         </mesh>
       ))}
-      <pointLight color={color} intensity={1.5} distance={2.5} position-y={0.4} />
+    </group>
+  );
+}
+
+/** Three chevrons that light up in sequence along the direction of travel. */
+function AdvanceChevrons({ color, angle }: { color: string; angle: number }) {
+  const chevrons = useRef<(MeshStandardMaterial | null)[]>([]);
+
+  useFrame(({ clock }) => {
+    chevrons.current.forEach((material, i) => {
+      if (!material) return;
+      const wave = (Math.sin(clock.elapsedTime * 6 - i * 1.2) + 1) / 2;
+      material.emissiveIntensity = 0.6 + wave * 2.4;
+    });
+  });
+
+  return (
+    <group position-y={TILE_HEIGHT / 2 + 0.12} rotation-y={-angle}>
+      {[-0.35, 0, 0.35].map((x, i) => (
+        <mesh key={x} position-x={x} rotation-z={-Math.PI / 2} scale={[1, 1, 0.35]}>
+          <coneGeometry args={[0.2, 0.26, 3]} />
+          <meshStandardMaterial
+            ref={(material) => {
+              chevrons.current[i] = material;
+            }}
+            color={color}
+            emissive={color}
+            toneMapped={false}
+          />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+function FloatingDie({ color }: { color: string }) {
+  const die = useRef<Group>(null);
+
+  useFrame(({ clock }, delta) => {
+    if (!die.current) return;
+    die.current.rotation.x += delta * 0.9;
+    die.current.rotation.y += delta * 1.3;
+    die.current.position.y = 0.85 + Math.sin(clock.elapsedTime * 2.2) * 0.1;
+  });
+
+  return (
+    <group ref={die}>
+      <RoundedBox args={[0.42, 0.42, 0.42]} radius={0.07} smoothness={3} castShadow>
+        <meshStandardMaterial color="#f4f4f5" emissive={color} emissiveIntensity={0.35} roughness={0.3} />
+      </RoundedBox>
+      <Sparkles count={10} scale={[0.9, 0.9, 0.9]} size={2.5} speed={0.5} color={color} />
+    </group>
+  );
+}
+
+/** Slowly turning hourglass: two cones tip to tip between caps. */
+function Hourglass({ color }: { color: string }) {
+  const glass = useRef<Group>(null);
+
+  useFrame((_, delta) => {
+    if (glass.current) glass.current.rotation.y += delta * 0.6;
+  });
+
+  return (
+    <group ref={glass} position-y={TILE_HEIGHT / 2 + 0.45} scale={0.85}>
+      {[1, -1].map((side) => (
+        <group key={side}>
+          <mesh position-y={side * 0.19} rotation-x={side > 0 ? Math.PI : 0}>
+            <coneGeometry args={[0.2, 0.36, 16, 1, true]} />
+            <meshStandardMaterial
+              color={color}
+              emissive={color}
+              emissiveIntensity={0.5}
+              transparent
+              opacity={0.55}
+              side={DoubleSide}
+            />
+          </mesh>
+          <mesh position-y={side * 0.39} castShadow>
+            <cylinderGeometry args={[0.26, 0.26, 0.05, 20]} />
+            <meshStandardMaterial color="#475569" metalness={0.7} roughness={0.3} />
+          </mesh>
+        </group>
+      ))}
     </group>
   );
 }

@@ -24,7 +24,7 @@ export function createGame(board: BoardDefinition, players: readonly NewPlayer[]
   const createdBoard = createBoard(board);
   return {
     board: createdBoard,
-    players: players.map((player) => ({ ...player, position: createdBoard.startTile })),
+    players: players.map((player) => ({ ...player, position: createdBoard.startTile, skipTurns: 0 })),
     currentPlayerIndex: 0,
     status: "playing",
     winnerId: null,
@@ -67,21 +67,16 @@ function rollDice(state: GameState, playerId: PlayerId, deps: GameDependencies):
     { type: "playerMoved", playerId, path },
   ];
 
-  const { effect } = getTile(board, landed);
-  let finalPosition = landed;
-  if (effect.kind === "portal") {
-    events.push({ type: "portalEntered", playerId, from: landed, to: effect.to });
-    finalPosition = effect.to;
-  } else if (effect.kind === "trap") {
-    events.push({ type: "trapTriggered", playerId, from: landed, to: effect.to });
-    finalPosition = effect.to;
-  }
+  const outcome = resolveLanding(state, playerId, landed);
+  events.push(...outcome.events);
 
   const players = state.players.map((player) =>
-    player.id === playerId ? { ...player, position: finalPosition } : player,
+    player.id === playerId
+      ? { ...player, position: outcome.position, skipTurns: player.skipTurns + outcome.skipTurns }
+      : player,
   );
 
-  if (finalPosition === board.finishTile) {
+  if (outcome.position === board.finishTile) {
     events.push({ type: "playerWon", playerId });
     return {
       state: { ...state, players, status: "finished", winnerId: playerId },
@@ -89,17 +84,81 @@ function rollDice(state: GameState, playerId: PlayerId, deps: GameDependencies):
     };
   }
 
-  const currentPlayerIndex = (state.currentPlayerIndex + 1) % players.length;
-  events.push({ type: "turnChanged", playerId: players[currentPlayerIndex].id });
+  const next = outcome.extraTurn
+    ? { players, index: state.currentPlayerIndex, events: [] }
+    : passTurn(players, state.currentPlayerIndex);
+  events.push(...next.events, { type: "turnChanged", playerId: next.players[next.index].id });
 
   return {
-    state: { ...state, players, currentPlayerIndex, turn: state.turn + 1 },
+    state: { ...state, players: next.players, currentPlayerIndex: next.index, turn: state.turn + 1 },
     events,
   };
 }
 
+interface LandingOutcome {
+  position: TileId;
+  events: GameEvent[];
+  extraTurn: boolean;
+  skipTurns: number;
+}
+
+/** Applies the effect of the tile the player stopped on. Destinations never chain into another effect. */
+function resolveLanding(state: GameState, playerId: PlayerId, landed: TileId): LandingOutcome {
+  const { effect } = getTile(state.board, landed);
+  const outcome: LandingOutcome = { position: landed, events: [], extraTurn: false, skipTurns: 0 };
+
+  switch (effect.kind) {
+    case "portal":
+      outcome.events.push({ type: "portalEntered", playerId, from: landed, to: effect.to });
+      outcome.position = effect.to;
+      break;
+    case "trap":
+      outcome.events.push({ type: "trapTriggered", playerId, from: landed, to: effect.to });
+      outcome.position = effect.to;
+      break;
+    case "advance":
+      outcome.events.push(
+        { type: "advanceTriggered", playerId, from: landed, to: effect.to },
+        { type: "playerMoved", playerId, path: walkPath(landed, effect.to - landed, state.board.finishTile) },
+      );
+      outcome.position = effect.to;
+      break;
+    case "extraTurn":
+      outcome.events.push({ type: "extraTurnGranted", playerId, tile: landed });
+      outcome.extraTurn = true;
+      break;
+    case "skipTurn":
+      outcome.events.push({ type: "skipTurnGained", playerId, tile: landed });
+      outcome.skipTurns = 1;
+      break;
+    case "none":
+      break;
+  }
+  return outcome;
+}
+
+/**
+ * Hands the turn to the next player, passing over (and consuming) pending skips.
+ * Terminates because every pass decrements a skip counter.
+ */
+function passTurn(
+  players: readonly Player[],
+  currentIndex: number,
+): { players: readonly Player[]; index: number; events: GameEvent[] } {
+  const next = [...players];
+  const events: GameEvent[] = [];
+  let index = (currentIndex + 1) % next.length;
+
+  while (next[index].skipTurns > 0) {
+    next[index] = { ...next[index], skipTurns: next[index].skipTurns - 1 };
+    events.push({ type: "turnSkipped", playerId: next[index].id });
+    index = (index + 1) % next.length;
+  }
+  return { players: next, index, events };
+}
+
 function restart(state: GameState): GameTransition {
-  const players = state.players.map((player) => ({ ...player, position: state.board.startTile }));
+  const players = state.players.map((player) => ({ ...player, position: state.board.startTile, skipTurns: 0 }));
   return {
     state: { ...state, players, currentPlayerIndex: 0, status: "playing", winnerId: null, turn: 1 },
     events: [{ type: "gameRestarted" }, { type: "turnChanged", playerId: players[0].id }],

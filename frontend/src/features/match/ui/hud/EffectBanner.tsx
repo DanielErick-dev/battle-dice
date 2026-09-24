@@ -1,11 +1,21 @@
-import type { TileEffectView } from "../../model/matchView";
+import type { TileEffectKind, TileEffectView } from "../../model/matchView";
 
 interface EffectBannerProps {
   effect: TileEffectView | null;
   winnerName: string | null;
+  nameOf: (playerId: string) => string | null;
 }
 
-export function EffectBanner({ effect, winnerName }: EffectBannerProps) {
+const COPY: Record<TileEffectKind, { title: string; tone: string; subtitle: (effect: TileEffectView, name: string) => string }> = {
+  portal: { title: "PORTAL!", tone: "text-purple-300", subtitle: ({ from, to }) => `Casa ${from} → ${to}` },
+  trap: { title: "ARMADILHA!", tone: "text-red-400", subtitle: ({ from, to }) => `Casa ${from} → ${to}` },
+  advance: { title: "AVANCE!", tone: "text-cyan-300", subtitle: ({ from, to }) => `+${to - from} casas até a ${to}` },
+  extraTurn: { title: "JOGUE DE NOVO!", tone: "text-lime-300", subtitle: (_, name) => `${name} ganhou outra rolagem` },
+  skipTurn: { title: "PERDE A VEZ!", tone: "text-slate-200", subtitle: (_, name) => `${name} fica fora da próxima rodada` },
+  turnSkipped: { title: "VEZ PULADA", tone: "text-slate-300", subtitle: (_, name) => `${name} descansa esta rodada` },
+};
+
+export function EffectBanner({ effect, winnerName, nameOf }: EffectBannerProps) {
   if (winnerName) {
     return (
       <Banner key="winner" persistent title="VITÓRIA!" subtitle={`${winnerName} chegou ao fim`} tone="text-amber-300" />
@@ -13,13 +23,13 @@ export function EffectBanner({ effect, winnerName }: EffectBannerProps) {
   }
   if (!effect) return null;
 
-  const isPortal = effect.kind === "portal";
+  const copy = COPY[effect.kind];
   return (
     <Banner
       key={`${effect.kind}:${effect.from}:${effect.to}:${effect.playerId}`}
-      title={isPortal ? "PORTAL!" : "ARMADILHA!"}
-      subtitle={`Casa ${effect.from} → ${effect.to}`}
-      tone={isPortal ? "text-purple-300" : "text-red-400"}
+      title={copy.title}
+      subtitle={copy.subtitle(effect, nameOf(effect.playerId) ?? "")}
+      tone={copy.tone}
     />
   );
 }

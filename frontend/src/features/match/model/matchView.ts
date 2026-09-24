@@ -1,8 +1,11 @@
 import { currentPlayer } from "@/game/domain/engine";
 import type { GameState, Player, PlayerId, TileId } from "@/game/domain/types";
 
+export type TileEffectKind = "portal" | "trap" | "advance" | "extraTurn" | "skipTurn" | "turnSkipped";
+
+/** A tile effect (or turn notice) being shown. For effects without travel, `from` and `to` are the same tile. */
 export interface TileEffectView {
-  kind: "portal" | "trap";
+  kind: TileEffectKind;
   playerId: PlayerId;
   from: TileId;
   to: TileId;
@@ -15,6 +18,13 @@ export interface MatchView {
   movingPlayerId: PlayerId | null;
   lastRoll: number | null;
   isRolling: boolean;
+  /**
+   * The throw in progress or last thrown, known from the moment it starts so the 3D die can
+   * land on it. `id` changes on every throw. The HUD keeps using `lastRoll`, revealed later.
+   */
+  roll: { id: number; value: number } | null;
+  /** Player charged with ki (rolled a 6 or hit an advance tile) until their move ends. */
+  poweredPlayerId: PlayerId | null;
   effect: TileEffectView | null;
   winnerId: PlayerId | null;
   isAnimating: boolean;
@@ -28,6 +38,8 @@ export function createInitialView(state: GameState): MatchView {
     movingPlayerId: null,
     lastRoll: null,
     isRolling: false,
+    roll: null,
+    poweredPlayerId: null,
     effect: null,
     winnerId: state.winnerId,
     isAnimating: false,

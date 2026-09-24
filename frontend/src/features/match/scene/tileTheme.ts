@@ -1,6 +1,6 @@
 import type { Tile } from "@/game/domain/types";
 
-export type TileKind = "regular" | "start" | "finish" | "portal" | "trap";
+export type TileKind = "regular" | "start" | "finish" | "portal" | "trap" | "advance" | "extraTurn" | "skipTurn";
 
 export interface TileTheme {
   kind: TileKind;
@@ -19,6 +19,9 @@ const THEMES = {
   finish: { base: "#33240a", top: "#7a5a12", glow: "#fbbf24", glowIntensity: 0.6 },
   portal: { base: "#1c0f33", top: "#2c1454", glow: "#a855f7", glowIntensity: 0.8 },
   trap: { base: "#2a0d10", top: "#4a151b", glow: "#ef4444", glowIntensity: 0.6 },
+  advance: { base: "#062a30", top: "#0b4750", glow: "#22d3ee", glowIntensity: 0.6 },
+  extraTurn: { base: "#16290a", top: "#2d4d12", glow: "#a3e635", glowIntensity: 0.6 },
+  skipTurn: { base: "#1a1f2b", top: "#343c4f", glow: "#cbd5e1", glowIntensity: 0.45 },
 } as const;
 
 export function themeFor(tile: Tile): TileTheme {
@@ -28,6 +31,15 @@ export function themeFor(tile: Tile): TileTheme {
   }
   if (effect.kind === "trap") {
     return { kind: "trap", ...THEMES.trap, label: `VOLTE ${tile.id - effect.to}`, caption: `→ ${effect.to}` };
+  }
+  if (effect.kind === "advance") {
+    return { kind: "advance", ...THEMES.advance, label: `AVANCE ${effect.to - tile.id}`, caption: `→ ${effect.to}` };
+  }
+  if (effect.kind === "extraTurn") {
+    return { kind: "extraTurn", ...THEMES.extraTurn, label: "JOGUE", caption: "DE NOVO" };
+  }
+  if (effect.kind === "skipTurn") {
+    return { kind: "skipTurn", ...THEMES.skipTurn, label: "PERDE", caption: "A VEZ" };
   }
   if (tile.role === "start") return { kind: "start", ...THEMES.start, label: "START", caption: "" };
   if (tile.role === "finish") return { kind: "finish", ...THEMES.finish, label: "FINISH", caption: "" };

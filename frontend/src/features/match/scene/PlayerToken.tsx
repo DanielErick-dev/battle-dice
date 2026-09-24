@@ -6,6 +6,7 @@ import { Vector3, type Group, type Mesh } from "three";
 import type { PlayerId } from "@/game/domain/types";
 import { DEFAULT_TIMINGS, type PlayerSkin } from "../config";
 import { TILE_HEIGHT, TILE_PITCH, type Vec3 } from "./boardLayout";
+import { KiAura } from "./KiAura";
 import type { SpriteAnchors } from "./spriteAnchors";
 
 interface PlayerTokenProps {
@@ -15,6 +16,8 @@ interface PlayerTokenProps {
   /** Next move is a portal/trap teleport: leap in an arc instead of running. */
   isTeleporting: boolean;
   isActive: boolean;
+  /** Charged with ki: shows the aura. */
+  isPowered: boolean;
   anchors: SpriteAnchors;
 }
 
@@ -47,7 +50,7 @@ const TURN_THRESHOLD_PX = 2;
  * Follows the target tile by tile. Targets queue up as waypoints so a multi-tile move
  * reads as one continuous run instead of a hop per tile.
  */
-export function PlayerToken({ playerId, skin, target, isTeleporting, isActive, anchors }: PlayerTokenProps) {
+export function PlayerToken({ playerId, skin, target, isTeleporting, isActive, isPowered, anchors }: PlayerTokenProps) {
   const group = useRef<Group>(null);
   const ring = useRef<Mesh>(null);
   const waypoints = useRef<{ to: Vector3; teleport: boolean }[]>([]);
@@ -102,6 +105,7 @@ export function PlayerToken({ playerId, skin, target, isTeleporting, isActive, a
 
   return (
     <group ref={group}>
+      <KiAura active={isPowered} />
       <mesh ref={ring} rotation-x={-Math.PI / 2} position-y={0.02}>
         <ringGeometry args={[0.42, 0.52, 40]} />
         <meshBasicMaterial color={skin.color} transparent opacity={isActive ? 0.9 : 0.35} toneMapped={false} />

@@ -1,7 +1,9 @@
 import { useEffect, useMemo } from "react";
 import { CanvasTexture, SRGBColorSpace } from "three";
-import type { TileTheme } from "./tileTheme";
+import { seededRandom } from "./random";
+import type { TileKind, TileTheme } from "./tileTheme";
 
+/** Logical drawing size; the canvas itself may be smaller (see TileFace.resolution). */
 const SIZE = 512;
 const FONT = "system-ui, sans-serif";
 
@@ -12,26 +14,34 @@ export interface TileFace {
   accent: string;
   /** Direction to the next tile in canvas space (0 = right, π/2 = down), or null on the last tile. */
   arrowAngle: number | null;
+  /** Texture size in pixels. Big boards use less to keep GPU memory in check. */
+  resolution: number;
 }
 
 /** Paints the tile face (stone, number, arrows, label) into a texture so it lives in the 3D scene. */
-export function useTileFaceTexture({ tileId, theme, accent, arrowAngle }: TileFace): CanvasTexture {
+export function useTileFaceTexture({ tileId, theme, accent, arrowAngle, resolution }: TileFace): CanvasTexture {
   const texture = useMemo(() => {
     const canvas = document.createElement("canvas");
-    canvas.width = SIZE;
-    canvas.height = SIZE;
+    canvas.width = resolution;
+    canvas.height = resolution;
     const ctx = canvas.getContext("2d");
-    if (ctx) paintFace(ctx, { tileId, theme, accent, arrowAngle });
+    if (ctx) {
+      ctx.scale(resolution / SIZE, resolution / SIZE);
+      paintFace(ctx, { tileId, theme, accent, arrowAngle, resolution });
+    }
 
     const result = new CanvasTexture(canvas);
     result.colorSpace = SRGBColorSpace;
     result.anisotropy = 8;
     return result;
-  }, [tileId, theme, accent, arrowAngle]);
+  }, [tileId, theme, accent, arrowAngle, resolution]);
 
   useEffect(() => () => texture.dispose(), [texture]);
   return texture;
 }
+
+/** Tiles that show the path arrows; the others carry their own icon. */
+const ARROW_KINDS: ReadonlySet<TileKind> = new Set(["regular", "start", "advance"]);
 
 function paintFace(ctx: CanvasRenderingContext2D, face: TileFace): void {
   const { theme } = face;
@@ -41,9 +51,12 @@ function paintFace(ctx: CanvasRenderingContext2D, face: TileFace): void {
   if (theme.kind === "start" || theme.kind === "finish") paintCheckerBand(ctx);
   if (theme.kind === "portal") paintSpiral(ctx, theme.glow);
   if (theme.kind === "trap") paintHazardBorder(ctx, theme.glow);
+  if (theme.kind === "advance") paintSpeedLines(ctx, theme.glow, face.arrowAngle ?? 0);
+  if (theme.kind === "extraTurn") paintDieIcon(ctx, theme.glow);
+  if (theme.kind === "skipTurn") paintPauseIcon(ctx, theme.glow);
   paintBevel(ctx);
 
-  if (face.arrowAngle !== null && theme.kind !== "portal" && theme.kind !== "trap") {
+  if (face.arrowAngle !== null && ARROW_KINDS.has(theme.kind)) {
     paintArrows(ctx, face.arrowAngle, theme.kind === "regular" ? face.accent : theme.glow);
   }
   paintMedallion(ctx, face.tileId, theme.kind === "regular" ? face.accent : theme.glow);
@@ -165,6 +178,64 @@ function paintArrows(ctx: CanvasRenderingContext2D, angle: number, color: string
   ctx.restore();
 }
 
+/** Streaks along the direction of travel. */
+function paintSpeedLines(ctx: CanvasRenderingContext2D, color: string, angle: number) {
+  ctx.save();
+  ctx.translate(SIZE / 2, SIZE / 2);
+  ctx.rotate(angle);
+  ctx.strokeStyle = color;
+  ctx.lineCap = "round";
+  const streaks: [number, number, number][] = [
+    [-150, -120, 110],
+    [-60, -40, 160],
+    [30, -150, 90],
+    [110, -90, 140],
+    [160, -200, 80],
+  ];
+  for (const [y, x, length] of streaks) {
+    ctx.globalAlpha = 0.28;
+    ctx.lineWidth = 8;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + length, y);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/** Faint die face (five pips) behind the label. */
+function paintDieIcon(ctx: CanvasRenderingContext2D, color: string) {
+  const size = 200;
+  const x = SIZE / 2 - size / 2 + 60;
+  const y = SIZE / 2 - size / 2 - 30;
+  ctx.save();
+  ctx.globalAlpha = 0.35;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 10;
+  ctx.beginPath();
+  ctx.roundRect(x, y, size, size, 36);
+  ctx.stroke();
+  ctx.fillStyle = color;
+  for (const [px, py] of [[0.25, 0.25], [0.75, 0.25], [0.5, 0.5], [0.25, 0.75], [0.75, 0.75]]) {
+    ctx.beginPath();
+    ctx.arc(x + px * size, y + py * size, 17, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+/** Faint pause symbol behind the label. */
+function paintPauseIcon(ctx: CanvasRenderingContext2D, color: string) {
+  ctx.save();
+  ctx.globalAlpha = 0.3;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.roundRect(SIZE / 2 - 20, 110, 60, 190, 18);
+  ctx.roundRect(SIZE / 2 + 80, 110, 60, 190, 18);
+  ctx.fill();
+  ctx.restore();
+}
+
 function paintCheckerBand(ctx: CanvasRenderingContext2D) {
   const cell = 32;
   const top = SIZE - 190;
@@ -243,16 +314,4 @@ function paintLabel(ctx: CanvasRenderingContext2D, theme: TileTheme) {
     ctx.font = `800 38px ${FONT}`;
     ctx.fillText(theme.caption, SIZE / 2, bottom + 52);
   }
-}
-
-/** Small deterministic PRNG (mulberry32) so each tile keeps the same stone pattern. */
-function seededRandom(seed: number): () => number {
-  let state = seed >>> 0;
-  return () => {
-    state = (state + 0x6d2b79f5) >>> 0;
-    let t = state;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
 }

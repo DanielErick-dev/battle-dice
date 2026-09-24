@@ -1,11 +1,12 @@
 import type { CSSProperties } from "react";
-import type { Player } from "@/game/domain/types";
+import type { Player, PlayerId } from "@/game/domain/types";
 import { cn } from "@/lib/utils";
 import { skinFor, type SpriteSheet } from "../config";
 import type { SpriteAnchors } from "../scene/spriteAnchors";
 
 interface PlayerSpritesProps {
   players: readonly Player[];
+  poweredPlayerId: PlayerId | null;
   anchors: SpriteAnchors;
 }
 
@@ -13,7 +14,7 @@ interface PlayerSpritesProps {
  * Animated character sprites, anchored at the feet. PlayerToken moves each anchor every
  * frame and sets `data-motion` (idle/run) and `data-facing` (left/right) on it.
  */
-export function PlayerSprites({ players, anchors }: PlayerSpritesProps) {
+export function PlayerSprites({ players, poweredPlayerId, anchors }: PlayerSpritesProps) {
   return (
     <div className="pointer-events-none absolute inset-0 z-10 overflow-hidden">
       {players.map((player) => {
@@ -28,6 +29,7 @@ export function PlayerSprites({ players, anchors }: PlayerSpritesProps) {
             aria-label={player.name}
             data-motion="idle"
             data-facing="right"
+            data-aura={player.id === poweredPlayerId ? "on" : "off"}
             className="group absolute top-0 left-0 size-0 origin-top-left opacity-0 will-change-transform"
           >
             <div className="size-0 group-data-[facing=left]:-scale-x-100">

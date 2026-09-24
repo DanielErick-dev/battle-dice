@@ -4,7 +4,11 @@ export type TileId = number;
 export type TileEffect =
   | { kind: "none" }
   | { kind: "portal"; to: TileId }
-  | { kind: "trap"; to: TileId };
+  | { kind: "trap"; to: TileId }
+  /** Walks forward to `to`, tile by tile. */
+  | { kind: "advance"; to: TileId }
+  | { kind: "extraTurn" }
+  | { kind: "skipTurn" };
 
 export type TileRole = "start" | "finish" | "regular";
 
@@ -24,6 +28,8 @@ export interface Player {
   id: PlayerId;
   name: string;
   position: TileId;
+  /** Upcoming turns this player will lose. */
+  skipTurns: number;
 }
 
 export type GameStatus = "playing" | "finished";

@@ -22,6 +22,10 @@ function setup(rolls: number[], start = 1) {
     leap: record("leap"),
     portal: record("portal"),
     trap: record("trap"),
+    boost: record("boost"),
+    bonus: record("bonus"),
+    penalty: record("penalty"),
+    powerUp: record("powerUp"),
     win: record("win"),
   };
   connectMatchAudio(store, sounds);
@@ -38,7 +42,16 @@ describe("connectMatchAudio", () => {
     store.rollDice();
     vi.runAllTimers();
 
-    expect(played).toEqual(["diceShake", "diceLand", "step", "step", "step", "step", "portal", "leap"]);
+    expect(played).toEqual(["diceShake", "step", "step", "step", "step", "portal", "leap"]);
+  });
+
+  it("charges up when a six is rolled", () => {
+    const { store, played } = setup([6]);
+
+    store.rollDice();
+    vi.runAllTimers();
+
+    expect(played.slice(0, 3)).toEqual(["diceShake", "powerUp", "step"]);
   });
 
   it("plays the trap and the victory", () => {

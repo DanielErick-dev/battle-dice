@@ -17,7 +17,7 @@ export function TileLinks({ board, layout, activeFrom }: TileLinksProps) {
   return (
     <>
       {board.tiles.map((tile) => {
-        if (tile.effect.kind === "none") return null;
+        if (tile.effect.kind !== "portal" && tile.effect.kind !== "trap") return null;
 
         const start = lift(layout.position(tile.id));
         const end = lift(layout.position(tile.effect.to));
