@@ -1,6 +1,7 @@
 import type { Player, PlayerId } from "@/game/domain/types";
 import { cn } from "@/lib/utils";
 import { skinFor } from "../../config";
+import { KiMeter } from "../cards/KiMeter";
 
 interface PlayersPanelProps {
   players: readonly Player[];
@@ -36,6 +37,12 @@ export function PlayersPanel({ players, activePlayerId, finishTile }: PlayersPan
                 )}
                 <span className="font-mono text-xs text-zinc-400">
                   {player.position}/{finishTile}
+                </span>
+              </div>
+              <div className="mt-1.5 flex items-center justify-between">
+                <KiMeter ki={player.ki} />
+                <span className="text-[10px] font-semibold text-zinc-500">
+                  {player.hand.length} {player.hand.length === 1 ? "carta" : "cartas"}
                 </span>
               </div>
               <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-white/10">

@@ -1,6 +1,15 @@
 import type { Tile } from "@/game/domain/types";
 
-export type TileKind = "regular" | "start" | "finish" | "portal" | "trap" | "advance" | "extraTurn" | "skipTurn";
+export type TileKind =
+  | "regular"
+  | "start"
+  | "finish"
+  | "portal"
+  | "trap"
+  | "advance"
+  | "extraTurn"
+  | "skipTurn"
+  | "card";
 
 export interface TileTheme {
   kind: TileKind;
@@ -22,6 +31,7 @@ const THEMES = {
   advance: { base: "#062a30", top: "#0b4750", glow: "#22d3ee", glowIntensity: 0.6 },
   extraTurn: { base: "#16290a", top: "#2d4d12", glow: "#a3e635", glowIntensity: 0.6 },
   skipTurn: { base: "#1a1f2b", top: "#343c4f", glow: "#cbd5e1", glowIntensity: 0.45 },
+  card: { base: "#2a0a2e", top: "#4a1450", glow: "#f472b6", glowIntensity: 0.65 },
 } as const;
 
 export function themeFor(tile: Tile): TileTheme {
@@ -40,6 +50,9 @@ export function themeFor(tile: Tile): TileTheme {
   }
   if (effect.kind === "skipTurn") {
     return { kind: "skipTurn", ...THEMES.skipTurn, label: "PERDE", caption: "A VEZ" };
+  }
+  if (effect.kind === "card") {
+    return { kind: "card", ...THEMES.card, label: "CARTA", caption: "+1 NA MÃO" };
   }
   if (tile.role === "start") return { kind: "start", ...THEMES.start, label: "START", caption: "" };
   if (tile.role === "finish") return { kind: "finish", ...THEMES.finish, label: "FINISH", caption: "" };

@@ -44,22 +44,33 @@ const FRAGMENT = /* glsl */ `
   }
 `;
 
+/** Outer flame, outer core, inner flame, inner core. */
+const PALETTES = {
+  gold: ["#ffb300", "#ffe08a", "#ffc21a", "#fff1b0"],
+  /** Kaioken. */
+  red: ["#ff1f1f", "#ff8a7a", "#ff3b2f", "#ffc2b8"],
+} as const;
+
+export type AuraPalette = keyof typeof PALETTES;
+
 const HEIGHT = 2.3;
 /** Per second: how fast the aura flares up and dies down. */
 const FADE_RATE = 5;
 const SHOCKWAVE_SECONDS = 0.6;
-const SHOCKWAVE_COLOR = new Color("#ffd54a").multiplyScalar(2);
+
 
 /**
- * Super-Saiyan style energy around a player: rising golden flames (bloom picks up their
+ * Super-Saiyan style energy around a player: rising flames, golden or Kaioken red (bloom picks up their
  * above-1.0 colours), sparks, and a shockwave on the ground each time it ignites.
  */
-export function KiAura({ active }: { active: boolean }) {
+export function KiAura({ active, palette = "gold" }: { active: boolean; palette?: AuraPalette }) {
+  const [outerColor, outerCore, innerColor, innerCore] = PALETTES[palette];
   const outer = useRef<ShaderMaterial>(null);
   const inner = useRef<ShaderMaterial>(null);
   const wave = useRef<Mesh>(null);
   const waveMaterial = useRef<MeshBasicMaterial>(null);
   const power = useRef(0);
+  const shockwaveColor = useMemo(() => new Color(innerColor).multiplyScalar(2), [innerColor]);
   const ignitedAt = useRef<number | null>(null);
   const wasActive = useRef(false);
 
@@ -67,19 +78,19 @@ export function KiAura({ active }: { active: boolean }) {
     () => ({
       uTime: { value: 0 },
       uPower: { value: 0 },
-      uColor: { value: new Color("#ffb300") },
-      uCore: { value: new Color("#ffe08a") },
+      uColor: { value: new Color(outerColor) },
+      uCore: { value: new Color(outerCore) },
     }),
-    [],
+    [outerColor, outerCore],
   );
   const innerUniforms = useMemo(
     () => ({
       uTime: { value: 3.7 },
       uPower: { value: 0 },
-      uColor: { value: new Color("#ffc21a") },
-      uCore: { value: new Color("#fff1b0") },
+      uColor: { value: new Color(innerColor) },
+      uCore: { value: new Color(innerCore) },
     }),
-    [],
+    [innerColor, innerCore],
   );
 
   useFrame(({ clock }, delta) => {
@@ -138,7 +149,7 @@ export function KiAura({ active }: { active: boolean }) {
         <ringGeometry args={[0.45, 0.6, 48]} />
         <meshBasicMaterial
           ref={waveMaterial}
-          color={SHOCKWAVE_COLOR}
+          color={shockwaveColor}
           transparent
           depthWrite={false}
           blending={AdditiveBlending}
@@ -147,7 +158,7 @@ export function KiAura({ active }: { active: boolean }) {
       </mesh>
 
       {active && (
-        <Sparkles count={28} scale={[1.2, HEIGHT, 1.2]} position-y={HEIGHT / 2} size={4} speed={2.2} color="#ffd54a" />
+        <Sparkles count={28} scale={[1.2, HEIGHT, 1.2]} position-y={HEIGHT / 2} size={4} speed={2.2} color={innerColor} />
       )}
     </group>
   );

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LocalGameClient } from "@/game/application/localGameClient";
 import { CLASSIC_BOARD } from "@/game/domain/board";
 import { sequenceDice } from "@/game/domain/dice";
+import { seededRandom } from "@/game/domain/random";
 import { createGame } from "@/game/domain/engine";
 import { MatchStore } from "../model/matchStore";
 import { connectMatchAudio } from "./matchAudio";
@@ -10,7 +11,7 @@ import type { MatchSounds } from "./soundEffects";
 function setup(rolls: number[], start = 1) {
   const game = createGame(CLASSIC_BOARD, [{ id: "p1", name: "Goku" }]);
   const positioned = { ...game, players: game.players.map((player) => ({ ...player, position: start })) };
-  const store = new MatchStore(new LocalGameClient(positioned, { rollDice: sequenceDice(rolls) }));
+  const store = new MatchStore(new LocalGameClient(positioned, { rollDice: sequenceDice(rolls), random: seededRandom(1) }));
   store.connect();
 
   const played: string[] = [];
@@ -26,6 +27,9 @@ function setup(rolls: number[], start = 1) {
     bonus: record("bonus"),
     penalty: record("penalty"),
     powerUp: record("powerUp"),
+    cardDraw: record("cardDraw"),
+    cardCast: record("cardCast"),
+    shieldBlock: record("shieldBlock"),
     win: record("win"),
   };
   connectMatchAudio(store, sounds);

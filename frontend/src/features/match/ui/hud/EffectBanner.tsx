@@ -13,6 +13,8 @@ const COPY: Record<TileEffectKind, { title: string; tone: string; subtitle: (eff
   extraTurn: { title: "JOGUE DE NOVO!", tone: "text-lime-300", subtitle: (_, name) => `${name} ganhou outra rolagem` },
   skipTurn: { title: "PERDE A VEZ!", tone: "text-slate-200", subtitle: (_, name) => `${name} fica fora da próxima rodada` },
   turnSkipped: { title: "VEZ PULADA", tone: "text-slate-300", subtitle: (_, name) => `${name} descansa esta rodada` },
+  trapBlocked: { title: "BLOQUEADO!", tone: "text-cyan-200", subtitle: () => "A Barreira de Ki segurou a armadilha" },
+  teleport: { title: "TELETRANSPORTE!", tone: "text-sky-300", subtitle: ({ from, to }) => `Casa ${from} → ${to}` },
 };
 
 export function EffectBanner({ effect, winnerName, nameOf }: EffectBannerProps) {

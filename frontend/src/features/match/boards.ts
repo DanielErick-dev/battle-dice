@@ -1,10 +1,4 @@
-import {
-  CLASSIC_BOARD,
-  POWER_TOURNAMENT_BOARD,
-  TIME_CHAMBER_BOARD,
-  TOURNAMENT_BOARD,
-  type BoardDefinition,
-} from "@/game/domain/board";
+import { POWER_TOURNAMENT_BOARD, TRAINING_BOARD, type BoardDefinition } from "@/game/domain/board";
 
 export interface BoardPreset {
   id: string;
@@ -15,10 +9,8 @@ export interface BoardPreset {
 }
 
 export const BOARD_PRESETS: readonly BoardPreset[] = [
-  { id: "training", name: "Treino", definition: CLASSIC_BOARD, columns: 5 },
-  { id: "tournament", name: "Torneio", definition: TOURNAMENT_BOARD, columns: 6 },
-  { id: "time-chamber", name: "Sala do Tempo", definition: TIME_CHAMBER_BOARD, columns: 7 },
-  { id: "power-tournament", name: "Torneio do Poder", definition: POWER_TOURNAMENT_BOARD, columns: 10 },
+  { id: "training", name: "Treino", definition: TRAINING_BOARD, columns: 5 },
+  { id: "power-tournament", name: "Torneio do Poder", definition: POWER_TOURNAMENT_BOARD, columns: 20 },
 ];
 
 /** Boards taller than this are too big to frame whole; the camera follows the player instead. */

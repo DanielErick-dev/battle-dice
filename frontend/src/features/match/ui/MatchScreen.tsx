@@ -5,10 +5,14 @@ import dynamic from "next/dynamic";
 import { useState } from "react";
 import { BOARD_PRESETS, boardPresetFor, DEFAULT_BOARD_ID, isLargeBoard, type BoardPreset } from "../boards";
 import { cn } from "@/lib/utils";
+import { canPlayCard } from "../model/matchView";
 import { useMatch } from "../hooks/useMatch";
 import { useGameAudio, type GameAudio } from "../hooks/useGameAudio";
 import { useMatchAudio } from "../hooks/useMatchAudio";
 import { SpriteAnchors } from "../scene/spriteAnchors";
+import { CardHand } from "./cards/CardHand";
+import { CastOverlay } from "./cards/CastOverlay";
+import { DiscardPicker } from "./cards/DiscardPicker";
 import { BoardPicker } from "./hud/BoardPicker";
 import { DicePanel } from "./hud/DicePanel";
 import { EffectBanner } from "./hud/EffectBanner";
@@ -44,6 +48,8 @@ function Match({ preset, audio, onSelectBoard }: MatchProps) {
   const [overview, setOverview] = useState(false);
   const canFollow = isLargeBoard(preset);
   const nameOf = (id: string | null) => view.players.find((player) => player.id === id)?.name ?? null;
+  const activePlayer = view.players.find((player) => player.id === view.activePlayerId);
+  const discardingPlayer = view.players.find((player) => player.id === view.pendingDiscard?.playerId);
 
   return (
     <main className="relative h-dvh w-full overflow-hidden bg-[#05060b] text-white">
@@ -116,6 +122,20 @@ function Match({ preset, audio, onSelectBoard }: MatchProps) {
           <EffectBanner effect={view.effect} winnerName={nameOf(view.winnerId)} nameOf={nameOf} />
         </div>
 
+        {activePlayer && view.winnerId === null && (
+          <div className="pointer-events-auto absolute top-1/2 right-4 -translate-y-1/2 sm:right-6">
+            <CardHand
+              key={activePlayer.id}
+              player={activePlayer}
+              opponents={view.players.filter((player) => player.id !== activePlayer.id)}
+              canPlay={canPlayCard(view)}
+              alreadyPlayed={view.cardPlayedThisTurn}
+              lastDrawnUid={view.lastDrawnUid}
+              onPlay={store.playCard}
+            />
+          </div>
+        )}
+
         <footer className="relative flex items-end justify-center">
           {canFollow && (
             <button
@@ -141,6 +161,11 @@ function Match({ preset, audio, onSelectBoard }: MatchProps) {
           </div>
         </footer>
       </div>
+
+      <CastOverlay cast={view.cast} />
+      {view.pendingDiscard && discardingPlayer && !view.isAnimating && (
+        <DiscardPicker hand={discardingPlayer.hand} drawn={view.pendingDiscard.drawn} onDiscard={store.discardCard} />
+      )}
     </main>
   );
 }

@@ -3,6 +3,7 @@ import { CLASSIC_BOARD } from "./board";
 import { GameRuleError } from "./commands";
 import { sequenceDice } from "./dice";
 import { applyCommand, createGame } from "./engine";
+import { seededRandom } from "./random";
 import type { GameState } from "./types";
 
 const PLAYERS = [
@@ -18,7 +19,7 @@ function withPosition(state: GameState, playerId: string, position: number): Gam
 }
 
 const roll = (state: GameState, playerId: string, value: number) =>
-  applyCommand(state, { type: "rollDice", playerId }, { rollDice: sequenceDice([value]) });
+  applyCommand(state, { type: "rollDice", playerId }, { rollDice: sequenceDice([value]), random: seededRandom(1) });
 
 describe("createGame", () => {
   it("places every player on the start tile and gives the turn to the first one", () => {
@@ -37,7 +38,7 @@ describe("rollDice", () => {
     expect(state.players[0].position).toBe(4);
     expect(state.currentPlayerIndex).toBe(1);
     expect(events).toEqual([
-      { type: "diceRolled", playerId: "p1", value: 3 },
+      { type: "diceRolled", playerId: "p1", value: 3, dice: [3] },
       { type: "playerMoved", playerId: "p1", path: [2, 3, 4] },
       { type: "turnChanged", playerId: "p2" },
     ]);
@@ -86,7 +87,7 @@ describe("restart", () => {
   it("resets positions, status and turn order", () => {
     const game = withPosition(createGame(CLASSIC_BOARD, PLAYERS), "p1", 19);
     const finished = roll(game, "p1", 1).state;
-    const { state } = applyCommand(finished, { type: "restart" }, { rollDice: sequenceDice([1]) });
+    const { state } = applyCommand(finished, { type: "restart" }, { rollDice: sequenceDice([1]), random: seededRandom(1) });
 
     expect(state.players.map((p) => p.position)).toEqual([1, 1]);
     expect(state.status).toBe("playing");

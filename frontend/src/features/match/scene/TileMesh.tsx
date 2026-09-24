@@ -96,6 +96,7 @@ export function TileMesh({ tile, position, accent, arrowAngle, highlighted, reac
         {tile.effect.kind === "advance" && <AdvanceChevrons color={theme.glow} angle={arrowAngle ?? 0} />}
         {tile.effect.kind === "extraTurn" && <FloatingDie color={theme.glow} />}
         {tile.effect.kind === "skipTurn" && <Hourglass color={theme.glow} />}
+        {tile.effect.kind === "card" && <FloatingCard color={theme.glow} />}
         {tile.role === "finish" && <FinishBeacon color={theme.glow} />}
       </group>
     </group>
@@ -176,6 +177,28 @@ function FloatingDie({ color }: { color: string }) {
         <meshStandardMaterial color="#f4f4f5" emissive={color} emissiveIntensity={0.35} roughness={0.3} />
       </RoundedBox>
       <Sparkles count={10} scale={[0.9, 0.9, 0.9]} size={2.5} speed={0.5} color={color} />
+    </group>
+  );
+}
+
+/** A small glowing card spinning above the tile. */
+function FloatingCard({ color }: { color: string }) {
+  const card = useRef<Group>(null);
+
+  useFrame(({ clock }, delta) => {
+    if (!card.current) return;
+    card.current.rotation.y += delta * 1.6;
+    card.current.position.y = 0.95 + Math.sin(clock.elapsedTime * 2) * 0.1;
+  });
+
+  return (
+    <group>
+      <group ref={card} rotation-z={0.15}>
+        <RoundedBox args={[0.42, 0.6, 0.03]} radius={0.04} smoothness={2} castShadow>
+          <meshStandardMaterial color="#fdf2f8" emissive={color} emissiveIntensity={1.4} metalness={0.4} roughness={0.25} />
+        </RoundedBox>
+      </group>
+      <Sparkles count={12} scale={[0.9, 1.2, 0.9]} position-y={0.9} size={2.5} speed={0.6} color={color} />
     </group>
   );
 }

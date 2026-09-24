@@ -1,8 +1,15 @@
-import { createBoard, getTile, type BoardDefinition } from "./board";
+import { createBoard, type BoardDefinition } from "./board";
+import { playCard, type CardChoice } from "./cardPlay";
+import { STARTING_HAND, STARTING_KI, standardDeck, type CardId } from "./cards";
 import { GameRuleError, type GameCommand } from "./commands";
+import { buildDeck } from "./deck";
 import type { DiceRoller } from "./dice";
+import { playerIn, startDraft, updatePlayer, walkPath, type Draft } from "./draft";
 import type { GameEvent } from "./events";
-import type { GameState, Player, PlayerId, TileId } from "./types";
+import { resolveLanding } from "./landing";
+import type { RandomSource } from "./random";
+import { endTurn } from "./turn";
+import type { GameState, Player, PlayerId } from "./types";
 
 export interface NewPlayer {
   id: PlayerId;
@@ -11,6 +18,8 @@ export interface NewPlayer {
 
 export interface GameDependencies {
   rollDice: DiceRoller;
+  /** Shuffles decks (on restart); injected like the dice so games replay exactly. */
+  random: RandomSource;
 }
 
 export interface GameTransition {
@@ -18,17 +27,33 @@ export interface GameTransition {
   events: GameEvent[];
 }
 
-export function createGame(board: BoardDefinition, players: readonly NewPlayer[]): GameState {
+export interface GameOptions {
+  random?: RandomSource;
+  /** Each player's card list; defaults to the standard deck. Collections will fill this in. */
+  decks?: Readonly<Record<PlayerId, readonly CardId[]>>;
+}
+
+export function createGame(board: BoardDefinition, players: readonly NewPlayer[], options: GameOptions = {}): GameState {
   if (players.length === 0) throw new Error("A game needs at least one player");
 
   const createdBoard = createBoard(board);
+  const decks = Object.fromEntries(
+    players.map((player) => [
+      player.id,
+      options.decks?.[player.id] ?? standardDeck({ withOpponents: players.length > 1 }),
+    ]),
+  );
   return {
     board: createdBoard,
-    players: players.map((player) => ({ ...player, position: createdBoard.startTile, skipTurns: 0 })),
+    players: players.map((player) => dealPlayer(player, createdBoard.startTile, decks[player.id], options.random)),
+    decks,
     currentPlayerIndex: 0,
     status: "playing",
     winnerId: null,
     turn: 1,
+    cardPlayedThisTurn: false,
+    bonusTurn: false,
+    pendingDiscard: null,
   };
 }
 
@@ -36,140 +61,150 @@ export function currentPlayer(state: GameState): Player {
   return state.players[state.currentPlayerIndex];
 }
 
-/** Pure reducer: same state + same dice = same result, on the client or on a server. */
-export function applyCommand(
-  state: GameState,
-  command: GameCommand,
-  deps: GameDependencies,
-): GameTransition {
+/** Pure reducer: same state + same dice and shuffles = same result, on the client or on a server. */
+export function applyCommand(state: GameState, command: GameCommand, deps: GameDependencies): GameTransition {
   switch (command.type) {
     case "rollDice":
       return rollDice(state, command.playerId, deps);
+    case "playCard":
+      return playCardCommand(state, command.playerId, command.cardUid, command);
+    case "discardCard":
+      return discardCard(state, command.playerId, command.cardUid);
     case "restart":
-      return restart(state);
+      return restart(state, deps);
   }
 }
 
 function rollDice(state: GameState, playerId: PlayerId, deps: GameDependencies): GameTransition {
+  assertCanAct(state, playerId);
+  const draft = startDraft(state);
+  const player = playerIn(draft, playerId);
+
+  const boost = player.diceBoost;
+  const dice =
+    boost?.kind === "fixed" ? [boost.value] : boost?.kind === "double" ? [deps.rollDice(), deps.rollDice()] : [deps.rollDice()];
+  const value = dice.reduce((sum, die) => sum + die, 0);
+  updatePlayer(draft, playerId, () => ({ diceBoost: null }));
+
+  const path = walkPath(player.position, value, state.board.finishTile);
+  draft.events.push({ type: "diceRolled", playerId, value, dice }, { type: "playerMoved", playerId, path });
+  resolveLanding(draft, playerId, path.at(-1) ?? player.position);
+
+  const extraTurn = draft.extraTurn || state.bonusTurn;
+  return settle(draft, playerId, { endsTurn: true, extraTurn });
+}
+
+function playCardCommand(state: GameState, playerId: PlayerId, cardUid: string, choice: CardChoice): GameTransition {
+  assertCanAct(state, playerId);
+  const draft = startDraft(state);
+  playCard(draft, playerId, cardUid, choice);
+
+  const settled = settle(draft, playerId, { endsTurn: false, extraTurn: false });
+  const bonusTurn = state.bonusTurn || draft.extraTurn;
+  return { ...settled, state: { ...settled.state, cardPlayedThisTurn: true, bonusTurn } };
+}
+
+function discardCard(state: GameState, playerId: PlayerId, cardUid: string): GameTransition {
   if (state.status === "finished") throw new GameRuleError("GAME_FINISHED");
-  if (!state.players.some((player) => player.id === playerId)) {
-    throw new GameRuleError("UNKNOWN_PLAYER");
-  }
-  if (currentPlayer(state).id !== playerId) throw new GameRuleError("NOT_YOUR_TURN");
+  const pending = state.pendingDiscard;
+  if (!pending) throw new GameRuleError("NO_DISCARD_PENDING");
+  if (pending.playerId !== playerId) throw new GameRuleError("NOT_YOUR_TURN");
 
-  const { board } = state;
-  const value = deps.rollDice();
-  const origin = currentPlayer(state).position;
-  const path = walkPath(origin, value, board.finishTile);
-  const landed = path.at(-1) ?? origin;
-  const events: GameEvent[] = [
-    { type: "diceRolled", playerId, value },
-    { type: "playerMoved", playerId, path },
-  ];
+  const draft = startDraft({ ...state, pendingDiscard: null });
+  const candidates = [...playerIn(draft, playerId).hand, pending.drawn];
+  const card = candidates.find((candidate) => candidate.uid === cardUid);
+  if (!card) throw new GameRuleError("UNKNOWN_CARD");
 
-  const outcome = resolveLanding(state, playerId, landed);
-  events.push(...outcome.events);
-
-  const players = state.players.map((player) =>
-    player.id === playerId
-      ? { ...player, position: outcome.position, skipTurns: player.skipTurns + outcome.skipTurns }
-      : player,
-  );
-
-  if (outcome.position === board.finishTile) {
-    events.push({ type: "playerWon", playerId });
-    return {
-      state: { ...state, players, status: "finished", winnerId: playerId },
-      events,
-    };
-  }
-
-  const next = outcome.extraTurn
-    ? { players, index: state.currentPlayerIndex, events: [] }
-    : passTurn(players, state.currentPlayerIndex);
-  events.push(...next.events, { type: "turnChanged", playerId: next.players[next.index].id });
-
-  return {
-    state: { ...state, players: next.players, currentPlayerIndex: next.index, turn: state.turn + 1 },
-    events,
-  };
-}
-
-interface LandingOutcome {
-  position: TileId;
-  events: GameEvent[];
-  extraTurn: boolean;
-  skipTurns: number;
-}
-
-/** Applies the effect of the tile the player stopped on. Destinations never chain into another effect. */
-function resolveLanding(state: GameState, playerId: PlayerId, landed: TileId): LandingOutcome {
-  const { effect } = getTile(state.board, landed);
-  const outcome: LandingOutcome = { position: landed, events: [], extraTurn: false, skipTurns: 0 };
-
-  switch (effect.kind) {
-    case "portal":
-      outcome.events.push({ type: "portalEntered", playerId, from: landed, to: effect.to });
-      outcome.position = effect.to;
-      break;
-    case "trap":
-      outcome.events.push({ type: "trapTriggered", playerId, from: landed, to: effect.to });
-      outcome.position = effect.to;
-      break;
-    case "advance":
-      outcome.events.push(
-        { type: "advanceTriggered", playerId, from: landed, to: effect.to },
-        { type: "playerMoved", playerId, path: walkPath(landed, effect.to - landed, state.board.finishTile) },
-      );
-      outcome.position = effect.to;
-      break;
-    case "extraTurn":
-      outcome.events.push({ type: "extraTurnGranted", playerId, tile: landed });
-      outcome.extraTurn = true;
-      break;
-    case "skipTurn":
-      outcome.events.push({ type: "skipTurnGained", playerId, tile: landed });
-      outcome.skipTurns = 1;
-      break;
-    case "none":
-      break;
-  }
-  return outcome;
+  const hand = candidates.filter((candidate) => candidate.uid !== cardUid);
+  updatePlayer(draft, playerId, () => ({ hand }));
+  draft.events.push({ type: "cardDiscarded", playerId, card, hand });
+  return settle(draft, playerId, { endsTurn: pending.endsTurn, extraTurn: pending.extraTurn });
 }
 
 /**
- * Hands the turn to the next player, passing over (and consuming) pending skips.
- * Terminates because every pass decrements a skip counter.
+ * Turns a draft into the next state: a win ends the game, an overflowing draw pauses for a
+ * discard, and otherwise the turn ends if the command ends it.
  */
-function passTurn(
-  players: readonly Player[],
-  currentIndex: number,
-): { players: readonly Player[]; index: number; events: GameEvent[] } {
-  const next = [...players];
-  const events: GameEvent[] = [];
-  let index = (currentIndex + 1) % next.length;
+function settle(
+  draft: Draft,
+  playerId: PlayerId,
+  { endsTurn, extraTurn }: { endsTurn: boolean; extraTurn: boolean },
+): GameTransition {
+  const { state } = draft;
 
-  while (next[index].skipTurns > 0) {
-    next[index] = { ...next[index], skipTurns: next[index].skipTurns - 1 };
-    events.push({ type: "turnSkipped", playerId: next[index].id });
-    index = (index + 1) % next.length;
+  if (playerIn(draft, playerId).position === state.board.finishTile) {
+    draft.events.push({ type: "playerWon", playerId });
+    return {
+      state: { ...state, players: draft.players, status: "finished", winnerId: playerId, pendingDiscard: null },
+      events: draft.events,
+    };
   }
-  return { players: next, index, events };
+
+  if (draft.overflow) {
+    const pendingDiscard = { playerId, drawn: draft.overflow, endsTurn, extraTurn };
+    return { state: { ...state, players: draft.players, pendingDiscard }, events: draft.events };
+  }
+
+  if (!endsTurn) return { state: { ...state, players: draft.players }, events: draft.events };
+
+  const currentPlayerIndex = endTurn(draft, extraTurn);
+  return {
+    state: {
+      ...state,
+      players: draft.players,
+      currentPlayerIndex,
+      turn: state.turn + 1,
+      cardPlayedThisTurn: false,
+      bonusTurn: false,
+    },
+    events: draft.events,
+  };
 }
 
-function restart(state: GameState): GameTransition {
-  const players = state.players.map((player) => ({ ...player, position: state.board.startTile, skipTurns: 0 }));
+function restart(state: GameState, deps: GameDependencies): GameTransition {
+  const players = state.players.map((player) =>
+    dealPlayer(player, state.board.startTile, state.decks[player.id], deps.random),
+  );
   return {
-    state: { ...state, players, currentPlayerIndex: 0, status: "playing", winnerId: null, turn: 1 },
+    state: {
+      ...state,
+      players,
+      currentPlayerIndex: 0,
+      status: "playing",
+      winnerId: null,
+      turn: 1,
+      cardPlayedThisTurn: false,
+      bonusTurn: false,
+      pendingDiscard: null,
+    },
     events: [{ type: "gameRestarted" }, { type: "turnChanged", playerId: players[0].id }],
   };
 }
 
-/** Tiles visited step by step. Movement stops at the finish tile (no bounce back). */
-function walkPath(origin: TileId, steps: number, finish: TileId): TileId[] {
-  const path: TileId[] = [];
-  for (let tile = origin + 1; tile <= Math.min(origin + steps, finish); tile++) {
-    path.push(tile);
-  }
-  return path;
+function assertCanAct(state: GameState, playerId: PlayerId): void {
+  if (state.status === "finished") throw new GameRuleError("GAME_FINISHED");
+  if (!state.players.some((player) => player.id === playerId)) throw new GameRuleError("UNKNOWN_PLAYER");
+  if (currentPlayer(state).id !== playerId) throw new GameRuleError("NOT_YOUR_TURN");
+  if (state.pendingDiscard) throw new GameRuleError("DISCARD_PENDING");
+}
+
+/** A player on the start tile with a freshly shuffled deck and their opening hand. */
+function dealPlayer(
+  { id, name }: NewPlayer,
+  startTile: number,
+  cards: readonly CardId[],
+  random: RandomSource = Math.random,
+): Player {
+  const deck = buildDeck(id, cards, random);
+  return {
+    id,
+    name,
+    position: startTile,
+    skipTurns: 0,
+    ki: STARTING_KI,
+    hand: deck.slice(0, STARTING_HAND),
+    deck: deck.slice(STARTING_HAND),
+    shielded: false,
+    diceBoost: null,
+  };
 }

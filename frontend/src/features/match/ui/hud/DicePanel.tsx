@@ -7,7 +7,8 @@ const ACTION_BUTTON =
 
 interface DicePanelProps {
   activePlayerName: string;
-  lastRoll: number | null;
+  /** Faces of the last roll (two under Kaioken); empty before the first. */
+  lastRoll: readonly number[];
   isRolling: boolean;
   isAnimating: boolean;
   isFinished: boolean;
@@ -28,7 +29,20 @@ export function DicePanel({
 }: DicePanelProps) {
   return (
     <section className="hud-panel flex w-full max-w-sm items-center gap-5 p-4">
-      <DiceFace value={lastRoll} rolling={isRolling} />
+      <div className="flex items-center gap-2">
+        {isRolling || lastRoll.length <= 1 ? (
+          <DiceFace value={lastRoll[0] ?? null} rolling={isRolling} />
+        ) : (
+          <>
+            {lastRoll.map((value, index) => (
+              <DiceFace key={index} value={value} rolling={false} compact />
+            ))}
+            <span className="text-2xl font-black text-orange-400">
+              ={lastRoll.reduce((sum, value) => sum + value, 0)}
+            </span>
+          </>
+        )}
+      </div>
 
       <div className="flex flex-1 flex-col gap-2">
         <p className="text-xs font-bold tracking-widest text-zinc-400 uppercase">

@@ -75,7 +75,9 @@ const FRAGMENT = /* glsl */ `
 
   void main() {
     vec3 w = waves(vWorld.xz);
-    vec3 normal = normalize(vec3(-w.y, 1.0, -w.z));
+    // Far away, small waves are finer than a pixel and alias into blotches: calm them down.
+    float calm = 1.0 / (1.0 + distance(cameraPosition, vWorld) * 0.025);
+    vec3 normal = normalize(vec3(-w.y * calm, 1.0, -w.z * calm));
     vec3 toCamera = normalize(cameraPosition - vWorld);
 
     float fresnel = pow(1.0 - max(dot(normal, toCamera), 0.0), 4.0);

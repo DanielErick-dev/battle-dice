@@ -2,7 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LocalGameClient } from "@/game/application/localGameClient";
 import { CLASSIC_BOARD } from "@/game/domain/board";
 import { sequenceDice } from "@/game/domain/dice";
+import { seededRandom } from "@/game/domain/random";
 import { createGame } from "@/game/domain/engine";
+import type { CardInstance, GameState } from "@/game/domain/types";
 import { DEFAULT_TIMINGS } from "../config";
 import { MatchStore } from "./matchStore";
 
@@ -11,9 +13,10 @@ const PLAYERS = [
   { id: "p2", name: "Vegeta" },
 ];
 
-function setup(rolls: number[]) {
-  const client = new LocalGameClient(createGame(CLASSIC_BOARD, PLAYERS), {
+function setup(rolls: number[], patch: (state: GameState) => GameState = (state) => state) {
+  const client = new LocalGameClient(patch(createGame(CLASSIC_BOARD, PLAYERS)), {
     rollDice: sequenceDice(rolls),
+    random: seededRandom(1),
   });
   const store = new MatchStore(client);
   const disconnect = store.connect();
@@ -35,7 +38,7 @@ describe("MatchStore", () => {
     expect(positionOf(store, "p1")).toBe(1);
 
     vi.advanceTimersByTime(DEFAULT_TIMINGS.diceRollMs);
-    expect(store.getSnapshot().lastRoll).toBe(3);
+    expect(store.getSnapshot().lastRoll).toEqual([3]);
 
     vi.advanceTimersByTime(DEFAULT_TIMINGS.diceRevealMs);
     expect(positionOf(store, "p1")).toBe(2);
@@ -79,5 +82,58 @@ describe("MatchStore", () => {
     vi.runAllTimers();
 
     expect(positionOf(store, "p1")).toBe(1);
+  });
+
+  describe("cards", () => {
+    const withP1 = (hand: CardInstance[], ki: number) => (state: GameState) => ({
+      ...state,
+      players: state.players.map((player) => (player.id === "p1" ? { ...player, hand, ki } : player)),
+    });
+    const barrier = { uid: "b", cardId: "kiBarrier" } as const;
+
+    it("plays a card: pays ki, removes it from the hand and announces the cast", () => {
+      const { store } = setup([1], withP1([barrier], 2));
+
+      store.playCard("b");
+      const view = store.getSnapshot();
+      expect(view.cast).toMatchObject({ id: 1, playerId: "p1", card: barrier });
+      expect(view.players[0].hand).toEqual([]);
+      expect(view.players[0].ki).toBe(1);
+
+      vi.runAllTimers();
+      expect(store.getSnapshot().players[0].shielded).toBe(true);
+      store.playCard("b");
+      expect(store.getSnapshot().cardPlayedThisTurn).toBe(true);
+    });
+
+    it("waits for a discard when the hand overflows, then resumes", () => {
+      const full: CardInstance[] = [
+        { uid: "x", cardId: "senzuBean" },
+        { uid: "y", cardId: "kaioken" },
+        { uid: "z", cardId: "kiBarrier" },
+      ];
+      const onCardTile = (state: GameState) => ({
+        ...withP1(full, 1)(state),
+        board: {
+          ...state.board,
+          tiles: state.board.tiles.map((tile) => (tile.id === 2 ? { ...tile, effect: { kind: "card" as const } } : tile)),
+        },
+      });
+      const { store } = setup([1], onCardTile);
+
+      store.rollDice();
+      vi.runAllTimers();
+      const paused = store.getSnapshot();
+      expect(paused.pendingDiscard?.playerId).toBe("p1");
+      store.rollDice();
+      expect(store.getSnapshot().isRolling).toBe(false);
+
+      store.discardCard("y");
+      vi.runAllTimers();
+      const resumed = store.getSnapshot();
+      expect(resumed.pendingDiscard).toBeNull();
+      expect(resumed.players[0].hand.map(({ uid }) => uid)).toEqual(["x", "z", paused.pendingDiscard?.drawn.uid]);
+      expect(resumed.activePlayerId).toBe("p2");
+    });
   });
 });

@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { CanvasTexture, SRGBColorSpace } from "three";
-import { seededRandom } from "./random";
+import { seededRandom } from "@/game/domain/random";
 import type { TileKind, TileTheme } from "./tileTheme";
 
 /** Logical drawing size; the canvas itself may be smaller (see TileFace.resolution). */
@@ -54,6 +54,7 @@ function paintFace(ctx: CanvasRenderingContext2D, face: TileFace): void {
   if (theme.kind === "advance") paintSpeedLines(ctx, theme.glow, face.arrowAngle ?? 0);
   if (theme.kind === "extraTurn") paintDieIcon(ctx, theme.glow);
   if (theme.kind === "skipTurn") paintPauseIcon(ctx, theme.glow);
+  if (theme.kind === "card") paintCardIcon(ctx, theme.glow);
   paintBevel(ctx);
 
   if (face.arrowAngle !== null && ARROW_KINDS.has(theme.kind)) {
@@ -220,6 +221,27 @@ function paintDieIcon(ctx: CanvasRenderingContext2D, color: string) {
     ctx.beginPath();
     ctx.arc(x + px * size, y + py * size, 17, 0, Math.PI * 2);
     ctx.fill();
+  }
+  ctx.restore();
+}
+
+/** Faint fanned pair of cards behind the label. */
+function paintCardIcon(ctx: CanvasRenderingContext2D, color: string) {
+  ctx.save();
+  ctx.globalAlpha = 0.35;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 9;
+  for (const [angle, dx] of [
+    [-0.25, -40],
+    [0.2, 50],
+  ]) {
+    ctx.save();
+    ctx.translate(SIZE / 2 + dx, SIZE / 2 - 20);
+    ctx.rotate(angle);
+    ctx.beginPath();
+    ctx.roundRect(-70, -100, 140, 200, 18);
+    ctx.stroke();
+    ctx.restore();
   }
   ctx.restore();
 }

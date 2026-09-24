@@ -7,6 +7,6 @@ import { MatchStore } from "./matchStore";
 
 /** Composition root for an offline match. A room match will swap in a network GameClient. */
 export function createLocalMatch(board: BoardDefinition): MatchStore {
-  const game = createGame(board, MATCH_ROSTER);
-  return new MatchStore(new LocalGameClient(game, { rollDice: randomDice }));
+  const game = createGame(board, MATCH_ROSTER, { random: Math.random });
+  return new MatchStore(new LocalGameClient(game, { rollDice: randomDice, random: Math.random }));
 }

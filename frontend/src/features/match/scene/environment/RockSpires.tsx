@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { seededRandom } from "../random";
+import { seededRandom } from "@/game/domain/random";
 
 interface RockSpiresProps {
   /** Spires start this far from the arena centre... */

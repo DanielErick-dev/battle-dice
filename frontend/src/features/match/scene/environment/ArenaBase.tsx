@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { CanvasTexture, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace, type Texture } from "three";
-import { seededRandom } from "../random";
+import { seededRandom } from "@/game/domain/random";
 
 interface ArenaBaseProps {
   /** Tile grid extent the base must hold. */

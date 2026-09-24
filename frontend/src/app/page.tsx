@@ -1,5 +1,5 @@
-import { MatchScreen } from "@/features/match/ui/MatchScreen";
+import { ClientMatchScreen } from "@/features/match/ui/ClientMatchScreen";
 
 export default function Home() {
-  return <MatchScreen />;
+  return <ClientMatchScreen />;
 }

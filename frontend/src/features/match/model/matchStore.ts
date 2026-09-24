@@ -2,13 +2,21 @@ import type { GameClient, GameUpdate } from "@/game/application/gameClient";
 import { GameRuleError, type GameCommand, type GameErrorCode } from "@/game/domain/commands";
 import type { Board } from "@/game/domain/types";
 import { DEFAULT_TIMINGS, type PlaybackTimings } from "../config";
-import { canRoll, createInitialView, type MatchView } from "./matchView";
+import { canPlayCard, canRoll, createInitialView, type MatchView } from "./matchView";
 import { eventToSteps, syncStep, type PlaybackStep } from "./playback";
 
 const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   NOT_YOUR_TURN: "Não é a sua vez.",
   GAME_FINISHED: "A partida já terminou.",
   UNKNOWN_PLAYER: "Jogador desconhecido.",
+  DISCARD_PENDING: "Escolha uma carta para descartar primeiro.",
+  NO_DISCARD_PENDING: "Não há carta para descartar.",
+  UNKNOWN_CARD: "Essa carta não está na sua mão.",
+  CARD_ALREADY_PLAYED: "Você já usou uma carta neste turno.",
+  NOT_ENOUGH_KI: "Ki insuficiente para essa carta.",
+  INVALID_TARGET: "Escolha um oponente como alvo.",
+  INVALID_VALUE: "Escolha um valor de 1 a 6.",
+  NO_PORTAL_AHEAD: "Não há portal à frente.",
 };
 
 /**
@@ -50,6 +58,17 @@ export class MatchStore {
   rollDice = (): void => {
     if (!canRoll(this.view)) return;
     this.dispatch({ type: "rollDice", playerId: this.view.activePlayerId });
+  };
+
+  playCard = (cardUid: string, choice: { targetId?: string; value?: number } = {}): void => {
+    if (!canPlayCard(this.view)) return;
+    this.dispatch({ type: "playCard", playerId: this.view.activePlayerId, cardUid, ...choice });
+  };
+
+  discardCard = (cardUid: string): void => {
+    const pending = this.view.pendingDiscard;
+    if (!pending || this.view.isAnimating) return;
+    this.dispatch({ type: "discardCard", playerId: pending.playerId, cardUid });
   };
 
   restart = (): void => {

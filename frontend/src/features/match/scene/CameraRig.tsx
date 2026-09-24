@@ -4,7 +4,8 @@ import { OrbitControls } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef, type ComponentRef } from "react";
 import { PerspectiveCamera, Vector3 } from "three";
-import type { TileEffectKind, TileEffectView } from "../model/matchView";
+import type { CardId } from "@/game/domain/cards";
+import type { CardCastView, TileEffectKind, TileEffectView } from "../model/matchView";
 import type { BoardLayout, Vec3 } from "./boardLayout";
 
 const BASE_DIRECTION = new Vector3(0, 12, 12.5).normalize();
@@ -32,6 +33,16 @@ const SHOTS: Record<TileEffectKind, Shot> = {
   skipTurn: { trauma: 0.3 },
   turnSkipped: { trauma: 0.2 },
   extraTurn: { fovKick: 0.6 },
+  trapBlocked: { fovKick: 0.4 },
+  teleport: { closeUp: { distance: 0.62, seconds: 1.5 } },
+};
+
+/** Cards whose cast is filmed too (the rest are covered by the effects they cause). */
+const CAST_SHOTS: Partial<Record<CardId, Shot>> = {
+  kamehameha: { trauma: 0.9 },
+  solarFlare: { fovKick: 1 },
+  kaioken: { trauma: 0.35 },
+  flyingNimbus: { closeUp: { distance: 0.8, seconds: 2 } },
 };
 /** Winner close-up (distance factor) while the camera circles them. */
 const VICTORY_DISTANCE = 0.55;
@@ -55,6 +66,8 @@ interface CameraRigProps {
   effect: TileEffectView | null;
   /** Someone won: close in on them and circle around. */
   celebrating: boolean;
+  /** Card being played; each new one may get its shot. */
+  cast: CardCastView | null;
 }
 
 /**
@@ -62,13 +75,14 @@ interface CameraRigProps {
  * focus) and films events: close-ups, shakes and field-of-view kicks. Panning moves camera
  * and target together, so the player's chosen orbit angle is kept.
  */
-export function CameraRig({ layout, focus, follow, effect, celebrating }: CameraRigProps) {
+export function CameraRig({ layout, focus, follow, effect, celebrating, cast }: CameraRigProps) {
   const camera = useThree((state) => state.camera);
   const aspect = useThree((state) => state.size.width / state.size.height);
   const controls = useRef<ComponentRef<typeof OrbitControls>>(null);
   const zooming = useRef(true);
   const lastGoalDistance = useRef(0);
   const lastEffect = useRef<TileEffectView | null>(null);
+  const lastCast = useRef<CardCastView | null>(null);
   const shot = useRef({ closeUpFactor: 1, closeUpUntil: 0, trauma: 0, fovKick: 0 });
   const appliedShake = useRef(new Vector3());
   const scratch = useRef({ goal: new Vector3(), offset: new Vector3(), step: new Vector3() });
@@ -93,16 +107,18 @@ export function CameraRig({ layout, focus, follow, effect, celebrating }: Camera
     // Undo last frame's shake so it never accumulates into the orbit.
     camera.position.sub(appliedShake.current);
 
-    if (effect && effect !== lastEffect.current) {
-      const { closeUp, trauma, fovKick } = SHOTS[effect.kind];
+    const film = ({ closeUp, trauma, fovKick }: Shot) => {
       if (closeUp) {
         state.closeUpFactor = closeUp.distance;
         state.closeUpUntil = now + closeUp.seconds;
       }
       if (trauma) state.trauma = Math.max(state.trauma, trauma);
       if (fovKick) state.fovKick = Math.max(state.fovKick, fovKick);
-    }
+    };
+    if (effect && effect !== lastEffect.current) film(SHOTS[effect.kind]);
     lastEffect.current = effect;
+    if (cast && cast.id !== lastCast.current?.id) film(CAST_SHOTS[cast.card.cardId] ?? {});
+    lastCast.current = cast;
 
     const closeUp = celebrating || now < state.closeUpUntil;
     const closeUpFactor = celebrating ? VICTORY_DISTANCE : state.closeUpFactor;

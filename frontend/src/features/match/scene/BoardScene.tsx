@@ -9,6 +9,7 @@ import type { MatchView } from "../model/matchView";
 import { boardScaleFor, CameraRig } from "./CameraRig";
 import { createBoardLayout, tileOffsetFor, TILE_PITCH, type BoardLayout, type Vec3 } from "./boardLayout";
 import { ArenaEnvironment, HORIZON_COLOR } from "./environment/ArenaEnvironment";
+import { KamehamehaBeam } from "./CardEffects";
 import { DiceThrow } from "./DiceThrow";
 import { PlayerToken } from "./PlayerToken";
 import { PostEffects } from "./PostEffects";
@@ -86,11 +87,29 @@ export default function BoardScene({ board, columns, view, anchors, followCamera
           isTeleporting={isTeleport(view.effect) && view.effect?.playerId === player.id}
           isActive={view.activePlayerId === player.id}
           isPowered={view.poweredPlayerId === player.id}
+          isShielded={player.shielded}
+          diceBoost={player.diceBoost}
+          cast={view.cast?.playerId === player.id ? view.cast : null}
           anchors={anchors}
         />
       ))}
 
-      <DiceThrow roll={view.roll} landing={diceLanding(view, layout)} onImpact={onDiceImpact} />
+      {view.cast?.card.cardId === "kamehameha" && view.cast.targetId && (
+        <KamehamehaBeam
+          key={view.cast.id}
+          from={tokenPosition(view, layout, view.cast.playerId)}
+          to={tokenPosition(view, layout, view.cast.targetId)}
+        />
+      )}
+
+      {[0, 1].map((index) => (
+        <DiceThrow
+          key={index}
+          roll={dieRoll(view, index)}
+          landing={diceLanding(view, layout, index)}
+          onImpact={onDiceImpact}
+        />
+      ))}
 
       <CameraRig
         layout={layout}
@@ -98,6 +117,7 @@ export default function BoardScene({ board, columns, view, anchors, followCamera
         follow={followCamera}
         effect={view.effect}
         celebrating={view.winnerId !== null}
+        cast={view.cast}
       />
       <PostEffects quality={EFFECTS_QUALITY} />
     </Canvas>
@@ -111,14 +131,25 @@ function focusPoint(view: MatchView, layout: BoardLayout): Vec3 {
   return player ? layout.position(player.position) : [0, 0, 0];
 }
 
-/** Beside the thrower's tile, towards the camera, so the die lands in view. */
-function diceLanding(view: MatchView, layout: BoardLayout): Vec3 {
+function tokenPosition(view: MatchView, layout: BoardLayout, playerId: string): Vec3 {
+  const player = view.players.find((candidate) => candidate.id === playerId);
+  return player ? layout.position(player.position) : [0, 0, 0];
+}
+
+/** The `index`-th die of the current throw (a second one only under Kaioken). */
+function dieRoll(view: MatchView, index: number): { id: number; value: number } | null {
+  const value = view.roll?.dice[index];
+  return view.roll && value !== undefined ? { id: view.roll.id, value } : null;
+}
+
+/** Beside the thrower's tile, towards the camera, so the dice land in view; a second die lands alongside. */
+function diceLanding(view: MatchView, layout: BoardLayout, index: number): Vec3 {
   const [x, y, z] = focusPoint(view, layout);
-  return [x + TILE_PITCH * 0.45, y, z + TILE_PITCH * 0.5];
+  return [x + TILE_PITCH * (0.45 + index * 0.5), y, z + TILE_PITCH * (0.5 - index * 0.15)];
 }
 
 function isTeleport(effect: MatchView["effect"]): boolean {
-  return effect?.kind === "portal" || effect?.kind === "trap";
+  return effect?.kind === "portal" || effect?.kind === "trap" || effect?.kind === "teleport";
 }
 
 /** Tiles the active player can land on with the next roll, shown only while waiting for it. */

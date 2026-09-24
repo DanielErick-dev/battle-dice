@@ -1,5 +1,8 @@
+/** Source of uniform random numbers in [0, 1), injected so games can be replayed and tested. */
+export type RandomSource = () => number;
+
 /** Small deterministic PRNG (mulberry32): same seed, same sequence, so procedural details stay put. */
-export function seededRandom(seed: number): () => number {
+export function seededRandom(seed: number): RandomSource {
   let state = seed >>> 0;
   return () => {
     state = (state + 0x6d2b79f5) >>> 0;

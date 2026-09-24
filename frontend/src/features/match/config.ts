@@ -70,6 +70,12 @@ export interface PlaybackTimings {
   effectTravelMs: number;
   /** How long a notice without movement (extra turn, lost turn) stays up. */
   noticeMs: number;
+  /** A card flying into the arena before its effect plays out. */
+  castMs: number;
+  /** A drawn card sliding into the hand. */
+  drawMs: number;
+  /** Each tile of a knock-back (Kamehameha): faster than walking. */
+  pushStepMs: number;
 }
 
 export const DEFAULT_TIMINGS: PlaybackTimings = {
@@ -79,4 +85,7 @@ export const DEFAULT_TIMINGS: PlaybackTimings = {
   effectWarmupMs: 450,
   effectTravelMs: 750,
   noticeMs: 1300,
+  castMs: 1100,
+  drawMs: 700,
+  pushStepMs: 200,
 };

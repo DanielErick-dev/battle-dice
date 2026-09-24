@@ -3,9 +3,11 @@
 import { useFrame, type RootState } from "@react-three/fiber";
 import { useRef } from "react";
 import { Vector3, type Group, type Mesh } from "three";
-import type { PlayerId } from "@/game/domain/types";
+import type { DiceBoost, PlayerId } from "@/game/domain/types";
 import { DEFAULT_TIMINGS, type PlayerSkin } from "../config";
+import type { CardCastView } from "../model/matchView";
 import { TILE_HEIGHT, TILE_PITCH, type Vec3 } from "./boardLayout";
+import { DragonBallOrb, HealBurst, NimbusCloud, ShieldBubble } from "./CardEffects";
 import { KiAura } from "./KiAura";
 import type { SpriteAnchors } from "./spriteAnchors";
 
@@ -18,6 +20,12 @@ interface PlayerTokenProps {
   isActive: boolean;
   /** Charged with ki: shows the aura. */
   isPowered: boolean;
+  /** Ki Barrier up. */
+  isShielded: boolean;
+  /** Card modifier waiting for the next roll (Kaioken, Dragon Ball). */
+  diceBoost: DiceBoost | null;
+  /** Card this player just cast, for its one-shot effect. */
+  cast: CardCastView | null;
   anchors: SpriteAnchors;
 }
 
@@ -50,7 +58,18 @@ const TURN_THRESHOLD_PX = 2;
  * Follows the target tile by tile. Targets queue up as waypoints so a multi-tile move
  * reads as one continuous run instead of a hop per tile.
  */
-export function PlayerToken({ playerId, skin, target, isTeleporting, isActive, isPowered, anchors }: PlayerTokenProps) {
+export function PlayerToken({
+  playerId,
+  skin,
+  target,
+  isTeleporting,
+  isActive,
+  isPowered,
+  isShielded,
+  diceBoost,
+  cast,
+  anchors,
+}: PlayerTokenProps) {
   const group = useRef<Group>(null);
   const ring = useRef<Mesh>(null);
   const waypoints = useRef<{ to: Vector3; teleport: boolean }[]>([]);
@@ -106,6 +125,11 @@ export function PlayerToken({ playerId, skin, target, isTeleporting, isActive, i
   return (
     <group ref={group}>
       <KiAura active={isPowered} />
+      <KiAura active={diceBoost?.kind === "double"} palette="red" />
+      {diceBoost?.kind === "fixed" && <DragonBallOrb />}
+      {isShielded && <ShieldBubble />}
+      {cast?.card.cardId === "flyingNimbus" && <NimbusCloud key={cast.id} />}
+      {cast?.card.cardId === "senzuBean" && <HealBurst key={cast.id} />}
       <mesh ref={ring} rotation-x={-Math.PI / 2} position-y={0.02}>
         <ringGeometry args={[0.42, 0.52, 40]} />
         <meshBasicMaterial color={skin.color} transparent opacity={isActive ? 0.9 : 0.35} toneMapped={false} />
