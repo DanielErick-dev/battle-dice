@@ -3,6 +3,7 @@ import {
   CELESTIAL_GRACE_ENERGY,
   CRIMSON_MARCH_BONUS,
   DRAGON_HOARD_DRAWS,
+  LEVITATION_TURNS,
   type AbilityId,
 } from "@/game/domain/abilities";
 
@@ -36,9 +37,9 @@ export const ABILITY_TEXT: Readonly<Record<AbilityId, { name: string; descriptio
     description: `Carrega em ${abilityCycle("dragonHoard")} turnos. Ao usar, compra ${DRAGON_HOARD_DRAWS} cartas na hora.`,
     active: `+${DRAGON_HOARD_DRAWS} cartas na mão`,
   },
-  crimsonVeil: {
-    name: "Véu Carmesim",
-    description: `Carrega em ${abilityCycle("crimsonVeil")} turnos. Ao usar, ergue o Escudo Arcano na hora.`,
-    active: "O Escudo Arcano te protege",
+  levitation: {
+    name: "Levitação Carmesim",
+    description: `Carrega em ${abilityCycle("levitation")} turnos. Ao usar, flutua por ${LEVITATION_TURNS} turnos: nenhuma casa tem efeito sobre você (armadilhas, maldições, bênçãos, portais).`,
+    active: `Flutuando por ${LEVITATION_TURNS} turnos: nenhuma casa te afeta`,
   },
 };

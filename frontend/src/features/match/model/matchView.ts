@@ -27,7 +27,9 @@ export type TileEffectKind =
   | "blessing"
   | "teleport"
   | "abilityReady"
-  | "abilityUsed";
+  | "abilityUsed"
+  /** A levitating player floated over a tile's effect. */
+  | "levitated";
 
 /** The last revealed roll: its dice, and how they became the distance walked. */
 export interface RollView {

@@ -12,6 +12,7 @@ import { boardScaleFor, CameraRig } from "./CameraRig";
 import { createBoardLayout, tileOffsetFor, TILE_PITCH, type BoardLayout, type Vec3 } from "./boardLayout";
 import { ArenaEnvironment, HORIZON_COLOR } from "./environment/ArenaEnvironment";
 import { ArcaneBeam } from "./CardEffects";
+import { LEVITATE_HEIGHT } from "./character/figure";
 import { DiceThrow } from "./DiceThrow";
 import { HiddenTrapBurst } from "./HiddenTrapBurst";
 import { PlayerToken } from "./PlayerToken";
@@ -125,6 +126,8 @@ export default function BoardScene({ board, columns, view, followCamera, onDiceI
             isActive={view.activePlayerId === player.id}
             isPowered={view.poweredPlayerId === player.id}
             isShielded={player.shielded}
+            shieldColor={characterFor(player.id)?.shieldColor}
+            isLevitating={player.levitating > 0}
             diceBoost={player.diceBoost}
             cast={view.cast?.playerId === player.id ? view.cast : null}
             abilityCast={
@@ -145,7 +148,7 @@ export default function BoardScene({ board, columns, view, followCamera, onDiceI
           <DiceThrow
             key={index}
             roll={dieRoll(view, index)}
-            landing={diceLanding(view, layout, index)}
+            landing={diceLanding(view, board, layout, index)}
             onImpact={onDiceImpact}
             realm={focusRealm}
           />
@@ -200,9 +203,12 @@ function effectKey(effect: object): number {
   return effectKeys.get(effect)!;
 }
 
+/** Where a player's figure is: on their tile, raised while they levitate. */
 function tokenPosition(view: MatchView, layout: BoardLayout, playerId: string): Vec3 {
   const player = view.players.find((candidate) => candidate.id === playerId);
-  return player ? layout.position(player.position) : [0, 0, 0];
+  if (!player) return [0, 0, 0];
+  const [x, y, z] = layout.position(player.position);
+  return [x, y + (player.levitating > 0 ? LEVITATE_HEIGHT : 0), z];
 }
 
 /** The `index`-th die of the current throw (a second one only under Berserk Fury or Oracle Eye). */
@@ -211,8 +217,19 @@ function dieRoll(view: MatchView, index: number): { id: number; value: number } 
   return view.roll && value !== undefined ? { id: view.roll.id, value } : null;
 }
 
-/** Beside the thrower's tile, towards the camera, so the dice land in view; a second die lands alongside. */
-function diceLanding(view: MatchView, layout: BoardLayout, index: number): Vec3 {
+/**
+ * Beside the thrower's tile, towards the camera, so the dice land in view; a second die lands alongside.
+ * On a realm track, on the tiles ahead.
+ */
+function diceLanding(view: MatchView, board: Board, layout: BoardLayout, index: number): Vec3 {
+  const tile = focusTile(view);
+  // Realm track tiles float apart, with nothing beside them to land on: the dice land on the
+  // tiles ahead instead, at their height.
+  if (tile !== null && getTile(board, tile).track) {
+    let ahead = tile;
+    for (let step = 0; step <= index; step++) ahead = getTile(board, ahead).next ?? ahead;
+    return layout.position(ahead);
+  }
   const [x, y, z] = focusPoint(view, layout);
   return [x + TILE_PITCH * (0.45 + index * 0.5), y, z + TILE_PITCH * (0.5 - index * 0.15)];
 }

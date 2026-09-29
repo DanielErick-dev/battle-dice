@@ -5,12 +5,16 @@ import type { Draft } from "./draft";
 /**
  * Ends the current turn: the same player goes again after an extra turn, otherwise play
  * passes on, skipping (and consuming) lost turns. Every TURNS_PER_ENERGY turns a player
- * starts (extra turns included), they gain 1 energy; every turn charges their ability until it's ready.
+ * starts (extra turns included), they gain 1 energy; every turn charges their ability until it's ready,
+ * and the player whose turn ends is a turn closer to landing from a Levitation.
  * Returns the index of the player whose turn it is now.
  */
 export function endTurn(draft: Draft, extraTurn: boolean): number {
   const { currentPlayerIndex } = draft.state;
   let index = currentPlayerIndex;
+  // A Levitation counts down on its owner's turns: the one ending is spent.
+  const ending = draft.players[currentPlayerIndex];
+  if (ending.levitating > 0) draft.players[currentPlayerIndex] = { ...ending, levitating: ending.levitating - 1 };
 
   if (!extraTurn) {
     index = (currentPlayerIndex + 1) % draft.players.length;

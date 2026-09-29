@@ -13,13 +13,22 @@ export const TRAP_DRAIN_ENERGY = 2;
  * Applies the effect of the tile a player stopped on and leaves them at their final tile.
  * Destinations never chain into another effect. A trap or curse (hidden traps first) may
  * instead stop resolving to ask whether the player spends their Trap Ward on it (see
- * `draft.pendingWard`); `resolveWard` finishes it with their answer.
+ * `draft.pendingWard`); `resolveWard` finishes it with their answer. A levitating player
+ * (see Player.levitating) just stays on the tile.
  */
 export function resolveLanding(draft: Draft, playerId: PlayerId, landed: TileId): void {
   const { board } = draft.state;
   const { effect } = getTile(board, landed);
   const moveTo = (position: TileId) => updatePlayer(draft, playerId, () => ({ position }));
   moveTo(landed);
+
+  // Floating: nothing on the tile touches them. A hidden trap stays where it is, unrevealed.
+  if (playerIn(draft, playerId).levitating > 0) {
+    if (effect.kind !== "none" && !draft.destroyedTraps.includes(landed)) {
+      draft.events.push({ type: "levitatedOver", playerId, tile: landed });
+    }
+    return;
+  }
 
   const threat = threatAt(draft, landed);
   if (threat) {

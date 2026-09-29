@@ -9,22 +9,26 @@ import type { Player } from "./types";
  * - crimsonMarch: this turn's roll walks CRIMSON_MARCH_BONUS tiles further.
  * - celestialGrace: CELESTIAL_GRACE_ENERGY energy, right away.
  * - dragonHoard: DRAGON_HOARD_DRAWS cards drawn, right away.
- * - crimsonVeil: the Arcane Shield raised, right away.
+ * - levitation: the player floats for LEVITATION_TURNS of their turns, this one included: no
+ *   tile does anything to them (traps, hidden ones too, curses, blessings, portals…).
+ *   Charges over LONG_ABILITY_CYCLE turns.
  * - trapWard: reactive, never used on its own. When a trap (hidden ones too) or a curse is
  *   about to strike, the player is asked whether to spend it and ignore the harm; a trap is
- *   smashed for good. Charges over TRAP_WARD_CYCLE turns.
+ *   smashed for good. Charges over LONG_ABILITY_CYCLE turns.
  */
-export type AbilityId = "doubleCast" | "trapWard" | "crimsonMarch" | "celestialGrace" | "dragonHoard" | "crimsonVeil";
+export type AbilityId = "doubleCast" | "trapWard" | "crimsonMarch" | "celestialGrace" | "dragonHoard" | "levitation";
 
 /** Turns to charge an ability, from empty. */
 export const ABILITY_CYCLE = 3;
-/** Trap Ward smashes traps for good, so it takes longer to come back. */
-export const TRAP_WARD_CYCLE = 5;
+/** Trap Ward smashes traps for good and Levitation lasts two turns, so they take longer to come back. */
+export const LONG_ABILITY_CYCLE = 5;
 
 /** Turns this ability takes to charge from empty. */
 export function abilityCycle(ability: AbilityId | null): number {
-  return ability === "trapWard" ? TRAP_WARD_CYCLE : ABILITY_CYCLE;
+  return ability === "trapWard" || ability === "levitation" ? LONG_ABILITY_CYCLE : ABILITY_CYCLE;
 }
+/** Own turns a Levitation lasts, counting the one it's used on. */
+export const LEVITATION_TURNS = 2;
 export const CRIMSON_MARCH_BONUS = 2;
 export const CELESTIAL_GRACE_ENERGY = 2;
 export const DRAGON_HOARD_DRAWS = 2;
@@ -48,7 +52,6 @@ export function abilityBlocker(player: Player, abilityInUse: AbilityId | null): 
   if (!isAbilityReady(player)) return "ABILITY_NOT_READY";
   if (abilityInUse !== null) return "ABILITY_IN_USE";
   if (player.ability === "celestialGrace" && player.energy >= MAX_ENERGY) return "ENERGY_FULL";
-  if (player.ability === "crimsonVeil" && player.shielded) return "ALREADY_SHIELDED";
   return null;
 }
 

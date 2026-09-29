@@ -25,12 +25,21 @@ const COPY: Record<Exclude<TileEffectKind, "realmEnter" | "abilityReady" | "abil
   },
   advance: { title: "AVANCE!", tone: "text-cyan-300", subtitle: ({ from, to }) => `+${to - from} casas até a ${to}` },
   extraTurn: { title: "JOGUE DE NOVO!", tone: "text-lime-300", subtitle: (_, name) => `${name} ganhou outra rolagem` },
-  skipTurn: { title: "PERDE A VEZ!", tone: "text-slate-200", subtitle: (_, name) => `${name} fica fora da próxima rodada` },
+  skipTurn: {
+    title: "PERDE A VEZ!",
+    tone: "text-slate-200",
+    subtitle: (_, name) => `${name} fica fora da próxima rodada`,
+  },
   turnSkipped: { title: "VEZ PULADA", tone: "text-slate-300", subtitle: (_, name) => `${name} descansa esta rodada` },
   trapBlocked: { title: "BLOQUEADO!", tone: "text-cyan-200", subtitle: blockedSubtitle },
   trapCurse: { title: "MALDIÇÃO!", tone: "text-fuchsia-400", subtitle: curseSubtitle },
   blessing: { title: "BÊNÇÃO!", tone: "text-amber-200", subtitle: blessingSubtitle },
   teleport: { title: "TELETRANSPORTE!", tone: "text-sky-300", subtitle: ({ from, to }) => `Casa ${from} → ${to}` },
+  levitated: {
+    title: "FLUTUANDO!",
+    tone: "text-rose-300",
+    subtitle: ({ from }, name) => `${name} paira sobre a casa ${from}: nada acontece`,
+  },
 };
 
 export function EffectBanner({ effect, winnerName, nameOf }: EffectBannerProps) {
@@ -91,8 +100,16 @@ function curseSubtitle({ curse }: TileEffectView): string {
 /** The realm banner depends on which realm opened. */
 function realmCopy(effect: TileEffectView): Copy {
   return effect.realm === "celestial"
-    ? { title: "TRILHA CELESTIAL!", tone: "text-amber-100", subtitle: () => "Os céus se abrem: só bênçãos pelo caminho" }
-    : { title: "TRILHA INFERNAL!", tone: "text-orange-500", subtitle: () => "Só maldições entre as chamas. Boa sorte." };
+    ? {
+        title: "TRILHA CELESTIAL!",
+        tone: "text-amber-100",
+        subtitle: () => "Os céus se abrem: só bênçãos pelo caminho",
+      }
+    : {
+        title: "TRILHA INFERNAL!",
+        tone: "text-orange-500",
+        subtitle: () => "Só maldições entre as chamas. Boa sorte.",
+      };
 }
 
 /** Ability banners carry the ability's own name: charged, or used and what it does now. */
@@ -101,7 +118,11 @@ function abilityCopy({ kind, ability }: TileEffectView): Copy {
   if (kind === "abilityReady") {
     return { title: "HABILIDADE PRONTA!", tone: "text-violet-300", subtitle: () => text?.name ?? "" };
   }
-  return { title: text ? `${text.name.toUpperCase()}!` : "HABILIDADE!", tone: "text-violet-300", subtitle: () => text?.active ?? "" };
+  return {
+    title: text ? `${text.name.toUpperCase()}!` : "HABILIDADE!",
+    tone: "text-violet-300",
+    subtitle: () => text?.active ?? "",
+  };
 }
 
 function blockedSubtitle({ ward }: TileEffectView): string {

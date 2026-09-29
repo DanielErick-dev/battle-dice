@@ -45,6 +45,7 @@ const SHOTS: Record<TileEffectKind, Shot> = {
   teleport: { closeUp: { distance: 0.62, seconds: 1.5 } },
   abilityReady: { fovKick: 0.4 },
   abilityUsed: { fovKick: 0.8 },
+  levitated: { fovKick: 0.3 },
 };
 
 /** Cards whose cast is filmed too (the rest are covered by the effects they cause). */

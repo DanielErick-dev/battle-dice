@@ -21,14 +21,14 @@ import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 import { dedup, meshopt, prune, resample, simplify, textureCompress, weld } from "@gltf-transform/functions";
 import { MeshoptEncoder, MeshoptSimplifier } from "meshoptimizer";
 import sharp from "sharp";
-import { CHARACTER_MODELS } from "./manifest.mjs";
+import { CHARACTER_MODELS, OPTIONAL_CLIPS, REQUIRED_CLIPS } from "./manifest.mjs";
 
 const OUTPUT_DIR = path.resolve(fileURLToPath(import.meta.url), "../../../public/models/characters");
 /** Plenty for a figure that fills a fraction of the screen; the heaviest export has ~100k. */
 const TARGET_VERTICES = 24_000;
 const TEXTURE_SIZE = 1024;
 /** Clips played standing on one spot (menu stage, ability), so the figure never wanders off it. */
-const IN_PLACE_CLIPS = ["intro", "showcase", "cast"];
+const IN_PLACE_CLIPS = ["intro", "showcase", "cast", "float"];
 
 const { values } = parseArgs({
   options: { source: { type: "string" }, only: { type: "string" } },
@@ -55,27 +55,27 @@ for (const [id, model] of Object.entries(CHARACTER_MODELS)) {
  * Mesh and textures from the first of the character's own exports found, every clip's
  * animation, then optimised. A required clip without its own export is borrowed from another
  * character (`fallbacks`), bone rotations only, so it moves the same without taking on the
- * other body's proportions. `optional` clips are added only when exported.
+ * other body's proportions. Optional clips are added only when exported.
  */
-async function buildCharacter({ folder, prefix, clips, optional = {}, fallbacks = {} }, output) {
-  const exportOf = (character, file) => path.join(values.source, character.folder, `${character.prefix}_${file}.glb`);
-  const ownExport = (file) => exportOf({ folder, prefix }, file);
+async function buildCharacter({ folder, fallbacks = {} }, output) {
+  const exportOf = (character, clip) => path.join(values.source, character.folder, `${clip}.glb`);
+  const ownExport = (clip) => exportOf({ folder }, clip);
   const sources = [];
-  for (const [name, file] of Object.entries(clips)) {
-    if (await exists(ownExport(file))) sources.push({ name, path: ownExport(file), rotationsOnly: false });
+  for (const name of REQUIRED_CLIPS) {
+    if (await exists(ownExport(name))) sources.push({ name, path: ownExport(name), rotationsOnly: false });
     else if (fallbacks[name]) {
-      const borrowed = exportOf(CHARACTER_MODELS[fallbacks[name].character], fallbacks[name].file);
-      console.warn(`  (no ${path.basename(ownExport(file))}: "${name}" borrowed from ${path.basename(borrowed)})`);
-      sources.push({ name, path: borrowed, rotationsOnly: true });
-    } else throw new Error(`Missing ${ownExport(file)}`);
+      const lender = CHARACTER_MODELS[fallbacks[name]];
+      console.warn(`  (no ${folder}/${name}.glb: borrowed from ${lender.folder})`);
+      sources.push({ name, path: exportOf(lender, name), rotationsOnly: true });
+    } else throw new Error(`Missing ${ownExport(name)}`);
   }
-  for (const [name, file] of Object.entries(optional)) {
-    if (await exists(ownExport(file))) sources.push({ name, path: ownExport(file), rotationsOnly: false });
-    else console.warn(`  (no ${path.basename(ownExport(file))}: "${name}" clip left out)`);
+  for (const name of OPTIONAL_CLIPS) {
+    if (await exists(ownExport(name))) sources.push({ name, path: ownExport(name), rotationsOnly: false });
+    else console.warn(`  (no ${folder}/${name}.glb: "${name}" clip left out)`);
   }
 
   const base = sources.find((source) => !source.rotationsOnly);
-  if (!base) throw new Error(`No export of ${prefix} itself to take the mesh from`);
+  if (!base) throw new Error(`No export of ${folder} itself to take the mesh from`);
   const document = await io.read(base.path);
   const root = document.getRoot();
   // Meshy adds a one-frame ".001" rest pose next to each clip; the clips are copied in below.

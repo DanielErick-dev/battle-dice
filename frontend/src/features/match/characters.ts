@@ -5,9 +5,9 @@ import type { PlayerId } from "@/game/domain/types";
  * Animation clips of a character model, built by scripts/characters/build-characters.mjs.
  * Every model has idle and run. Optional: intro plays once on the menus as the character is
  * picked, then showcase loops to present them (idle stands in without it); cast plays once as
- * they use their ability.
+ * they use their ability; float loops while they levitate (idle stands in without it).
  */
-export type CharacterClip = "idle" | "run" | "cast" | "intro" | "showcase";
+export type CharacterClip = "idle" | "run" | "cast" | "intro" | "showcase" | "float";
 
 /** Seconds each one-shot clip lasts, for the clips a model has. */
 export type ClipLengths = Partial<Record<CharacterClip, number>>;
@@ -27,6 +27,10 @@ export interface CharacterDefinition {
   energyBlades?: boolean;
   /** Seconds into their cast clip when the blow lands: the ability's burst waits for it. */
   castImpactSeconds?: number;
+  /** Tint of their Arcane Shield bubble (cyan by default). */
+  shieldColor?: string;
+  /** Hovers on the menu stage (floating instead of a showcase) with a staff in hand, as when levitating. */
+  levitates?: boolean;
 }
 
 const model = (id: string) => `/models/characters/${id}.glb`;
@@ -81,8 +85,10 @@ export const CHARACTERS = {
     epithet: "Senhora dos feitiços de sangue",
     color: "#ef4444",
     model: model("crimsonWitch"),
-    ability: "crimsonVeil",
+    ability: "levitation",
     playable: true,
+    levitates: true,
+    shieldColor: "#ef4444",
   },
 } as const satisfies Record<string, CharacterDefinition>;
 

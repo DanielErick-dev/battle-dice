@@ -205,7 +205,8 @@ export function DiceThrow({ roll, landing, onImpact, realm }: DiceThrowProps) {
 }
 
 function startThrow(roll: { id: number; value: number }, landing: Vec3, now: number): Throw {
-  const to = new Vector3(landing[0], REST_Y, landing[2]);
+  // Resting on whatever the landing spot's height is (realm tracks sit above the board).
+  const to = new Vector3(landing[0], landing[1] + REST_Y, landing[2]);
   return {
     id: roll.id,
     startedAt: now,

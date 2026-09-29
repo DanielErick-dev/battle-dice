@@ -8,5 +8,8 @@ export const FIGURE_HEIGHT = 3.0;
 const EFFECTS_MODEL_HEIGHT = 1.9;
 export const EFFECT_SCALE = FIGURE_HEIGHT / EFFECTS_MODEL_HEIGHT;
 
-/** Where beams and blasts leave and hit a figure. */
+/** Where beams and blasts leave and hit a figure (standing; add its hover when levitating). */
 export const CHEST_HEIGHT = FIGURE_HEIGHT * 0.55;
+
+/** How high a levitating figure hovers over its tile. */
+export const LEVITATE_HEIGHT = 1.4;

@@ -10,13 +10,15 @@ import type { CharacterClip, ClipLengths } from "../../characters";
 /** Seconds to blend from one clip into the next. */
 const CROSSFADE_SECONDS = 0.25;
 /** Slower blend out of an intro or cast, so its final pose settles into the next loop. */
-const SETTLE_CROSSFADE_SECONDS = 0.8; /** Playback speed per clip: the run cycle is sped up to match how fast tokens cover a tile. */
+const SETTLE_CROSSFADE_SECONDS = 0.8;
+/** Playback speed per clip: the run cycle is sped up to match how fast tokens cover a tile. */
 const CLIP_SPEED: Readonly<Record<CharacterClip, number>> = {
   idle: 1,
   run: 1.25,
   cast: 1,
   intro: 1,
   showcase: 1,
+  float: 1,
 };
 /** Clips played once, holding their last pose until the next clip takes over. */
 const ONE_SHOT_CLIPS: readonly CharacterClip[] = ["cast", "intro"];
@@ -81,11 +83,11 @@ export function CharacterModel({ url, height, clip, onClipLengths, children }: C
   );
 
   useFrame((_, delta) => {
-    // A missing showcase idles; any other missing clip keeps the current one going (idle if
-    // nothing plays yet).
+    // A missing showcase or float idles; any other missing clip keeps the current one going
+    // (idle if nothing plays yet).
     const wanted = clips.has(clip.current)
       ? clip.current
-      : clip.current === "showcase"
+      : clip.current === "showcase" || clip.current === "float"
         ? "idle"
         : (playing.current ?? "idle");
     if (wanted !== playing.current) {

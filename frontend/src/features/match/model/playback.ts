@@ -1,4 +1,4 @@
-import { abilityCycle, isReactive, type AbilityId } from "@/game/domain/abilities";
+import { abilityCycle, isReactive, LEVITATION_TURNS, type AbilityId } from "@/game/domain/abilities";
 import { cardCost } from "@/game/domain/cards";
 import { DICE_SIDES } from "@/game/domain/dice";
 import { currentPlayer } from "@/game/domain/engine";
@@ -212,7 +212,7 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
             const spent = withPlayer(view, event.playerId, (player) => ({
               abilityCharge: 0,
               energy: player.energy + event.energyGained,
-              shielded: player.shielded || event.ability === "crimsonVeil",
+              levitating: event.ability === "levitation" ? LEVITATION_TURNS : player.levitating,
             }));
             return {
               ...spent,
@@ -221,6 +221,17 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
               effect: abilityEffect(spent, event.playerId, "abilityUsed", event.ability, event.energyGained),
             };
           },
+          durationMs: timings.noticeMs,
+        },
+      ];
+
+    case "levitatedOver":
+      return [
+        {
+          apply: (view) => ({
+            ...view,
+            effect: { kind: "levitated", playerId: event.playerId, from: event.tile, to: event.tile },
+          }),
           durationMs: timings.noticeMs,
         },
       ];

@@ -8,6 +8,7 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
   type RefObject,
@@ -22,6 +23,14 @@ import {
 } from "@/features/match/characters";
 import { CharacterModel } from "@/features/match/scene/character/CharacterModel";
 import { EnergyBlades } from "@/features/match/scene/character/EnergyBlades";
+import {
+  LevitationAura,
+  LevitationBurst,
+  levitationLift,
+  stepLevitation,
+} from "@/features/match/scene/character/Levitation";
+import { useRuneTexture } from "@/features/match/scene/character/runeCircle";
+import { WitchStaff } from "@/features/match/scene/character/WitchStaff";
 import { preferences, usePreference } from "@/features/settings/preferences";
 import { cn } from "@/lib/utils";
 
@@ -44,6 +53,14 @@ const CANVAS_BLEED = 0.2;
 const CAMERA_FOV = (2 * Math.atan((1 + 2 * CANVAS_BLEED) * Math.tan((16 * Math.PI) / 180)) * 180) / Math.PI;
 /** The intro's last pose is held this long before the figure eases into its showcase. */
 const INTRO_HOLD_MS = 700;
+/**
+ * How high a levitating character hovers over the pedestal (on top of what its float clip
+ * already lifts), and how much it bobs once up.
+ */
+const HOVER_HEIGHT = 0.36;
+const HOVER_BOB = 0.035;
+/** Without an intro, a levitating character stands a moment before rising, so the lift reads. */
+const RISE_DELAY_MS = 600;
 
 /**
  * The chosen character on a rune pedestal, facing the camera: it plays its intro once, then
@@ -93,33 +110,72 @@ export function CharacterStage({ characterId, className }: { characterId: Charac
   );
 }
 
-/** The figure's intro once (when it has one), then its showcase loop, centred in frame. */
+/**
+ * The figure's intro once (when it has one), then its showcase loop, centred in frame. A
+ * levitating character rises off the pedestal instead, floating with its staff.
+ */
 function Presentation({ characterId }: { characterId: CharacterId }) {
   const character: CharacterDefinition = CHARACTERS[characterId];
+  const showcase: CharacterClip = character.levitates ? "float" : "showcase";
   const clip = useRef<CharacterClip>("intro");
+  const hovering = useRef(false);
+  const hover = useRef<Group>(null);
+  /** Levitation progress: 0 on the pedestal, 1 hovering at HOVER_HEIGHT. */
+  const rise = useRef(0);
+  /** Set as the rise starts, to fire its burst of power once. */
+  const [burst, setBurst] = useState<number | null>(null);
+  useFrame((state, delta) => {
+    if (!hover.current) return;
+    rise.current = stepLevitation(rise.current, hovering.current, delta);
+    const lift = levitationLift(rise.current);
+    hover.current.position.y = lift * HOVER_HEIGHT + Math.sin(state.clock.elapsedTime * 1.6) * HOVER_BOB * lift;
+  });
   /** Whether the intro is playing, for effects that go with it (e.g. blades of light). */
   const inIntro = useRef(false);
   const timers = useRef<number[]>([]);
-  const onClipLengths = useCallback((lengths: ClipLengths) => {
-    timers.current.forEach((timer) => window.clearTimeout(timer));
-    // Straight to the showcase without an intro; otherwise once the intro has played out and
-    // its last pose has lingered. Its effects start fading as it ends.
-    const introMs = (lengths.intro ?? 0) * 1000;
-    inIntro.current = introMs > 0;
-    timers.current = [
-      window.setTimeout(() => (inIntro.current = false), introMs),
-      window.setTimeout(() => (clip.current = "showcase"), introMs > 0 ? introMs + INTRO_HOLD_MS : 0),
-    ];
-  }, []);
+  const onClipLengths = useCallback(
+    (lengths: ClipLengths) => {
+      timers.current.forEach((timer) => window.clearTimeout(timer));
+      // Straight to the showcase without an intro (a levitating one after a beat, to rise);
+      // otherwise once the intro has played out and its last pose has lingered. Its effects
+      // start fading as it ends.
+      const introMs = (lengths.intro ?? 0) * 1000;
+      const floats = showcase === "float";
+      inIntro.current = introMs > 0;
+      timers.current = [
+        window.setTimeout(() => (inIntro.current = false), introMs),
+        window.setTimeout(
+          () => {
+            clip.current = showcase;
+            hovering.current = floats;
+            if (floats) setBurst(performance.now());
+          },
+          introMs > 0 ? introMs + INTRO_HOLD_MS : floats ? RISE_DELAY_MS : 0,
+        ),
+      ];
+    },
+    [showcase],
+  );
   useEffect(() => () => timers.current.forEach((timer) => window.clearTimeout(timer)), []);
 
   return (
     <group position-y={FLOOR_Y}>
-      <CharacterModel url={character.model} height={FIGURE_HEIGHT} clip={clip} onClipLengths={onClipLengths}>
-        {character.energyBlades
-          ? (figure) => <EnergyBlades figure={figure} color={character.color} active={inIntro} />
-          : undefined}
-      </CharacterModel>
+      {character.levitates && (
+        <>
+          <LevitationAura size={FIGURE_HEIGHT} color={character.color} progress={rise} height={HOVER_HEIGHT} />
+          {burst !== null && <LevitationBurst key={burst} size={FIGURE_HEIGHT} color={character.color} />}
+        </>
+      )}
+      <group ref={hover}>
+        <CharacterModel url={character.model} height={FIGURE_HEIGHT} clip={clip} onClipLengths={onClipLengths}>
+          {(figure) => (
+            <>
+              {character.energyBlades && <EnergyBlades figure={figure} color={character.color} active={inIntro} />}
+              {character.levitates && <WitchStaff figure={figure} color={character.color} active={hovering} />}
+            </>
+          )}
+        </CharacterModel>
+      </group>
     </group>
   );
 }
@@ -210,74 +266,6 @@ function RunePedestal({ color }: { color: string }) {
       </mesh>
     </group>
   );
-}
-
-/** White rune circle (tinted by the material): two rings, a band of glyphs and a star. */
-function useRuneTexture() {
-  const texture = useMemo(() => {
-    const result = new CanvasTexture(drawRuneCircle());
-    result.anisotropy = 4;
-    return result;
-  }, []);
-  useEffect(() => () => texture.dispose(), [texture]);
-  return texture;
-}
-
-function drawRuneCircle(): HTMLCanvasElement {
-  const size = 512;
-  const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = size;
-  const context = canvas.getContext("2d")!;
-  const centre = size / 2;
-  context.translate(centre, centre);
-  context.strokeStyle = "white";
-  context.lineCap = "round";
-
-  const circle = (radius: number, width: number) => {
-    context.lineWidth = width;
-    context.beginPath();
-    context.arc(0, 0, radius, 0, Math.PI * 2);
-    context.stroke();
-  };
-  circle(centre * 0.97, 5);
-  circle(centre * 0.8, 3);
-  circle(centre * 0.52, 3);
-
-  // Glyphs between the outer rings, from a fixed seed so they're the same every visit.
-  let seed = 7;
-  const random = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
-  const glyphs = 24;
-  context.lineWidth = 4;
-  for (let index = 0; index < glyphs; index += 1) {
-    context.save();
-    context.rotate((index / glyphs) * Math.PI * 2);
-    context.translate(0, -centre * 0.885);
-    context.beginPath();
-    context.moveTo(0, -14);
-    context.lineTo(0, 14);
-    for (let stroke = 0; stroke < 2; stroke += 1) {
-      const y = (random() - 0.5) * 24;
-      context.moveTo(0, y);
-      context.lineTo((random() < 0.5 ? -1 : 1) * (6 + random() * 6), y + (random() - 0.5) * 16);
-    }
-    context.stroke();
-    context.restore();
-  }
-
-  // Six-pointed star inside the inner ring.
-  context.lineWidth = 3;
-  for (const offset of [0, Math.PI / 3]) {
-    context.beginPath();
-    for (let corner = 0; corner <= 3; corner += 1) {
-      const angle = offset + (corner / 3) * Math.PI * 2 - Math.PI / 2;
-      const point = [Math.cos(angle) * centre * 0.52, Math.sin(angle) * centre * 0.52] as const;
-      if (corner === 0) context.moveTo(...point);
-      else context.lineTo(...point);
-    }
-    context.stroke();
-  }
-
-  return canvas;
 }
 
 /** Glowing motes drifting up around the figure, in the character's accent. */

@@ -17,7 +17,6 @@ interface AbilityMeterProps {
 /** Why a charged ability can't be used right now, from the player's own state. */
 const WAIT_REASONS: Partial<Record<string, string>> = {
   ENERGY_FULL: "Sua energia já está no máximo",
-  ALREADY_SHIELDED: "O Escudo Arcano já está ativo",
 };
 
 /**
@@ -36,7 +35,7 @@ export function AbilityMeter({ player, inUse = false, onActivate, canActivate = 
     <div
       className={cn(
         "flex items-center gap-2 rounded-lg px-2 py-1",
-        (ready || inUse) && "bg-violet-500/20 ring-1 ring-violet-300/50",
+        (ready || inUse || player.levitating > 0) && "bg-violet-500/20 ring-1 ring-violet-300/50",
       )}
       title={`${text.name}: ${text.description}`}
     >
@@ -49,7 +48,11 @@ export function AbilityMeter({ player, inUse = false, onActivate, canActivate = 
       >
         {text.name}
       </span>
-      {inUse ? (
+      {player.levitating > 0 ? (
+        <span className="text-[9px] font-black tracking-widest text-violet-200 uppercase">
+          Flutuando · {player.levitating} {player.levitating === 1 ? "turno" : "turnos"}
+        </span>
+      ) : inUse ? (
         <span className="text-[9px] font-black tracking-widest text-violet-200 uppercase">Em uso</span>
       ) : ready && onActivate && !reactive ? (
         <button

@@ -1,4 +1,11 @@
-import { abilityBlocker, DRAGON_HOARD_DRAWS, graceEnergy, rollBonus, type AbilityId } from "./abilities";
+import {
+  abilityBlocker,
+  DRAGON_HOARD_DRAWS,
+  graceEnergy,
+  LEVITATION_TURNS,
+  rollBonus,
+  type AbilityId,
+} from "./abilities";
 import { createBoard, type BoardDefinition } from "./board";
 import { playCard, type CardChoice } from "./cardPlay";
 import { STARTING_HAND, STARTING_ENERGY, standardDeck, type CardId } from "./cards";
@@ -267,7 +274,7 @@ function activateAbility(state: GameState, playerId: PlayerId, deps: GameDepende
   if (player.ability === "dragonHoard") {
     for (let draw = 0; draw < DRAGON_HOARD_DRAWS; draw++) drawCard(draft, playerId);
   }
-  if (player.ability === "crimsonVeil") updatePlayer(draft, playerId, () => ({ shielded: true }));
+  if (player.ability === "levitation") updatePlayer(draft, playerId, () => ({ levitating: LEVITATION_TURNS }));
 
   const settled = settle(draft, playerId, {
     endsTurn: false,
@@ -418,5 +425,6 @@ function dealPlayer({ id, name, ability = null }: NewPlayer, { startTile, cards,
     diceBoost: null,
     ability,
     abilityCharge: ability && playsFirst ? 1 : 0,
+    levitating: 0,
   };
 }

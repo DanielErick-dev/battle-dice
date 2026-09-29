@@ -2,7 +2,7 @@
 
 import { Sparkles } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   AdditiveBlending,
   Color,
@@ -18,15 +18,17 @@ import { CHEST_HEIGHT } from "./character/figure";
 import { useAge } from "./useAge";
 
 // Colours pushed past 1.0 glow through the bloom pass.
-const SHIELD_COLOR = new Color("#22d3ee").multiplyScalar(1.6);
+/** The Arcane Shield's usual tint; a character may raise it in their own colour (see CharacterDefinition.shieldColor). */
+export const DEFAULT_SHIELD_COLOR = "#22d3ee";
 const BEAM_COLOR = new Color("#60a5fa").multiplyScalar(3);
 const BEAM_CORE = new Color("#e0f2fe").multiplyScalar(3);
 const Y_AXIS = new Vector3(0, 1, 0);
 
 /** Arcane Shield: a hexagonal bubble around the player while the shield is up. */
-export function ShieldBubble() {
+export function ShieldBubble({ color = DEFAULT_SHIELD_COLOR }: { color?: string }) {
   const shell = useRef<Group>(null);
   const wire = useRef<MeshBasicMaterial>(null);
+  const glow = useMemo(() => new Color(color).multiplyScalar(1.6), [color]);
 
   useFrame(({ clock }, delta) => {
     if (shell.current) shell.current.rotation.y += delta * 0.5;
@@ -37,18 +39,11 @@ export function ShieldBubble() {
     <group ref={shell} position-y={1}>
       <mesh>
         <icosahedronGeometry args={[1.05, 1]} />
-        <meshBasicMaterial
-          ref={wire}
-          color={SHIELD_COLOR}
-          wireframe
-          transparent
-          depthWrite={false}
-          toneMapped={false}
-        />
+        <meshBasicMaterial ref={wire} color={glow} wireframe transparent depthWrite={false} toneMapped={false} />
       </mesh>
       <mesh>
         <sphereGeometry args={[1, 32, 16]} />
-        <meshBasicMaterial color="#22d3ee" transparent opacity={0.08} depthWrite={false} blending={AdditiveBlending} />
+        <meshBasicMaterial color={color} transparent opacity={0.08} depthWrite={false} blending={AdditiveBlending} />
       </mesh>
     </group>
   );
@@ -153,8 +148,8 @@ const BEAM_SECONDS = 1.4;
 export function ArcaneBeam({ from, to }: { from: Vec3; to: Vec3 }) {
   // Positions at the moment of the cast: the target gets pushed away afterwards.
   const [ends] = useState(() => ({
-    start: new Vector3(from[0], CHEST_HEIGHT, from[2]),
-    end: new Vector3(to[0], CHEST_HEIGHT, to[2]),
+    start: new Vector3(from[0], from[1] + CHEST_HEIGHT, from[2]),
+    end: new Vector3(to[0], to[1] + CHEST_HEIGHT, to[2]),
   }));
   const root = useRef<Group>(null);
   const beam = useRef<Group>(null);

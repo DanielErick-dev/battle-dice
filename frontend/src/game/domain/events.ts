@@ -61,6 +61,8 @@ export type GameEvent =
   | { type: "trapDestroyed"; playerId: PlayerId; tile: TileId; hidden: boolean }
   /** A hidden trap sprang on `tile`, knocking the player back to `to`; it then moves elsewhere in its zone. */
   | { type: "hiddenTrapSprung"; playerId: PlayerId; tile: TileId; to: TileId }
+  /** A levitating player floated over `tile`, whose effect didn't touch them (hidden traps stay unseen). */
+  | { type: "levitatedOver"; playerId: PlayerId; tile: TileId }
   /** The player's ability finished charging as their turn started. */
   | { type: "abilityReady"; playerId: PlayerId; ability: AbilityId }
   /** The player spent their ability (`energyGained` for Celestial Grace). */

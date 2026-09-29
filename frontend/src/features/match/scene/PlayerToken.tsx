@@ -14,7 +14,9 @@ import { AbilityBurst } from "./AbilityBurst";
 import { Delayed, SwordImpact } from "./TrapSmash";
 import { CharacterModel } from "./character/CharacterModel";
 import { EnergyBlades } from "./character/EnergyBlades";
-import { EFFECT_SCALE, FIGURE_HEIGHT } from "./character/figure";
+import { LevitationAura, LevitationBurst, levitationLift, stepLevitation } from "./character/Levitation";
+import { WitchStaff } from "./character/WitchStaff";
+import { EFFECT_SCALE, FIGURE_HEIGHT, LEVITATE_HEIGHT } from "./character/figure";
 import { EnergyAura } from "./EnergyAura";
 
 interface PlayerTokenProps {
@@ -32,6 +34,10 @@ interface PlayerTokenProps {
   isPowered: boolean;
   /** Arcane Shield up. */
   isShielded: boolean;
+  /** The character's own tint for the shield bubble; the usual cyan without one. */
+  shieldColor?: string;
+  /** Levitating: hovers above the tiles with a staff in hand, and glides instead of running. */
+  isLevitating: boolean;
   /** Card modifier waiting for the next roll (Berserk Fury, Fate Rune…). */
   diceBoost: DiceBoost | null;
   /** Card this player just cast, for its one-shot effect. */
@@ -78,6 +84,8 @@ const HOP_SECONDS = 0.7;
 const HOP_HEIGHT = 0.9;
 /** Seconds a cast clip's last pose is held before the figure settles back into its idle. */
 const CAST_HOLD_SECONDS = 0.5;
+/** How much a levitating figure bobs once up. */
+const LEVITATE_BOB = 0.12;
 
 /**
  * Follows the target tile by tile. Targets queue up as waypoints so a multi-tile move
@@ -92,6 +100,8 @@ export function PlayerToken({
   isActive,
   isPowered,
   isShielded,
+  shieldColor,
+  isLevitating,
   diceBoost,
   cast,
   abilityCast,
@@ -100,6 +110,8 @@ export function PlayerToken({
 }: PlayerTokenProps) {
   const group = useRef<Group>(null);
   const body = useRef<Group>(null);
+  /** Effects on the figure itself (shield, auras, orbs, casts): they rise with it when it levitates. */
+  const effects = useRef<Group>(null);
   const ring = useRef<Mesh>(null);
   const waypoints = useRef<Waypoint[]>([]);
   const segment = useRef<Segment | null>(null);
@@ -121,9 +133,14 @@ export function PlayerToken({
   const castStartedAt = useRef<number | null>(null);
   /** On while the cast clip itself plays (not the hold after it), for its blades. */
   const bladesOut = useRef(false);
+  /** Levitation progress: 0 on the ground, 1 hovering at LEVITATE_HEIGHT. */
+  const rise = useRef(0);
+  /** Read by the staff every frame; kept in step with isLevitating by the frame loop. */
+  const levitating = useRef(false);
 
   useFrame((state, delta) => {
     const node = group.current;
+    levitating.current = isLevitating;
     if (!node) return;
 
     const key = target.join(",");
@@ -185,29 +202,38 @@ export function PlayerToken({
     runLinger.current = moving ? RUN_LINGER_SECONDS : Math.max(0, runLinger.current - delta);
     // Sheathed as soon as the figure runs off (a roll can cut the cast short).
     bladesOut.current = castClip !== null && castElapsed < castClip && !moving;
-    if (moving || runLinger.current > 0) clip.current = "run";
-    else clip.current = isCasting && castClip !== null ? "cast" : "idle";
+    // Levitating, the figure glides from tile to tile in its float pose instead of running.
+    const rest = isLevitating ? "float" : "idle";
+    if (moving || runLinger.current > 0) clip.current = isLevitating ? "float" : "run";
+    else clip.current = isCasting && castClip !== null ? "cast" : rest;
+
+    rise.current = stepLevitation(rise.current, isLevitating, delta);
+    const lift = levitationLift(rise.current);
+    const hover = lift * LEVITATE_HEIGHT + Math.sin(now * 1.6) * LEVITATE_BOB * lift;
 
     if (heading.current !== null) yaw.current = turnTowards(yaw.current, heading.current, delta * TURN_RATE);
     if (body.current) {
-      // Without a cast clip the figure acts the ability out itself: a leap with a full spin.
-      const hop = isCasting && castClip === null ? castProgress : 0;
-      body.current.position.y = Math.sin(Math.PI * hop) * HOP_HEIGHT;
+      // Without a cast clip the figure acts the ability out itself: a leap with a full spin
+      // (unless it's rising into a levitation, which is show enough).
+      const hop = isCasting && castClip === null && !isLevitating ? castProgress : 0;
+      body.current.position.y = Math.sin(Math.PI * hop) * HOP_HEIGHT + hover;
       body.current.rotation.y = yaw.current + easeInOut(hop) * Math.PI * 2;
     }
+    if (effects.current) effects.current.position.y = hover;
   });
 
   return (
     <group ref={group}>
-      {/* Effects around the figure, scaled to its size. */}
-      <group scale={EFFECT_SCALE}>
+      {/* Effects around the figure, scaled to its size and following it up when it levitates. */}
+      <group ref={effects} scale={EFFECT_SCALE}>
         <EnergyAura active={isPowered || isAwakened(diceBoost)} />
         <EnergyAura active={diceBoost?.kind === "double"} palette="red" />
         {orbFor(diceBoost) && <BoostOrb palette={orbFor(diceBoost)!} />}
-        {isShielded && <ShieldBubble />}
+        {isShielded && <ShieldBubble color={shieldColor} />}
         {cast?.card.cardId === "windStep" && <WindCloud key={cast.id} />}
         {cast?.card.cardId === "healingHerb" && <HealBurst key={cast.id} />}
         {abilityCast !== null &&
+          !isLevitating &&
           (castImpactSeconds === null ? (
             <AbilityBurst key={abilityCast} color={color} />
           ) : (
@@ -217,6 +243,8 @@ export function PlayerToken({
             </Delayed>
           ))}
       </group>
+      <LevitationAura size={FIGURE_HEIGHT} color={color} progress={rise} height={LEVITATE_HEIGHT} />
+      {abilityCast !== null && isLevitating && <LevitationBurst key={abilityCast} size={FIGURE_HEIGHT} color={color} />}
       <mesh ref={ring} rotation-x={-Math.PI / 2} position-y={0.02}>
         <ringGeometry args={[0.62, 0.75, 48]} />
         <meshBasicMaterial color={color} transparent opacity={isActive ? 0.9 : 0.35} toneMapped={false} />
@@ -226,7 +254,12 @@ export function PlayerToken({
         {model ? (
           <Suspense fallback={<Placeholder color={color} />}>
             <CharacterModel url={model} height={FIGURE_HEIGHT} clip={clip} onClipLengths={onClipLengths}>
-              {energyBlades ? (figure) => <EnergyBlades figure={figure} color={color} active={bladesOut} /> : undefined}
+              {(figure) => (
+                <>
+                  {energyBlades && <EnergyBlades figure={figure} color={color} active={bladesOut} />}
+                  <WitchStaff figure={figure} color={color} active={levitating} />
+                </>
+              )}
             </CharacterModel>
           </Suspense>
         ) : (

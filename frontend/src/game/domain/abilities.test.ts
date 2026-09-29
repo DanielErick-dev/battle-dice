@@ -3,7 +3,8 @@ import {
   ABILITY_CYCLE,
   CELESTIAL_GRACE_ENERGY,
   CRIMSON_MARCH_BONUS,
-  TRAP_WARD_CYCLE,
+  LEVITATION_TURNS,
+  LONG_ABILITY_CYCLE,
   abilityCycle,
   type AbilityId,
 } from "./abilities";
@@ -121,9 +122,42 @@ describe("character abilities", () => {
     expect(state.players[0].hand).toHaveLength(2);
   });
 
-  it("Crimson Veil raises the Arcane Shield, and waits while it's up", () => {
-    expect(activate(ready(game("crimsonVeil"))).state.players[0].shielded).toBe(true);
-    expectRuleError(() => activate(withPlayer(ready(game("crimsonVeil")), { shielded: true })), "ALREADY_SHIELDED");
+  describe("Levitation", () => {
+    const floating = (patch: Partial<Player> = {}) =>
+      activate(withPlayer(ready(game("levitation")), { position: 10, energy: 3, ...patch })).state;
+
+    it("charges over the long cycle and floats for two turns", () => {
+      expect(abilityCycle("levitation")).toBe(LONG_ABILITY_CYCLE);
+      expect(floating().players[0].levitating).toBe(LEVITATION_TURNS);
+    });
+
+    it("floats over traps without being thrown back or cursed", () => {
+      const { state, events } = roll(floating(), 2);
+      expect(state.players[0]).toMatchObject({ position: 12, energy: 3 });
+      expect(events).toContainEqual({ type: "levitatedOver", playerId: "p1", tile: 12 });
+      expect(events.some((event) => event.type === "trapTriggered" || event.type === "trapCursed")).toBe(false);
+    });
+
+    it("floats over curses too, and keeps an Arcane Shield untouched", () => {
+      const { state } = roll(floating({ shielded: true, hand: cards("windStep") }), 10);
+      expect(state.players[0]).toMatchObject({ position: 20, shielded: true, hand: cards("windStep") });
+    });
+
+    it("floats over a hidden trap without springing or revealing it", () => {
+      const start = { ...floating(), hiddenTraps: [11] };
+      const { state, events } = roll(start, 1);
+      expect(state.players[0].position).toBe(11);
+      expect(state.hiddenTraps).toEqual([11]);
+      expect(events.some((event) => event.type === "hiddenTrapSprung" || event.type === "levitatedOver")).toBe(false);
+    });
+
+    it("lands after its second turn", () => {
+      const first = roll(floating(), 1).state;
+      expect(first.players[0].levitating).toBe(1);
+      const second = roll(first, 1).state;
+      expect(second.players[0].levitating).toBe(0);
+      expect(roll(withPlayer(second, { position: 11 }), 1).state.players[0].position).toBe(8);
+    });
   });
 
   describe("Trap Ward", () => {
@@ -205,7 +239,7 @@ describe("character abilities", () => {
 
     it("declined, lets the trap strike and stays charged", () => {
       const { state } = answer(roll(onTheWay(), 1).state, false);
-      expect(state.players[0]).toMatchObject({ position: 8, energy: 1, abilityCharge: TRAP_WARD_CYCLE });
+      expect(state.players[0]).toMatchObject({ position: 8, energy: 1, abilityCharge: LONG_ABILITY_CYCLE });
     });
 
     it("takes five turns to charge, counting the first", () => {
@@ -216,7 +250,7 @@ describe("character abilities", () => {
         if (events.some((event) => event.type === "abilityReady")) readyAt.push(turn + 1);
         state = next;
       }
-      expect(readyAt).toEqual([TRAP_WARD_CYCLE]);
+      expect(readyAt).toEqual([LONG_ABILITY_CYCLE]);
       expect(abilityCycle("trapWard")).toBe(5);
     });
 
@@ -228,7 +262,7 @@ describe("character abilities", () => {
 
     it("declined behind the Arcane Shield, lets the shield take the trap and stays charged", () => {
       const { state } = answer(roll(onTheWay({ shielded: true }), 1).state, false);
-      expect(state.players[0]).toMatchObject({ position: 12, shielded: false, abilityCharge: TRAP_WARD_CYCLE });
+      expect(state.players[0]).toMatchObject({ position: 12, shielded: false, abilityCharge: LONG_ABILITY_CYCLE });
       expect(state.destroyedTraps).toEqual([]);
     });
 

@@ -105,6 +105,8 @@ export interface Player {
   ability: AbilityId | null;
   /** Turns charged towards the ability, up to its abilityCycle (ready); emptied when it's used. */
   abilityCharge: number;
+  /** Own turns left floating over the tiles (Levitation), the current one included; 0 when grounded. */
+  levitating: number;
 }
 
 /** One physical copy of a card; `uid` tells apart copies of the same card in a hand. */

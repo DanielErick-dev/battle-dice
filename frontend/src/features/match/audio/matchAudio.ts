@@ -35,6 +35,7 @@ const EFFECT_SOUNDS: Record<TileEffectKind, (sounds: MatchSounds, effect: TileEf
   teleport: (sounds) => sounds.portal(),
   abilityReady: (sounds) => sounds.bonus(),
   abilityUsed: (sounds) => sounds.powerUp(),
+  levitated: (sounds) => sounds.shieldBlock(),
 };
 
 export function playTransition(previous: MatchView, next: MatchView, sounds: MatchSounds): void {
