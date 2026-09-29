@@ -1,16 +1,20 @@
 "use client";
 
 import { Stars } from "@react-three/drei";
+import { useFrame } from "@react-three/fiber";
+import { useRef } from "react";
+import type { Group } from "three";
 import type { BoardLayout } from "../boardLayout";
 import { ArenaBase } from "./ArenaBase";
 import { Brazier } from "./Brazier";
 import { Ocean } from "./Ocean";
 import { RockSpires } from "./RockSpires";
 import { SkyDome } from "./SkyDome";
+import { RealmParticles } from "../realm/RealmParticles";
+import { useRealmMix } from "../realm/RealmAtmosphere";
 
 /** Colour where sky meets sea; the scene fog uses it too so the water fades into the horizon. */
 export const HORIZON_COLOR = "#1b1236";
-const ZENITH_COLOR = "#03040b";
 
 const WATER_LEVEL = -1.05;
 /** Top of the lower arena tier; the upper slab under the tiles rests on it. */
@@ -24,7 +28,24 @@ interface ArenaEnvironmentProps {
   scale: number;
 }
 
-/** Everything around the tiles: stone arena, braziers, night sea, rock spires, sky and moon. */
+/** Stars that fade out when the celestial realm brings daylight. */
+function NightStars({ radius }: { radius: number }) {
+  const mix = useRealmMix();
+  const group = useRef<Group>(null);
+  useFrame(() => {
+    if (group.current) group.current.visible = mix.current.celestial < 0.35;
+  });
+  return (
+    <group ref={group}>
+      <Stars radius={radius} depth={40} count={2500} factor={3.5} fade speed={0.4} />
+    </group>
+  );
+}
+
+/**
+ * Everything around the tiles: stone arena, braziers, night sea, rock spires, sky and moon,
+ * all of which change with the realm (see RealmAtmosphere).
+ */
 export function ArenaEnvironment({ layout, scale }: ArenaEnvironmentProps) {
   const skyRadius = 95 * scale;
   const moonPosition: [number, number, number] = [-0.3 * skyRadius, 0.28 * skyRadius, -0.8 * skyRadius];
@@ -39,14 +60,9 @@ export function ArenaEnvironment({ layout, scale }: ArenaEnvironmentProps) {
 
   return (
     <group>
-      <SkyDome
-        radius={skyRadius}
-        horizon={HORIZON_COLOR}
-        zenith={ZENITH_COLOR}
-        moonPosition={moonPosition}
-        moonRadius={4 * scale}
-      />
-      <Stars radius={70 * scale} depth={40} count={2500} factor={3.5} fade speed={0.4} />
+      <SkyDome radius={skyRadius} moonPosition={moonPosition} moonRadius={4 * scale} />
+      <NightStars radius={70 * scale} />
+      <RealmParticles radius={Math.max(lowerHalfWidth, lowerHalfDepth) + 14} />
 
       <Ocean
         level={WATER_LEVEL}

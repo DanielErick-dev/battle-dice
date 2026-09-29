@@ -2,7 +2,7 @@ import type { GameClient, GameUpdate } from "@/game/application/gameClient";
 import { GameRuleError, type GameCommand, type GameErrorCode } from "@/game/domain/commands";
 import type { Board } from "@/game/domain/types";
 import { DEFAULT_TIMINGS, type PlaybackTimings } from "../config";
-import { canPlayCard, canRoll, createInitialView, type MatchView } from "./matchView";
+import { canActivateAbility, canPlayCard, canRoll, createInitialView, type MatchView } from "./matchView";
 import { eventToSteps, syncStep, type PlaybackStep } from "./playback";
 
 const ERROR_MESSAGES: Record<GameErrorCode, string> = {
@@ -12,11 +12,20 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   DISCARD_PENDING: "Escolha uma carta para descartar primeiro.",
   NO_DISCARD_PENDING: "Não há carta para descartar.",
   UNKNOWN_CARD: "Essa carta não está na sua mão.",
-  CARD_ALREADY_PLAYED: "Você já usou uma carta neste turno.",
-  NOT_ENOUGH_KI: "Ki insuficiente para essa carta.",
+  CARD_ALREADY_PLAYED: "Você já usou as cartas deste turno.",
+  NOT_ENOUGH_ENERGY: "Energia insuficiente para essa carta.",
+  ALREADY_SHIELDED: "O Escudo Arcano já está ativo.",
+  DICE_BOOST_ACTIVE: "Já há uma carta de dado esperando a próxima rolagem.",
   INVALID_TARGET: "Escolha um oponente como alvo.",
   INVALID_VALUE: "Escolha um valor de 1 a 6.",
   NO_PORTAL_AHEAD: "Não há portal à frente.",
+  WARD_PENDING: "Decida primeiro se usa a habilidade contra a armadilha.",
+  NO_WARD_PENDING: "Não há armadilha esperando resposta.",
+  NO_ABILITY: "Este personagem não tem habilidade.",
+  ABILITY_REACTIVE: "Esta habilidade é usada quando uma armadilha te atinge.",
+  ABILITY_NOT_READY: "A habilidade ainda está carregando.",
+  ABILITY_IN_USE: "A habilidade já está em uso neste turno.",
+  ENERGY_FULL: "Sua energia já está no máximo.",
 };
 
 /**
@@ -71,6 +80,17 @@ export class MatchStore {
     this.dispatch({ type: "discardCard", playerId: pending.playerId, cardUid });
   };
 
+  activateAbility = (): void => {
+    if (!canActivateAbility(this.view)) return;
+    this.dispatch({ type: "activateAbility", playerId: this.view.activePlayerId });
+  };
+
+  answerWard = (use: boolean): void => {
+    const pending = this.view.pendingWard;
+    if (!pending || this.view.isAnimating) return;
+    this.dispatch({ type: "answerWard", playerId: pending.playerId, use });
+  };
+
   restart = (): void => {
     if (this.view.isAnimating) return;
     this.dispatch({ type: "restart" });
@@ -79,9 +99,8 @@ export class MatchStore {
   private dispatch(command: GameCommand): void {
     this.setView({ ...this.view, isAnimating: true, error: null });
     this.client.send(command).catch((error: unknown) => {
-      const message =
-        error instanceof GameRuleError ? ERROR_MESSAGES[error.code] : "Falha ao enviar a jogada.";
-      this.setView({ ...this.view, isAnimating: false, error: message });
+      const message = error instanceof GameRuleError ? ERROR_MESSAGES[error.code] : "Falha ao enviar a jogada.";
+      this.setView({ ...this.view, isAnimating: false, error: { id: (this.view.error?.id ?? 0) + 1, message } });
     });
   }
 

@@ -140,6 +140,7 @@
 @theme {
   --animate-dice-tumble: dice-tumble 0.35s ease-in-out infinite;
   --animate-banner: banner 1.9s ease-out forwards;
+  --animate-toast: toast 3.2s ease-out forwards;
 
   @keyframes dice-tumble {
     0% { transform: rotate(0deg) scale(1); }
@@ -147,6 +148,13 @@
     50% { transform: rotate(12deg) scale(1.05); }
     75% { transform: rotate(-8deg) scale(0.95) translateY(-3px); }
     100% { transform: rotate(0deg) scale(1); }
+  }
+
+  @keyframes toast {
+    0% { opacity: 0; transform: translateY(-8px); }
+    8% { opacity: 1; transform: translateY(0); }
+    85% { opacity: 1; }
+    100% { opacity: 0; }
   }
 
   @keyframes banner {
@@ -161,45 +169,6 @@
 @layer components {
   .hud-panel {
     @apply rounded-2xl border border-white/10 bg-zinc-950/60 shadow-[0_10px_40px_rgba(0,0,0,0.45)] backdrop-blur-md;
-  }
-}
-
-/* Sprite sheets: one row of --frames frames played at --fps. */
-.sprite-strip {
-  background-repeat: no-repeat;
-  background-size: calc(var(--frames) * 100%) 100%;
-  filter: drop-shadow(0 14px 12px rgb(0 0 0 / 0.75));
-  animation: sprite-play calc(var(--frames) / var(--fps) * 1s) steps(var(--frames)) infinite;
-}
-
-@keyframes sprite-play {
-  from {
-    background-position-x: 0%;
-  }
-  to {
-    background-position-x: calc(var(--frames) / (var(--frames) - 1) * 100%);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sprite-strip {
-    animation: none;
-  }
-}
-
-/* Ki aura: golden glow pulsing around a powered-up sprite (the 3D flames sit behind it). */
-[data-aura="on"] .sprite-strip {
-  animation:
-    sprite-play calc(var(--frames) / var(--fps) * 1s) steps(var(--frames)) infinite,
-    ki-glow 0.35s ease-in-out infinite alternate;
-}
-
-@keyframes ki-glow {
-  from {
-    filter: drop-shadow(0 0 8px rgb(255 213 74 / 1)) drop-shadow(0 0 22px rgb(255 179 0 / 0.85));
-  }
-  to {
-    filter: drop-shadow(0 0 14px rgb(255 236 150 / 1)) drop-shadow(0 0 34px rgb(255 179 0 / 1));
   }
 }
 
@@ -280,7 +249,7 @@
   opacity: 1;
 }
 
-.ki-orb {
+.energy-orb {
   background: radial-gradient(circle at 35% 30%, #fff7cc, #fbbf24 45%, #b45309);
   box-shadow: 0 0 6px rgb(251 191 36 / 0.8);
 }
@@ -316,6 +285,73 @@
   }
   100% {
     opacity: 0;
+  }
+}
+
+/* Menu night sky: a few layers of tiny stars. */
+.menu-stars {
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 28% 62%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 44% 12%, #fde68a 50%, transparent 51%),
+    radial-gradient(1px 1px at 58% 40%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 72% 70%, #c4b5fd 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 86% 28%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 92% 82%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 6% 88%, #c4b5fd 50%, transparent 51%);
+  background-size: 420px 420px;
+}
+
+/*
+ * A drawn card (1.5s, matches drawRevealMs): leaves the deck at the right, rises to the middle
+ * of the screen face down, turns face up, holds, then is dealt to the hand at the side.
+ * The travel lives on the outer element, the flip on the inner one.
+ */
+@keyframes card-draw-travel {
+  0% {
+    opacity: 0;
+    transform: translate(38vw, 6vh) scale(0.45);
+  }
+  8% {
+    opacity: 1;
+  }
+  28% {
+    transform: translate(0, 0) scale(1);
+  }
+  78% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1.04);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(40vw, 0) scale(0.55) rotate(6deg);
+  }
+}
+
+@keyframes card-draw-flip {
+  0%,
+  30% {
+    transform: rotateY(180deg);
+  }
+  52%,
+  100% {
+    transform: rotateY(0deg);
+  }
+}
+
+/* Light burst behind the card as it turns face up. */
+@keyframes card-draw-burst {
+  0%,
+  38% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  52% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
   }
 }
 

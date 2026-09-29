@@ -6,9 +6,10 @@ interface DiceFaceProps {
   rolling: boolean;
   /** Smaller, for a pair of dice. */
   compact?: boolean;
+  className?: string;
 }
 
-export function DiceFace({ value, rolling, compact = false }: DiceFaceProps) {
+export function DiceFace({ value, rolling, compact = false, className }: DiceFaceProps) {
   const pips = PIPS[rolling ? 5 : (value ?? 0)] ?? [];
 
   return (
@@ -20,6 +21,7 @@ export function DiceFace({ value, rolling, compact = false }: DiceFaceProps) {
         "bg-gradient-to-br from-white to-zinc-300 shadow-[0_10px_30px_rgba(249,115,22,0.35),inset_0_-4px_0_rgba(0,0,0,0.15)]",
         rolling && "animate-dice-tumble",
         !rolling && value && "animate-in zoom-in-50 duration-300",
+        className,
       )}
     >
       {value === null && !rolling ? (

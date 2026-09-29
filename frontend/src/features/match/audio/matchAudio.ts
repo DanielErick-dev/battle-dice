@@ -1,4 +1,4 @@
-import type { MatchView, TileEffectKind } from "../model/matchView";
+import type { MatchView, TileEffectKind, TileEffectView } from "../model/matchView";
 import type { MatchSounds } from "./soundEffects";
 
 interface ViewSource {
@@ -20,15 +20,21 @@ export function connectMatchAudio(source: ViewSource, sounds: MatchSounds): () =
   });
 }
 
-const EFFECT_SOUNDS: Record<TileEffectKind, (sounds: MatchSounds) => void> = {
+const EFFECT_SOUNDS: Record<TileEffectKind, (sounds: MatchSounds, effect: TileEffectView) => void> = {
   portal: (sounds) => sounds.portal(),
   trap: (sounds) => sounds.trap(),
+  hiddenTrap: (sounds) => sounds.trap(),
   advance: (sounds) => sounds.boost(),
   extraTurn: (sounds) => sounds.bonus(),
   skipTurn: (sounds) => sounds.penalty(),
   turnSkipped: (sounds) => sounds.penalty(),
   trapBlocked: (sounds) => sounds.shieldBlock(),
+  trapCurse: (sounds) => sounds.penalty(),
+  realmEnter: (sounds, effect) => sounds.realmGate(effect.realm ?? "infernal"),
+  blessing: (sounds) => sounds.bonus(),
   teleport: (sounds) => sounds.portal(),
+  abilityReady: (sounds) => sounds.bonus(),
+  abilityUsed: (sounds) => sounds.powerUp(),
 };
 
 export function playTransition(previous: MatchView, next: MatchView, sounds: MatchSounds): void {
@@ -36,8 +42,9 @@ export function playTransition(previous: MatchView, next: MatchView, sounds: Mat
   if (!previous.isRolling && next.isRolling) sounds.diceShake();
   if (next.poweredPlayerId !== null && next.poweredPlayerId !== previous.poweredPlayerId) sounds.powerUp();
 
-  if (next.effect && next.effect !== previous.effect) EFFECT_SOUNDS[next.effect.kind](sounds);
+  if (next.effect && next.effect !== previous.effect) EFFECT_SOUNDS[next.effect.kind](sounds, next.effect);
   if (next.cast && next.cast.id !== previous.cast?.id) sounds.cardCast(next.cast.card.cardId);
+  if (next.drawing && next.drawing.id !== previous.drawing?.id) sounds.cardFlip();
   if (next.lastDrawnUid !== null && next.lastDrawnUid !== previous.lastDrawnUid) sounds.cardDraw();
 
   for (const player of next.players) {
@@ -46,7 +53,10 @@ export function playTransition(previous: MatchView, next: MatchView, sounds: Mat
 
     const effect = next.effect;
     const isTeleport =
-      (effect?.kind === "portal" || effect?.kind === "trap" || effect?.kind === "teleport") &&
+      (effect?.kind === "portal" ||
+        effect?.kind === "trap" ||
+        effect?.kind === "hiddenTrap" ||
+        effect?.kind === "teleport") &&
       effect.playerId === player.id &&
       effect.to === player.position;
     if (isTeleport || Math.abs(player.position - before.position) > 1) sounds.leap();

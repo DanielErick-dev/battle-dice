@@ -3,14 +3,28 @@ import { POWER_TOURNAMENT_BOARD, TRAINING_BOARD, type BoardDefinition } from "@/
 export interface BoardPreset {
   id: string;
   name: string;
+  /** One line for the mode picker. */
+  description: string;
   definition: BoardDefinition;
   /** Tiles per row in the 3D layout. */
   columns: number;
 }
 
 export const BOARD_PRESETS: readonly BoardPreset[] = [
-  { id: "training", name: "Treino", definition: TRAINING_BOARD, columns: 5 },
-  { id: "power-tournament", name: "Torneio do Poder", definition: POWER_TOURNAMENT_BOARD, columns: 20 },
+  {
+    id: "training",
+    name: "Treino",
+    description: "Uma partida curta para aprender as casas e as cartas.",
+    definition: TRAINING_BOARD,
+    columns: 5,
+  },
+  {
+    id: "power-tournament",
+    name: "Torneio do Poder",
+    description: "Uma jornada longa, cheia de portais, armadilhas e cartas.",
+    definition: POWER_TOURNAMENT_BOARD,
+    columns: 20,
+  },
 ];
 
 /** Boards taller than this are too big to frame whole; the camera follows the player instead. */

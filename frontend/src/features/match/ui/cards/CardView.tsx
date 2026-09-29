@@ -6,14 +6,14 @@ import { CARD_TEXT, RARITY_LABEL } from "./cardText";
 
 interface CardViewProps {
   cardId: CardId;
-  /** Greyed out (not enough ki, card already played…). */
+  /** Greyed out (not enough energy, card already played…). */
   dimmed?: boolean;
   selected?: boolean;
   className?: string;
 }
 
 /**
- * A card face: cost in ki orbs, artwork, name and rules text, framed by rarity. Rare and
+ * A card face: cost in energy orbs, artwork, name and rules text, framed by rarity. Rare and
  * epic cards get a holographic foil that follows the pointer (and tilts the card).
  */
 export function CardView({ cardId, dimmed = false, selected = false, className }: CardViewProps) {
@@ -44,9 +44,9 @@ export function CardView({ cardId, dimmed = false, selected = false, className }
           >
             {text.name}
           </span>
-          <span className="mt-0.5 flex shrink-0 gap-0.5" aria-label={`Custa ${cardCost(cardId)} de ki`}>
+          <span className="mt-0.5 flex shrink-0 gap-0.5" aria-label={`Custa ${cardCost(cardId)} de energia`}>
             {Array.from({ length: cardCost(cardId) }, (_, i) => (
-              <span key={i} className="ki-orb size-2.5 rounded-full" />
+              <span key={i} className="energy-orb size-2.5 rounded-full" />
             ))}
           </span>
         </header>

@@ -3,8 +3,18 @@ import type { PlayerId } from "./types";
 export type GameCommand =
   | { type: "rollDice"; playerId: PlayerId }
   /** `targetId` for cards aimed at an opponent, `value` for cards that pick a die face. */
-  | { type: "playCard"; playerId: PlayerId; cardUid: string; targetId?: PlayerId; value?: number }
+  | {
+      type: "playCard";
+      playerId: PlayerId;
+      cardUid: string;
+      targetId?: PlayerId;
+      value?: number;
+    }
   | { type: "discardCard"; playerId: PlayerId; cardUid: string }
+  /** Uses the player's charged ability (not a reactive one: those answer a ward prompt). */
+  | { type: "activateAbility"; playerId: PlayerId }
+  /** Answers the prompt to spend a reactive ability on the trap or curse about to strike. */
+  | { type: "answerWard"; playerId: PlayerId; use: boolean }
   | { type: "restart" };
 
 export type GameErrorCode =
@@ -15,10 +25,19 @@ export type GameErrorCode =
   | "NO_DISCARD_PENDING"
   | "UNKNOWN_CARD"
   | "CARD_ALREADY_PLAYED"
-  | "NOT_ENOUGH_KI"
+  | "NOT_ENOUGH_ENERGY"
+  | "ALREADY_SHIELDED"
+  | "DICE_BOOST_ACTIVE"
   | "INVALID_TARGET"
   | "INVALID_VALUE"
-  | "NO_PORTAL_AHEAD";
+  | "NO_PORTAL_AHEAD"
+  | "WARD_PENDING"
+  | "NO_WARD_PENDING"
+  | "NO_ABILITY"
+  | "ABILITY_REACTIVE"
+  | "ABILITY_NOT_READY"
+  | "ABILITY_IN_USE"
+  | "ENERGY_FULL";
 
 export class GameRuleError extends Error {
   constructor(readonly code: GameErrorCode) {

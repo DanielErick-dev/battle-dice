@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
+import { preferences, usePreference } from "@/features/settings/preferences";
 import { Ambience } from "../audio/ambience";
 import { AudioEngine } from "../audio/audioEngine";
 import { GenerativeMusic } from "../audio/music";
@@ -16,7 +17,7 @@ export interface GameAudio {
 
 /**
  * Audio for the whole session: one engine, background music and ambience, plus the
- * mute and music switches (remembered per browser). The first pointer or key press
+ * mute and music switches (see preferences). The first pointer or key press
  * unlocks audio, which starts the music.
  */
 export function useGameAudio(): GameAudio {
@@ -24,8 +25,8 @@ export function useGameAudio(): GameAudio {
   const [sounds] = useState(() => new SynthSounds(engine));
   const [music] = useState(() => new GenerativeMusic(engine));
   const [ambience] = useState(() => new Ambience(engine));
-  const muted = useSyncExternalStore(mutedPreference.subscribe, mutedPreference.get, () => false);
-  const musicOn = useSyncExternalStore(musicPreference.subscribe, musicPreference.get, () => true);
+  const muted = usePreference(preferences.muted);
+  const musicOn = usePreference(preferences.music);
 
   useEffect(() => engine.setMuted(muted), [engine, muted]);
   useEffect(() => engine.setMusicEnabled(musicOn), [engine, musicOn]);
@@ -58,41 +59,8 @@ export function useGameAudio(): GameAudio {
   return {
     sounds,
     muted,
-    toggleMuted: () => mutedPreference.set(!muted),
+    toggleMuted: () => preferences.muted.set(!muted),
     musicOn,
-    toggleMusic: () => musicPreference.set(!musicOn),
+    toggleMusic: () => preferences.music.set(!musicOn),
   };
 }
-
-/** A boolean switch remembered per browser. Storage can be blocked, so it falls back to memory. */
-function createPreference(key: string, fallback: boolean) {
-  const listeners = new Set<() => void>();
-  let memory = fallback;
-
-  return {
-    subscribe(listener: () => void) {
-      listeners.add(listener);
-      return () => listeners.delete(listener);
-    },
-    get(): boolean {
-      try {
-        const stored = window.localStorage.getItem(key);
-        return stored === null ? memory : stored === "1";
-      } catch {
-        return memory;
-      }
-    },
-    set(value: boolean) {
-      memory = value;
-      try {
-        window.localStorage.setItem(key, value ? "1" : "0");
-      } catch {
-        // Keep the in-memory value for this session.
-      }
-      listeners.forEach((listener) => listener());
-    },
-  };
-}
-
-const mutedPreference = createPreference("battle-dice:muted", false);
-const musicPreference = createPreference("battle-dice:music", true);

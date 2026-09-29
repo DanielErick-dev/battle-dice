@@ -25,12 +25,26 @@ interface TileMeshProps {
   reachable: boolean;
   /** Face texture size in pixels. */
   textureSize: number;
+  /** Part of a stretch hiding traps. */
+  inTrapZone?: boolean;
+  /** Its trap was smashed by the Trap Ward: drawn as a wreck. */
+  destroyed?: boolean;
 }
 
 const UNDERGLOW_SIZE = TILE_SIZE + 0.28;
 
-export function TileMesh({ tile, position, accent, arrowAngle, highlighted, reachable, textureSize }: TileMeshProps) {
-  const theme = useMemo(() => themeFor(tile), [tile]);
+export function TileMesh({
+  tile,
+  position,
+  accent,
+  arrowAngle,
+  highlighted,
+  reachable,
+  textureSize,
+  inTrapZone = false,
+  destroyed = false,
+}: TileMeshProps) {
+  const theme = useMemo(() => themeFor(tile, { inTrapZone, destroyed }), [tile, inTrapZone, destroyed]);
   const emissive = theme.glowIntensity > 0 ? theme.glow : HIGHLIGHT_FALLBACK;
   const glowColor = theme.kind === "regular" ? accent : theme.glow;
   const faceTexture = useTileFaceTexture({
@@ -91,7 +105,9 @@ export function TileMesh({ tile, position, accent, arrowAngle, highlighted, reac
           <meshStandardMaterial map={faceTexture} roughness={0.85} />
         </mesh>
 
-        {tile.effect.kind === "portal" && <PortalVortex color={theme.glow} active={highlighted} phase={tile.id * 1.7} />}
+        {tile.effect.kind === "portal" && (
+          <PortalVortex color={theme.glow} active={highlighted} phase={tile.id * 1.7} />
+        )}
         {tile.effect.kind === "trap" && <TrapSpikes color={theme.glow} />}
         {tile.effect.kind === "advance" && <AdvanceChevrons color={theme.glow} angle={arrowAngle ?? 0} />}
         {tile.effect.kind === "extraTurn" && <FloatingDie color={theme.glow} />}
@@ -195,7 +211,13 @@ function FloatingCard({ color }: { color: string }) {
     <group>
       <group ref={card} rotation-z={0.15}>
         <RoundedBox args={[0.42, 0.6, 0.03]} radius={0.04} smoothness={2} castShadow>
-          <meshStandardMaterial color="#fdf2f8" emissive={color} emissiveIntensity={1.4} metalness={0.4} roughness={0.25} />
+          <meshStandardMaterial
+            color="#fdf2f8"
+            emissive={color}
+            emissiveIntensity={1.4}
+            metalness={0.4}
+            roughness={0.25}
+          />
         </RoundedBox>
       </group>
       <Sparkles count={12} scale={[0.9, 1.2, 0.9]} position-y={0.9} size={2.5} speed={0.6} color={color} />

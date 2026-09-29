@@ -1,4 +1,5 @@
 import type { CardId } from "@/game/domain/cards";
+import type { RealmKind } from "@/game/domain/types";
 import type { AudioEngine } from "./audioEngine";
 import { Synth } from "./synth";
 
@@ -17,13 +18,17 @@ export interface MatchSounds {
   bonus: () => void;
   /** Lost turn: a deflating two-note drop. */
   penalty: () => void;
-  /** Ki aura igniting: a charging roar. */
+  /** Energy aura igniting: a charging roar. */
   powerUp: () => void;
+  /** A realm gate opening: a fire tunnel's roar, or a heavenly chord. */
+  realmGate: (realm: RealmKind) => void;
+  /** A card leaving the deck and turning face up. */
+  cardFlip: () => void;
   /** A card sliding into the hand. */
   cardDraw: () => void;
   /** A card played: a whoosh, then the card's own signature sound. */
   cardCast: (cardId: CardId) => void;
-  /** Ki Barrier absorbing a trap. */
+  /** Arcane Shield absorbing a trap. */
   shieldBlock: () => void;
   win: () => void;
 }
@@ -101,6 +106,29 @@ export class SynthSounds implements MatchSounds {
       synth.tone(at + 0.75, 0.5, 1175, 1175, "triangle", 0.1);
     });
 
+  realmGate = (realm: RealmKind): void =>
+    this.play((synth, at) => {
+      if (realm === "infernal") {
+        synth.tone(at, 1.6, 38, 70, "sawtooth", 0.28, { lowpass: 380, attack: 0.5 });
+        synth.tone(at + 0.1, 1.4, 55, 41, "square", 0.12, { lowpass: 260, attack: 0.3 });
+        synth.noiseSweep(at, 1.4, 120, 900, 0.45, 0.6);
+        synth.noiseSweep(at + 0.9, 0.9, 2400, 300, 0.35, 0.8);
+        return;
+      }
+      [261.63, 329.63, 392, 523.25, 659.25].forEach((frequency, i) => {
+        synth.tone(at + i * 0.09, 1.8, frequency, frequency, "sine", 0.09, { attack: 0.5 });
+        synth.tone(at + i * 0.09, 1.8, frequency * 2, frequency * 2, "triangle", 0.03, { attack: 0.6, detune: 6 });
+      });
+      synth.noiseSweep(at + 0.3, 1.4, 3000, 9000, 0.12, 0.5);
+    });
+
+  cardFlip = (): void =>
+    this.play((synth, at) => {
+      synth.noiseBurst(at, 0.06, 3000, 0.2);
+      synth.noiseSweep(at + 0.3, 0.3, 800, 4000, 0.15);
+      synth.tone(at + 0.45, 0.6, 659.25, 987.77, "triangle", 0.08, { attack: 0.05 });
+    });
+
   cardDraw = (): void =>
     this.play((synth, at) => {
       synth.noiseSweep(at, 0.25, 1500, 5000, 0.12);
@@ -145,38 +173,59 @@ export class SynthSounds implements MatchSounds {
 
 /** Each card's own sound, played after the cast whoosh. */
 const CARD_SIGNATURES: Partial<Record<CardId, (synth: Synth, at: number) => void>> = {
-  kamehameha: (synth, at) => {
+  ancientScroll: (synth, at) => {
+    synth.noiseSweep(at, 0.5, 600, 2400, 0.2, 0.8);
+    synth.tone(at + 0.2, 0.6, 392, 523.25, "triangle", 0.1);
+  },
+  luckyCharm: (synth, at) => {
+    [1046.5, 1318.5, 1568].forEach((frequency, i) => {
+      synth.tone(at + i * 0.08, 0.35, frequency, frequency, "sine", 0.1);
+    });
+  },
+  oracleEye: (synth, at) => {
+    synth.tone(at, 1, 220, 220, "sine", 0.14, { attack: 0.3, detune: 7 });
+    synth.tone(at, 1, 329.63, 329.63, "sine", 0.1, { attack: 0.3, detune: -7 });
+    synth.tone(at + 0.4, 0.6, 880, 1760, "triangle", 0.06);
+  },
+  ancestralAwakening: (synth, at) => {
+    synth.tone(at, 1, 55, 110, "sawtooth", 0.2, { lowpass: 600, attack: 0.4 });
+    synth.noiseSweep(at + 0.3, 0.8, 300, 3500, 0.35, 0.7);
+    [261.63, 329.63, 392, 523.25].forEach((frequency) => {
+      synth.tone(at + 0.8, 1, frequency, frequency, "triangle", 0.08);
+    });
+  },
+  arcaneBlast: (synth, at) => {
     synth.tone(at, 0.8, 90, 300, "sawtooth", 0.15, { lowpass: 900, attack: 0.6 });
     synth.noiseSweep(at + 0.7, 0.9, 200, 1800, 0.5, 0.6);
     synth.tone(at + 0.7, 0.9, 110, 55, "sine", 0.6);
   },
-  solarFlare: (synth, at) => {
+  blindingFlash: (synth, at) => {
     synth.tone(at, 0.5, 2400, 5200, "sine", 0.18);
     synth.noiseBurst(at, 0.35, 7000, 0.3);
   },
-  kiBarrier: (synth, at) => {
+  arcaneShield: (synth, at) => {
     synth.tone(at, 0.8, 220, 440, "sine", 0.18, { attack: 0.2 });
     synth.tone(at, 0.8, 330, 660, "triangle", 0.08, { attack: 0.2, detune: 5 });
   },
-  senzuBean: (synth, at) => {
+  healingHerb: (synth, at) => {
     [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((frequency, i) => {
       synth.tone(at + i * 0.06, 0.4, frequency, frequency, "sine", 0.1);
     });
   },
-  kaioken: (synth, at) => {
+  berserkFury: (synth, at) => {
     synth.tone(at, 0.7, 60, 120, "sawtooth", 0.22, { lowpass: 500, attack: 0.2 });
     synth.noiseSweep(at, 0.7, 200, 2500, 0.3, 0.7);
   },
-  instantTransmission: (synth, at) => {
+  mysticGate: (synth, at) => {
     synth.tone(at, 0.15, 1200, 2400, "sine", 0.2);
     synth.tone(at + 0.18, 0.15, 2400, 1200, "sine", 0.2);
   },
-  dragonBall: (synth, at) => {
+  fateRune: (synth, at) => {
     [392, 587.33, 783.99, 1174.66].forEach((frequency, i) => {
       synth.tone(at + i * 0.12, 0.8, frequency, frequency, "triangle", 0.12);
     });
   },
-  flyingNimbus: (synth, at) => {
+  windStep: (synth, at) => {
     synth.noiseSweep(at, 0.9, 300, 1400, 0.3, 0.5);
     synth.tone(at, 0.6, 523.25, 783.99, "sine", 0.1);
   },

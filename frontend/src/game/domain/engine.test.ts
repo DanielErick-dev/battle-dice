@@ -7,8 +7,8 @@ import { seededRandom } from "./random";
 import type { GameState } from "./types";
 
 const PLAYERS = [
-  { id: "p1", name: "Goku" },
-  { id: "p2", name: "Vegeta" },
+  { id: "p1", name: "Aria" },
+  { id: "p2", name: "Bran" },
 ];
 
 function withPosition(state: GameState, playerId: string, position: number): GameState {
@@ -48,7 +48,12 @@ describe("rollDice", () => {
     const { state, events } = roll(createGame(CLASSIC_BOARD, PLAYERS), "p1", 4);
 
     expect(state.players[0].position).toBe(10);
-    expect(events).toContainEqual({ type: "portalEntered", playerId: "p1", from: 5, to: 10 });
+    expect(events).toContainEqual({
+      type: "portalEntered",
+      playerId: "p1",
+      from: 5,
+      to: 10,
+    });
   });
 
   it("sends the player back when landing on a trap", () => {
@@ -56,14 +61,23 @@ describe("rollDice", () => {
     const { state, events } = roll(game, "p1", 2);
 
     expect(state.players[0].position).toBe(6);
-    expect(events).toContainEqual({ type: "trapTriggered", playerId: "p1", from: 8, to: 6 });
+    expect(events).toContainEqual({
+      type: "trapTriggered",
+      playerId: "p1",
+      from: 8,
+      to: 6,
+    });
   });
 
   it("stops on the finish tile and ends the game", () => {
     const game = withPosition(createGame(CLASSIC_BOARD, PLAYERS), "p1", 17);
     const { state, events } = roll(game, "p1", 6);
 
-    expect(events[1]).toEqual({ type: "playerMoved", playerId: "p1", path: [18, 19, 20] });
+    expect(events[1]).toEqual({
+      type: "playerMoved",
+      playerId: "p1",
+      path: [18, 19, 20],
+    });
     expect(state.status).toBe("finished");
     expect(state.winnerId).toBe("p1");
     expect(events.at(-1)).toEqual({ type: "playerWon", playerId: "p1" });
@@ -87,7 +101,11 @@ describe("restart", () => {
   it("resets positions, status and turn order", () => {
     const game = withPosition(createGame(CLASSIC_BOARD, PLAYERS), "p1", 19);
     const finished = roll(game, "p1", 1).state;
-    const { state } = applyCommand(finished, { type: "restart" }, { rollDice: sequenceDice([1]), random: seededRandom(1) });
+    const { state } = applyCommand(
+      finished,
+      { type: "restart" },
+      { rollDice: sequenceDice([1]), random: seededRandom(1) },
+    );
 
     expect(state.players.map((p) => p.position)).toEqual([1, 1]);
     expect(state.status).toBe("playing");
@@ -120,7 +138,11 @@ describe("special tiles", () => {
   it("keeps the turn on an extra-turn tile", () => {
     const { state, events } = roll(createGame(EFFECTS_BOARD, PLAYERS), "p1", 3);
 
-    expect(events).toContainEqual({ type: "extraTurnGranted", playerId: "p1", tile: 4 });
+    expect(events).toContainEqual({
+      type: "extraTurnGranted",
+      playerId: "p1",
+      tile: 4,
+    });
     expect(events.at(-1)).toEqual({ type: "turnChanged", playerId: "p1" });
     expect(state.currentPlayerIndex).toBe(0);
   });
@@ -137,7 +159,10 @@ describe("special tiles", () => {
     expect(afterP2.state.players[0].skipTurns).toBe(0);
 
     const afterSkip = roll(afterP2.state, "p2", 1);
-    expect(afterSkip.events.at(-1)).toEqual({ type: "turnChanged", playerId: "p1" });
+    expect(afterSkip.events.at(-1)).toEqual({
+      type: "turnChanged",
+      playerId: "p1",
+    });
   });
 
   it("consumes the skip right away when playing alone", () => {

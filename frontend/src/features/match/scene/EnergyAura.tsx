@@ -47,7 +47,7 @@ const FRAGMENT = /* glsl */ `
 /** Outer flame, outer core, inner flame, inner core. */
 const PALETTES = {
   gold: ["#ffb300", "#ffe08a", "#ffc21a", "#fff1b0"],
-  /** Kaioken. */
+  /** Berserk Fury. */
   red: ["#ff1f1f", "#ff8a7a", "#ff3b2f", "#ffc2b8"],
 } as const;
 
@@ -58,12 +58,11 @@ const HEIGHT = 2.3;
 const FADE_RATE = 5;
 const SHOCKWAVE_SECONDS = 0.6;
 
-
 /**
- * Super-Saiyan style energy around a player: rising flames, golden or Kaioken red (bloom picks up their
+ * Energy around a player: rising flames, golden or Berserk Fury red (bloom picks up their
  * above-1.0 colours), sparks, and a shockwave on the ground each time it ignites.
  */
-export function KiAura({ active, palette = "gold" }: { active: boolean; palette?: AuraPalette }) {
+export function EnergyAura({ active, palette = "gold" }: { active: boolean; palette?: AuraPalette }) {
   const [outerColor, outerCore, innerColor, innerCore] = PALETTES[palette];
   const outer = useRef<ShaderMaterial>(null);
   const inner = useRef<ShaderMaterial>(null);
@@ -158,7 +157,14 @@ export function KiAura({ active, palette = "gold" }: { active: boolean; palette?
       </mesh>
 
       {active && (
-        <Sparkles count={28} scale={[1.2, HEIGHT, 1.2]} position-y={HEIGHT / 2} size={4} speed={2.2} color={innerColor} />
+        <Sparkles
+          count={28}
+          scale={[1.2, HEIGHT, 1.2]}
+          position-y={HEIGHT / 2}
+          size={4}
+          speed={2.2}
+          color={innerColor}
+        />
       )}
     </group>
   );

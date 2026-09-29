@@ -1,9 +1,11 @@
-import { MAX_KI } from "./cards";
+import { chargeAbility } from "./abilities";
+import { MAX_ENERGY, TURNS_PER_ENERGY } from "./cards";
 import type { Draft } from "./draft";
 
 /**
  * Ends the current turn: the same player goes again after an extra turn, otherwise play
- * passes on, skipping (and consuming) lost turns. Whoever starts a turn gains 1 ki.
+ * passes on, skipping (and consuming) lost turns. Every TURNS_PER_ENERGY turns a player
+ * starts (extra turns included), they gain 1 energy; every turn charges their ability until it's ready.
  * Returns the index of the player whose turn it is now.
  */
 export function endTurn(draft: Draft, extraTurn: boolean): number {
@@ -22,7 +24,19 @@ export function endTurn(draft: Draft, extraTurn: boolean): number {
   }
 
   const next = draft.players[index];
-  draft.players[index] = { ...next, ki: Math.min(MAX_KI, next.ki + 1) };
+  const charged = next.energyCharge + 1 >= TURNS_PER_ENERGY;
+  const { player, becameReady } = chargeAbility({
+    ...next,
+    energy: charged ? Math.min(MAX_ENERGY, next.energy + 1) : next.energy,
+    energyCharge: charged ? 0 : next.energyCharge + 1,
+  });
+  draft.players[index] = player;
   draft.events.push({ type: "turnChanged", playerId: next.id });
+  if (becameReady && player.ability)
+    draft.events.push({
+      type: "abilityReady",
+      playerId: next.id,
+      ability: player.ability,
+    });
   return index;
 }

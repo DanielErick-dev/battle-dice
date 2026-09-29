@@ -3,6 +3,8 @@
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { Color, UniformsLib, UniformsUtils, Vector2, Vector3, type ShaderMaterial } from "three";
+import { blendRealm, SKY, useRealmMix } from "../realm/RealmAtmosphere";
+import { NOISE_GLSL } from "../realm/noise";
 
 interface OceanProps {
   /** Water surface height. */
@@ -18,6 +20,8 @@ interface OceanProps {
 const VERTEX = /* glsl */ `
   #include <fog_pars_vertex>
   uniform float uTime;
+  uniform float uInfernal;
+  uniform float uCelestial;
   varying vec3 vWorld;
 
   float swell(vec2 p) {
@@ -27,7 +31,8 @@ const VERTEX = /* glsl */ `
 
   void main() {
     vec4 world = modelMatrix * vec4(position, 1.0);
-    world.y += swell(world.xz);
+    // Lava heaves slowly and low; the cloud sea barely moves.
+    world.y += swell(world.xz) * (1.0 - uInfernal * 0.6 - uCelestial * 0.7);
     vWorld = world.xyz;
     vec4 mvPosition = viewMatrix * world;
     gl_Position = projectionMatrix * mvPosition;
@@ -45,7 +50,37 @@ const FRAGMENT = /* glsl */ `
   uniform vec3 uMoonColor;
   uniform vec3 uMoonPosition;
   uniform vec2 uShoreHalf;
+  uniform float uInfernal;
+  uniform float uCelestial;
+  uniform vec3 uHorizon;
   varying vec3 vWorld;
+
+  ${NOISE_GLSL}
+
+  /** Molten rock: dark crust broken by glowing veins, hotter against the arena walls. */
+  vec3 lava(vec2 p, float shore) {
+    float flow = fbm(p * 0.18 + vec2(uTime * 0.02, uTime * 0.015));
+    float veins = fbm(p * 0.4 - vec2(uTime * 0.025, -uTime * 0.018) + flow * 2.0);
+    // Ridged noise: sharp, thin lines where the noise crosses its midpoint.
+    float crack = pow(1.0 - abs(veins * 2.0 - 1.0), 22.0);
+    vec3 crust = mix(vec3(0.03, 0.008, 0.006), vec3(0.09, 0.02, 0.008), flow);
+    vec3 heat = vec3(3.0, 0.7, 0.08);
+    // Mostly dark crust: thin glowing cracks and a few molten pools.
+    vec3 color = crust + heat * crack * 0.9 + heat * smoothstep(0.78, 0.95, flow) * 0.18;
+    float pulse = 0.75 + 0.25 * sin(uTime * 1.7 + flow * 9.0);
+    color += heat * smoothstep(1.2, 0.0, shore) * 0.45 * pulse;
+    return color;
+  }
+
+  /** A sea of clouds lit by the sun, tinted by the horizon at grazing angles. */
+  vec3 clouds(vec2 p, float fresnel) {
+    float fluff = fbm(p * 0.09 + vec2(uTime * 0.012, uTime * 0.008));
+    float detail = fbm(p * 0.35 - vec2(uTime * 0.02, 0.0));
+    vec3 shade = vec3(0.34, 0.38, 0.62);
+    vec3 lit = vec3(0.86, 0.82, 0.8);
+    vec3 color = mix(shade, lit, smoothstep(0.35, 0.75, fluff * 0.7 + detail * 0.3));
+    return mix(color, uHorizon * 0.8, fresnel * 0.4);
+  }
 
   // Sum of directional waves; returns (height, d/dx, d/dz).
   vec3 waves(vec2 p) {
@@ -94,6 +129,9 @@ const FRAGMENT = /* glsl */ `
     foam = max(foam, smoothstep(0.25, 0.0, shore));
     color = mix(color, uFoam, clamp(foam, 0.0, 1.0) * 0.45);
 
+    if (uInfernal > 0.001) color = mix(color, lava(vWorld.xz, shore), uInfernal);
+    if (uCelestial > 0.001) color = mix(color, clouds(vWorld.xz, fresnel), uCelestial);
+
     gl_FragColor = vec4(color, 1.0);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
@@ -101,9 +139,13 @@ const FRAGMENT = /* glsl */ `
   }
 `;
 
-/** Animated night sea: layered waves, sky reflection at grazing angles, moon glitter and shore foam. */
+/**
+ * Animated night sea: layered waves, sky reflection at grazing angles, moon glitter and shore
+ * foam. Turns to lava in the infernal realm and to a sea of clouds in the celestial one.
+ */
 export function Ocean({ level, size, shoreHalfSize, moonPosition }: OceanProps) {
   const material = useRef<ShaderMaterial>(null);
+  const mix = useRealmMix();
   const uniforms = useMemo(
     () =>
       UniformsUtils.merge([
@@ -117,6 +159,9 @@ export function Ocean({ level, size, shoreHalfSize, moonPosition }: OceanProps) 
           uMoonColor: { value: new Color("#fff4d6") },
           uMoonPosition: { value: new Vector3() },
           uShoreHalf: { value: new Vector2() },
+          uInfernal: { value: 0 },
+          uCelestial: { value: 0 },
+          uHorizon: { value: new Color() },
         },
       ]),
     [],
@@ -125,7 +170,11 @@ export function Ocean({ level, size, shoreHalfSize, moonPosition }: OceanProps) 
   useFrame((_, delta) => {
     const current = material.current;
     if (!current) return;
+    const realm = mix.current;
     current.uniforms.uTime.value += delta;
+    current.uniforms.uInfernal.value = realm.infernal;
+    current.uniforms.uCelestial.value = realm.celestial;
+    blendRealm(current.uniforms.uHorizon.value, SKY.mortal.horizon, SKY.infernal.horizon, SKY.celestial.horizon, realm);
     current.uniforms.uMoonPosition.value.set(...moonPosition);
     current.uniforms.uShoreHalf.value.set(...shoreHalfSize);
   });

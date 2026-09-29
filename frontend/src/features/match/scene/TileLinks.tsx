@@ -18,6 +18,8 @@ export function TileLinks({ board, layout, activeFrom }: TileLinksProps) {
     <>
       {board.tiles.map((tile) => {
         if (tile.effect.kind !== "portal" && tile.effect.kind !== "trap") return null;
+        // Realm portals show their track instead, and only while it's open.
+        if (tile.effect.kind === "portal" && tile.effect.realm) return null;
 
         const start = lift(layout.position(tile.id));
         const end = lift(layout.position(tile.effect.to));

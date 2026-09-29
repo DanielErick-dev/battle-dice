@@ -14,6 +14,8 @@ import {
   type MeshStandardMaterial,
 } from "three";
 import type { Vec3 } from "./boardLayout";
+import { CHEST_HEIGHT } from "./character/figure";
+import { useAge } from "./useAge";
 
 // Colours pushed past 1.0 glow through the bloom pass.
 const SHIELD_COLOR = new Color("#22d3ee").multiplyScalar(1.6);
@@ -21,19 +23,7 @@ const BEAM_COLOR = new Color("#60a5fa").multiplyScalar(3);
 const BEAM_CORE = new Color("#e0f2fe").multiplyScalar(3);
 const Y_AXIS = new Vector3(0, 1, 0);
 
-/**
- * Seconds since this component first rendered a frame; one-shot effects mount with a
- * fresh key per cast and fade themselves out.
- */
-function useAge() {
-  const bornAt = useRef<number | null>(null);
-  return (now: number) => {
-    bornAt.current ??= now;
-    return now - bornAt.current;
-  };
-}
-
-/** Ki Barrier: a hexagonal bubble around the player while the shield is up. */
+/** Arcane Shield: a hexagonal bubble around the player while the shield is up. */
 export function ShieldBubble() {
   const shell = useRef<Group>(null);
   const wire = useRef<MeshBasicMaterial>(null);
@@ -47,7 +37,14 @@ export function ShieldBubble() {
     <group ref={shell} position-y={1}>
       <mesh>
         <icosahedronGeometry args={[1.05, 1]} />
-        <meshBasicMaterial ref={wire} color={SHIELD_COLOR} wireframe transparent depthWrite={false} toneMapped={false} />
+        <meshBasicMaterial
+          ref={wire}
+          color={SHIELD_COLOR}
+          wireframe
+          transparent
+          depthWrite={false}
+          toneMapped={false}
+        />
       </mesh>
       <mesh>
         <sphereGeometry args={[1, 32, 16]} />
@@ -57,40 +54,53 @@ export function ShieldBubble() {
   );
 }
 
-/** Dragon Ball: an orange orb with stars hovering over the player until the wished roll. */
-export function DragonBallOrb() {
+export type OrbPalette = "fate" | "oracle" | "luck";
+
+const ORB_COLORS: Record<OrbPalette, { color: string; emissive: string; ring: string }> = {
+  fate: { color: "#fb923c", emissive: "#ea580c", ring: "#fde68a" },
+  oracle: { color: "#a78bfa", emissive: "#6d28d9", ring: "#e9d5ff" },
+  luck: { color: "#4ade80", emissive: "#15803d", ring: "#fde047" },
+};
+
+/**
+ * A glowing orb circled by a rune ring, hovering over the player while a dice card waits for
+ * the next roll: Fate Rune, Oracle Eye or Lucky Charm.
+ */
+export function BoostOrb({ palette }: { palette: OrbPalette }) {
   const orb = useRef<Group>(null);
+  const ring = useRef<Mesh>(null);
+  const { color, emissive, ring: ringColor } = ORB_COLORS[palette];
 
   useFrame(({ clock }, delta) => {
-    if (!orb.current) return;
-    orb.current.rotation.y += delta * 1.2;
+    if (!orb.current || !ring.current) return;
     orb.current.position.y = 2.6 + Math.sin(clock.elapsedTime * 2) * 0.12;
+    ring.current.rotation.z += delta * 1.5;
   });
 
   return (
     <group ref={orb}>
       <mesh>
-        <sphereGeometry args={[0.28, 32, 16]} />
-        <meshStandardMaterial color="#fb923c" emissive="#ea580c" emissiveIntensity={1.6} roughness={0.15} metalness={0.1} />
+        <sphereGeometry args={[0.24, 32, 16]} />
+        <meshStandardMaterial
+          color={color}
+          emissive={emissive}
+          emissiveIntensity={1.6}
+          roughness={0.15}
+          metalness={0.1}
+        />
       </mesh>
-      {[0, 1, 2, 3].map((i) => {
-        const angle = (i / 4) * Math.PI * 2;
-        return (
-          <mesh key={i} position={[Math.cos(angle) * 0.2, (i % 2 === 0 ? 0.06 : -0.06), Math.sin(angle) * 0.2]}>
-            <sphereGeometry args={[0.045, 8, 8]} />
-            <meshBasicMaterial color="#dc2626" />
-          </mesh>
-        );
-      })}
-      <pointLight color="#fb923c" intensity={2} distance={3} />
+      <mesh ref={ring} rotation-x={Math.PI / 2.4}>
+        <torusGeometry args={[0.38, 0.02, 8, 48]} />
+        <meshBasicMaterial color={ringColor} toneMapped={false} />
+      </mesh>
     </group>
   );
 }
 
-const NIMBUS_SECONDS = 3;
+const WIND_SECONDS = 3;
 
-/** Flying Nimbus: a golden cloud swirls in under the player, then drifts away. */
-export function NimbusCloud() {
+/** Wind Step: a golden cloud swirls in under the player, then drifts away. */
+export function WindCloud() {
   const cloud = useRef<Group>(null);
   const age = useAge();
 
@@ -98,7 +108,7 @@ export function NimbusCloud() {
     if (!cloud.current) return;
     const t = age(clock.elapsedTime);
     const grow = Math.min(1, t / 0.4);
-    const fade = 1 - Math.max(0, (t - NIMBUS_SECONDS + 0.6) / 0.6);
+    const fade = 1 - Math.max(0, (t - WIND_SECONDS + 0.6) / 0.6);
     cloud.current.visible = fade > 0;
     cloud.current.scale.setScalar(Math.max(0.001, grow * fade));
     cloud.current.rotation.y = t * 0.8;
@@ -124,7 +134,7 @@ export function NimbusCloud() {
 
 const BURST_SECONDS = 1.6;
 
-/** Senzu Bean: a burst of green sparks rising around the player. */
+/** Healing Herb: a burst of green sparks rising around the player. */
 export function HealBurst() {
   const [visible, setVisible] = useState(true);
   const age = useAge();
@@ -139,12 +149,12 @@ export function HealBurst() {
 
 const BEAM_SECONDS = 1.4;
 
-/** Kamehameha: a blue energy beam from the caster to the target, flaring then fading. */
-export function KamehamehaBeam({ from, to }: { from: Vec3; to: Vec3 }) {
+/** Arcane Blast: a blue energy beam from the caster to the target, flaring then fading. */
+export function ArcaneBeam({ from, to }: { from: Vec3; to: Vec3 }) {
   // Positions at the moment of the cast: the target gets pushed away afterwards.
   const [ends] = useState(() => ({
-    start: new Vector3(from[0], 1.1, from[2]),
-    end: new Vector3(to[0], 1.1, to[2]),
+    start: new Vector3(from[0], CHEST_HEIGHT, from[2]),
+    end: new Vector3(to[0], CHEST_HEIGHT, to[2]),
   }));
   const root = useRef<Group>(null);
   const beam = useRef<Group>(null);

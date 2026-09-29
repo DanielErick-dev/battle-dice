@@ -25,9 +25,9 @@ export function DiscardPicker({ hand, drawn, onDiscard }: DiscardPickerProps) {
           <p className="mt-1 text-sm text-zinc-300">Escolha uma carta para descartar.</p>
         </div>
 
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <ul className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-7">
           {[...hand, drawn].map((card) => (
-            <li key={card.uid} className="relative w-32 sm:w-40">
+            <li key={card.uid} className="relative w-28 sm:w-32 lg:w-36">
               {card.uid === drawn.uid && (
                 <span className="absolute -top-3 left-1/2 z-10 -translate-x-1/2 rounded-full bg-orange-500 px-2 py-0.5 text-[10px] font-black tracking-wider text-white uppercase shadow">
                   Nova

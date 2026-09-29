@@ -1,9 +1,18 @@
 import { generateBoard } from "./boardGenerator";
-import type { Board, Tile, TileEffect, TileId } from "./types";
+import { TRACK_LENGTH, trackEffects } from "./realms";
+import type { Board, RealmTrack, Tile, TileEffect, TileId, TrapZone } from "./types";
 
 export interface BoardDefinition {
   size: number;
   effects: Readonly<Record<TileId, TileEffect>>;
+  /** Stretches of the main path (`from`–`to`, inclusive) hiding `traps` traps among their plain tiles. */
+  trapZones?: readonly TrapZoneDefinition[];
+}
+
+export interface TrapZoneDefinition {
+  from: TileId;
+  to: TileId;
+  traps: number;
 }
 
 export const CLASSIC_BOARD: BoardDefinition = {
@@ -16,24 +25,45 @@ export const CLASSIC_BOARD: BoardDefinition = {
   },
 };
 
-/** The classic board plus card tiles: what the "Treino" preset plays on. */
+/** The classic board plus card tiles, cursed traps and realm portals: what the "Treino" preset plays on. */
 export const TRAINING_BOARD: BoardDefinition = {
   ...CLASSIC_BOARD,
-  effects: { ...CLASSIC_BOARD.effects, ...cards([3, 12]) },
+  effects: {
+    ...CLASSIC_BOARD.effects,
+    ...cards([3, 12]),
+    5: { kind: "portal", to: 10, realm: "infernal" },
+    8: { kind: "trap", to: 6, curse: "drain" },
+    15: { kind: "portal", to: 19, realm: "celestial" },
+    18: { kind: "trap", to: 17, curse: "discard" },
+  },
+  trapZones: [{ from: 9, to: 14, traps: 1 }],
 };
 
 /** 200 tiles laid out by the generator; the fixed seed keeps it identical for everyone. */
 export const POWER_TOURNAMENT_BOARD: BoardDefinition = generateBoard({
   size: 200,
   seed: 2026,
-  density: { portal: 6, trap: 9, advance: 8, extraTurn: 4, skipTurn: 4, card: 12 },
+  density: {
+    portal: 6,
+    trap: 9,
+    advance: 8,
+    extraTurn: 4,
+    skipTurn: 4,
+    card: 12,
+  },
+  trapZones: { count: 3, length: 10, traps: 2 },
 });
 
 function cards(tiles: readonly TileId[]): Record<TileId, TileEffect> {
   return Object.fromEntries(tiles.map((id) => [id, { kind: "card" } as const]));
 }
 
-export function createBoard({ size, effects }: BoardDefinition): Board {
+/**
+ * Builds the main path (tiles 1 to `size`, each leading to the next) and, for every realm
+ * portal, a track of TRACK_LENGTH tiles numbered after the main path: the portal carries the
+ * player onto its first tile, and its last tile leads on to the portal's destination.
+ */
+export function createBoard({ size, effects, trapZones = [] }: BoardDefinition): Board {
   const startTile = 1;
   const finishTile = size;
 
@@ -43,14 +73,67 @@ export function createBoard({ size, effects }: BoardDefinition): Board {
       id,
       role: id === startTile ? "start" : id === finishTile ? "finish" : "regular",
       effect: effects[id] ?? { kind: "none" },
+      next: id === finishTile ? null : id + 1,
+      previous: id === startTile ? null : id - 1,
     };
   });
 
-  return { tiles, startTile, finishTile };
+  const tracks: RealmTrack[] = [];
+  for (const portal of [...tiles]) {
+    const { effect } = portal;
+    if (effect.kind !== "portal" || !effect.realm) continue;
+
+    const first = tiles.length + 1;
+    const ids = Array.from({ length: TRACK_LENGTH }, (_, index) => first + index);
+    trackEffects(effect.realm, portal.id, ids).forEach((trackEffect, index) => {
+      const id = ids[index];
+      tiles.push({
+        id,
+        role: "track",
+        effect: trackEffect,
+        next: index === TRACK_LENGTH - 1 ? effect.to : id + 1,
+        previous: index === 0 ? portal.id : id - 1,
+        track: { realm: effect.realm!, portal: portal.id, index },
+      });
+    });
+    tracks.push({
+      realm: effect.realm,
+      portal: portal.id,
+      exit: effect.to,
+      tiles: ids,
+    });
+  }
+
+  return {
+    tiles,
+    startTile,
+    finishTile,
+    tracks,
+    trapZones: trapZones.map((zone) => createTrapZone(tiles, zone)),
+  };
+}
+
+/** A zone's plain tiles; it needs more of them than traps, so a sprung trap has somewhere to go. */
+function createTrapZone(tiles: readonly Tile[], { from, to, traps }: TrapZoneDefinition): TrapZone {
+  const plain = tiles
+    .filter((tile) => tile.id >= from && tile.id <= to && tile.role === "regular" && tile.effect.kind === "none")
+    .map((tile) => tile.id);
+  if (plain.length <= traps) throw new RangeError(`Trap zone ${from}–${to} needs more than ${traps} plain tiles`);
+  return { tiles: plain, traps };
 }
 
 export function getTile(board: Board, id: TileId): Tile {
   const tile = board.tiles[id - 1];
   if (!tile) throw new RangeError(`Tile ${id} is outside the board`);
   return tile;
+}
+
+/** The tile on the main path standing for `id`: itself, or the portal of the track it's on. */
+export function mainTileOf(board: Board, id: TileId): TileId {
+  return getTile(board, id).track?.portal ?? id;
+}
+
+export function trackOf(board: Board, id: TileId): RealmTrack | null {
+  const placement = getTile(board, id).track;
+  return placement ? (board.tracks.find((track) => track.portal === placement.portal) ?? null) : null;
 }

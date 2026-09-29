@@ -3,7 +3,8 @@
 import { RoundedBox } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
-import { Euler, Quaternion, Vector3, type Group } from "three";
+import { Color, Euler, Quaternion, Vector3, type Group } from "three";
+import type { RealmKind } from "@/game/domain/types";
 import { PIPS } from "../diceFaces";
 import { TILE_HEIGHT, type Vec3 } from "./boardLayout";
 
@@ -28,14 +29,72 @@ const REST_SECONDS = 2.2;
 const VANISH_SECONDS = 0.3;
 const UP = new Vector3(0, 1, 0);
 
+interface DicePalette {
+  body: string;
+  pip: string;
+  /** The single pip on the 1. */
+  ace: string;
+  /** Pips lit past 1.0 glow through the bloom pass; black for none. */
+  glow: Color;
+}
+
+/**
+ * Ivory with black pips reads on the night sea and the lava; over the bright celestial
+ * clouds the die turns lapis with glowing gold pips so it doesn't wash out.
+ */
+const PALETTES: Readonly<Record<"mortal" | RealmKind, DicePalette>> = {
+  mortal: {
+    body: "#f5f1e8",
+    pip: "#18181b",
+    ace: "#c1121f",
+    glow: new Color(0, 0, 0),
+  },
+  infernal: {
+    body: "#f5f1e8",
+    pip: "#18181b",
+    ace: "#c1121f",
+    glow: new Color(0, 0, 0),
+  },
+  celestial: {
+    body: "#1b2456",
+    pip: "#ffd87a",
+    ace: "#ffe9b0",
+    glow: new Color("#ffc94a").multiplyScalar(1.4),
+  },
+};
+
 /** Standard die: opposite faces add up to 7. `u`/`v` orient the pip grid on the face. */
 export const FACES: Record<number, { normal: Vector3; u: Vector3; v: Vector3 }> = {
-  1: { normal: new Vector3(0, 1, 0), u: new Vector3(1, 0, 0), v: new Vector3(0, 0, -1) },
-  6: { normal: new Vector3(0, -1, 0), u: new Vector3(1, 0, 0), v: new Vector3(0, 0, 1) },
-  2: { normal: new Vector3(1, 0, 0), u: new Vector3(0, 0, -1), v: new Vector3(0, 1, 0) },
-  5: { normal: new Vector3(-1, 0, 0), u: new Vector3(0, 0, 1), v: new Vector3(0, 1, 0) },
-  3: { normal: new Vector3(0, 0, 1), u: new Vector3(1, 0, 0), v: new Vector3(0, 1, 0) },
-  4: { normal: new Vector3(0, 0, -1), u: new Vector3(-1, 0, 0), v: new Vector3(0, 1, 0) },
+  1: {
+    normal: new Vector3(0, 1, 0),
+    u: new Vector3(1, 0, 0),
+    v: new Vector3(0, 0, -1),
+  },
+  6: {
+    normal: new Vector3(0, -1, 0),
+    u: new Vector3(1, 0, 0),
+    v: new Vector3(0, 0, 1),
+  },
+  2: {
+    normal: new Vector3(1, 0, 0),
+    u: new Vector3(0, 0, -1),
+    v: new Vector3(0, 1, 0),
+  },
+  5: {
+    normal: new Vector3(-1, 0, 0),
+    u: new Vector3(0, 0, 1),
+    v: new Vector3(0, 1, 0),
+  },
+  3: {
+    normal: new Vector3(0, 0, 1),
+    u: new Vector3(1, 0, 0),
+    v: new Vector3(0, 1, 0),
+  },
+  4: {
+    normal: new Vector3(0, 0, -1),
+    u: new Vector3(-1, 0, 0),
+    v: new Vector3(0, 1, 0),
+  },
 };
 
 const PIP_MESHES = Object.entries(FACES).flatMap(([value, { normal, u, v }]) =>
@@ -48,7 +107,12 @@ const PIP_MESHES = Object.entries(FACES).flatMap(([value, { normal, u, v }]) =>
       .addScaledVector(u, column * PIP_SPACING)
       .addScaledVector(v, -row * PIP_SPACING);
     const rotation = new Euler().setFromQuaternion(new Quaternion().setFromUnitVectors(new Vector3(0, 0, 1), normal));
-    return { key: `${value}:${cell}`, position: position.toArray(), rotation, red: value === "1" };
+    return {
+      key: `${value}:${cell}`,
+      position: position.toArray(),
+      rotation,
+      red: value === "1",
+    };
   }),
 );
 
@@ -70,6 +134,8 @@ interface DiceThrowProps {
   landing: Vec3;
   /** Called on each impact with its strength, 1 for the first. */
   onImpact: (strength: number) => void;
+  /** The world the die is thrown in, which sets its colours. */
+  realm: RealmKind | null;
 }
 
 /**
@@ -77,10 +143,15 @@ interface DiceThrowProps {
  * tumbles, and settles on the rolled value, then vanishes. Animated, not simulated, so it
  * always lands on the value the game engine decided.
  */
-export function DiceThrow({ roll, landing, onImpact }: DiceThrowProps) {
+export function DiceThrow({ roll, landing, onImpact, realm }: DiceThrowProps) {
+  const palette = PALETTES[realm ?? "mortal"];
   const group = useRef<Group>(null);
   const current = useRef<Throw | null>(null);
-  const scratch = useRef({ spin: new Quaternion(), turn: new Quaternion(), position: new Vector3() });
+  const scratch = useRef({
+    spin: new Quaternion(),
+    turn: new Quaternion(),
+    position: new Vector3(),
+  });
 
   useFrame(({ clock }) => {
     const node = group.current;
@@ -121,12 +192,12 @@ export function DiceThrow({ roll, landing, onImpact }: DiceThrowProps) {
   return (
     <group ref={group} visible={false}>
       <RoundedBox args={[SIZE, SIZE, SIZE]} radius={0.09} smoothness={4} castShadow>
-        <meshStandardMaterial color="#f5f1e8" roughness={0.35} metalness={0.05} />
+        <meshStandardMaterial color={palette.body} roughness={0.35} metalness={0.05} />
       </RoundedBox>
       {PIP_MESHES.map(({ key, position, rotation, red }) => (
         <mesh key={key} position={position} rotation={rotation}>
           <circleGeometry args={[SIZE * (red ? 0.12 : 0.085), 20]} />
-          <meshStandardMaterial color={red ? "#c1121f" : "#18181b"} roughness={0.5} />
+          <meshStandardMaterial color={red ? palette.ace : palette.pip} emissive={palette.glow} roughness={0.5} />
         </mesh>
       ))}
     </group>

@@ -30,19 +30,30 @@ const SHOTS: Record<TileEffectKind, Shot> = {
   portal: { closeUp: { distance: 0.62, seconds: 1.5 } },
   advance: { closeUp: { distance: 0.78, seconds: 1.2 }, fovKick: 1 },
   trap: { trauma: 0.8 },
+  hiddenTrap: { closeUp: { distance: 0.62, seconds: 1.2 }, trauma: 1 },
   skipTurn: { trauma: 0.3 },
   turnSkipped: { trauma: 0.2 },
   extraTurn: { fovKick: 0.6 },
   trapBlocked: { fovKick: 0.4 },
+  trapCurse: { trauma: 0.4 },
+  realmEnter: {
+    closeUp: { distance: 0.5, seconds: 2.4 },
+    trauma: 0.55,
+    fovKick: 1,
+  },
+  blessing: { fovKick: 0.5 },
   teleport: { closeUp: { distance: 0.62, seconds: 1.5 } },
+  abilityReady: { fovKick: 0.4 },
+  abilityUsed: { fovKick: 0.8 },
 };
 
 /** Cards whose cast is filmed too (the rest are covered by the effects they cause). */
 const CAST_SHOTS: Partial<Record<CardId, Shot>> = {
-  kamehameha: { trauma: 0.9 },
-  solarFlare: { fovKick: 1 },
-  kaioken: { trauma: 0.35 },
-  flyingNimbus: { closeUp: { distance: 0.8, seconds: 2 } },
+  arcaneBlast: { trauma: 0.9 },
+  blindingFlash: { fovKick: 1 },
+  berserkFury: { trauma: 0.35 },
+  windStep: { closeUp: { distance: 0.8, seconds: 2 } },
+  ancestralAwakening: { trauma: 0.45, fovKick: 0.8 },
 };
 /** Winner close-up (distance factor) while the camera circles them. */
 const VICTORY_DISTANCE = 0.55;
@@ -83,9 +94,18 @@ export function CameraRig({ layout, focus, follow, effect, celebrating, cast }: 
   const lastGoalDistance = useRef(0);
   const lastEffect = useRef<TileEffectView | null>(null);
   const lastCast = useRef<CardCastView | null>(null);
-  const shot = useRef({ closeUpFactor: 1, closeUpUntil: 0, trauma: 0, fovKick: 0 });
+  const shot = useRef({
+    closeUpFactor: 1,
+    closeUpUntil: 0,
+    trauma: 0,
+    fovKick: 0,
+  });
   const appliedShake = useRef(new Vector3());
-  const scratch = useRef({ goal: new Vector3(), offset: new Vector3(), step: new Vector3() });
+  const scratch = useRef({
+    goal: new Vector3(),
+    offset: new Vector3(),
+    step: new Vector3(),
+  });
 
   const aspectFit = Math.max(1, FIT_ASPECT / aspect);
   const overviewDistance = BASE_DISTANCE * boardScaleFor(layout) * aspectFit;
@@ -129,7 +149,8 @@ export function CameraRig({ layout, focus, follow, effect, celebrating, cast }: 
 
     const { goal, offset, step } = scratch.current;
     const k = 1 - Math.exp(-delta * FOLLOW_RATE * (closeUp ? 1.6 : 1));
-    goal.set(tracking ? focus[0] : 0, 0, tracking ? focus[2] : 0);
+    // Up on a realm bridge the target rises with the player, so they stay framed.
+    goal.set(tracking ? focus[0] : 0, tracking ? focus[1] * 0.8 : 0, tracking ? focus[2] : 0);
     step.subVectors(goal, orbit.target).multiplyScalar(k);
     orbit.target.add(step);
     camera.position.add(step);

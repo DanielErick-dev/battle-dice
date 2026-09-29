@@ -41,7 +41,7 @@ export function useTileFaceTexture({ tileId, theme, accent, arrowAngle, resoluti
 }
 
 /** Tiles that show the path arrows; the others carry their own icon. */
-const ARROW_KINDS: ReadonlySet<TileKind> = new Set(["regular", "start", "advance"]);
+const ARROW_KINDS: ReadonlySet<TileKind> = new Set(["regular", "start", "advance", "trapZone", "destroyed"]);
 
 function paintFace(ctx: CanvasRenderingContext2D, face: TileFace): void {
   const { theme } = face;
@@ -55,12 +55,16 @@ function paintFace(ctx: CanvasRenderingContext2D, face: TileFace): void {
   if (theme.kind === "extraTurn") paintDieIcon(ctx, theme.glow);
   if (theme.kind === "skipTurn") paintPauseIcon(ctx, theme.glow);
   if (theme.kind === "card") paintCardIcon(ctx, theme.glow);
+  if (theme.kind === "curse") paintHazardBorder(ctx, theme.glow);
+  if (theme.kind === "blessing") paintSpiral(ctx, theme.glow);
+  if (theme.kind === "trapZone") paintEmberCracks(ctx, random);
+  if (theme.kind === "destroyed") paintShattered(ctx, theme.glow, random);
   paintBevel(ctx);
 
   if (face.arrowAngle !== null && ARROW_KINDS.has(theme.kind)) {
     paintArrows(ctx, face.arrowAngle, theme.kind === "regular" ? face.accent : theme.glow);
   }
-  paintMedallion(ctx, face.tileId, theme.kind === "regular" ? face.accent : theme.glow);
+  paintMedallion(ctx, theme.badge ?? String(face.tileId), theme.kind === "regular" ? face.accent : theme.glow);
   if (theme.label) paintLabel(ctx, theme);
 }
 
@@ -131,7 +135,7 @@ function paintBevel(ctx: CanvasRenderingContext2D) {
 }
 
 /** Number inside a round medallion ringed with the tile's accent colour. */
-function paintMedallion(ctx: CanvasRenderingContext2D, tileId: number, accent: string) {
+function paintMedallion(ctx: CanvasRenderingContext2D, text: string, accent: string) {
   const cx = 118;
   const cy = 118;
   const radius = 66;
@@ -153,10 +157,10 @@ function paintMedallion(ctx: CanvasRenderingContext2D, tileId: number, accent: s
   ctx.stroke();
 
   ctx.fillStyle = "#ffffff";
-  ctx.font = `900 ${tileId >= 10 ? 62 : 72}px ${FONT}`;
+  ctx.font = `900 ${text.length > 1 ? 62 : 72}px ${FONT}`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(String(tileId), cx, cy + 4);
+  ctx.fillText(text, cx, cy + 4, radius * 1.7);
 }
 
 /** Two chevrons pointing to the next tile, so the zig-zag path reads at a glance. */
@@ -217,7 +221,13 @@ function paintDieIcon(ctx: CanvasRenderingContext2D, color: string) {
   ctx.roundRect(x, y, size, size, 36);
   ctx.stroke();
   ctx.fillStyle = color;
-  for (const [px, py] of [[0.25, 0.25], [0.75, 0.25], [0.5, 0.5], [0.25, 0.75], [0.75, 0.75]]) {
+  for (const [px, py] of [
+    [0.25, 0.25],
+    [0.75, 0.25],
+    [0.5, 0.5],
+    [0.25, 0.75],
+    [0.75, 0.75],
+  ]) {
     ctx.beginPath();
     ctx.arc(x + px * size, y + py * size, 17, 0, Math.PI * 2);
     ctx.fill();
@@ -318,6 +328,77 @@ function paintHazardBorder(ctx: CanvasRenderingContext2D, color: string) {
   ctx.restore();
 }
 
+/** Faint red-hot fissures: the ground of a trap zone, the same unease on every one of its tiles. */
+function paintEmberCracks(ctx: CanvasRenderingContext2D, random: () => number) {
+  ctx.save();
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.shadowColor = "#ff3b1f";
+  ctx.shadowBlur = 14;
+  for (let crack = 0; crack < 4; crack++) {
+    let x = SIZE * (0.15 + random() * 0.7);
+    let y = SIZE * (0.15 + random() * 0.7);
+    ctx.strokeStyle = `rgba(255, ${70 + Math.floor(random() * 50)}, 30, ${0.35 + random() * 0.2})`;
+    ctx.lineWidth = 2 + random() * 2.5;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    for (let segment = 0; segment < 6; segment++) {
+      x += (random() - 0.5) * 110;
+      y += (random() - 0.5) * 110;
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/** A smashed slab: chunks broken out of it and deep cracks with a faint glow in them. */
+function paintShattered(ctx: CanvasRenderingContext2D, glow: string, random: () => number) {
+  ctx.save();
+  // Holes where chunks broke away.
+  for (let hole = 0; hole < 5; hole++) {
+    const cx = SIZE * (0.15 + random() * 0.7);
+    const cy = SIZE * (0.15 + random() * 0.7);
+    const radius = 28 + random() * 40;
+    ctx.fillStyle = "rgba(0,0,0,0.7)";
+    ctx.beginPath();
+    for (let corner = 0; corner < 7; corner++) {
+      const angle = (corner / 7) * Math.PI * 2;
+      const reach = radius * (0.55 + random() * 0.6);
+      const x = cx + Math.cos(angle) * reach;
+      const y = cy + Math.sin(angle) * reach;
+      if (corner === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Cracks running out from the middle, where the blades went in.
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.shadowColor = glow;
+  ctx.shadowBlur = 16;
+  for (let arm = 0; arm < 8; arm++) {
+    let angle = (arm / 8) * Math.PI * 2 + random() * 0.5;
+    let x = SIZE / 2;
+    let y = SIZE / 2;
+    ctx.strokeStyle = glow;
+    ctx.globalAlpha = 0.55 + random() * 0.3;
+    ctx.lineWidth = 3 + random() * 3;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    for (let segment = 0; segment < 7; segment++) {
+      angle += (random() - 0.5) * 0.8;
+      x += Math.cos(angle) * (22 + random() * 18);
+      y += Math.sin(angle) * (22 + random() * 18);
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 function paintLabel(ctx: CanvasRenderingContext2D, theme: TileTheme) {
   const bottom = theme.caption ? SIZE - 110 : SIZE - 70;
   ctx.textAlign = "center";
@@ -334,6 +415,7 @@ function paintLabel(ctx: CanvasRenderingContext2D, theme: TileTheme) {
   if (theme.caption) {
     ctx.fillStyle = theme.glow;
     ctx.font = `800 38px ${FONT}`;
-    ctx.fillText(theme.caption, SIZE / 2, bottom + 52);
+    // Squeezed rather than cut off when long (a cursed trap's caption).
+    ctx.fillText(theme.caption, SIZE / 2, bottom + 52, SIZE - 90);
   }
 }
