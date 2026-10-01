@@ -4,7 +4,7 @@ import type { RealmKind, TileEffect, TileId, TrapCurse } from "./types";
 export const BLESSING_ENERGY = 2;
 
 /** Tiles in a realm track. */
-export const TRACK_LENGTH = 12;
+export const TRACK_LENGTH = 18;
 
 /**
  * One tile of a track pattern. Moves along the track are counted in tiles here and become

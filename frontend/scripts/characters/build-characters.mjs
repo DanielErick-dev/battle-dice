@@ -28,7 +28,14 @@ const OUTPUT_DIR = path.resolve(fileURLToPath(import.meta.url), "../../../public
 const TARGET_VERTICES = 24_000;
 const TEXTURE_SIZE = 1024;
 /** Clips played standing on one spot (menu stage, ability), so the figure never wanders off it. */
-const IN_PLACE_CLIPS = ["intro", "showcase", "cast", "float"];
+const IN_PLACE_CLIPS = ["intro", "showcase", "cast", "float", "land", "dash"];
+/**
+ * Share of the travel an in-place clip keeps (none by default): a lunge into a dash keeps a little,
+ * so the figure throws itself forward yet stays on its tile for the strike.
+ */
+const KEPT_TRAVEL = { dash: 0.4 };
+/** Seconds between two parts of a sequence, for the pose to blend from one into the next. */
+const SEQUENCE_BLEND_SECONDS = 0.3;
 
 const { values } = parseArgs({
   options: { source: { type: "string" }, only: { type: "string" } },
@@ -57,10 +64,11 @@ for (const [id, model] of Object.entries(CHARACTER_MODELS)) {
  * character (`fallbacks`), bone rotations only, so it moves the same without taking on the
  * other body's proportions. Optional clips are added only when exported.
  */
-async function buildCharacter({ folder, fallbacks = {} }, output) {
+async function buildCharacter({ folder, fallbacks = {}, sequences = {} }, output) {
   const exportOf = (character, clip) => path.join(values.source, character.folder, `${clip}.glb`);
   const ownExport = (clip) => exportOf({ folder }, clip);
   const sources = [];
+  const sequenced = new Set(Object.keys(sequences));
   for (const name of REQUIRED_CLIPS) {
     if (await exists(ownExport(name))) sources.push({ name, path: ownExport(name), rotationsOnly: false });
     else if (fallbacks[name]) {
@@ -70,6 +78,7 @@ async function buildCharacter({ folder, fallbacks = {} }, output) {
     } else throw new Error(`Missing ${ownExport(name)}`);
   }
   for (const name of OPTIONAL_CLIPS) {
+    if (sequenced.has(name)) continue;
     if (await exists(ownExport(name))) sources.push({ name, path: ownExport(name), rotationsOnly: false });
     else console.warn(`  (no ${folder}/${name}.glb: "${name}" clip left out)`);
   }
@@ -83,7 +92,17 @@ async function buildCharacter({ folder, fallbacks = {} }, output) {
 
   for (const source of sources) {
     const clip = await io.read(source.path);
-    copyAnimation(clip.getRoot().listAnimations()[0], document, source.name, source);
+    addAnimation(document, source.name, channelsOf(clip.getRoot().listAnimations()[0], source));
+  }
+  for (const [name, parts] of Object.entries(sequences)) {
+    const played = [];
+    for (const part of parts) {
+      const [, file, from, mode] = part.match(/^([^@:]+)(?:@([\d.]+))?(?::(\w+))?$/);
+      const clip = await io.read(ownExport(file));
+      const channels = channelsOf(clip.getRoot().listAnimations()[0], {});
+      played.push({ channels: from ? trimStart(channels, Number(from)) : channels, reverse: mode === "reverse" });
+    }
+    addAnimation(document, name, joinParts(played, name));
   }
 
   const vertices = root.listMeshes()[0].listPrimitives()[0].getAttribute("POSITION").getCount();
@@ -108,53 +127,124 @@ async function buildCharacter({ folder, fallbacks = {} }, output) {
 }
 
 /**
- * Recreates `animation` in `target` under `name`. Every export shares the same skeleton
- * (Meshy's Mixamo rig), so channels find their bones by name. `rotationsOnly` leaves out the
- * translations, which carry the source body's bone lengths.
+ * The channels of `animation` as plain keyframes, each naming its bone. `rotationsOnly` leaves out
+ * the translations, which carry the source body's bone lengths.
  */
-function copyAnimation(animation, target, name, { rotationsOnly }) {
+function channelsOf(animation, { rotationsOnly = false }) {
+  return animation
+    .listChannels()
+    .filter((channel) => !rotationsOnly || channel.getTargetPath() === "rotation")
+    .map((channel) => {
+      const sampler = channel.getSampler();
+      return {
+        bone: channel.getTargetNode().getName(),
+        path: channel.getTargetPath(),
+        interpolation: sampler.getInterpolation(),
+        times: Array.from(sampler.getInput().getArray()),
+        values: Array.from(sampler.getOutput().getArray()),
+        size: sampler.getOutput().getElementSize(),
+      };
+    });
+}
+
+/**
+ * The channels from `from` seconds on, shifted to start at 0 (a keyframe is kept just before). The
+ * hips are moved back over the ground spot the clip started on, so a trimmed clip doesn't begin
+ * a few steps away from the figure.
+ */
+function trimStart(channels, from) {
+  return channels.map((channel) => {
+    const first = Math.max(0, channel.times.findIndex((time) => time >= from) - 1);
+    const values = channel.values.slice(first * channel.size);
+    if (channel.bone.endsWith("Hips") && channel.path === "translation") {
+      const [dx, , dz] = [0, 1, 2].map((axis) => values[axis] - channel.values[axis]);
+      for (let index = 0; index < values.length; index += 3) {
+        values[index] -= dx;
+        values[index + 2] -= dz;
+      }
+    }
+    return { ...channel, times: channel.times.slice(first).map((time) => Math.max(0, time - from)), values };
+  });
+}
+
+/**
+ * One clip made of several played back to back, some backwards (`reverse`), each starting
+ * SEQUENCE_BLEND_SECONDS after the last ends so the pose eases from one into the next. Every part
+ * must animate the same bones, with linear keyframes (so a part can be turned around).
+ */
+function joinParts(parts, name) {
+  const key = (channel) => `${channel.bone}/${channel.path}`;
+  const [first] = parts;
+  for (const part of parts) {
+    if (part.channels.some((channel) => channel.interpolation !== "LINEAR"))
+      throw new Error(`Sequence "${name}": every part must have linear keyframes`);
+    if (part.channels.length !== first.channels.length)
+      throw new Error(`Sequence "${name}": its parts animate different bones`);
+  }
+  const lengthOf = (part) => Math.max(...part.channels.map((channel) => channel.times.at(-1)));
+  const joined = new Map(first.channels.map((channel) => [key(channel), { ...channel, times: [], values: [] }]));
+  let start = 0;
+  for (const part of parts) {
+    const length = lengthOf(part);
+    for (const channel of part.channels) {
+      const target = joined.get(key(channel));
+      if (!target) throw new Error(`Sequence "${name}": its parts animate different bones`);
+      const frames = channel.times.map((time, index) => ({
+        time: part.reverse ? length - time : time,
+        value: channel.values.slice(index * channel.size, (index + 1) * channel.size),
+      }));
+      if (part.reverse) frames.reverse();
+      for (const { time, value } of frames) {
+        target.times.push(start + time);
+        target.values.push(...value);
+      }
+    }
+    start += length + SEQUENCE_BLEND_SECONDS;
+  }
+  return [...joined.values()];
+}
+
+/**
+ * Adds a clip named `name` to `target` from plain keyframes. Every export shares the same skeleton
+ * (Meshy's Mixamo rig), so channels find their bones by name.
+ */
+function addAnimation(target, name, channels) {
   const root = target.getRoot();
   const buffer = root.listBuffers()[0];
   const bones = new Map(root.listNodes().map((node) => [node.getName(), node]));
-  const copy = target.createAnimation(name);
-  const copyAccessor = (accessor) =>
-    target.createAccessor().setType(accessor.getType()).setArray(accessor.getArray().slice()).setBuffer(buffer);
+  const animation = target.createAnimation(name);
+  const accessor = (type, array) => target.createAccessor().setType(type).setArray(array).setBuffer(buffer);
+  const types = { 3: "VEC3", 4: "VEC4" };
 
-  for (const channel of animation.listChannels()) {
-    if (rotationsOnly && channel.getTargetPath() !== "rotation") continue;
-    const bone = bones.get(channel.getTargetNode().getName());
-    if (!bone)
-      throw new Error(`Clip "${name}" animates "${channel.getTargetNode().getName()}", missing from the base model`);
-    const sampler = channel.getSampler();
-    const output = copyAccessor(sampler.getOutput());
-    if (IN_PLACE_CLIPS.includes(name) && channel.getTargetPath() === "translation" && bone.getName().endsWith("Hips")) {
-      pinHorizontally(output.getArray());
+  for (const channel of channels) {
+    const bone = bones.get(channel.bone);
+    if (!bone) throw new Error(`Clip "${name}" animates "${channel.bone}", missing from the base model`);
+    const values = new Float32Array(channel.values);
+    if (IN_PLACE_CLIPS.includes(name) && channel.path === "translation" && bone.getName().endsWith("Hips")) {
+      pinHorizontally(values, KEPT_TRAVEL[name] ?? 0);
     }
-    const samplerCopy = target
+    const sampler = target
       .createAnimationSampler()
-      .setInput(copyAccessor(sampler.getInput()))
-      .setOutput(output)
-      .setInterpolation(sampler.getInterpolation());
-    copy.addSampler(samplerCopy);
-    copy.addChannel(
-      target
-        .createAnimationChannel()
-        .setTargetNode(bone)
-        .setTargetPath(channel.getTargetPath())
-        .setSampler(samplerCopy),
+      .setInput(accessor("SCALAR", new Float32Array(channel.times)))
+      .setOutput(accessor(types[channel.size], values))
+      .setInterpolation(channel.interpolation);
+    animation.addSampler(sampler);
+    animation.addChannel(
+      target.createAnimationChannel().setTargetNode(bone).setTargetPath(channel.path).setSampler(sampler),
     );
   }
 }
 
 /**
- * Keeps the hips over their first-frame spot on the ground, leaving the height alone: Meshy moves
- * followed a traveling figure, so a lunge would end a step away and snap back into the idle.
+ * Keeps the hips over their first-frame spot on the ground (but for the `kept` share of their
+ * travel), leaving the height alone: Meshy moves followed a traveling figure, so a lunge would end
+ * a step away and snap back into the idle.
  */
-function pinHorizontally(positions) {
+function pinHorizontally(positions, kept) {
   const [x, , z] = positions;
   for (let index = 0; index < positions.length; index += 3) {
-    positions[index] = x;
-    positions[index + 2] = z;
+    positions[index] = x + (positions[index] - x) * kept;
+    positions[index + 2] = z + (positions[index + 2] - z) * kept;
   }
 }
 

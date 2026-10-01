@@ -1,9 +1,9 @@
 import { HAND_LIMIT } from "./cards";
-import { shuffle } from "./deck";
+import { shuffle, throwOnPile } from "./deck";
 import type { GameEvent } from "./events";
 import type { RandomSource } from "./random";
 import { getTile } from "./board";
-import type { Board, CardInstance, GameState, Player, PlayerId, Threat, TileId } from "./types";
+import type { Board, CardInstance, GameState, Player, PlayerId, Seal, Specter, Threat, TileId } from "./types";
 
 /**
  * Working copy of a command's effects: several rules touch players and emit events in
@@ -23,6 +23,14 @@ export interface Draft {
   hiddenTraps: TileId[];
   /** Tiles whose trap the Trap Ward smashed for good. */
   destroyedTraps: TileId[];
+  /** Tiles whose threat Arrow Rain pinned down for now. */
+  pinnedTraps: TileId[];
+  /** Seals on the board; they go once broken. */
+  seals: Seal[];
+  /** Apparitions on the board; they go once struck or dispelled. */
+  specters: Specter[];
+  /** A Plunder specter caught someone this command: its owner picks the cards before play goes on. */
+  plunder: { owner: PlayerId; victim: PlayerId } | null;
   /** Shuffles the discard pile back into an empty deck, and moves sprung hidden traps. */
   random: RandomSource;
 }
@@ -37,6 +45,10 @@ export function startDraft(state: GameState, random: RandomSource): Draft {
     pendingWard: null,
     hiddenTraps: [...state.hiddenTraps],
     destroyedTraps: [...state.destroyedTraps],
+    pinnedTraps: [...state.pinnedTraps],
+    seals: [...state.seals],
+    specters: [...state.specters],
+    plunder: null,
     random,
   };
 }
@@ -48,6 +60,9 @@ export function draftState(draft: Draft): GameState {
     players: draft.players,
     hiddenTraps: draft.hiddenTraps,
     destroyedTraps: draft.destroyedTraps,
+    pinnedTraps: draft.pinnedTraps,
+    seals: draft.seals,
+    specters: draft.specters,
   };
 }
 
@@ -121,4 +136,22 @@ export function pushPath(board: Board, origin: TileId, steps: number): TileId[] 
     path.push(tile);
   }
   return path;
+}
+
+/**
+ * `cards` leave `from`'s hand for `to`'s, in order; those that don't fit a full hand land on
+ * `to`'s discard pile, theirs from then on all the same.
+ */
+export function handOverCards(draft: Draft, from: PlayerId, to: PlayerId, cards: readonly CardInstance[]): void {
+  if (cards.length === 0) return;
+  const room = Math.max(0, HAND_LIMIT - playerIn(draft, to).hand.length);
+  const kept = cards.slice(0, room);
+  const discarded = cards.slice(room);
+  const taken = new Set(cards.map((card) => card.uid));
+  updatePlayer(draft, from, (player) => ({ hand: player.hand.filter((held) => !taken.has(held.uid)) }));
+  updatePlayer(draft, to, (player) => ({
+    hand: [...player.hand, ...kept],
+    discard: throwOnPile(player.discard, discarded),
+  }));
+  draft.events.push({ type: "cardsStolen", playerId: to, from, cards: [...cards], discarded });
 }

@@ -57,8 +57,9 @@ export function MatchSetupScreen() {
         <h2 id="character-title" className="text-xs font-bold tracking-[0.3em] text-zinc-400 uppercase">
           Personagem
         </h2>
-        <div className="grid items-center gap-4 md:grid-cols-[18rem_1fr]">
-          <CharacterStage characterId={characterId} className="mx-auto h-72 w-64 md:h-96 md:w-72" />
+        {/* The stage stays in view at the top while the character list scrolls past it. */}
+        <div className="grid items-start gap-4 md:grid-cols-[18rem_1fr]">
+          <CharacterStage characterId={characterId} className="mx-auto h-72 w-64 md:sticky md:top-8 md:h-96 md:w-72" />
           <div role="radiogroup" aria-labelledby="character-title" className="grid gap-3 sm:grid-cols-2">
             {PICKER_ORDER.map((id) => {
               const character = CHARACTERS[id];

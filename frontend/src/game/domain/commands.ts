@@ -1,4 +1,4 @@
-import type { PlayerId } from "./types";
+import type { PlayerId, TileId } from "./types";
 
 export type GameCommand =
   | { type: "rollDice"; playerId: PlayerId }
@@ -11,8 +11,22 @@ export type GameCommand =
       value?: number;
     }
   | { type: "discardCard"; playerId: PlayerId; cardUid: string }
-  /** Uses the player's charged ability (not a reactive one: those answer a ward prompt). */
-  | { type: "activateAbility"; playerId: PlayerId }
+  /**
+   * Uses the player's charged ability (not a reactive one: those answer a ward prompt);
+   * `cardUids` names the cards it works on, for the abilities that need some: a hand card
+   * (Transmutation), cards from the discard pile (Resurrection). `sealTiles` names where each
+   * seal goes (Forbidden Seals), in SEAL_KINDS order; `specterTiles` where each apparition
+   * appears (Spectral Apparitions), in SPECTER_KINDS order.
+   */
+  | {
+      type: "activateAbility";
+      playerId: PlayerId;
+      cardUids?: readonly string[];
+      sealTiles?: readonly TileId[];
+      specterTiles?: readonly TileId[];
+    }
+  /** The Warden picks the cards their Plunder specter takes from the player it caught. */
+  | { type: "plunderCards"; playerId: PlayerId; cardUids: readonly string[] }
   /** Answers the prompt to spend a reactive ability on the trap or curse about to strike. */
   | { type: "answerWard"; playerId: PlayerId; use: boolean }
   | { type: "restart" };
@@ -37,7 +51,16 @@ export type GameErrorCode =
   | "ABILITY_REACTIVE"
   | "ABILITY_NOT_READY"
   | "ABILITY_IN_USE"
-  | "ENERGY_FULL";
+  | "ENERGY_FULL"
+  | "EMPTY_HAND"
+  | "EMPTY_DISCARD"
+  | "HAND_FULL"
+  | "TOO_MANY_CARDS"
+  | "INVALID_SEALS"
+  | "SILENCED"
+  | "INVALID_SPECTERS"
+  | "PLUNDER_PENDING"
+  | "NO_PLUNDER_PENDING";
 
 export class GameRuleError extends Error {
   constructor(readonly code: GameErrorCode) {

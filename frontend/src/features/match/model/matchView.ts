@@ -7,6 +7,8 @@ import type {
   Player,
   PlayerId,
   RealmKind,
+  SealKind,
+  SpecterKind,
   Threat,
   TileId,
   TrapCurse,
@@ -29,7 +31,13 @@ export type TileEffectKind =
   | "abilityReady"
   | "abilityUsed"
   /** A levitating player floated over a tile's effect. */
-  | "levitated";
+  | "levitated"
+  /** Card Gamble's die of fortune came up. */
+  | "gamble"
+  /** A forbidden seal broke under a player. */
+  | "seal"
+  /** A player walked through a Shadow Warden's apparition, or through the Warden, dispelling them. */
+  | "specter";
 
 /** The last revealed roll: its dice, and how they became the distance walked. */
 export interface RollView {
@@ -37,7 +45,22 @@ export interface RollView {
   /** The higher die counts (Oracle Eye) instead of their sum. */
   best: boolean;
   bonus: number;
+  /** The total was multiplied by this (Dormant Fury: 3), after the bonus; 1 otherwise. */
+  multiplier: number;
   total: number;
+}
+
+/**
+ * A move crossed as a bolt of lightning (Dormant Fury): kept after the dash so its lightning can
+ * fade; `id` changes with each dash.
+ */
+export interface DashView {
+  id: number;
+  playerId: PlayerId;
+  /** Where the dash starts, then every tile it crosses. */
+  path: readonly TileId[];
+  /** The player stepped out of the lightning at the end of the path. */
+  arrived: boolean;
 }
 
 /** A card coming off the deck: shown face down, flipped in the middle of the screen, then dealt to the hand. */
@@ -45,6 +68,22 @@ export interface CardDrawView {
   id: number;
   playerId: PlayerId;
   card: CardInstance;
+}
+
+/** A hand card turning into another (Transmutation); `id` changes on every one. */
+/** An Arrow Rain volley: shot up from `from`, falling on `targets`. `id` changes with every volley. */
+export interface VolleyView {
+  id: number;
+  playerId: PlayerId;
+  from: TileId;
+  targets: readonly TileId[];
+}
+
+export interface CardTransmuteView {
+  id: number;
+  playerId: PlayerId;
+  from: CardInstance;
+  to: CardInstance;
 }
 
 /** A card being played; `id` changes on every cast so the scene and audio can react once. */
@@ -64,6 +103,8 @@ export interface TileEffectView {
   to: TileId;
   /** What a cursed trap took (trapCurse only). */
   curse?: { kind: TrapCurse; card: CardInstance | null; energyLost: number };
+  /** What Card Gamble's die came up, and whether that wins (gamble only). */
+  gamble?: { value: number; won: boolean };
   /** The realm being entered (realmEnter only). */
   realm?: RealmKind;
   /** What a celestial tile gave (blessing only). */
@@ -72,6 +113,33 @@ export interface TileEffectView {
   ward?: { kind: TrapWard; hidden: boolean };
   /** The ability that got charged or was just used (abilityReady / abilityUsed only). */
   ability?: { id: AbilityId; energyGained: number };
+  /** Which seal broke, whose it was and the energy it moved (seal only). */
+  seal?: { kind: SealKind; owner: PlayerId; energyLost: number; energyGained: number };
+  /** Which apparition struck (null: the Warden's apparitions were dispelled) and what it took (specter only). */
+  specter?: {
+    kind: SpecterKind | null;
+    owner: PlayerId;
+    energyTaken: number;
+    energyGained: number;
+    chargeGained: number;
+  };
+}
+
+/**
+ * A Shadow Warden's apparition on the board. Only its owner is shown its `kind`: to everyone
+ * else, both look exactly like the Warden (see BoardScene's viewer).
+ */
+export interface SpecterView {
+  tile: TileId;
+  owner: PlayerId;
+  kind: SpecterKind;
+}
+
+/** A seal on the board: a closed scroll for everyone; only its owner is shown its `kind`. */
+export interface SealView {
+  tile: TileId;
+  owner: PlayerId;
+  kind: SealKind;
 }
 
 /** What the screen shows right now. Lags behind the authoritative state while animating. */
@@ -94,6 +162,12 @@ export interface MatchView {
   cast: CardCastView | null;
   /** Card being revealed after a draw. */
   drawing: CardDrawView | null;
+  /** The last lightning dash (Dormant Fury). */
+  dash: DashView | null;
+  /** The last Arrow Rain volley. */
+  volley: VolleyView | null;
+  /** Card being transmuted, shown in the middle of the screen as it changes. */
+  transmuting: CardTransmuteView | null;
   /** Card drawn most recently, to highlight it in the hand. */
   lastDrawnUid: string | null;
   /** Hand overflowed: waiting for this player to discard one of these. */
@@ -105,6 +179,14 @@ export interface MatchView {
   pendingWard: { playerId: PlayerId; tile: TileId; threat: Threat } | null;
   /** Tiles whose trap the Trap Ward smashed for good: drawn as rubble. */
   destroyedTraps: readonly TileId[];
+  /** Tiles whose threat Arrow Rain pinned down, until walked past: drawn with arrows stuck in them. */
+  pinnedTraps: readonly TileId[];
+  /** Forbidden seals written on the board, not broken yet. */
+  seals: readonly SealView[];
+  /** Shadow Warden apparitions on the board. */
+  specters: readonly SpecterView[];
+  /** A Warden picking the cards their Plunder apparition takes from `victim`. */
+  pendingPlunder: { owner: PlayerId; victim: PlayerId } | null;
   isAnimating: boolean;
   /** A refused move, shown briefly; `id` changes with every refusal so repeats show again. */
   error: { id: number; message: string } | null;
@@ -123,19 +205,42 @@ export function createInitialView(state: GameState): MatchView {
     winnerId: state.winnerId,
     cast: null,
     drawing: null,
+    dash: null,
+    volley: null,
+    transmuting: null,
     lastDrawnUid: null,
     pendingDiscard: state.pendingDiscard,
     cardsPlayedThisTurn: state.cardsPlayedThisTurn,
     abilityInUse: state.abilityInUse,
     pendingWard: state.pendingWard,
     destroyedTraps: state.destroyedTraps,
+    pinnedTraps: state.pinnedTraps,
+    seals: sealViews(state),
+    specters: specterViews(state),
+    pendingPlunder: state.pendingPlunder,
     isAnimating: false,
     error: null,
   };
 }
 
+/** The seals on the board (their kinds are for their owners' eyes only, see SealView). */
+export function sealViews(state: GameState): SealView[] {
+  return state.seals.map(({ tile, owner, kind }) => ({ tile, owner, kind }));
+}
+
+/** The apparitions on the board (their kinds are for their owners' eyes only, see SpecterView). */
+export function specterViews(state: GameState): SpecterView[] {
+  return state.specters.map(({ tile, owner, kind }) => ({ tile, owner, kind }));
+}
+
 export function canRoll(view: MatchView): boolean {
-  return !view.isAnimating && view.winnerId === null && view.pendingDiscard === null && view.pendingWard === null;
+  return (
+    !view.isAnimating &&
+    view.winnerId === null &&
+    view.pendingDiscard === null &&
+    view.pendingWard === null &&
+    view.pendingPlunder === null
+  );
 }
 
 export function activePlayerOf(view: MatchView): Player | undefined {

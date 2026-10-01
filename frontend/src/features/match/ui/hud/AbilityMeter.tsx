@@ -17,6 +17,9 @@ interface AbilityMeterProps {
 /** Why a charged ability can't be used right now, from the player's own state. */
 const WAIT_REASONS: Partial<Record<string, string>> = {
   ENERGY_FULL: "Sua energia já está no máximo",
+  EMPTY_HAND: "Você não tem cartas para transmutar",
+  EMPTY_DISCARD: "Nenhuma carta foi jogada ainda",
+  HAND_FULL: "Sua mão está cheia",
 };
 
 /**

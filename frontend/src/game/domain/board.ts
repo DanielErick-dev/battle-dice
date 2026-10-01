@@ -133,6 +133,14 @@ export function mainTileOf(board: Board, id: TileId): TileId {
   return getTile(board, id).track?.portal ?? id;
 }
 
+/**
+ * Whether two tiles are in the same place: both on the main path, or both inside the same realm
+ * track. A realm is cut off from the board: what happens in one can't reach players in the other.
+ */
+export function sameSpace(board: Board, a: TileId, b: TileId): boolean {
+  return (getTile(board, a).track?.portal ?? null) === (getTile(board, b).track?.portal ?? null);
+}
+
 export function trackOf(board: Board, id: TileId): RealmTrack | null {
   const placement = getTile(board, id).track;
   return placement ? (board.tracks.find((track) => track.portal === placement.portal) ?? null) : null;

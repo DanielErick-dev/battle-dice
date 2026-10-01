@@ -30,6 +30,15 @@ export interface MatchSounds {
   cardCast: (cardId: CardId) => void;
   /** Arcane Shield absorbing a trap. */
   shieldBlock: () => void;
+  /** A lightning strike: a sharp crack and a rolling rumble (Dormant Fury's dash), `delay` seconds from now. */
+  thunder: (delay?: number) => void;
+  /** An electric whine climbing over `seconds`: a push-off winding up before the dash. */
+  electricRush: (seconds: number) => void;
+  /**
+   * Arrow Rain: a bow's twang and the sheaf whistling up, then, as it lands `landsIn` seconds
+   * later, a hail of arrows thudding into the ground.
+   */
+  arrowVolley: (landsIn: number) => void;
   win: () => void;
 }
 
@@ -55,6 +64,35 @@ export class SynthSounds implements MatchSounds {
     this.play((synth, at) => {
       synth.tone(at, 0.07, 190, 90, "triangle", 0.22);
       synth.noiseBurst(at, 0.03, 1400, 0.12);
+    });
+
+  thunder = (delay = 0): void =>
+    this.play((synth, now) => {
+      const at = now + delay;
+      synth.noiseBurst(at, 0.08, 5200, 0.55);
+      synth.noiseBurst(at + 0.03, 0.12, 2600, 0.4);
+      synth.tone(at, 0.25, 1800, 120, "sawtooth", 0.1, { lowpass: 3000 });
+      synth.noiseSweep(at + 0.05, 1.2, 900, 60, 0.45);
+    });
+
+  electricRush = (seconds: number): void =>
+    this.play((synth, at) => {
+      synth.tone(at, seconds, 140, 900, "sawtooth", 0.08, { lowpass: 2400 });
+      synth.tone(at, seconds, 280, 1800, "square", 0.03, { lowpass: 3200 });
+      synth.noiseSweep(at, seconds, 400, 4800, 0.18);
+    });
+
+  arrowVolley = (landsIn: number): void =>
+    this.play((synth, at) => {
+      synth.tone(at, 0.18, 220, 150, "triangle", 0.3);
+      synth.noiseBurst(at, 0.04, 3400, 0.3);
+      synth.noiseSweep(at + 0.02, 0.55, 1200, 5200, 0.3);
+      for (let i = 0; i < 9; i++) {
+        const hit = at + landsIn - 0.3 + i * 0.045 + Math.random() * 0.03;
+        synth.noiseSweep(hit - 0.12, 0.12, 5000, 1800, 0.08);
+        synth.tone(hit, 0.06, 260 + Math.random() * 80, 90, "triangle", 0.22);
+        synth.noiseBurst(hit, 0.03, 1800 + Math.random() * 900, 0.18);
+      }
     });
 
   leap = (): void =>

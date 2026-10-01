@@ -1,7 +1,7 @@
 "use client";
 
 import { useFrame } from "@react-three/fiber";
-import { Suspense, useCallback, useRef } from "react";
+import { Suspense, useCallback, useRef, useState } from "react";
 import { MathUtils, Vector3, type Group, type Mesh } from "three";
 import { AWAKENING_BONUS } from "@/game/domain/cards";
 import type { DiceBoost } from "@/game/domain/types";
@@ -13,8 +13,11 @@ import { BoostOrb, HealBurst, ShieldBubble, WindCloud, type OrbPalette } from ".
 import { AbilityBurst } from "./AbilityBurst";
 import { Delayed, SwordImpact } from "./TrapSmash";
 import { CharacterModel } from "./character/CharacterModel";
+import { ElectricField } from "./character/ElectricField";
 import { EnergyBlades } from "./character/EnergyBlades";
+import { LimbLightning } from "./character/LimbLightning";
 import { LevitationAura, LevitationBurst, levitationLift, stepLevitation } from "./character/Levitation";
+import { HeldVial, VialShatter } from "./character/AlchemyVial";
 import { WitchStaff } from "./character/WitchStaff";
 import { EFFECT_SCALE, FIGURE_HEIGHT, LEVITATE_HEIGHT } from "./character/figure";
 import { EnergyAura } from "./EnergyAura";
@@ -36,6 +39,10 @@ interface PlayerTokenProps {
   isShielded: boolean;
   /** The character's own tint for the shield bubble; the usual cyan without one. */
   shieldColor?: string;
+  /** Crossing the board as lightning (Dormant Fury): unseen, racing from tile to tile. */
+  isDashing: boolean;
+  /** Dormant Fury awake, waiting for the roll: a field of electricity crackles around the figure. */
+  isFuryAwake: boolean;
   /** Levitating: hovers above the tiles with a staff in hand, and glides instead of running. */
   isLevitating: boolean;
   /** Card modifier waiting for the next roll (Berserk Fury, Fate Rune…). */
@@ -46,15 +53,29 @@ interface PlayerTokenProps {
   abilityCast: number | null;
   /** Blades of light in the figure's hands while it plays its cast clip. */
   energyBlades: boolean;
+  /**
+   * Lightning off the figure's hands and feet: sparks while Dormant Fury waits for the roll,
+   * bolts trailing the limbs as it throws itself into the dash and drops out of it.
+   */
+  limbLightning: boolean;
+  /** Uses the ability without moving: no cast clip, no leap, no burst. */
+  castsStill?: boolean;
+  /** When the land clip's feet touch the ground, out of a dash: the shockwave goes off. */
+  landImpactSeconds?: number;
   /** When the cast clip's blow lands (null: the burst goes off at once, with no impact). */
   castImpactSeconds: number | null;
+  /** A prop made in code the figure holds while casting, then throws (the vial): replaces the leap and burst. */
+  handProp?: "vial";
+  /** When the cast clip takes the hand prop out (it's thrown at castImpactSeconds). */
+  castPropSeconds?: number;
 }
 
-type Motion = "run" | "leap";
+type Motion = "run" | "leap" | "dash";
 
 interface Waypoint {
   to: Vector3;
   teleport: boolean;
+  dash: boolean;
   /** Path direction at `to`. */
   path: Vector3;
 }
@@ -70,12 +91,22 @@ interface Segment {
 
 /** World units per second while running: one tile per playback step, so steps chain seamlessly. */
 const RUN_SPEED = TILE_PITCH / (DEFAULT_TIMINGS.stepMs / 1000);
+/** The same for a lightning dash: a tile per dash step. */
+const DASH_SPEED = TILE_PITCH / (DEFAULT_TIMINGS.dashStepMs / 1000);
+/**
+ * Into a dash, when the strike takes the figure (it's gone from then until it arrives): it
+ * throws itself forward first (its dash clip), then the bolt lands on it.
+ */
+const DASH_VANISH_SECONDS = DEFAULT_TIMINGS.dashLaunchMs / 1000 + 0.1;
+/** Out of a land clip's impact, how long the lightning keeps trailing the limbs. */
+const LAND_CRACKLE_SECONDS = 0.4;
 /** Keeps the run cycle going this long after arriving, so brief stops between tiles don't flicker. */
 const RUN_LINGER_SECONDS = 0.18;
 const LEAP_SECONDS = 0.55;
 const LEAP_SECONDS_PER_UNIT = 0.03;
 /** Moves longer than this are never run, even without a teleport (e.g. restart). */
 const MAX_RUN_DISTANCE = TILE_PITCH * 1.5;
+/** The figure stands on top of its tile, wherever the tile sits (realm tracks float or sink). */
 const BASE_Y = TILE_HEIGHT / 2;
 /** How quickly the figure turns towards where it's heading (higher = snappier). */
 const TURN_RATE = 12;
@@ -97,6 +128,8 @@ export function PlayerToken({
   target,
   pathDirection,
   isTeleporting,
+  isDashing,
+  isFuryAwake,
   isActive,
   isPowered,
   isShielded,
@@ -106,7 +139,12 @@ export function PlayerToken({
   cast,
   abilityCast,
   energyBlades,
+  limbLightning,
+  castsStill = false,
+  landImpactSeconds = 0,
   castImpactSeconds,
+  handProp,
+  castPropSeconds = 0,
 }: PlayerTokenProps) {
   const group = useRef<Group>(null);
   const body = useRef<Group>(null);
@@ -122,9 +160,19 @@ export function PlayerToken({
   const clip = useRef<CharacterClip>("idle");
   /** Length of the model's cast clip; null acts the ability out with a leap instead. */
   const castSeconds = useRef<number | null>(null);
+  /** Length of the model's land clip; null without one (the figure just reappears out of a dash). */
+  const landSeconds = useRef<number | null>(null);
   const onClipLengths = useCallback((lengths: ClipLengths) => {
     castSeconds.current = lengths.cast ?? null;
+    landSeconds.current = lengths.land ?? null;
   }, []);
+  /** When the figure came out of its last dash (clock seconds), to land; null when not landing. */
+  const landStartedAt = useRef<number | null>(null);
+  /** Set as the figure lands out of a dash, to fire its shockwave once. */
+  const [landing, setLanding] = useState<number | null>(null);
+  /** Read by the limb lightning every frame: bolts trailing the limbs, sparks in the hands. */
+  const crackling = useRef(false);
+  const charged = useRef(false);
   /** Facing without the ability spin on top. */
   const yaw = useRef(0);
   /** The last ability use acted out, so each one plays once while its notice stays up. */
@@ -133,10 +181,14 @@ export function PlayerToken({
   const castStartedAt = useRef<number | null>(null);
   /** On while the cast clip itself plays (not the hold after it), for its blades. */
   const bladesOut = useRef(false);
+  /** On while the hand prop is held, before the cast throws it. */
+  const propHeld = useRef(false);
   /** Levitation progress: 0 on the ground, 1 hovering at LEVITATE_HEIGHT. */
   const rise = useRef(0);
   /** Read by the staff every frame; kept in step with isLevitating by the frame loop. */
   const levitating = useRef(false);
+  /** When the current dash started (clock seconds); null when not dashing. */
+  const dashStartedAt = useRef<number | null>(null);
 
   useFrame((state, delta) => {
     const node = group.current;
@@ -145,12 +197,13 @@ export function PlayerToken({
 
     const key = target.join(",");
     if (lastTarget.current === null) {
-      node.position.set(target[0], BASE_Y, target[2]);
+      node.position.set(target[0], target[1] + BASE_Y, target[2]);
       heading.current = headingOf(new Vector3(...pathDirection)) ?? 0;
     } else if (lastTarget.current !== key) {
       waypoints.current.push({
-        to: new Vector3(target[0], BASE_Y, target[2]),
+        to: new Vector3(target[0], target[1] + BASE_Y, target[2]),
         teleport: isTeleporting,
+        dash: isDashing,
         path: new Vector3(...pathDirection),
       });
     }
@@ -167,12 +220,13 @@ export function PlayerToken({
       }
       current.progress = Math.min(1, current.progress + delta / current.duration);
 
-      if (current.motion === "run") {
+      if (current.motion !== "leap") {
         node.position.lerpVectors(current.from, current.to, current.progress);
       } else {
         const height = 1 + current.from.distanceTo(current.to) * 0.12;
         node.position.lerpVectors(current.from, current.to, easeInOut(current.progress));
-        node.position.y = BASE_Y + Math.sin(Math.PI * current.progress) * height;
+        // Arcs over the straight line between the two tiles' tops, whatever their heights.
+        node.position.y += Math.sin(Math.PI * current.progress) * height;
       }
       if (current.progress >= 1) {
         segment.current = null;
@@ -186,6 +240,25 @@ export function PlayerToken({
     }
 
     const now = state.clock.elapsedTime;
+    if (!isDashing) {
+      // Out of the dash: the figure drops out of the strike and lands (when it has a land clip).
+      if (dashStartedAt.current !== null && landSeconds.current !== null) {
+        landStartedAt.current = now;
+        setLanding(now);
+      }
+      dashStartedAt.current = null;
+    } else dashStartedAt.current ??= now;
+    // Throwing itself forward, then taken by the lightning: only the bolt is seen until it lets go.
+    const hidden = dashStartedAt.current !== null && now - dashStartedAt.current >= DASH_VANISH_SECONDS;
+    const launching = dashStartedAt.current !== null && !hidden;
+    const landElapsed = landStartedAt.current === null ? Infinity : now - landStartedAt.current;
+    if (landElapsed >= (landSeconds.current ?? 0) + CAST_HOLD_SECONDS) landStartedAt.current = null;
+    const landed = landStartedAt.current !== null;
+    crackling.current = launching || landElapsed < landImpactSeconds + LAND_CRACKLE_SECONDS;
+    charged.current = isFuryAwake;
+    if (body.current) body.current.visible = !hidden;
+    if (ring.current) ring.current.visible = !hidden;
+    if (effects.current) effects.current.visible = !hidden;
     if (abilityCast !== null && abilityCast !== lastCast.current) {
       lastCast.current = abilityCast;
       castStartedAt.current = now;
@@ -199,13 +272,19 @@ export function PlayerToken({
     const isCasting = castStartedAt.current !== null;
 
     const moving = segment.current !== null;
+    // Sent on (a trap where the dash ended): the landing is over, not to be played again after.
+    if (moving) landStartedAt.current = null;
     runLinger.current = moving ? RUN_LINGER_SECONDS : Math.max(0, runLinger.current - delta);
     // Sheathed as soon as the figure runs off (a roll can cut the cast short).
     bladesOut.current = castClip !== null && castElapsed < castClip && !moving;
+    propHeld.current =
+      castClip !== null && castElapsed >= castPropSeconds && castElapsed < (castImpactSeconds ?? castClip) && !moving;
     // Levitating, the figure glides from tile to tile in its float pose instead of running.
     const rest = isLevitating ? "float" : "idle";
-    if (moving || runLinger.current > 0) clip.current = isLevitating ? "float" : "run";
-    else clip.current = isCasting && castClip !== null ? "cast" : rest;
+    if (launching) clip.current = "dash";
+    else if (landed && !moving) clip.current = "land";
+    else if (moving || runLinger.current > 0) clip.current = isLevitating ? "float" : "run";
+    else clip.current = isCasting && castClip !== null && !castsStill ? "cast" : rest;
 
     rise.current = stepLevitation(rise.current, isLevitating, delta);
     const lift = levitationLift(rise.current);
@@ -215,7 +294,7 @@ export function PlayerToken({
     if (body.current) {
       // Without a cast clip the figure acts the ability out itself: a leap with a full spin
       // (unless it's rising into a levitation, which is show enough).
-      const hop = isCasting && castClip === null && !isLevitating ? castProgress : 0;
+      const hop = isCasting && castClip === null && !isLevitating && !handProp && !castsStill ? castProgress : 0;
       body.current.position.y = Math.sin(Math.PI * hop) * HOP_HEIGHT + hover;
       body.current.rotation.y = yaw.current + easeInOut(hop) * Math.PI * 2;
     }
@@ -234,6 +313,8 @@ export function PlayerToken({
         {cast?.card.cardId === "healingHerb" && <HealBurst key={cast.id} />}
         {abilityCast !== null &&
           !isLevitating &&
+          !handProp &&
+          !castsStill &&
           (castImpactSeconds === null ? (
             <AbilityBurst key={abilityCast} color={color} />
           ) : (
@@ -243,6 +324,16 @@ export function PlayerToken({
             </Delayed>
           ))}
       </group>
+      <ElectricField active={isFuryAwake} color={color} size={FIGURE_HEIGHT} />
+      {/* Out of a dash, the shockwave as the feet touch the ground. */}
+      {landing !== null && (
+        <group scale={EFFECT_SCALE}>
+          <Delayed key={landing} seconds={landImpactSeconds}>
+            <AbilityBurst color={color} />
+            <SwordImpact color={color} />
+          </Delayed>
+        </group>
+      )}
       <LevitationAura size={FIGURE_HEIGHT} color={color} progress={rise} height={LEVITATE_HEIGHT} />
       {abilityCast !== null && isLevitating && <LevitationBurst key={abilityCast} size={FIGURE_HEIGHT} color={color} />}
       <mesh ref={ring} rotation-x={-Math.PI / 2} position-y={0.02}>
@@ -257,13 +348,29 @@ export function PlayerToken({
               {(figure) => (
                 <>
                   {energyBlades && <EnergyBlades figure={figure} color={color} active={bladesOut} />}
+                  {limbLightning && (
+                    <LimbLightning
+                      figure={figure}
+                      size={FIGURE_HEIGHT}
+                      color={color}
+                      active={crackling}
+                      charged={charged}
+                    />
+                  )}
                   <WitchStaff figure={figure} color={color} active={levitating} />
+                  {handProp === "vial" && <HeldVial figure={figure} color={color} active={propHeld} />}
                 </>
               )}
             </CharacterModel>
           </Suspense>
         ) : (
           <Placeholder color={color} />
+        )}
+        {/* In the figure's frame, so the vial is thrown the way it faces. */}
+        {abilityCast !== null && handProp === "vial" && (
+          <Delayed key={abilityCast} seconds={castImpactSeconds ?? 0}>
+            <VialShatter size={FIGURE_HEIGHT} color={color} />
+          </Delayed>
         )}
       </group>
     </group>
@@ -274,14 +381,16 @@ function nextSegment(from: Vector3, waypoint: Waypoint | undefined): Segment | n
   if (!waypoint) return null;
 
   const distance = from.distanceTo(waypoint.to);
-  const motion: Motion = waypoint.teleport || distance > MAX_RUN_DISTANCE ? "leap" : "run";
+  // A dash goes straight through, even round a track's bends.
+  const motion: Motion = waypoint.dash ? "dash" : waypoint.teleport || distance > MAX_RUN_DISTANCE ? "leap" : "run";
+  const speed = motion === "dash" ? DASH_SPEED : RUN_SPEED;
   return {
     from: from.clone(),
     to: waypoint.to,
     path: waypoint.path,
     motion,
     progress: 0,
-    duration: motion === "run" ? Math.max(distance / RUN_SPEED, 0.01) : LEAP_SECONDS + distance * LEAP_SECONDS_PER_UNIT,
+    duration: motion === "leap" ? LEAP_SECONDS + distance * LEAP_SECONDS_PER_UNIT : Math.max(distance / speed, 0.01),
   };
 }
 

@@ -2,8 +2,12 @@ import { isAbilityReady } from "./abilities";
 import { getTile } from "./board";
 import { MAX_ENERGY } from "./cards";
 import { drawCard, playerIn, pushPath, updatePlayer, walkPath, type Draft } from "./draft";
+import { throwOnPile } from "./deck";
 import { HIDDEN_TRAP_PUSH, destroyTrap, relocateHiddenTrap } from "./hiddenTraps";
+import { unpinPassed } from "./arrowRain";
 import { BLESSING_ENERGY } from "./realms";
+import { breakSeal } from "./seals";
+import { crossSpecters } from "./specters";
 import type { Blessing, Player, PlayerId, Threat, TileId, TrapCurse } from "./types";
 
 /** Energy a draining trap takes. */
@@ -14,7 +18,8 @@ export const TRAP_DRAIN_ENERGY = 2;
  * Destinations never chain into another effect. A trap or curse (hidden traps first) may
  * instead stop resolving to ask whether the player spends their Trap Ward on it (see
  * `draft.pendingWard`); `resolveWard` finishes it with their answer. A levitating player
- * (see Player.levitating) just stays on the tile.
+ * (see Player.levitating) just stays on the tile. A seal on the tile breaks before anything else
+ * (see seals.ts).
  */
 export function resolveLanding(draft: Draft, playerId: PlayerId, landed: TileId): void {
   const { board } = draft.state;
@@ -29,6 +34,9 @@ export function resolveLanding(draft: Draft, playerId: PlayerId, landed: TileId)
     }
     return;
   }
+
+  // A seal written here breaks first; whatever else is on the tile (a hidden trap) waits.
+  if (breakSeal(draft, playerId, landed)) return;
 
   const threat = threatAt(draft, landed);
   if (threat) {
@@ -72,17 +80,17 @@ export function resolveLanding(draft: Draft, playerId: PlayerId, landed: TileId)
     case "blessing":
       applyBlessing(draft, playerId, landed, effect.blessing);
       break;
-    case "advance":
+    case "advance": {
+      const path = walkPath(board, landed, effect.to - landed);
       draft.events.push(
         { type: "advanceTriggered", playerId, from: landed, to: effect.to },
-        {
-          type: "playerMoved",
-          playerId,
-          path: walkPath(board, landed, effect.to - landed),
-        },
+        { type: "playerMoved", playerId, path },
       );
+      crossSpecters(draft, playerId, path);
       moveTo(effect.to);
+      unpinPassed(draft, path);
       break;
+    }
     case "extraTurn":
       draft.events.push({ type: "extraTurnGranted", playerId, tile: landed });
       draft.extraTurn = true;
@@ -125,8 +133,12 @@ export function resolveWard(draft: Draft, playerId: PlayerId, tile: TileId, thre
   draft.events.push({ type: "trapBlocked", playerId, tile, ward: "ability", hidden });
 }
 
-/** What harmful thing is on the tile: a hidden trap, a trap or a curse; null for none (or smashed). */
-function threatAt(draft: Draft, tile: TileId): Threat | null {
+/**
+ * What harmful thing is on the tile: a hidden trap, a trap or a curse; null for none (or
+ * smashed, or pinned down by Arrow Rain for now).
+ */
+export function threatAt(draft: Draft, tile: TileId): Threat | null {
+  if (draft.pinnedTraps.includes(tile)) return null;
   if (draft.hiddenTraps.includes(tile)) return "hiddenTrap";
   if (draft.destroyedTraps.includes(tile)) return null;
   const { kind } = getTile(draft.state.board, tile).effect;
@@ -203,7 +215,7 @@ function applyCurse(draft: Draft, playerId: PlayerId, curse: TrapCurse): void {
     if (card) {
       updatePlayer(draft, playerId, (current) => ({
         hand: current.hand.filter((candidate) => candidate.uid !== card.uid),
-        discard: [...current.discard, card],
+        discard: throwOnPile(current.discard, [card]),
       }));
     }
     draft.events.push({

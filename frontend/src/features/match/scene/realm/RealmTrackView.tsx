@@ -18,6 +18,7 @@ import type { Board, RealmTrack } from "@/game/domain/types";
 import { TILE_HEIGHT, TILE_SIZE, type BoardLayout, type Vec3 } from "../boardLayout";
 import { TileMesh } from "../TileMesh";
 import { REALM_PALETTES } from "../tileTheme";
+import { CorridorWalls } from "./CorridorWalls";
 import { NOISE_GLSL } from "./noise";
 
 /** How fast the track rises into view and sinks away (presence per second). */
@@ -62,16 +63,26 @@ interface RealmTrackViewProps {
 }
 
 /**
- * A realm track: a bridge of tiles over the board whose tiles rise up from below (infernal)
+ * A realm track: a walled corridor beside the board whose tiles rise up from below (infernal)
  * or float down from the sky (celestial) one after another from the portal, joined by a
- * ribbon of flowing energy, and sink away again once nobody is on it.
+ * ribbon of flowing energy, while its walls grow around them; all of it sinks away again once
+ * nobody is on it.
  */
-export function RealmTrackView({ track, board, layout, open, highlighted, reachable, textureSize }: RealmTrackViewProps) {
+export function RealmTrackView({
+  track,
+  board,
+  layout,
+  open,
+  highlighted,
+  reachable,
+  textureSize,
+}: RealmTrackViewProps) {
   const palette = REALM_PALETTES[track.realm];
   const presence = useRef(0);
   const [flames] = useState(() => new Set<ShaderMaterial>());
   const root = useRef<Group>(null);
   const tiles = useRef<(Group | null)[]>([]);
+  const walls = useRef<Group>(null);
   const ribbon = useRef<ShaderMaterial>(null);
   const positions = useMemo(() => track.tiles.map((id) => layout.position(id)), [track, layout]);
 
@@ -84,7 +95,11 @@ export function RealmTrackView({ track, board, layout, open, highlighted, reacha
     const arc = (from: Vec3, to: Vec3) => {
       const [a, b] = [lift(from), lift(to)];
       const length = Math.hypot(b[0] - a[0], b[2] - a[2]);
-      return { start: a, end: b, mid: [(a[0] + b[0]) / 2, Math.max(a[1], b[1]) + 1.5 + length * 0.25, (a[2] + b[2]) / 2] as Vec3 };
+      return {
+        start: a,
+        end: b,
+        mid: [(a[0] + b[0]) / 2, Math.max(a[1], b[1]) + 1.5 + length * 0.25, (a[2] + b[2]) / 2] as Vec3,
+      };
     };
     return [arc(layout.position(track.portal), positions[0]), arc(positions.at(-1)!, layout.position(track.exit))];
   }, [track, layout, positions]);
@@ -112,11 +127,13 @@ export function RealmTrackView({ track, board, layout, open, highlighted, reacha
       // Tiles arrive in order from the portal; each eases in over its own slice of the reveal.
       const local = Math.min(1, Math.max(0, amount * (count + 1.5) - i));
       const eased = 1 - (1 - local) ** 3;
-      const bob = Math.sin(clock.elapsedTime * 1.3 + i * 0.9) * (track.realm === "celestial" ? 0.12 : 0.05);
-      tile.position.set(positions[i][0], positions[i][1] + (1 - eased) * ARRIVAL_OFFSET[track.realm] + bob * eased, positions[i][2]);
+      tile.position.set(positions[i][0], positions[i][1] + (1 - eased) * ARRIVAL_OFFSET[track.realm], positions[i][2]);
       tile.scale.setScalar(0.25 + 0.75 * eased);
       tile.visible = local > 0.01;
     });
+
+    // The corridor's walls rise out of its floor as the track appears, and sink back into it.
+    if (walls.current) walls.current.scale.y = Math.max(0.001, 1 - (1 - Math.min(1, amount * 1.2)) ** 3);
 
     linkLines.current.forEach((line) => {
       if (line) line.material.opacity = amount * 0.6;
@@ -187,17 +204,21 @@ export function RealmTrackView({ track, board, layout, open, highlighted, reacha
             {track.realm === "infernal" ? (
               <>
                 <MoltenUnderside color={palette.glow} />
-                <FlameWall flames={flames} />
+                {i % 2 === 0 && <FlameWall flames={flames} />}
               </>
             ) : (
-              <>
-                <HaloUnderside color={palette.glow} phase={i} />
-                <LightPosts color={palette.glow} />
-              </>
+              <HaloUnderside color={palette.glow} phase={i} />
             )}
           </group>
         );
       })}
+
+      {/* Scaled from the tiles' level, so the walls grow up from the corridor floor. */}
+      <group ref={walls} position-y={positions[0][1]}>
+        <group position-y={-positions[0][1]}>
+          <CorridorWalls realm={track.realm} positions={positions} />
+        </group>
+      </group>
 
       <TrackSparkles positions={positions} color={track.realm === "infernal" ? "#ff7a2a" : "#fff1b8"} />
     </group>
@@ -215,7 +236,13 @@ function MoltenUnderside({ color }: { color: string }) {
       ].map(([x, z, length]) => (
         <mesh key={`${x}:${z}`} position={[x, -length / 2, z]} rotation-x={Math.PI}>
           <coneGeometry args={[0.28, length, 6]} />
-          <meshStandardMaterial color="#120404" emissive={color} emissiveIntensity={0.9} roughness={0.35} metalness={0.4} />
+          <meshStandardMaterial
+            color="#120404"
+            emissive={color}
+            emissiveIntensity={0.9}
+            roughness={0.35}
+            metalness={0.4}
+          />
         </mesh>
       ))}
     </group>
@@ -231,7 +258,13 @@ function HaloUnderside({ color, phase }: { color: string; phase: number }) {
   return (
     <mesh ref={halo} position-y={-TILE_HEIGHT / 2 - 0.35} rotation-x={-Math.PI / 2}>
       <torusGeometry args={[TILE_SIZE * 0.42, 0.05, 8, 48]} />
-      <meshBasicMaterial color={new Color(color).multiplyScalar(2.2)} toneMapped={false} transparent opacity={0.9} blending={AdditiveBlending} />
+      <meshBasicMaterial
+        color={new Color(color).multiplyScalar(2.2)}
+        toneMapped={false}
+        transparent
+        opacity={0.9}
+        blending={AdditiveBlending}
+      />
     </mesh>
   );
 }
@@ -314,27 +347,6 @@ function FlameWall({ flames }: { flames: Set<ShaderMaterial> }) {
             />
           </mesh>
         </Billboard>
-      ))}
-    </>
-  );
-}
-
-/** Slender golden posts topped with light on both sides of a celestial tile. */
-function LightPosts({ color }: { color: string }) {
-  const glow = useMemo(() => new Color(color).multiplyScalar(3), [color]);
-  return (
-    <>
-      {[-1.2, 1.2].map((x) => (
-        <group key={x} position={[x, 0, 0]}>
-          <mesh position-y={0.45}>
-            <cylinderGeometry args={[0.04, 0.06, 0.9, 8]} />
-            <meshStandardMaterial color="#e8d8a8" metalness={0.8} roughness={0.3} />
-          </mesh>
-          <mesh position-y={0.98}>
-            <octahedronGeometry args={[0.12]} />
-            <meshBasicMaterial color={glow} toneMapped={false} />
-          </mesh>
-        </group>
       ))}
     </>
   );

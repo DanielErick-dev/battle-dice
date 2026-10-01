@@ -3,7 +3,17 @@
 import { useGLTF } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, type ReactNode, type RefObject } from "react";
-import { AnimationMixer, Box3, LoopOnce, Mesh, Vector3, type AnimationAction, type Object3D } from "three";
+import {
+  AnimationMixer,
+  Box3,
+  Color,
+  LoopOnce,
+  Mesh,
+  MeshStandardMaterial,
+  Vector3,
+  type AnimationAction,
+  type Object3D,
+} from "three";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import type { CharacterClip, ClipLengths } from "../../characters";
 
@@ -19,9 +29,11 @@ const CLIP_SPEED: Readonly<Record<CharacterClip, number>> = {
   intro: 1,
   showcase: 1,
   float: 1,
+  dash: 1,
+  land: 1,
 };
 /** Clips played once, holding their last pose until the next clip takes over. */
-const ONE_SHOT_CLIPS: readonly CharacterClip[] = ["cast", "intro"];
+const ONE_SHOT_CLIPS: readonly CharacterClip[] = ["cast", "intro", "dash", "land"];
 
 interface CharacterModelProps {
   url: string;
@@ -29,8 +41,12 @@ interface CharacterModelProps {
   height: number;
   /** Clip to play, read every frame so movement code can switch it without re-rendering. */
   clip: RefObject<CharacterClip>;
-  /** Told the length of each one-shot clip the model has, once it's loaded. */
+  /** Told the length of each clip the model has (so also which it has), once it's loaded. */
   onClipLengths?: (lengths: ClipLengths) => void;
+  /** Playback speed of the intro for this character, on top of CLIP_SPEED (1 by default). */
+  introSpeed?: number;
+  /** Drawn as a translucent apparition glowing in this colour instead of its own textures. */
+  ghost?: string;
   /** Extras bound to the figure's own skeleton (e.g. EnergyBlades in its hands). */
   children?: (figure: Object3D) => ReactNode;
 }
@@ -40,9 +56,17 @@ interface CharacterModelProps {
  * between them. Each instance gets its own copy of the skeleton, so several players can share one
  * model file. A clip the model lacks is ignored and the current one keeps playing.
  */
-export function CharacterModel({ url, height, clip, onClipLengths, children }: CharacterModelProps) {
+export function CharacterModel({
+  url,
+  height,
+  clip,
+  onClipLengths,
+  introSpeed = 1,
+  ghost,
+  children,
+}: CharacterModelProps) {
   const { scene: source, animations } = useGLTF(url);
-  const figure = useMemo(() => prepareFigure(source), [source]);
+  const figure = useMemo(() => prepareFigure(source, ghost), [source, ghost]);
   const scale = useMemo(() => height / modelHeight(source), [source, height]);
   const mixer = useMemo(() => new AnimationMixer(figure), [figure]);
   const clips = useMemo(() => new Map(animations.map((animation) => [animation.name, animation])), [animations]);
@@ -65,12 +89,13 @@ export function CharacterModel({ url, height, clip, onClipLengths, children }: C
 
   useEffect(() => {
     const lengths: ClipLengths = {};
-    for (const name of ONE_SHOT_CLIPS) {
+    for (const name of Object.keys(CLIP_SPEED) as CharacterClip[]) {
       const duration = clips.get(name)?.duration;
-      if (duration !== undefined) lengths[name] = duration;
+      // As long as it lasts on screen, at this character's intro speed.
+      if (duration !== undefined) lengths[name] = duration / (name === "intro" ? introSpeed : 1);
     }
     onClipLengths?.(lengths);
-  }, [clips, onClipLengths]);
+  }, [clips, onClipLengths, introSpeed]);
 
   useEffect(
     () => () => {
@@ -94,9 +119,15 @@ export function CharacterModel({ url, height, clip, onClipLengths, children }: C
       const next = actionFor(wanted);
       const previous = playing.current ? actionFor(playing.current) : undefined;
       if (next) {
-        next.reset().setEffectiveTimeScale(CLIP_SPEED[wanted]).setEffectiveWeight(1).play();
+        next
+          .reset()
+          .setEffectiveTimeScale(CLIP_SPEED[wanted] * (wanted === "intro" ? introSpeed : 1))
+          .setEffectiveWeight(1)
+          .play();
         const fade =
-          playing.current === "intro" || playing.current === "cast" ? SETTLE_CROSSFADE_SECONDS : CROSSFADE_SECONDS;
+          playing.current === "intro" || playing.current === "cast" || playing.current === "land"
+            ? SETTLE_CROSSFADE_SECONDS
+            : CROSSFADE_SECONDS;
         if (previous) next.crossFadeFrom(previous, fade, false);
       }
       playing.current = wanted;
@@ -111,16 +142,47 @@ export function CharacterModel({ url, height, clip, onClipLengths, children }: C
   );
 }
 
-/** A private copy of the model (own skeleton) that casts shadows. */
-function prepareFigure(source: Object3D) {
+/**
+ * A private copy of the model (own skeleton) that casts shadows; with `ghost`, a see-through
+ * shadow of it instead, its outline glowing in that colour, casting none.
+ */
+function prepareFigure(source: Object3D, ghost?: string) {
   const figure = cloneSkinned(source);
+  const ghostMaterial = ghost ? shadowMaterial(ghost) : null;
   figure.traverse((node) => {
     if (!(node instanceof Mesh)) return;
-    node.castShadow = true;
+    if (ghostMaterial) node.material = ghostMaterial;
+    node.castShadow = !ghostMaterial;
     // The bind-pose bounds don't follow the animated bones; a running figure could get culled.
     node.frustumCulled = false;
   });
   return figure;
+}
+
+/**
+ * A living shadow: nearly black and see-through, with only its outline glowing in `rim` (the
+ * edges, where the surface turns away from the view, light up as smoke does against the light).
+ */
+function shadowMaterial(rim: string): MeshStandardMaterial {
+  const material = new MeshStandardMaterial({
+    color: "#04050a",
+    emissive: new Color(rim),
+    emissiveIntensity: 0.08,
+    transparent: true,
+    opacity: 0.72,
+    depthWrite: false,
+    roughness: 1,
+  });
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.uRim = { value: new Color(rim).multiplyScalar(1.6) };
+    shader.fragmentShader = shader.fragmentShader.replace("void main() {", "uniform vec3 uRim;\nvoid main() {").replace(
+      "#include <emissivemap_fragment>",
+      `#include <emissivemap_fragment>
+        float facing = abs(dot(normalize(normal), normalize(vViewPosition)));
+        totalEmissiveRadiance += uRim * pow(1.0 - facing, 3.0);`,
+    );
+  };
+  return material;
 }
 
 /** Height of the model in its own units (Meshy exports stand 1.7 tall). */

@@ -26,6 +26,15 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   ABILITY_NOT_READY: "A habilidade ainda está carregando.",
   ABILITY_IN_USE: "A habilidade já está em uso neste turno.",
   ENERGY_FULL: "Sua energia já está no máximo.",
+  EMPTY_HAND: "Você não tem cartas na mão.",
+  EMPTY_DISCARD: "Nenhuma carta foi jogada ainda.",
+  HAND_FULL: "Sua mão está cheia.",
+  TOO_MANY_CARDS: "Escolha menos cartas.",
+  INVALID_SEALS: "Escolha 4 casas diferentes dentro do alcance.",
+  SILENCED: "Você está silenciado: não pode jogar cartas.",
+  INVALID_SPECTERS: "Escolha 2 casas diferentes dentro do alcance.",
+  PLUNDER_PENDING: "Aguarde o Guardião escolher as cartas.",
+  NO_PLUNDER_PENDING: "Não há cartas para pilhar agora.",
 };
 
 /**
@@ -80,9 +89,22 @@ export class MatchStore {
     this.dispatch({ type: "discardCard", playerId: pending.playerId, cardUid });
   };
 
-  activateAbility = (): void => {
+  /**
+   * `cardUids`: the cards an ability works on (a hand card for Transmutation, discarded ones for
+   * Resurrection); `sealTiles`: where Forbidden Seals writes each seal.
+   */
+  activateAbility = (
+    choice: { cardUids?: readonly string[]; sealTiles?: readonly number[]; specterTiles?: readonly number[] } = {},
+  ): void => {
     if (!canActivateAbility(this.view)) return;
-    this.dispatch({ type: "activateAbility", playerId: this.view.activePlayerId });
+    this.dispatch({ type: "activateAbility", playerId: this.view.activePlayerId, ...choice });
+  };
+
+  /** The Warden's pick of the cards their Plunder apparition takes. */
+  plunderCards = (cardUids: readonly string[]): void => {
+    const pending = this.view.pendingPlunder;
+    if (!pending || this.view.isAnimating) return;
+    this.dispatch({ type: "plunderCards", playerId: pending.owner, cardUids });
   };
 
   answerWard = (use: boolean): void => {

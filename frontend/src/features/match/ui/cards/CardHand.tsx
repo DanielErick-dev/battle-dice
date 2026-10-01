@@ -37,6 +37,8 @@ export function CardHand({ board, player, opponents, canPlay, cardsLeft, lastDra
     if (cardsLeft === 0) return "Você já usou as cartas deste turno";
     if (!canPlay) return "Aguarde sua vez";
     switch (cardBlocker(board, player, card.cardId)) {
+      case "SILENCED":
+        return "Silenciado por um selo: sem cartas neste turno";
       case "NOT_ENOUGH_ENERGY":
         return `Energia insuficiente: precisa de ${cardCost(card.cardId)}, você tem ${player.energy}`;
       case "ALREADY_SHIELDED":
@@ -112,9 +114,20 @@ export function CardHand({ board, player, opponents, canPlay, cardsLeft, lastDra
                   onClick={() => click(card)}
                   aria-pressed={isSelected}
                   aria-label={isSelected ? `Usar ${CARD_TEXT[card.cardId].name}` : CARD_TEXT[card.cardId].name}
-                  className="block w-full rounded-xl text-left focus-visible:outline-2 focus-visible:outline-orange-400"
+                  className="relative block w-full rounded-xl text-left focus-visible:outline-2 focus-visible:outline-orange-400"
                 >
                   <CardView cardId={card.cardId} dimmed={reason !== null} selected={isSelected} />
+                  {/* Brought back by Resurrection: a ghostly teal glow, and a warning it won't come back again. */}
+                  {card.risen && (
+                    <span
+                      title="Ressuscitada: vira pó quando sair da mão"
+                      className="pointer-events-none absolute inset-0 rounded-xl shadow-[0_0_18px_4px_rgba(45,212,191,0.55)] ring-2 ring-teal-300/80"
+                    >
+                      <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-teal-500 px-2 py-0.5 text-[9px] font-black tracking-wider whitespace-nowrap text-white uppercase shadow">
+                        Vira pó
+                      </span>
+                    </span>
+                  )}
                 </button>
               </div>
               {isSelected && (

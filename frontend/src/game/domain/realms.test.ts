@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createBoard, getTile, type BoardDefinition } from "./board";
+import { ARROW_RAIN_PUSH } from "./abilities";
+import { createBoard, getTile, sameSpace, type BoardDefinition } from "./board";
 import { sequenceDice } from "./dice";
 import { applyCommand, createGame } from "./engine";
 import { seededRandom } from "./random";
@@ -113,5 +114,54 @@ describe("realm tracks", () => {
     const effect = getTile(board, setback).effect as Extract<TileEffect, { kind: "trap" }>;
     const { state } = roll(withPlayer(game(), { position: getTile(board, setback).previous! }), 1);
     expect(state.players[0].position).toBe(effect.to);
+  });
+});
+
+describe("a realm track is cut off from the board", () => {
+  const board = createBoard(BOARD);
+  const inside = board.tracks[0].tiles[3];
+  const duel = (archerAt: number, rivalAt: number, ability: "arrowRain" | "cardGamble" = "arrowRain") => {
+    const state = createGame(
+      BOARD,
+      [
+        { id: "p1", name: "Aria", ability },
+        { id: "p2", name: "Bran" },
+      ],
+      { random: seededRandom(7) },
+    );
+    return {
+      ...state,
+      players: state.players.map((player) =>
+        player.id === "p1"
+          ? { ...player, position: archerAt, abilityCharge: 5 }
+          : { ...player, position: rivalAt, hand: [{ uid: "r", cardId: "windStep" as const }] },
+      ),
+    };
+  };
+  const activate = (state: GameState, dice: number[] = [1]) =>
+    applyCommand(
+      state,
+      { type: "activateAbility", playerId: "p1" },
+      { rollDice: sequenceDice(dice), random: seededRandom(3) },
+    );
+
+  it("knows which tiles share a place", () => {
+    expect(sameSpace(board, 3, 20)).toBe(true);
+    expect(sameSpace(board, 3, inside)).toBe(false);
+    expect(sameSpace(board, inside, board.tracks[0].tiles[0])).toBe(true);
+    expect(sameSpace(board, inside, board.tracks[1].tiles[0])).toBe(false);
+  });
+
+  it("Arrow Rain from the board can't reach a player inside a realm, nor the other way round", () => {
+    const fromBoard = activate(duel(20, inside)).state;
+    expect(fromBoard.players[1].position).toBe(inside);
+    const fromRealm = activate(duel(inside, 20)).state;
+    expect(fromRealm.players[1].position).toBe(20);
+    expect(activate(duel(25, 20)).state.players[1].position).toBe(20 - ARROW_RAIN_PUSH);
+  });
+
+  it("Card Gamble can't steal from a player in another place", () => {
+    const { state } = activate(duel(20, inside, "cardGamble"), [6]);
+    expect(state.players[1].hand).toHaveLength(1);
   });
 });

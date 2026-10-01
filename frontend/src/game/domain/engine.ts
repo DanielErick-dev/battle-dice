@@ -4,21 +4,28 @@ import {
   graceEnergy,
   LEVITATION_TURNS,
   rollBonus,
+  rollMultiplier,
   type AbilityId,
 } from "./abilities";
+import { loseArrowRain, unpinPassed } from "./arrowRain";
 import { createBoard, type BoardDefinition } from "./board";
+import { playCardGamble } from "./cardGamble";
 import { playCard, type CardChoice } from "./cardPlay";
 import { STARTING_HAND, STARTING_ENERGY, standardDeck, type CardId } from "./cards";
 import { GameRuleError, type GameCommand } from "./commands";
-import { buildDeck } from "./deck";
+import { buildDeck, throwOnPile } from "./deck";
 import type { DiceRoller } from "./dice";
 import { draftState, drawCard, playerIn, startDraft, updatePlayer, walkPath, type Draft } from "./draft";
 import type { GameEvent } from "./events";
 import { placeHiddenTraps } from "./hiddenTraps";
 import { resolveLanding, resolveWard } from "./landing";
 import type { RandomSource } from "./random";
+import { resurrectCards } from "./resurrection";
+import { writeSeals } from "./seals";
+import { crossSpecters, summonSpecters, takePlunder } from "./specters";
+import { transmuteCard } from "./transmutation";
 import { endTurn } from "./turn";
-import type { DiceBoost, GameState, Player, PlayerId } from "./types";
+import type { DiceBoost, GameState, Player, PlayerId, TileId } from "./types";
 
 export interface NewPlayer {
   id: PlayerId;
@@ -81,6 +88,10 @@ export function createGame(
     pendingWard: null,
     hiddenTraps: placeHiddenTraps(createdBoard, random),
     destroyedTraps: [],
+    pinnedTraps: [],
+    seals: [],
+    specters: [],
+    pendingPlunder: null,
   };
 }
 
@@ -98,7 +109,9 @@ export function applyCommand(state: GameState, command: GameCommand, deps: GameD
     case "discardCard":
       return discardCard(state, command.playerId, command.cardUid, deps);
     case "activateAbility":
-      return activateAbility(state, command.playerId, deps);
+      return activateAbility(state, command.playerId, command, deps);
+    case "plunderCards":
+      return plunderCards(state, command.playerId, command.cardUids, deps);
     case "answerWard":
       return answerWard(state, command.playerId, command.use, deps);
     case "restart":
@@ -111,12 +124,20 @@ function rollDice(state: GameState, playerId: PlayerId, deps: GameDependencies):
   const draft = startDraft(state, deps.random);
   const player = playerIn(draft, playerId);
 
-  const { event, boostLeft } = throwDice(playerId, player.diceBoost, rollBonus(state.abilityInUse), deps.rollDice);
+  const { event, boostLeft } = throwDice(
+    playerId,
+    player.diceBoost,
+    { extra: rollBonus(state.abilityInUse), multiplier: rollMultiplier(state.abilityInUse) },
+    deps.rollDice,
+  );
   updatePlayer(draft, playerId, () => ({ diceBoost: boostLeft }));
 
   const path = walkPath(state.board, player.position, event.value);
-  draft.events.push(event, { type: "playerMoved", playerId, path });
+  const dash = event.multiplier !== undefined;
+  draft.events.push(event, { type: "playerMoved", playerId, path, ...(dash && { dash }) });
+  crossSpecters(draft, playerId, path);
   resolveLanding(draft, playerId, path.at(-1) ?? player.position);
+  unpinPassed(draft, path);
 
   const extraTurn = draft.extraTurn || state.bonusTurn;
   return settle(draft, playerId, { endsTurn: true, extraTurn });
@@ -126,24 +147,19 @@ type DiceRolledEvent = Extract<GameEvent, { type: "diceRolled" }>;
 
 /**
  * Throws the dice as the player's pending card modifier says, plus `extra` tiles from their
- * ability, and what's left of the modifier afterwards.
+ * ability and then times its `multiplier`, and what's left of the modifier afterwards.
  */
 function throwDice(
   playerId: PlayerId,
   boost: DiceBoost | null,
-  extra: number,
+  ability: { extra: number; multiplier: number },
   rollDie: DiceRoller,
 ): { event: DiceRolledEvent; boostLeft: DiceBoost | null } {
-  const { event, boostLeft } = throwBoostedDice(playerId, boost, rollDie);
-  if (extra === 0) return { event, boostLeft };
-  return {
-    event: {
-      ...event,
-      value: event.value + extra,
-      bonus: (event.bonus ?? 0) + extra,
-    },
-    boostLeft,
-  };
+  const { event: thrown, boostLeft } = throwBoostedDice(playerId, boost, rollDie);
+  const { extra, multiplier } = ability;
+  const event = extra === 0 ? thrown : { ...thrown, value: thrown.value + extra, bonus: (thrown.bonus ?? 0) + extra };
+  if (multiplier === 1) return { event, boostLeft };
+  return { event: { ...event, value: event.value * multiplier, multiplier }, boostLeft };
 }
 
 function throwBoostedDice(
@@ -243,7 +259,7 @@ function discardCard(state: GameState, playerId: PlayerId, cardUid: string, deps
   const hand = candidates.filter((candidate) => candidate.uid !== cardUid);
   updatePlayer(draft, playerId, (player) => ({
     hand,
-    discard: [...player.discard, card],
+    discard: throwOnPile(player.discard, [card]),
   }));
   draft.events.push({ type: "cardDiscarded", playerId, card, hand });
   return settle(draft, playerId, {
@@ -253,7 +269,16 @@ function discardCard(state: GameState, playerId: PlayerId, cardUid: string, deps
 }
 
 /** Spends the player's charged ability; its effect lasts for the rest of the turn. */
-function activateAbility(state: GameState, playerId: PlayerId, deps: GameDependencies): GameTransition {
+function activateAbility(
+  state: GameState,
+  playerId: PlayerId,
+  {
+    cardUids = [],
+    sealTiles = [],
+    specterTiles = [],
+  }: { cardUids?: readonly string[]; sealTiles?: readonly TileId[]; specterTiles?: readonly TileId[] },
+  deps: GameDependencies,
+): GameTransition {
   assertCanAct(state, playerId);
   const draft = startDraft(state, deps.random);
   const player = playerIn(draft, playerId);
@@ -275,6 +300,12 @@ function activateAbility(state: GameState, playerId: PlayerId, deps: GameDepende
     for (let draw = 0; draw < DRAGON_HOARD_DRAWS; draw++) drawCard(draft, playerId);
   }
   if (player.ability === "levitation") updatePlayer(draft, playerId, () => ({ levitating: LEVITATION_TURNS }));
+  if (player.ability === "transmutation") transmuteCard(draft, playerId, cardUids[0]);
+  if (player.ability === "resurrection") resurrectCards(draft, playerId, cardUids);
+  if (player.ability === "forbiddenSeals") writeSeals(draft, playerId, sealTiles);
+  if (player.ability === "spectralApparitions") summonSpecters(draft, playerId, specterTiles);
+  if (player.ability === "arrowRain") loseArrowRain(draft, playerId);
+  if (player.ability === "cardGamble") playCardGamble(draft, playerId, deps.rollDice);
 
   const settled = settle(draft, playerId, {
     endsTurn: false,
@@ -284,6 +315,23 @@ function activateAbility(state: GameState, playerId: PlayerId, deps: GameDepende
     ...settled,
     state: { ...settled.state, abilityInUse: player.ability },
   };
+}
+
+/** The Warden picks the cards their Plunder specter takes; play goes on as the move left it. */
+function plunderCards(
+  state: GameState,
+  playerId: PlayerId,
+  cardUids: readonly string[],
+  deps: GameDependencies,
+): GameTransition {
+  if (state.status === "finished") throw new GameRuleError("GAME_FINISHED");
+  const pending = state.pendingPlunder;
+  if (!pending) throw new GameRuleError("NO_PLUNDER_PENDING");
+  if (pending.owner !== playerId) throw new GameRuleError("NOT_YOUR_TURN");
+
+  const draft = startDraft({ ...state, pendingPlunder: null }, deps.random);
+  takePlunder(draft, pending, cardUids);
+  return settle(draft, pending.victim, { endsTurn: pending.endsTurn, extraTurn: pending.extraTurn });
 }
 
 /** Resumes a landing paused on the ward prompt with the player's answer. */
@@ -311,6 +359,8 @@ function settle(
   { endsTurn, extraTurn }: { endsTurn: boolean; extraTurn: boolean },
 ): GameTransition {
   const { state } = draft;
+  // A plunder waits for its Warden's pick across any other pause, then holds the turn itself.
+  const pendingPlunder = draft.plunder ? { ...draft.plunder, endsTurn, extraTurn } : state.pendingPlunder;
 
   if (playerIn(draft, playerId).position === state.board.finishTile) {
     draft.events.push({ type: "playerWon", playerId });
@@ -321,6 +371,7 @@ function settle(
         winnerId: playerId,
         pendingDiscard: null,
         pendingWard: null,
+        pendingPlunder: null,
       },
       events: draft.events,
     };
@@ -329,7 +380,7 @@ function settle(
   if (draft.pendingWard) {
     const pendingWard = { playerId, ...draft.pendingWard, endsTurn, extraTurn };
     return {
-      state: { ...draftState(draft), pendingWard },
+      state: { ...draftState(draft), pendingWard, pendingPlunder },
       events: draft.events,
     };
   }
@@ -342,10 +393,12 @@ function settle(
       extraTurn,
     };
     return {
-      state: { ...draftState(draft), pendingDiscard },
+      state: { ...draftState(draft), pendingDiscard, pendingPlunder },
       events: draft.events,
     };
   }
+
+  if (pendingPlunder) return { state: { ...draftState(draft), pendingPlunder }, events: draft.events };
 
   if (!endsTurn) return { state: draftState(draft), events: draft.events };
 
@@ -387,6 +440,10 @@ function restart(state: GameState, deps: GameDependencies): GameTransition {
       pendingWard: null,
       hiddenTraps: placeHiddenTraps(state.board, deps.random),
       destroyedTraps: [],
+      pinnedTraps: [],
+      seals: [],
+      specters: [],
+      pendingPlunder: null,
     },
     events: [{ type: "gameRestarted" }, { type: "turnChanged", playerId: players[0].id }],
   };
@@ -398,6 +455,7 @@ function assertCanAct(state: GameState, playerId: PlayerId): void {
   if (currentPlayer(state).id !== playerId) throw new GameRuleError("NOT_YOUR_TURN");
   if (state.pendingDiscard) throw new GameRuleError("DISCARD_PENDING");
   if (state.pendingWard) throw new GameRuleError("WARD_PENDING");
+  if (state.pendingPlunder) throw new GameRuleError("PLUNDER_PENDING");
 }
 
 interface Deal {
@@ -426,5 +484,6 @@ function dealPlayer({ id, name, ability = null }: NewPlayer, { startTile, cards,
     ability,
     abilityCharge: ability && playsFirst ? 1 : 0,
     levitating: 0,
+    silencedTurns: 0,
   };
 }

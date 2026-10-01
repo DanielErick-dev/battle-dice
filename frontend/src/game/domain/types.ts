@@ -107,12 +107,49 @@ export interface Player {
   abilityCharge: number;
   /** Own turns left floating over the tiles (Levitation), the current one included; 0 when grounded. */
   levitating: number;
+  /**
+   * Silenced by a seal: no cards while above 0. Counts down as each of the player's turns starts,
+   * so the rest of the turn it struck in and the whole next one are silent.
+   */
+  silencedTurns: number;
+}
+
+/** The Shadow Warden's two apparitions (see specters.ts). */
+export type SpecterKind = "plunder" | "hunger";
+
+/** An apparition of the Shadow Warden on a tile, striking whoever else walks through it. */
+export interface Specter {
+  tile: TileId;
+  kind: SpecterKind;
+  owner: PlayerId;
+}
+
+/** The Plunder specter caught `victim`: `owner` picks which of their cards to take. */
+export interface PendingPlunder {
+  owner: PlayerId;
+  victim: PlayerId;
+  /** Caught during a roll, so the turn ends once the cards are picked. */
+  endsTurn: boolean;
+  /** That roll also earned an extra turn. */
+  extraTurn: boolean;
+}
+
+/** The Flesh Scribe's four forbidden seals (see seals.ts). */
+export type SealKind = "tithe" | "ruin" | "silence" | "bloodPact";
+
+/** A seal written on a tile: all look alike to the other players; only `owner` knows its `kind`. */
+export interface Seal {
+  tile: TileId;
+  kind: SealKind;
+  owner: PlayerId;
 }
 
 /** One physical copy of a card; `uid` tells apart copies of the same card in a hand. */
 export interface CardInstance {
   uid: string;
   cardId: CardId;
+  /** Brought back by Resurrection: it crumbles to dust once it leaves the hand, never to return. */
+  risen?: boolean;
 }
 
 export type DiceBoost =
@@ -172,4 +209,15 @@ export interface GameState {
   hiddenTraps: readonly TileId[];
   /** Tiles whose trap (hidden or not) the Trap Ward smashed: they stay harmless for good. */
   destroyedTraps: readonly TileId[];
+  /**
+   * Tiles whose trap (hidden or not) or curse Arrow Rain pinned down: harmless until a walk
+   * passes over them, which frees them again.
+   */
+  pinnedTraps: readonly TileId[];
+  /** Seals written on the board and not broken yet. Their kinds are the owner's secret once rooms exist. */
+  seals: readonly Seal[];
+  /** The Shadow Warden's apparitions on the board. */
+  specters: readonly Specter[];
+  /** Waiting for a Warden to pick the cards their Plunder specter takes. */
+  pendingPlunder: PendingPlunder | null;
 }

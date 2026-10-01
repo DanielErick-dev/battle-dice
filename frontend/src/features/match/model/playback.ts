@@ -1,11 +1,14 @@
-import { abilityCycle, isReactive, LEVITATION_TURNS, type AbilityId } from "@/game/domain/abilities";
+import { abilityCycle, isReactive, LEVITATION_TURNS, SILENCE_TURNS, type AbilityId } from "@/game/domain/abilities";
 import { cardCost } from "@/game/domain/cards";
+import { throwOnPile } from "@/game/domain/deck";
+import { SEAL_KINDS } from "@/game/domain/seals";
+import { SPECTER_KINDS } from "@/game/domain/specters";
 import { DICE_SIDES } from "@/game/domain/dice";
 import { currentPlayer } from "@/game/domain/engine";
 import type { GameEvent } from "@/game/domain/events";
 import type { GameState, PlayerId } from "@/game/domain/types";
 import type { PlaybackTimings } from "../config";
-import { withPlayer, withPlayerAt, type MatchView, type TileEffectView } from "./matchView";
+import { sealViews, specterViews, withPlayer, withPlayerAt, type MatchView, type TileEffectView } from "./matchView";
 
 export interface PlaybackStep {
   apply: (view: MatchView) => MatchView;
@@ -32,17 +35,45 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
           apply: (view) => ({
             ...view,
             isRolling: false,
-            lastRoll: { dice: event.dice, best: event.best ?? false, bonus: event.bonus ?? 0, total: event.value },
+            lastRoll: {
+              dice: event.dice,
+              best: event.best ?? false,
+              bonus: event.bonus ?? 0,
+              multiplier: event.multiplier ?? 1,
+              total: event.value,
+            },
           }),
           durationMs: timings.diceRevealMs,
         },
       ];
 
-    case "playerMoved":
-      return event.path.map((tile) => ({
-        apply: (view) => withPlayerAt(view, event.playerId, tile),
-        durationMs: timings.stepMs,
+    case "playerMoved": {
+      const steps = event.path.map((tile) => ({
+        apply: (view: MatchView) => withPlayerAt(view, event.playerId, tile),
+        durationMs: event.dash ? timings.dashStepMs : timings.stepMs,
       }));
+      if (!event.dash) return steps;
+      // Dormant Fury: the player throws themselves forward, lightning takes them, they cross the path as a
+      // blur, then it lets go.
+      return [
+        {
+          apply: (view) => {
+            const from = view.players.find((player) => player.id === event.playerId)?.position;
+            const path = from === undefined ? event.path : [from, ...event.path];
+            return {
+              ...view,
+              dash: { id: (view.dash?.id ?? 0) + 1, playerId: event.playerId, path, arrived: false },
+            };
+          },
+          durationMs: timings.dashLaunchMs + timings.dashStrikeMs,
+        },
+        ...steps,
+        {
+          apply: (view) => (view.dash ? { ...view, dash: { ...view.dash, arrived: true } } : view),
+          durationMs: timings.dashArriveMs,
+        },
+      ];
+    }
 
     case "realmEntered":
       // The gate opens (tunnel of fire or pillar of light), then the player is carried in.
@@ -221,7 +252,232 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
               effect: abilityEffect(spent, event.playerId, "abilityUsed", event.ability, event.energyGained),
             };
           },
+          durationMs: abilityUsedMs(event.ability, timings),
+        },
+      ];
+
+    case "arrowsLoosed":
+      // Up into the sky, down on the targets; pinned tiles keep their arrows once they hit.
+      return [
+        {
+          apply: (view) => ({
+            ...view,
+            volley: {
+              id: (view.volley?.id ?? 0) + 1,
+              playerId: event.playerId,
+              from: view.players.find((player) => player.id === event.playerId)?.position ?? 0,
+              targets: event.targets,
+            },
+          }),
+          durationMs: timings.arrowVolleyMs,
+        },
+        {
+          apply: (view) => ({ ...view, pinnedTraps: [...view.pinnedTraps, ...event.pinned] }),
+          durationMs: timings.arrowImpactMs,
+        },
+      ];
+
+    case "gambleRolled":
+      // The die of fortune is thrown like a move's, then the verdict shows over the player.
+      return [
+        {
+          apply: (view) => ({
+            ...view,
+            isRolling: true,
+            roll: { id: (view.roll?.id ?? 0) + 1, dice: [event.value] },
+            effect: null,
+          }),
+          durationMs: timings.diceRollMs,
+        },
+        {
+          apply: (view) => {
+            const tile = view.players.find((player) => player.id === event.playerId)?.position ?? 0;
+            const gamble = { value: event.value, won: event.won };
+            return {
+              ...view,
+              isRolling: false,
+              effect: { kind: "gamble", playerId: event.playerId, from: tile, to: tile, gamble },
+            };
+          },
           durationMs: timings.noticeMs,
+        },
+      ];
+
+    case "cardsStolen":
+      // Each card is shown as it's taken, then lands in the taker's hand (or discard pile, when full).
+      return event.cards.flatMap((card) => {
+        const kept = !event.discarded.some((discarded) => discarded.uid === card.uid);
+        return [
+          {
+            apply: (view: MatchView) => ({
+              ...withPlayer(view, event.from, (player) => ({
+                hand: player.hand.filter((held) => held.uid !== card.uid),
+              })),
+              drawing: { id: (view.drawing?.id ?? 0) + 1, playerId: event.playerId, card },
+            }),
+            durationMs: timings.drawRevealMs,
+          },
+          {
+            apply: (view: MatchView) => ({
+              ...withPlayer(view, event.playerId, (player) =>
+                kept ? { hand: [...player.hand, card] } : { discard: throwOnPile(player.discard, [card]) },
+              ),
+              drawing: null,
+              lastDrawnUid: kept ? card.uid : view.lastDrawnUid,
+            }),
+            durationMs: timings.drawMs,
+          },
+        ];
+      });
+
+    case "spectersSummoned":
+      // The apparitions rise from the floor, the Warden's old ones gone.
+      return [
+        {
+          apply: (view) => ({
+            ...view,
+            specters: [
+              ...view.specters.filter((specter) => specter.owner !== event.playerId),
+              ...event.tiles.map((tile, index) => ({ tile, owner: event.playerId, kind: SPECTER_KINDS[index] })),
+            ],
+          }),
+          durationMs: timings.noticeMs,
+        },
+      ];
+
+    case "specterStruck":
+      // The apparition lunges and fades; Hunger's energy changes hands.
+      return [
+        {
+          apply: (view) => {
+            const drained = withPlayer(view, event.playerId, (player) => ({
+              energy: event.owner === event.playerId ? player.energy : player.energy - event.energyTaken,
+            }));
+            const fed = withPlayer(drained, event.owner, (player) => ({
+              energy: player.energy + event.energyGained,
+              abilityCharge: player.abilityCharge + event.chargeGained,
+            }));
+            return {
+              ...fed,
+              specters: view.specters.filter((specter) => specter.tile !== event.tile),
+              effect: {
+                kind: "specter",
+                playerId: event.playerId,
+                from: event.tile,
+                to: event.tile,
+                specter: {
+                  kind: event.kind,
+                  owner: event.owner,
+                  energyTaken: event.energyTaken,
+                  energyGained: event.energyGained,
+                  chargeGained: event.chargeGained,
+                },
+              },
+            };
+          },
+          durationMs: timings.noticeMs,
+        },
+      ];
+
+    case "spectersDispelled":
+      return [
+        {
+          apply: (view) => {
+            const tile = view.players.find((player) => player.id === event.owner)?.position ?? 0;
+            return {
+              ...view,
+              specters: view.specters.filter((specter) => specter.owner !== event.owner),
+              effect: {
+                kind: "specter",
+                playerId: event.playerId,
+                from: tile,
+                to: tile,
+                specter: { kind: null, owner: event.owner, energyTaken: 0, energyGained: 0, chargeGained: 0 },
+              },
+            };
+          },
+          durationMs: timings.noticeMs,
+        },
+      ];
+
+    case "plunderOffered":
+      // The Warden's pick comes with the final sync (pendingPlunder); nothing to show meanwhile.
+      return [];
+
+    case "sealsWritten":
+      // The scrolls appear on their tiles, the writer's old ones gone.
+      return [
+        {
+          apply: (view) => ({
+            ...view,
+            seals: [
+              ...view.seals.filter((seal) => seal.owner !== event.playerId),
+              ...event.tiles.map((tile, index) => ({ tile, owner: event.playerId, kind: SEAL_KINDS[index] })),
+            ],
+          }),
+          durationMs: timings.noticeMs,
+        },
+      ];
+
+    case "sealBroken":
+      // The scroll bursts open, showing which seal it was; the Pact's energy changes hands.
+      return [
+        {
+          apply: (view) => {
+            const drained = withPlayer(view, event.playerId, (player) => ({
+              energy: player.energy - event.energyLost,
+              silencedTurns:
+                event.kind === "silence" && event.owner !== event.playerId ? SILENCE_TURNS : player.silencedTurns,
+            }));
+            const paid = withPlayer(drained, event.owner, (player) => ({ energy: player.energy + event.energyGained }));
+            return {
+              ...paid,
+              seals: view.seals.filter((seal) => seal.tile !== event.tile),
+              effect: {
+                kind: "seal",
+                playerId: event.playerId,
+                from: event.tile,
+                to: event.tile,
+                seal: {
+                  kind: event.kind,
+                  owner: event.owner,
+                  energyLost: event.energyLost,
+                  energyGained: event.energyGained,
+                },
+              },
+            };
+          },
+          durationMs: timings.noticeMs,
+        },
+      ];
+
+    case "cardsResurrected":
+      // Each card rises from the discard pile: shown in the middle of the screen, then into the hand.
+      return event.cards.flatMap((card) => [
+        {
+          apply: (view: MatchView) => ({
+            ...withPlayer(view, event.playerId, (player) => ({
+              discard: player.discard.filter((discarded) => discarded.uid !== card.uid),
+            })),
+            drawing: { id: (view.drawing?.id ?? 0) + 1, playerId: event.playerId, card },
+          }),
+          durationMs: timings.drawRevealMs,
+        },
+        {
+          apply: (view: MatchView) => ({
+            ...withPlayer(view, event.playerId, (player) => ({ hand: [...player.hand, card] })),
+            drawing: null,
+            lastDrawnUid: card.uid,
+          }),
+          durationMs: timings.drawMs,
+        },
+      ]);
+
+    case "trapUnpinned":
+      return [
+        {
+          apply: (view) => ({ ...view, pinnedTraps: view.pinnedTraps.filter((tile) => tile !== event.tile) }),
+          durationMs: 0,
         },
       ];
 
@@ -274,6 +530,33 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
         },
       ];
 
+    case "cardTransmuted":
+      // The old card shows, dissolves in alchemical fire into the new one, which then flies to the hand.
+      return [
+        {
+          apply: (view) => ({
+            ...view,
+            transmuting: {
+              id: (view.transmuting?.id ?? 0) + 1,
+              playerId: event.playerId,
+              from: event.from,
+              to: event.to,
+            },
+          }),
+          durationMs: timings.transmuteMs,
+        },
+        {
+          apply: (view) => ({
+            ...withPlayer(view, event.playerId, (player) => ({
+              hand: player.hand.map((card) => (card.uid === event.from.uid ? event.to : card)),
+            })),
+            transmuting: null,
+            lastDrawnUid: event.to.uid,
+          }),
+          durationMs: timings.drawMs,
+        },
+      ];
+
     case "deckReshuffled":
       return [
         {
@@ -309,7 +592,7 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
           apply: (view) => ({
             ...withPlayer(view, event.playerId, (player) => ({
               hand: event.hand,
-              discard: [...player.discard, event.card],
+              discard: throwOnPile(player.discard, [event.card]),
             })),
             pendingDiscard: null,
           }),
@@ -323,7 +606,7 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
           apply: (view) => ({
             ...withPlayer(view, event.playerId, (player) => ({
               hand: player.hand.filter((card) => card.uid !== event.card.uid),
-              discard: [...player.discard, event.card],
+              discard: throwOnPile(player.discard, [event.card]),
               energy: player.energy - cardCost(event.card.cardId),
             })),
             cast: { id: (view.cast?.id ?? 0) + 1, ...event },
@@ -359,9 +642,14 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
             winnerId: null,
             cast: null,
             drawing: null,
+            transmuting: null,
             lastDrawnUid: null,
             pendingDiscard: null,
             destroyedTraps: [],
+            pinnedTraps: [],
+            seals: [],
+            specters: [],
+            volley: null,
           }),
           durationMs: 0,
         },
@@ -384,9 +672,23 @@ export function syncStep(state: GameState): PlaybackStep {
       abilityInUse: state.abilityInUse,
       pendingWard: state.pendingWard,
       destroyedTraps: state.destroyedTraps,
+      pinnedTraps: state.pinnedTraps,
+      seals: sealViews(state),
+      specters: specterViews(state),
+      pendingPlunder: state.pendingPlunder,
     }),
     durationMs: 0,
   };
+}
+
+/**
+ * How long an ability's use holds the playback: Transmutation's throw and smoke play out before
+ * its card changes; Arrow Rain's archer only aims before the volley (its own event) flies.
+ */
+function abilityUsedMs(ability: AbilityId, timings: PlaybackTimings): number {
+  if (ability === "transmutation") return timings.transmuteThrowMs;
+  if (ability === "arrowRain") return timings.arrowAimMs;
+  return timings.noticeMs;
 }
 
 /** An ability notice over the player's tile. */

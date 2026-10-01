@@ -12,11 +12,14 @@ import {
   type CardId,
 } from "./cards";
 import { cardsPerTurn } from "./abilities";
+import { unpinPassed } from "./arrowRain";
 import { GameRuleError, type GameErrorCode } from "./commands";
-import { mainTileOf } from "./board";
+import { mainTileOf, sameSpace } from "./board";
 import { drawCard, playerIn, pushPath, updatePlayer, walkPath, type Draft } from "./draft";
+import { throwOnPile } from "./deck";
 import { DICE_SIDES } from "./dice";
 import { resolveLanding } from "./landing";
+import { crossSpecters } from "./specters";
 import type { Board, CardInstance, Player, PlayerId, TileId } from "./types";
 
 export interface CardChoice {
@@ -30,6 +33,7 @@ export interface CardChoice {
  * play; the UI asks this to grey cards out with the same reasons the engine enforces.
  */
 export function cardBlocker(board: Board, player: Player, cardId: CardId): GameErrorCode | null {
+  if (player.silencedTurns > 0) return "SILENCED";
   if (player.energy < cardCost(cardId)) return "NOT_ENOUGH_ENERGY";
   if (cardId === "arcaneShield" && player.shielded) return "ALREADY_SHIELDED";
   if (CARD_CATALOG[cardId].boostsDice && player.diceBoost !== null) return "DICE_BOOST_ACTIVE";
@@ -59,7 +63,7 @@ export function playCard(draft: Draft, playerId: PlayerId, cardUid: string, choi
   updatePlayer(draft, playerId, (current) => ({
     energy: current.energy - cardCost(card.cardId),
     hand: current.hand.filter((candidate) => candidate.uid !== cardUid),
-    discard: [...current.discard, card],
+    discard: throwOnPile(current.discard, [card]),
   }));
   draft.events.push({ type: "cardPlayed", playerId, card, targetId, value });
   applyEffect(draft, playerId, card, { targetId, value, portal });
@@ -78,7 +82,9 @@ function applyEffect(
     case "windStep": {
       const path = walkPath(board, position, WIND_STEP_TILES);
       draft.events.push({ type: "playerMoved", playerId, path });
+      crossSpecters(draft, playerId, path);
       resolveLanding(draft, playerId, path.at(-1) ?? position);
+      unpinPassed(draft, path);
       break;
     }
     case "healingHerb":
@@ -155,8 +161,11 @@ function applyEffect(
   }
 }
 
+/** An opponent in the same place as the player (main path or realm track, see sameSpace). */
 function validTarget(draft: Draft, playerId: PlayerId, targetId: PlayerId | undefined): PlayerId {
-  if (!targetId || targetId === playerId || !draft.players.some((player) => player.id === targetId)) {
+  const target = draft.players.find((player) => player.id === targetId);
+  const here = playerIn(draft, playerId).position;
+  if (!targetId || !target || targetId === playerId || !sameSpace(draft.state.board, target.position, here)) {
     throw new GameRuleError("INVALID_TARGET");
   }
   return targetId;

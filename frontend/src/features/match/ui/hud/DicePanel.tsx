@@ -29,7 +29,7 @@ export function DicePanel({
   return (
     <section className="hud-panel flex w-full max-w-sm items-center gap-5 p-4">
       <div className="flex items-center gap-2">
-        {isRolling || !lastRoll || (lastRoll.dice.length === 1 && lastRoll.bonus === 0) ? (
+        {isRolling || !lastRoll || (lastRoll.dice.length === 1 && lastRoll.bonus === 0 && lastRoll.multiplier === 1) ? (
           <DiceFace value={lastRoll?.dice[0] ?? null} rolling={isRolling} />
         ) : (
           <>
@@ -44,6 +44,11 @@ export function DicePanel({
               />
             ))}
             {lastRoll.bonus > 0 && <span className="text-lg font-black text-emerald-300">+{lastRoll.bonus}</span>}
+            {lastRoll.multiplier > 1 && (
+              <span className="text-lg font-black text-yellow-300" title="Fúria Adormecida">
+                ×{lastRoll.multiplier}
+              </span>
+            )}
             <span className="text-2xl font-black text-orange-400" title={lastRoll.best ? "Vale o maior dado" : undefined}>
               ={lastRoll.total}
             </span>

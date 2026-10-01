@@ -37,7 +37,7 @@ describe("MatchStore", () => {
     expect(positionOf(store, "p1")).toBe(1);
 
     vi.advanceTimersByTime(DEFAULT_TIMINGS.diceRollMs);
-    expect(store.getSnapshot().lastRoll).toEqual({ dice: [3], best: false, bonus: 0, total: 3 });
+    expect(store.getSnapshot().lastRoll).toEqual({ dice: [3], best: false, bonus: 0, multiplier: 1, total: 3 });
 
     vi.advanceTimersByTime(DEFAULT_TIMINGS.diceRevealMs);
     expect(positionOf(store, "p1")).toBe(2);

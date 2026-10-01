@@ -18,8 +18,26 @@ export interface PlaybackTimings {
   drawRevealMs: number;
   /** A drawn card sliding into the hand. */
   drawMs: number;
+  /** A card changing into another in the middle of the screen (Transmutation). */
+  transmuteMs: number;
+  /** The Transmutation's cast: the vial taken out, thrown (2.3 s in), landing and bursting into smoke, before its card changes. */
+  transmuteThrowMs: number;
   /** Each tile of a knock-back (Arcane Blast): faster than walking. */
   pushStepMs: number;
+  /** Dormant Fury: the player crouches and throws themselves forward, crackling with lightning. */
+  dashLaunchMs: number;
+  /** Dormant Fury: lightning strikes the player, who vanishes into it, before the dash. */
+  dashStrikeMs: number;
+  /** Each tile of the lightning dash: a blur. */
+  dashStepMs: number;
+  /** Lightning strikes the tile the dash ends on and the player steps out of it. */
+  dashArriveMs: number;
+  /** Arrow Rain: the archer draws and aims at the sky before loosing. */
+  arrowAimMs: number;
+  /** Arrow Rain: the arrows fly up out of sight and rain down on their targets. */
+  arrowVolleyMs: number;
+  /** Arrow Rain: the arrows hit, before the opponents are knocked back. */
+  arrowImpactMs: number;
 }
 
 export const DEFAULT_TIMINGS: PlaybackTimings = {
@@ -34,5 +52,15 @@ export const DEFAULT_TIMINGS: PlaybackTimings = {
   castMs: 1100,
   drawRevealMs: 1500,
   drawMs: 700,
+  transmuteMs: 3600,
+  transmuteThrowMs: 3400,
   pushStepMs: 200,
+  // The old man's push-off: he crouches, then is flying forward 1.1 s into his dash clip.
+  dashLaunchMs: 1100,
+  dashStrikeMs: 550,
+  dashStepMs: 45,
+  dashArriveMs: 700,
+  arrowAimMs: 700,
+  arrowVolleyMs: 1500,
+  arrowImpactMs: 450,
 };

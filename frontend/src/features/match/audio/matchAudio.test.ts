@@ -32,6 +32,9 @@ function setup(rolls: number[], start = 1) {
     cardDraw: record("cardDraw"),
     cardCast: record("cardCast"),
     shieldBlock: record("shieldBlock"),
+    thunder: record("thunder"),
+    electricRush: record("electricRush"),
+    arrowVolley: record("arrowVolley"),
     win: record("win"),
   };
   connectMatchAudio(store, sounds);

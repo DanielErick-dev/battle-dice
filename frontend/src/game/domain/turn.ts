@@ -6,7 +6,8 @@ import type { Draft } from "./draft";
  * Ends the current turn: the same player goes again after an extra turn, otherwise play
  * passes on, skipping (and consuming) lost turns. Every TURNS_PER_ENERGY turns a player
  * starts (extra turns included), they gain 1 energy; every turn charges their ability until it's ready,
- * and the player whose turn ends is a turn closer to landing from a Levitation.
+ * the player whose turn ends is a turn closer to landing from a Levitation, and the one whose turn
+ * starts a turn closer to the end of a silence.
  * Returns the index of the player whose turn it is now.
  */
 export function endTurn(draft: Draft, extraTurn: boolean): number {
@@ -31,6 +32,7 @@ export function endTurn(draft: Draft, extraTurn: boolean): number {
   const charged = next.energyCharge + 1 >= TURNS_PER_ENERGY;
   const { player, becameReady } = chargeAbility({
     ...next,
+    silencedTurns: Math.max(0, next.silencedTurns - 1),
     energy: charged ? Math.min(MAX_ENERGY, next.energy + 1) : next.energy,
     energyCharge: charged ? 0 : next.energyCharge + 1,
   });

@@ -19,3 +19,11 @@ export function shuffle<T>(items: readonly T[], random: RandomSource): T[] {
   }
   return shuffled;
 }
+
+/**
+ * `pile` with `cards` thrown on top, but for risen ones (Resurrection): those crumble to dust
+ * instead, gone from the game.
+ */
+export function throwOnPile(pile: readonly CardInstance[], cards: readonly CardInstance[]): CardInstance[] {
+  return [...pile, ...cards.filter((card) => !card.risen)];
+}

@@ -8,6 +8,18 @@ import { preferences, usePreference } from "@/features/settings/preferences";
 import { cn } from "@/lib/utils";
 import { boardPresetFor, isLargeBoard, type BoardPreset } from "../boards";
 import { CHARACTERS, rosterEntry, type CharacterId, type RosterEntry } from "../characters";
+import {
+  needsCardChoice,
+  needsDiscardChoice,
+  needsSealPlacement,
+  needsSpecterPlacement,
+  PLUNDER_CARDS,
+  RESURRECTION_CARDS,
+} from "@/game/domain/abilities";
+import { sameSpace } from "@/game/domain/board";
+import { sealableTiles, takenBySealsOf } from "@/game/domain/seals";
+import { hauntableTiles, takenForSpecters } from "@/game/domain/specters";
+import { HAND_LIMIT } from "@/game/domain/cards";
 import { activePlayerOf, canActivateAbility, canPlayCard, cardsLeftThisTurn } from "../model/matchView";
 import { useMatch } from "../hooks/useMatch";
 import { useGameAudio, type GameAudio } from "../hooks/useGameAudio";
@@ -17,11 +29,16 @@ import { CardHand } from "./cards/CardHand";
 import { CastOverlay } from "./cards/CastOverlay";
 import { DiscardPicker } from "./cards/DiscardPicker";
 import { DrawOverlay } from "./cards/DrawOverlay";
+import { CardChoicePicker } from "./cards/CardChoicePicker";
+import { TransmuteOverlay } from "./cards/TransmuteOverlay";
+import { TransmutePicker } from "./cards/TransmutePicker";
 import { DicePanel } from "./hud/DicePanel";
 import { EffectBanner } from "./hud/EffectBanner";
 import { AbilityMeter } from "./hud/AbilityMeter";
 import { ErrorToast } from "./hud/ErrorToast";
 import { PlayersPanel } from "./hud/PlayersPanel";
+import { PlacementPicker } from "./hud/PlacementPicker";
+import { SEAL_STEPS, SPECTER_STEPS } from "./placementText";
 import { WardPrompt } from "./hud/WardPrompt";
 
 const BoardScene = dynamic(() => import("../scene/BoardScene"), {
@@ -62,6 +79,24 @@ function Match({ preset, roster, audio }: MatchProps) {
   const activePlayer = activePlayerOf(view);
   const discardingPlayer = view.players.find((player) => player.id === view.pendingDiscard?.playerId);
   const wardingPlayer = view.players.find((player) => player.id === view.pendingWard?.playerId);
+  const plunderVictim = view.players.find((player) => player.id === view.pendingPlunder?.victim);
+  /** Picking the cards or tiles for an ability that works on some (Transmutation, Resurrection, Forbidden Seals). */
+  const [choosingCard, setChoosingCard] = useState(false);
+  const ability = activePlayer?.ability ?? null;
+  const activateAbility = () => {
+    if (
+      needsCardChoice(ability) ||
+      needsDiscardChoice(ability) ||
+      needsSealPlacement(ability) ||
+      needsSpecterPlacement(ability)
+    ) {
+      setChoosingCard(true);
+    } else store.activateAbility();
+  };
+  const pickCards = (cardUids: string[]) => {
+    setChoosingCard(false);
+    store.activateAbility({ cardUids });
+  };
 
   return (
     <main className="relative h-dvh w-full overflow-hidden bg-[#05060b] text-white">
@@ -73,6 +108,8 @@ function Match({ preset, roster, audio }: MatchProps) {
           followCamera={canFollow && !overview}
           onDiceImpact={sounds.diceLand}
           quality={quality}
+          // A local match has one person at the screen: the first player.
+          viewerId={roster[0]?.id ?? null}
         />
       </div>
 
@@ -149,7 +186,11 @@ function Match({ preset, roster, audio }: MatchProps) {
                 key={activePlayer.id}
                 board={store.board}
                 player={activePlayer}
-                opponents={view.players.filter((player) => player.id !== activePlayer.id)}
+                // Only opponents in the same place can be aimed at: a realm track is cut off from the board.
+                opponents={view.players.filter(
+                  (player) =>
+                    player.id !== activePlayer.id && sameSpace(store.board, player.position, activePlayer.position),
+                )}
                 canPlay={canPlayCard(view)}
                 cardsLeft={cardsLeftThisTurn(view)}
                 lastDrawnUid={view.lastDrawnUid}
@@ -158,7 +199,7 @@ function Match({ preset, roster, audio }: MatchProps) {
                   <AbilityMeter
                     player={activePlayer}
                     inUse={view.abilityInUse !== null && view.abilityInUse === activePlayer.ability}
-                    onActivate={store.activateAbility}
+                    onActivate={activateAbility}
                     canActivate={canActivateAbility(view)}
                   />
                 }
@@ -194,6 +235,76 @@ function Match({ preset, roster, audio }: MatchProps) {
 
       <CastOverlay cast={view.cast} />
       <DrawOverlay drawing={view.drawing} />
+      <TransmuteOverlay transmuting={view.transmuting} />
+      {choosingCard && activePlayer && canActivateAbility(view) && needsCardChoice(ability) && (
+        <TransmutePicker
+          hand={activePlayer.hand}
+          onPick={(cardUid) => pickCards([cardUid])}
+          onCancel={() => setChoosingCard(false)}
+        />
+      )}
+      {choosingCard && activePlayer && canActivateAbility(view) && needsDiscardChoice(ability) && (
+        <CardChoicePicker
+          title="Ressurreição"
+          subtitle="Escolha cartas já jogadas: elas voltam para a sua mão."
+          accent="teal"
+          // Newest first: the cards just played are the ones most often wanted back.
+          cards={[...activePlayer.discard].reverse()}
+          max={Math.min(RESURRECTION_CARDS, HAND_LIMIT - activePlayer.hand.length)}
+          confirmLabel="Trazer de volta"
+          onPick={pickCards}
+          onCancel={() => setChoosingCard(false)}
+        />
+      )}
+      {choosingCard && activePlayer && canActivateAbility(view) && needsSealPlacement(ability) && (
+        <PlacementPicker
+          title="Escritura dos 4 Selos"
+          tone="text-fuchsia-300"
+          steps={SEAL_STEPS}
+          tiles={sealableTiles(store.board, activePlayer.position, [
+            ...takenBySealsOf(view.seals, activePlayer.id),
+            ...view.specters.map((specter) => specter.tile),
+          ])}
+          position={activePlayer.position}
+          confirmLabel="Escrever selos"
+          onPick={(sealTiles) => {
+            setChoosingCard(false);
+            store.activateAbility({ sealTiles });
+          }}
+          onCancel={() => setChoosingCard(false)}
+        />
+      )}
+      {choosingCard && activePlayer && canActivateAbility(view) && needsSpecterPlacement(ability) && (
+        <PlacementPicker
+          title="Aparições Espectrais"
+          tone="text-sky-300"
+          steps={SPECTER_STEPS}
+          tiles={hauntableTiles(
+            store.board,
+            activePlayer.position,
+            takenForSpecters(view.seals, view.specters, activePlayer.id),
+          )}
+          position={activePlayer.position}
+          confirmLabel="Invocar aparições"
+          onPick={(specterTiles) => {
+            setChoosingCard(false);
+            store.activateAbility({ specterTiles });
+          }}
+          onCancel={() => setChoosingCard(false)}
+        />
+      )}
+      {view.pendingPlunder && plunderVictim && !view.isAnimating && (
+        <CardChoicePicker
+          title="Pilhagem Espectral"
+          subtitle={`${nameOf(view.pendingPlunder.owner)}: escolha ${Math.min(PLUNDER_CARDS, plunderVictim.hand.length)} cartas de ${plunderVictim.name}.`}
+          accent="sky"
+          cards={plunderVictim.hand}
+          max={Math.min(PLUNDER_CARDS, plunderVictim.hand.length)}
+          required
+          confirmLabel="Pilhar"
+          onPick={store.plunderCards}
+        />
+      )}
       {view.pendingWard && wardingPlayer?.ability && !view.isAnimating && (
         <WardPrompt ability={wardingPlayer.ability} threat={view.pendingWard.threat} onAnswer={store.answerWard} />
       )}

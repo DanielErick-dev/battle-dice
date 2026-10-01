@@ -13,7 +13,16 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
-import { AdditiveBlending, BufferAttribute, BufferGeometry, CanvasTexture, Color, type Group, type Mesh } from "three";
+import {
+  AdditiveBlending,
+  BufferAttribute,
+  BufferGeometry,
+  CanvasTexture,
+  Color,
+  Vector3,
+  type Group,
+  type Mesh,
+} from "three";
 import {
   CHARACTERS,
   type CharacterClip,
@@ -22,7 +31,12 @@ import {
   type ClipLengths,
 } from "@/features/match/characters";
 import { CharacterModel } from "@/features/match/scene/character/CharacterModel";
+import { HeldVial, PourStream, SmokeCloud } from "@/features/match/scene/character/AlchemyVial";
 import { EnergyBlades } from "@/features/match/scene/character/EnergyBlades";
+import { ArcherIntro } from "@/features/match/scene/character/ArcherIntro";
+import { BoneRise } from "@/features/match/scene/character/BoneRise";
+import { JesterCards } from "@/features/match/scene/character/JesterCards";
+import { LimbLightning } from "@/features/match/scene/character/LimbLightning";
 import {
   LevitationAura,
   LevitationBurst,
@@ -61,6 +75,15 @@ const HOVER_HEIGHT = 0.36;
 const HOVER_BOB = 0.035;
 /** Without an intro, a levitating character stands a moment before rising, so the lift reads. */
 const RISE_DELAY_MS = 600;
+/**
+ * An intro pour (see CharacterDefinition.introPourSeconds): the vial tips for this long, pours
+ * for this long, and the first drops take about this long to reach the floor and burst into smoke.
+ */
+const POUR_TIP_MS = 300;
+const POUR_MS = 1000;
+const POUR_DROP_MS = 550;
+/** How quickly the vial tips over and back. */
+const TIP_RATE = 7;
 
 /**
  * The chosen character on a rune pedestal, facing the camera: it plays its intro once, then
@@ -117,6 +140,7 @@ export function CharacterStage({ characterId, className }: { characterId: Charac
 function Presentation({ characterId }: { characterId: CharacterId }) {
   const character: CharacterDefinition = CHARACTERS[characterId];
   const showcase: CharacterClip = character.levitates ? "float" : "showcase";
+  const pourSeconds = character.introPourSeconds;
   const clip = useRef<CharacterClip>("intro");
   const hovering = useRef(false);
   const hover = useRef<Group>(null);
@@ -124,7 +148,15 @@ function Presentation({ characterId }: { characterId: CharacterId }) {
   const rise = useRef(0);
   /** Set as the rise starts, to fire its burst of power once. */
   const [burst, setBurst] = useState<number | null>(null);
+  /** The intro pour: how far the vial is tipped, where to, whether it's pouring, where its mouth is. */
+  const tilt = useRef(0);
+  const tipped = useRef(false);
+  const pouring = useRef(false);
+  const mouth = useRef(new Vector3());
+  /** Set as the poured liquid hits the floor, to burst into smoke once. */
+  const [smoke, setSmoke] = useState<number | null>(null);
   useFrame((state, delta) => {
+    tilt.current += ((tipped.current ? 1 : 0) - tilt.current) * (1 - Math.exp(-TIP_RATE * delta));
     if (!hover.current) return;
     rise.current = stepLevitation(rise.current, hovering.current, delta);
     const lift = levitationLift(rise.current);
@@ -132,6 +164,8 @@ function Presentation({ characterId }: { characterId: CharacterId }) {
   });
   /** Whether the intro is playing, for effects that go with it (e.g. blades of light). */
   const inIntro = useRef(false);
+  /** Whether a hand prop is out: through the intro and the showcase (not the plain idle). */
+  const propOut = useRef(false);
   const timers = useRef<number[]>([]);
   const onClipLengths = useCallback(
     (lengths: ClipLengths) => {
@@ -142,8 +176,12 @@ function Presentation({ characterId }: { characterId: CharacterId }) {
       const introMs = (lengths.intro ?? 0) * 1000;
       const floats = showcase === "float";
       inIntro.current = introMs > 0;
+      propOut.current = introMs > 0;
       timers.current = [
-        window.setTimeout(() => (inIntro.current = false), introMs),
+        window.setTimeout(() => {
+          inIntro.current = false;
+          propOut.current = lengths.showcase !== undefined;
+        }, introMs),
         window.setTimeout(
           () => {
             clip.current = showcase;
@@ -153,8 +191,24 @@ function Presentation({ characterId }: { characterId: CharacterId }) {
           introMs > 0 ? introMs + INTRO_HOLD_MS : floats ? RISE_DELAY_MS : 0,
         ),
       ];
+      // Mid-intro, the vial is tipped over and poured out; the liquid bursts into smoke.
+      const pourAt = (pourSeconds ?? Infinity) * 1000;
+      if (introMs > 0 && pourAt < introMs) {
+        timers.current.push(
+          window.setTimeout(() => (tipped.current = true), pourAt),
+          window.setTimeout(() => (pouring.current = true), pourAt + POUR_TIP_MS),
+          window.setTimeout(() => setSmoke(performance.now()), pourAt + POUR_TIP_MS + POUR_DROP_MS),
+          window.setTimeout(
+            () => {
+              pouring.current = false;
+              tipped.current = false;
+            },
+            pourAt + POUR_TIP_MS + POUR_MS,
+          ),
+        );
+      }
     },
-    [showcase],
+    [showcase, pourSeconds],
   );
   useEffect(() => () => timers.current.forEach((timer) => window.clearTimeout(timer)), []);
 
@@ -166,12 +220,67 @@ function Presentation({ characterId }: { characterId: CharacterId }) {
           {burst !== null && <LevitationBurst key={burst} size={FIGURE_HEIGHT} color={character.color} />}
         </>
       )}
+      {character.handProp === "vial" && (
+        <>
+          <PourStream size={FIGURE_HEIGHT} color={character.color} mouth={mouth} pouring={pouring} />
+          {smoke !== null && <SmokeCloud key={smoke} size={FIGURE_HEIGHT} color={character.color} />}
+        </>
+      )}
       <group ref={hover}>
-        <CharacterModel url={character.model} height={FIGURE_HEIGHT} clip={clip} onClipLengths={onClipLengths}>
+        <CharacterModel
+          url={character.model}
+          height={FIGURE_HEIGHT}
+          clip={clip}
+          onClipLengths={onClipLengths}
+          introSpeed={character.introSpeed}
+        >
           {(figure) => (
             <>
               {character.energyBlades && <EnergyBlades figure={figure} color={character.color} active={inIntro} />}
               {character.levitates && <WitchStaff figure={figure} color={character.color} active={hovering} />}
+              {character.introCards && (
+                <JesterCards
+                  figure={figure}
+                  size={FIGURE_HEIGHT}
+                  color={character.color}
+                  beats={character.introCards}
+                  active={inIntro}
+                />
+              )}
+              {character.introArrows && (
+                <ArcherIntro
+                  figure={figure}
+                  size={FIGURE_HEIGHT}
+                  color={character.color}
+                  beats={character.introArrows}
+                  active={inIntro}
+                />
+              )}
+              {character.introBones && (
+                <BoneRise
+                  figure={figure}
+                  size={FIGURE_HEIGHT}
+                  color={character.color}
+                  beats={character.introBones}
+                  active={inIntro}
+                />
+              )}
+              {character.limbLightning && (
+                <LimbLightning
+                  figure={figure}
+                  size={FIGURE_HEIGHT}
+                  color={character.color}
+                  active={inIntro}
+                  strikeSeconds={
+                    character.introStrikeSeconds === undefined
+                      ? undefined
+                      : character.introStrikeSeconds / (character.introSpeed ?? 1)
+                  }
+                />
+              )}
+              {character.handProp === "vial" && (
+                <HeldVial figure={figure} color={character.color} active={propOut} tilt={tilt} mouth={mouth} />
+              )}
             </>
           )}
         </CharacterModel>

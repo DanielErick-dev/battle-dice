@@ -4,7 +4,7 @@ import { Canvas } from "@react-three/fiber";
 import { useMemo } from "react";
 import { getTile } from "@/game/domain/board";
 import { DICE_SIDES } from "@/game/domain/dice";
-import type { Board, Player, RealmKind } from "@/game/domain/types";
+import type { Board, Player, PlayerId, RealmKind } from "@/game/domain/types";
 import { characterFor, playerColor } from "../characters";
 import type { EffectsQuality } from "../config";
 import type { MatchView } from "../model/matchView";
@@ -13,6 +13,11 @@ import { createBoardLayout, tileOffsetFor, TILE_PITCH, type BoardLayout, type Ve
 import { ArenaEnvironment, HORIZON_COLOR } from "./environment/ArenaEnvironment";
 import { ArcaneBeam } from "./CardEffects";
 import { LEVITATE_HEIGHT } from "./character/figure";
+import { ArrowVolley, PinnedTrapMark } from "./character/ArrowRain";
+import { SealScroll } from "./character/SealScroll";
+import { SpecterFigure } from "./character/SpecterFigure";
+import { SEAL_TEXT, SPECTER_TEXT } from "../ui/placementText";
+import { LightningDash } from "./character/LightningDash";
 import { DiceThrow } from "./DiceThrow";
 import { HiddenTrapBurst } from "./HiddenTrapBurst";
 import { PlayerToken } from "./PlayerToken";
@@ -35,17 +40,39 @@ interface BoardSceneProps {
   onDiceImpact: (strength: number) => void;
   /** "low" also renders at 1× pixel density, on top of lighter screen effects. */
   quality: EffectsQuality;
+  /**
+   * The player watching this screen: they see what their own seals and apparitions are, while
+   * everyone else's look alike (apparitions just like their Warden). Null shows no secrets.
+   */
+  viewerId: PlayerId | null;
 }
 
 /** Above this many tiles, face textures drop to half resolution to save GPU memory. */
 const HIGH_RES_TILE_LIMIT = 50;
 /** Glow in the cracks of a trap the Trap Ward smashed (the void violet of its wielder). */
 const SMASHED_TRAP_COLOR = "#8b5cf6";
+/** Glow of the arrows pinning a trap down (the leaf green of the archer who shot them). */
+const PINNED_TRAP_COLOR = "#84cc16";
 
-export default function BoardScene({ board, columns, view, followCamera, onDiceImpact, quality }: BoardSceneProps) {
+export default function BoardScene({
+  board,
+  columns,
+  view,
+  followCamera,
+  onDiceImpact,
+  quality,
+  viewerId,
+}: BoardSceneProps) {
   const layout = useMemo(() => createBoardLayout(board, columns), [board, columns]);
   const mainTiles = useMemo(() => board.tiles.filter((tile) => !tile.track), [board]);
   const trapZoneTiles = useMemo(() => new Set(board.trapZones.flatMap((zone) => zone.tiles)), [board]);
+  const dash = view.dash;
+  const dashPath = useMemo(() => dash?.path.map((tile) => layout.position(tile)) ?? [], [dash?.path, layout]);
+  const volley = view.volley;
+  const volleyTargets = useMemo(
+    () => volley?.targets.map((tile) => layout.position(tile)) ?? [],
+    [volley?.targets, layout],
+  );
   const scale = boardScaleFor(layout);
   const shadowExtent = Math.max(layout.width, layout.depth) / 2 + 3;
   const textureSize = board.finishTile > HIGH_RES_TILE_LIMIT ? 256 : 512;
@@ -109,6 +136,40 @@ export default function BoardScene({ board, columns, view, followCamera, onDiceI
         {view.destroyedTraps.map((tile) => (
           <SmashedTrapMark key={tile} tile={tile} position={layout.position(tile)} color={SMASHED_TRAP_COLOR} />
         ))}
+        {view.pinnedTraps.map((tile) => (
+          <PinnedTrapMark key={tile} position={layout.position(tile)} color={PINNED_TRAP_COLOR} />
+        ))}
+        {view.specters.map((specter) => {
+          const warden = characterFor(specter.owner);
+          return warden ? (
+            <SpecterFigure
+              key={`${specter.owner}:${specter.tile}`}
+              model={warden.model}
+              position={layout.position(specter.tile)}
+              color={warden.color}
+              disguised={specter.owner !== viewerId}
+              facing={headingAlong(pathDirection(board, layout, specter.tile))}
+              label={specter.owner === viewerId ? SPECTER_TEXT[specter.kind].name : undefined}
+            />
+          ) : null;
+        })}
+        {view.seals.map((seal) => (
+          <SealScroll
+            key={`${seal.owner}:${seal.tile}`}
+            position={layout.position(seal.tile)}
+            color={playerColor(seal.owner)}
+            label={seal.owner === viewerId ? SEAL_TEXT[seal.kind].name : undefined}
+          />
+        ))}
+        {volley && (
+          <ArrowVolley
+            key={volley.id}
+            from={layout.position(volley.from)}
+            targets={volleyTargets}
+            color={playerColor(volley.playerId)}
+          />
+        )}
+        {dash && <LightningDash key={dash.id} path={dashPath} color={playerColor(dash.playerId)} />}
         {view.effect?.kind === "hiddenTrap" && (
           <HiddenTrapBurst key={effectKey(view.effect)} position={layout.position(view.effect.from)} />
         )}
@@ -119,10 +180,21 @@ export default function BoardScene({ board, columns, view, followCamera, onDiceI
             color={playerColor(player.id)}
             model={characterFor(player.id)?.model ?? null}
             energyBlades={characterFor(player.id)?.energyBlades ?? false}
+            limbLightning={characterFor(player.id)?.limbLightning ?? false}
+            castsStill={characterFor(player.id)?.castsStill}
+            landImpactSeconds={characterFor(player.id)?.landImpactSeconds}
             castImpactSeconds={characterFor(player.id)?.castImpactSeconds ?? null}
+            handProp={characterFor(player.id)?.handProp}
+            castPropSeconds={characterFor(player.id)?.castPropSeconds}
             target={tokenTarget(player, view.players, layout)}
             pathDirection={pathDirection(board, layout, player.position)}
             isTeleporting={isTeleport(view.effect) && view.effect?.playerId === player.id}
+            isDashing={dash?.playerId === player.id && !dash.arrived}
+            isFuryAwake={
+              view.abilityInUse === "dormantFury" &&
+              view.activePlayerId === player.id &&
+              !(dash?.playerId === player.id && !dash.arrived)
+            }
             isActive={view.activePlayerId === player.id}
             isPowered={view.poweredPlayerId === player.id}
             isShielded={player.shielded}
@@ -272,6 +344,11 @@ function pathDirection(board: Board, layout: BoardLayout, tile: number): Vec3 {
   const [x1, , z1] = layout.position(from);
   const [x2, , z2] = layout.position(to);
   return [x2 - x1, 0, z2 - z1];
+}
+
+/** The angle round the vertical a figure faces when looking along `direction` (0 = +z), as tokens do. */
+function headingAlong([x, , z]: Vec3): number {
+  return Math.hypot(x, z) < 1e-4 ? 0 : Math.atan2(x, z);
 }
 
 function tokenTarget(player: Player, players: readonly Player[], layout: BoardLayout): Vec3 {
