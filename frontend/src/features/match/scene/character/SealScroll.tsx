@@ -1,11 +1,12 @@
 "use client";
 
-import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { AdditiveBlending, Color, type Group, type Mesh, type MeshBasicMaterial } from "three";
 import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "../boardLayout";
 import { useAge } from "../useAge";
+import { EFFECT_SCALE } from "./figure";
+import { NameTag } from "./NameTag";
 
 const TILE_TOP = TILE_HEIGHT / 2;
 /** The scroll: length and radius, how high it floats over the tile and how much it bobs. */
@@ -66,13 +67,7 @@ export function SealScroll({ position, color, label }: { position: Vec3; color: 
         </group>
       </group>
       {/* For its writer's eyes only: which seal it is. */}
-      {label && (
-        <Html center position={[0, FLOAT_HEIGHT + 0.55, 0]} zIndexRange={[10, 0]}>
-          <span className="pointer-events-none rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-black tracking-wider whitespace-nowrap text-fuchsia-200 uppercase ring-1 ring-fuchsia-300/50">
-            {label}
-          </span>
-        </Html>
-      )}
+      {label && <NameTag text={label} color="#f0abfc" y={FLOAT_HEIGHT + 0.4} size={EFFECT_SCALE} />}
       <mesh ref={ring} rotation-x={-Math.PI / 2} position-y={0.03}>
         <ringGeometry args={[TILE_SIZE * 0.26, TILE_SIZE * 0.36, 6, 1]} />
         <meshBasicMaterial

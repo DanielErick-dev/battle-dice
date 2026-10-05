@@ -1,3 +1,4 @@
+import type { AbilityPower } from "./abilities";
 import type { PlayerId, TileId } from "./types";
 
 export type GameCommand =
@@ -24,6 +25,13 @@ export type GameCommand =
       cardUids?: readonly string[];
       sealTiles?: readonly TileId[];
       specterTiles?: readonly TileId[];
+      /** The opponent Card Gamble bets against (one at random when not given). */
+      targetId?: PlayerId;
+      /** Where Arrow Rain falls: on every opponent in reach, or (by default) on the traps ahead. */
+      volley?: "opponents" | "traps";
+      /** Ocular Awakening's pick: black fire on `flameTiles`, or Spectral Armour. */
+      power?: AbilityPower;
+      flameTiles?: readonly TileId[];
     }
   /** The Warden picks the cards their Plunder specter takes from the player it caught. */
   | { type: "plunderCards"; playerId: PlayerId; cardUids: readonly string[] }
@@ -52,6 +60,7 @@ export type GameErrorCode =
   | "ABILITY_NOT_READY"
   | "ABILITY_IN_USE"
   | "ENERGY_FULL"
+  | "ABILITY_ALREADY_READY"
   | "EMPTY_HAND"
   | "EMPTY_DISCARD"
   | "HAND_FULL"
@@ -59,6 +68,7 @@ export type GameErrorCode =
   | "INVALID_SEALS"
   | "SILENCED"
   | "INVALID_SPECTERS"
+  | "INVALID_FLAMES"
   | "PLUNDER_PENDING"
   | "NO_PLUNDER_PENDING";
 

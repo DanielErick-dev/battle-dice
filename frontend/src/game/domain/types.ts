@@ -14,8 +14,8 @@ export type TileEffect =
   | { kind: "advance"; to: TileId }
   | { kind: "extraTurn" }
   | { kind: "skipTurn" }
-  /** Draws a card. */
-  | { kind: "card" }
+  /** Draws a card; with a `cardId` (a celestial relic lying on the tile), hands that very card. */
+  | { kind: "card"; cardId?: CardId }
   /** Realm track tiles: a curse without the knock-back, or a blessing. */
   | { kind: "curse"; curse: TrapCurse }
   | { kind: "blessing"; blessing: Blessing };
@@ -23,14 +23,29 @@ export type TileEffect =
 /** Side worlds a portal can open into: fire and curses, or light and blessings. */
 export type RealmKind = "infernal" | "celestial";
 
-/** What a celestial tile gives: energy, or the Arcane Shield. */
-export type Blessing = "energy" | "shield";
+/** What a blessing tile gives: energy, the Arcane Shield, or (in heaven only) a TimedBlessing. */
+export type Blessing = "energy" | "shield" | TimedBlessing;
+
+/**
+ * Heaven's own blessings, each lasting BLESSING_TURNS rounds (see blessings.ts): Wings add tiles to
+ * every roll, the Halo keeps traps and curses off, Inspiration charges the ability twice as fast
+ * and the Spring of Light gives energy as each turn starts.
+ */
+export type TimedBlessing = "wings" | "halo" | "inspiration" | "spring";
+
+/** A TimedBlessing on a player, and the rounds it has left. */
+export interface ActiveBlessing {
+  kind: TimedBlessing;
+  turnsLeft: number;
+  /** Received this turn: the turn ending doesn't count towards it. */
+  fresh: boolean;
+}
 
 /** What a trap takes besides the tiles: a random card from the hand, or energy. */
 export type TrapCurse = "discard" | "drain";
 
 /** What kept a trap or curse off a player: the Arcane Shield (used up) or their ability. */
-export type TrapWard = "shield" | "ability";
+export type TrapWard = "shield" | "ability" | "halo";
 
 export type TileRole = "start" | "finish" | "regular" | "track";
 
@@ -101,6 +116,8 @@ export interface Player {
   shielded: boolean;
   /** Modifier for the player's next roll, from a card. */
   diceBoost: DiceBoost | null;
+  /** Tiles added to the next rolls (Lucky Charm, Ancestral Awakening); stacks with diceBoost. */
+  diceBonus: DiceBonus | null;
   /** The character's ability; null for none. */
   ability: AbilityId | null;
   /** Turns charged towards the ability, up to its abilityCycle (ready); emptied when it's used. */
@@ -112,6 +129,15 @@ export interface Player {
    * so the rest of the turn it struck in and the whole next one are silent.
    */
   silencedTurns: number;
+  /**
+   * Own turns left under Spectral Armour, the current one included: nothing other players aim at
+   * them gets through. 0 without.
+   */
+  spectralArmour: number;
+  /** Heaven's blessings on the player, each with the rounds it has left. */
+  blessings: readonly ActiveBlessing[];
+  /** Rolls left that walk the player backwards (Cronos's reversed time); 0 for none. */
+  reversedRolls: number;
 }
 
 /** The Shadow Warden's two apparitions (see specters.ts). */
@@ -132,6 +158,22 @@ export interface PendingPlunder {
   endsTurn: boolean;
   /** That roll also earned an extra turn. */
   extraTurn: boolean;
+}
+
+/** A harmful tile the Crystal Fairy enchanted for good (see fairy.ts). */
+export interface EnchantedTile {
+  tile: TileId;
+  owner: PlayerId;
+}
+
+/** A tile on black fire from the Purgatory Kunoichi's Eternal Flames (see kunoichi.ts). */
+export interface BlackFlame {
+  tile: TileId;
+  owner: PlayerId;
+  /** Rounds left before it goes out (counted down as its owner's turns end). */
+  turnsLeft: number;
+  /** Times it has scorched someone; it goes out at FLAME_HITS. */
+  hits: number;
 }
 
 /** The Flesh Scribe's four forbidden seals (see seals.ts). */
@@ -158,9 +200,13 @@ export type DiceBoost =
   /** Two dice, the higher one counts (Oracle Eye). */
   | { kind: "best" }
   /** A chosen value instead of a throw (Fate Rune). */
-  | { kind: "fixed"; value: number }
-  /** `amount` added to each of the next `rolls` rolls (Lucky Charm, Ancestral Awakening). */
-  | { kind: "bonus"; amount: number; rolls: number };
+  | { kind: "fixed"; value: number };
+
+/** `amount` added to each of the next `rolls` rolls, however the dice are thrown. */
+export interface DiceBonus {
+  amount: number;
+  rolls: number;
+}
 
 /** What's about to strike a player who could ward it off with their ability. */
 export type Threat = "trap" | "hiddenTrap" | "curse";
@@ -218,6 +264,10 @@ export interface GameState {
   seals: readonly Seal[];
   /** The Shadow Warden's apparitions on the board. */
   specters: readonly Specter[];
+  /** Tiles the Crystal Fairy enchanted: their harm is gone for good. */
+  enchantedTiles: readonly EnchantedTile[];
+  /** Tiles burning with the Purgatory Kunoichi's black fire. */
+  blackFlames: readonly BlackFlame[];
   /** Waiting for a Warden to pick the cards their Plunder specter takes. */
   pendingPlunder: PendingPlunder | null;
 }

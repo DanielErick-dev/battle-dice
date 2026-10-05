@@ -1,11 +1,14 @@
 import { isAbilityReady } from "./abilities";
 import { getTile } from "./board";
 import { MAX_ENERGY } from "./cards";
-import { drawCard, playerIn, pushPath, updatePlayer, walkPath, type Draft } from "./draft";
+import { drawCard, giveCard, playerIn, pushPath, updatePlayer, walkPath, type Draft } from "./draft";
+import { grantBlessing, isBlessed } from "./blessings";
 import { throwOnPile } from "./deck";
 import { HIDDEN_TRAP_PUSH, destroyTrap, relocateHiddenTrap } from "./hiddenTraps";
 import { unpinPassed } from "./arrowRain";
 import { BLESSING_ENERGY } from "./realms";
+import { stirEnchantment } from "./fairy";
+import { scorch } from "./kunoichi";
 import { breakSeal } from "./seals";
 import { crossSpecters } from "./specters";
 import type { Blessing, Player, PlayerId, Threat, TileId, TrapCurse } from "./types";
@@ -18,8 +21,9 @@ export const TRAP_DRAIN_ENERGY = 2;
  * Destinations never chain into another effect. A trap or curse (hidden traps first) may
  * instead stop resolving to ask whether the player spends their Trap Ward on it (see
  * `draft.pendingWard`); `resolveWard` finishes it with their answer. A levitating player
- * (see Player.levitating) just stays on the tile. A seal on the tile breaks before anything else
- * (see seals.ts).
+ * (see Player.levitating) just stays on the tile. Black fire smothers the tile while it burns:
+ * it scorches (see kunoichi.ts) and nothing else on the tile happens. An enchanted tile stirs
+ * instead of anything else (see fairy.ts); otherwise a seal on the tile breaks first (see seals.ts).
  */
 export function resolveLanding(draft: Draft, playerId: PlayerId, landed: TileId): void {
   const { board } = draft.state;
@@ -35,10 +39,23 @@ export function resolveLanding(draft: Draft, playerId: PlayerId, landed: TileId)
     return;
   }
 
+  // Under black fire the tile is gone for now: only the fire is there.
+  if (draft.blackFlames.some((flame) => flame.tile === landed)) {
+    scorch(draft, playerId, landed);
+    return;
+  }
+  // An enchanted tile has lost its harm for good: it stirs instead.
+  if (stirEnchantment(draft, playerId, landed)) return;
   // A seal written here breaks first; whatever else is on the tile (a hidden trap) waits.
   if (breakSeal(draft, playerId, landed)) return;
 
   const threat = threatAt(draft, landed);
+  // Heaven's Halo keeps the harm off: no need to spend a ward on it.
+  if (threat && isBlessed(playerIn(draft, playerId), "halo")) {
+    if (threat === "hiddenTrap") moveHiddenTrap(draft, landed);
+    draft.events.push({ type: "trapBlocked", playerId, tile: landed, ward: "halo", hidden: threat === "hiddenTrap" });
+    return;
+  }
   if (threat) {
     if (canWard(playerIn(draft, playerId))) {
       draft.pendingWard = { tile: landed, threat };
@@ -102,7 +119,10 @@ export function resolveLanding(draft: Draft, playerId: PlayerId, landed: TileId)
       }));
       break;
     case "card":
-      drawCard(draft, playerId);
+      // A relic of heaven is that very card, a fresh copy each time; any other card tile draws.
+      if (effect.cardId)
+        giveCard(draft, playerId, { uid: `${playerId}:relic${draft.state.turn}:${landed}`, cardId: effect.cardId });
+      else drawCard(draft, playerId);
       break;
     case "trap":
     case "curse":
@@ -127,7 +147,6 @@ export function resolveWard(draft: Draft, playerId: PlayerId, tile: TileId, thre
     type: "abilityUsed",
     playerId,
     ability: player.ability ?? "trapWard",
-    energyGained: 0,
   });
   if (threat !== "curse") destroyTrap(draft, playerId, tile, hidden);
   draft.events.push({ type: "trapBlocked", playerId, tile, ward: "ability", hidden });
@@ -139,6 +158,7 @@ export function resolveWard(draft: Draft, playerId: PlayerId, tile: TileId, thre
  */
 export function threatAt(draft: Draft, tile: TileId): Threat | null {
   if (draft.pinnedTraps.includes(tile)) return null;
+  if (draft.enchantedTiles.some((enchanted) => enchanted.tile === tile)) return null;
   if (draft.hiddenTraps.includes(tile)) return "hiddenTrap";
   if (draft.destroyedTraps.includes(tile)) return null;
   const { kind } = getTile(draft.state.board, tile).effect;
@@ -241,10 +261,14 @@ function applyCurse(draft: Draft, playerId: PlayerId, curse: TrapCurse): void {
   });
 }
 
-/** A celestial tile gives energy (up to the maximum) or raises the Arcane Shield. */
+/**
+ * A blessing tile gives energy (up to the maximum), raises the Arcane Shield or, in heaven, lays one
+ * of its timed blessings on the player (see blessings.ts).
+ */
 function applyBlessing(draft: Draft, playerId: PlayerId, tile: TileId, blessing: Blessing): void {
-  if (blessing === "shield") {
-    updatePlayer(draft, playerId, () => ({ shielded: true }));
+  if (blessing !== "energy") {
+    if (blessing === "shield") updatePlayer(draft, playerId, () => ({ shielded: true }));
+    else grantBlessing(draft, playerId, blessing);
     draft.events.push({
       type: "blessingReceived",
       playerId,

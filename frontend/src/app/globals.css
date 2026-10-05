@@ -143,26 +143,59 @@
   --animate-toast: toast 3.2s ease-out forwards;
 
   @keyframes dice-tumble {
-    0% { transform: rotate(0deg) scale(1); }
-    25% { transform: rotate(-18deg) scale(0.92) translateY(-6px); }
-    50% { transform: rotate(12deg) scale(1.05); }
-    75% { transform: rotate(-8deg) scale(0.95) translateY(-3px); }
-    100% { transform: rotate(0deg) scale(1); }
+    0% {
+      transform: rotate(0deg) scale(1);
+    }
+    25% {
+      transform: rotate(-18deg) scale(0.92) translateY(-6px);
+    }
+    50% {
+      transform: rotate(12deg) scale(1.05);
+    }
+    75% {
+      transform: rotate(-8deg) scale(0.95) translateY(-3px);
+    }
+    100% {
+      transform: rotate(0deg) scale(1);
+    }
   }
 
   @keyframes toast {
-    0% { opacity: 0; transform: translateY(-8px); }
-    8% { opacity: 1; transform: translateY(0); }
-    85% { opacity: 1; }
-    100% { opacity: 0; }
+    0% {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    8% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    85% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
   }
 
   @keyframes banner {
-    0% { opacity: 0; transform: scale(0.6); }
-    15% { opacity: 1; transform: scale(1.08); }
-    25% { transform: scale(1); }
-    80% { opacity: 1; }
-    100% { opacity: 0; transform: translateY(-12px); }
+    0% {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+    15% {
+      opacity: 1;
+      transform: scale(1.08);
+    }
+    25% {
+      transform: scale(1);
+    }
+    80% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-12px);
+    }
   }
 }
 
@@ -181,8 +214,14 @@
   --my: 0.5;
   background: linear-gradient(145deg, #d6a06b, #7c4a1e 45%, #e0b184);
   transform: perspective(700px) rotateY(calc((var(--mx) - 0.5) * 18deg)) rotateX(calc((0.5 - var(--my)) * 18deg));
-  transition: transform 0.15s ease-out, filter 0.2s;
+  transition:
+    transform 0.15s ease-out,
+    filter 0.2s;
   box-shadow: 0 12px 28px rgb(0 0 0 / 0.55);
+}
+
+.game-card[data-rarity="uncommon"] {
+  background: linear-gradient(145deg, #a7f3d0, #047857 45%, #d1fae5);
 }
 
 .game-card[data-rarity="rare"] {
@@ -196,18 +235,33 @@
     0 0 18px rgb(251 191 36 / 0.45);
 }
 
+/* Legendary: amethyst and rose, the brightest halo of the deck. */
+.game-card[data-rarity="legendary"] {
+  background: linear-gradient(145deg, #f5d0fe, #7e22ce 35%, #fbcfe8 60%, #a21caf);
+  box-shadow:
+    0 12px 28px rgb(0 0 0 / 0.55),
+    0 0 22px rgb(217 70 239 / 0.55);
+}
+
+/* Heaven's relics: white marble veined with gold, haloed in light. */
+.game-card[data-rarity="divine"] {
+  background: linear-gradient(145deg, #ffffff, #fde68a 30%, #f8fafc 55%, #facc15 80%, #ffffff);
+  box-shadow:
+    0 12px 28px rgb(0 0 0 / 0.55),
+    0 0 24px rgb(254 249 195 / 0.7);
+}
+
 .card-foil {
-  background:
-    linear-gradient(
-      calc(110deg + (var(--mx) - 0.5) * 60deg),
-      transparent 20%,
-      rgb(255 0 128 / 0.35) 32%,
-      rgb(255 214 0 / 0.35) 42%,
-      rgb(0 255 170 / 0.35) 52%,
-      rgb(0 170 255 / 0.35) 62%,
-      rgb(170 0 255 / 0.35) 72%,
-      transparent 84%
-    );
+  background: linear-gradient(
+    calc(110deg + (var(--mx) - 0.5) * 60deg),
+    transparent 20%,
+    rgb(255 0 128 / 0.35) 32%,
+    rgb(255 214 0 / 0.35) 42%,
+    rgb(0 255 170 / 0.35) 52%,
+    rgb(0 170 255 / 0.35) 62%,
+    rgb(170 0 255 / 0.35) 72%,
+    transparent 84%
+  );
   background-size: 250% 250%;
   background-position: calc(var(--mx) * 100%) calc(var(--my) * 100%);
   mix-blend-mode: color-dodge;
@@ -216,12 +270,16 @@
 }
 
 .game-card[data-hover="on"] .card-foil,
-.game-card[data-rarity="epic"] .card-foil {
+.game-card[data-rarity="epic"] .card-foil,
+.game-card[data-rarity="legendary"] .card-foil,
+.game-card[data-rarity="divine"] .card-foil {
   opacity: 1;
 }
 
-/* Epic foil keeps shimmering on its own. */
-.game-card[data-rarity="epic"]:not([data-hover="on"]) .card-foil {
+/* Epic, legendary and divine foil keeps shimmering on its own. */
+.game-card[data-rarity="epic"]:not([data-hover="on"]) .card-foil,
+.game-card[data-rarity="legendary"]:not([data-hover="on"]) .card-foil,
+.game-card[data-rarity="divine"]:not([data-hover="on"]) .card-foil {
   animation: foil-drift 4s ease-in-out infinite alternate;
 }
 

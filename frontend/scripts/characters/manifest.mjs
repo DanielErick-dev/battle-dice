@@ -9,8 +9,8 @@
  * dash and `land.glb` as they touch down out of it.
  * `fallbacks` borrow a required clip from another character (by id) until the own export exists.
  * `sequences` make a clip of several exports in the folder played back to back (named without
- * `.glb`; `@1.5` starts it 1.5 s in, a `:reverse` suffix plays it backwards), in place of the
- * clip's own export.
+ * `.glb`; `@1.5` starts it 1.5 s in, `@0-3` plays only its first 3 s, a `:reverse` suffix plays it
+ * backwards), in place of the clip's own export.
  * The ids match CHARACTERS in src/features/match/characters.ts.
  */
 export const REQUIRED_CLIPS = ["idle", "run"];
@@ -19,9 +19,6 @@ export const OPTIONAL_CLIPS = ["intro", "showcase", "cast", "float", "dash", "la
 export const CHARACTER_MODELS = {
   voidKnight: { folder: "cavaleiro-do-vazio" },
   crimsonEnchantress: { folder: "encantadora-carmesim" },
-  eclipseQueen: { folder: "rainha-do-eclipse" },
-  blindSeraph: { folder: "serafim-vendado" },
-  rosewingDragoness: { folder: "dragoa-das-rosas", fallbacks: { idle: "crimsonEnchantress" } },
   // She levitates on the menus too, so her float doubles as her showcase.
   crimsonWitch: { folder: "bruxa-carmesim" },
   emeraldAlchemist: { folder: "alquimista-esmeralda" },
@@ -35,6 +32,18 @@ export const CHARACTER_MODELS = {
   elvenArcher: { folder: "arqueira-elfica" },
   cardJester: { folder: "coringa-carmesim" },
   boneShaman: { folder: "necromante" },
-  fleshScribe: { folder: "escriba-da-carne" },
+  // His intro: he writes in the air with his right hand (cut once the arm is back down), then
+  // throws both arms up.
+  fleshScribe: { folder: "escriba-da-carne", sequences: { intro: ["escrever@0-3.85", "bracos"] } },
   shadowWarden: { folder: "guardiao-das-sombras" },
+  purgatoryKunoichi: { folder: "kunoichi-do-purgatorio" },
+  crystalFairy: { folder: "fada-cristalina" },
+  windGuardian: { folder: "zefiro-guardiao-dos-ventos" },
+  tideMaiden: { folder: "nerissa-donzela-das-mares" },
+  crimsonStudent: { folder: "akane-estudante-rubra" },
+  frostfangBerserker: { folder: "bjorn-presa-gelida" },
+  goldenGuardian: { folder: "auric-guardiao-dourado" },
+  seraphGuardian: { folder: "seraphiel-serafim-guardiao" },
+  clockworkSentinel: { folder: "cronos-sentinela-de-engrenagens" },
+  sentinelMech: { folder: "alva-mecha-sentinela" },
 };

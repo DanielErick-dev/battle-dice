@@ -1,11 +1,11 @@
 import {
   abilityBlocker,
-  DRAGON_HOARD_DRAWS,
-  graceEnergy,
   LEVITATION_TURNS,
+  STUDY_DRAWS,
   rollBonus,
   rollMultiplier,
   type AbilityId,
+  type AbilityPower,
 } from "./abilities";
 import { loseArrowRain, unpinPassed } from "./arrowRain";
 import { createBoard, type BoardDefinition } from "./board";
@@ -15,15 +15,19 @@ import { STARTING_HAND, STARTING_ENERGY, standardDeck, type CardId } from "./car
 import { GameRuleError, type GameCommand } from "./commands";
 import { buildDeck, throwOnPile } from "./deck";
 import type { DiceRoller } from "./dice";
-import { draftState, drawCard, playerIn, startDraft, updatePlayer, walkPath, type Draft } from "./draft";
+import { draftState, drawCard, playerIn, pushPath, startDraft, updatePlayer, walkPath, type Draft } from "./draft";
 import type { GameEvent } from "./events";
 import { placeHiddenTraps } from "./hiddenTraps";
 import { resolveLanding, resolveWard } from "./landing";
 import type { RandomSource } from "./random";
 import { resurrectCards } from "./resurrection";
 import { writeSeals } from "./seals";
+import { lightFlames, raiseArmour } from "./kunoichi";
+import { isBlessed, WINGS_BONUS } from "./blessings";
 import { crossSpecters, summonSpecters, takePlunder } from "./specters";
-import { transmuteCard } from "./transmutation";
+import { bloom, glideOverSnow } from "./fairy";
+import { cleansingTide, glacialHowl, sacredBulwark, plasmaCannon, seraphBlessing, timeWarp } from "./newcomerAbilities";
+import { transmuteCards } from "./transmutation";
 import { endTurn } from "./turn";
 import type { DiceBoost, GameState, Player, PlayerId, TileId } from "./types";
 
@@ -91,6 +95,8 @@ export function createGame(
     pinnedTraps: [],
     seals: [],
     specters: [],
+    enchantedTiles: [],
+    blackFlames: [],
     pendingPlunder: null,
   };
 }
@@ -124,20 +130,42 @@ function rollDice(state: GameState, playerId: PlayerId, deps: GameDependencies):
   const draft = startDraft(state, deps.random);
   const player = playerIn(draft, playerId);
 
-  const { event, boostLeft } = throwDice(
+  const { diceBonus } = player;
+  const { event: rolled, boostLeft } = throwDice(
     playerId,
     player.diceBoost,
-    { extra: rollBonus(state.abilityInUse), multiplier: rollMultiplier(state.abilityInUse) },
+    {
+      extra:
+        (diceBonus?.amount ?? 0) +
+        rollBonus(state.abilityInUse, state.players.length === 1) +
+        (isBlessed(player, "wings") ? WINGS_BONUS : 0),
+      multiplier: rollMultiplier(state.abilityInUse),
+    },
     deps.rollDice,
   );
-  updatePlayer(draft, playerId, () => ({ diceBoost: boostLeft }));
+  updatePlayer(draft, playerId, () => ({
+    diceBoost: boostLeft,
+    diceBonus: diceBonus && diceBonus.rolls > 1 ? { ...diceBonus, rolls: diceBonus.rolls - 1 } : null,
+  }));
 
-  const path = walkPath(state.board, player.position, event.value);
-  const dash = event.multiplier !== undefined;
-  draft.events.push(event, { type: "playerMoved", playerId, path, ...(dash && { dash }) });
+  // Under Cronos's reversed time the roll walks back the way the player came.
+  const reversed = player.reversedRolls > 0;
+  if (reversed) updatePlayer(draft, playerId, (current) => ({ reversedRolls: current.reversedRolls - 1 }));
+  const path = reversed
+    ? pushPath(state.board, player.position, rolled.value)
+    : walkPath(state.board, player.position, rolled.value);
+  const dash = rolled.multiplier !== undefined;
+  draft.events.push(reversed ? { ...rolled, reversed } : rolled, {
+    type: "playerMoved",
+    playerId,
+    path,
+    ...(dash && { dash }),
+  });
   crossSpecters(draft, playerId, path);
-  resolveLanding(draft, playerId, path.at(-1) ?? player.position);
-  unpinPassed(draft, path);
+  const glide = reversed ? [] : glideOverSnow(draft, playerId, path);
+  crossSpecters(draft, playerId, glide);
+  resolveLanding(draft, playerId, glide.at(-1) ?? path.at(-1) ?? player.position);
+  unpinPassed(draft, [...path, ...glide]);
 
   const extraTurn = draft.extraTurn || state.bonusTurn;
   return settle(draft, playerId, { endsTurn: true, extraTurn });
@@ -146,8 +174,8 @@ function rollDice(state: GameState, playerId: PlayerId, deps: GameDependencies):
 type DiceRolledEvent = Extract<GameEvent, { type: "diceRolled" }>;
 
 /**
- * Throws the dice as the player's pending card modifier says, plus `extra` tiles from their
- * ability and then times its `multiplier`, and what's left of the modifier afterwards.
+ * Throws the dice as the player's pending card modifier says, plus `extra` tiles (card bonuses,
+ * ability, blessings) and then times the ability's `multiplier`, and what's left of the modifier afterwards.
  */
 function throwDice(
   playerId: PlayerId,
@@ -196,20 +224,6 @@ function throwBoostedDice(
           best: true,
         },
         boostLeft: null,
-      };
-    }
-    case "bonus": {
-      const die = rollDie();
-      const event = {
-        type: "diceRolled",
-        playerId,
-        value: die + boost.amount,
-        dice: [die],
-        bonus: boost.amount,
-      } as const;
-      return {
-        event,
-        boostLeft: boost.rolls > 1 ? { ...boost, rolls: boost.rolls - 1 } : null,
       };
     }
     case undefined: {
@@ -276,7 +290,19 @@ function activateAbility(
     cardUids = [],
     sealTiles = [],
     specterTiles = [],
-  }: { cardUids?: readonly string[]; sealTiles?: readonly TileId[]; specterTiles?: readonly TileId[] },
+    targetId,
+    volley,
+    power,
+    flameTiles = [],
+  }: {
+    cardUids?: readonly string[];
+    sealTiles?: readonly TileId[];
+    specterTiles?: readonly TileId[];
+    targetId?: PlayerId;
+    volley?: "opponents" | "traps";
+    power?: AbilityPower;
+    flameTiles?: readonly TileId[];
+  },
   deps: GameDependencies,
 ): GameTransition {
   assertCanAct(state, playerId);
@@ -285,27 +311,29 @@ function activateAbility(
   const blocker = abilityBlocker(player, state.abilityInUse);
   if (blocker || !player.ability) throw new GameRuleError(blocker ?? "NO_ABILITY");
 
-  const energyGained = graceEnergy(player);
-  updatePlayer(draft, playerId, (current) => ({
-    abilityCharge: 0,
-    energy: current.energy + energyGained,
-  }));
-  draft.events.push({
-    type: "abilityUsed",
-    playerId,
-    ability: player.ability,
-    energyGained,
-  });
-  if (player.ability === "dragonHoard") {
-    for (let draw = 0; draw < DRAGON_HOARD_DRAWS; draw++) drawCard(draft, playerId);
+  updatePlayer(draft, playerId, () => ({ abilityCharge: 0 }));
+  draft.events.push({ type: "abilityUsed", playerId, ability: player.ability });
+  if (player.ability === "studySession") {
+    for (let draw = 0; draw < STUDY_DRAWS; draw++) drawCard(draft, playerId);
   }
+  if (player.ability === "seraphBlessing") seraphBlessing(draft, playerId);
+  if (player.ability === "cleansingTide") cleansingTide(draft, playerId);
+  if (player.ability === "glacialHowl") glacialHowl(draft, playerId);
+  if (player.ability === "sacredBulwark") sacredBulwark(draft, playerId);
+  if (player.ability === "timeWarp") timeWarp(draft, playerId, power, targetId);
+  if (player.ability === "plasmaCannon") plasmaCannon(draft, playerId);
   if (player.ability === "levitation") updatePlayer(draft, playerId, () => ({ levitating: LEVITATION_TURNS }));
-  if (player.ability === "transmutation") transmuteCard(draft, playerId, cardUids[0]);
+  if (player.ability === "transmutation") transmuteCards(draft, playerId, cardUids);
   if (player.ability === "resurrection") resurrectCards(draft, playerId, cardUids);
   if (player.ability === "forbiddenSeals") writeSeals(draft, playerId, sealTiles);
   if (player.ability === "spectralApparitions") summonSpecters(draft, playerId, specterTiles);
-  if (player.ability === "arrowRain") loseArrowRain(draft, playerId);
-  if (player.ability === "cardGamble") playCardGamble(draft, playerId, deps.rollDice);
+  if (player.ability === "arrowRain") loseArrowRain(draft, playerId, volley);
+  if (player.ability === "cardGamble") playCardGamble(draft, playerId, deps.rollDice, targetId);
+  if (player.ability === "fairyBloom") bloom(draft, playerId);
+  if (player.ability === "ocularAwakening") {
+    if (power === "armour") raiseArmour(draft, playerId);
+    else lightFlames(draft, playerId, flameTiles);
+  }
 
   const settled = settle(draft, playerId, {
     endsTurn: false,
@@ -313,7 +341,8 @@ function activateAbility(
   });
   return {
     ...settled,
-    state: { ...settled.state, abilityInUse: player.ability },
+    // Time Warp's extra turn waits for the turn to end, as a card's would.
+    state: { ...settled.state, abilityInUse: player.ability, bonusTurn: state.bonusTurn || draft.extraTurn },
   };
 }
 
@@ -443,6 +472,8 @@ function restart(state: GameState, deps: GameDependencies): GameTransition {
       pinnedTraps: [],
       seals: [],
       specters: [],
+      enchantedTiles: [],
+      blackFlames: [],
       pendingPlunder: null,
     },
     events: [{ type: "gameRestarted" }, { type: "turnChanged", playerId: players[0].id }],
@@ -481,9 +512,13 @@ function dealPlayer({ id, name, ability = null }: NewPlayer, { startTile, cards,
     discard: [],
     shielded: false,
     diceBoost: null,
+    diceBonus: null,
     ability,
     abilityCharge: ability && playsFirst ? 1 : 0,
     levitating: 0,
     silencedTurns: 0,
+    spectralArmour: 0,
+    blessings: [],
+    reversedRolls: 0,
   };
 }

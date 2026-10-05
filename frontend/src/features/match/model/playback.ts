@@ -1,4 +1,12 @@
-import { abilityCycle, isReactive, LEVITATION_TURNS, SILENCE_TURNS, type AbilityId } from "@/game/domain/abilities";
+import {
+  abilityCycle,
+  FLAME_TURNS,
+  isReactive,
+  LEVITATION_TURNS,
+  SILENCE_TURNS,
+  type AbilityId,
+} from "@/game/domain/abilities";
+import { BLESSING_TURNS } from "@/game/domain/blessings";
 import { cardCost } from "@/game/domain/cards";
 import { throwOnPile } from "@/game/domain/deck";
 import { SEAL_KINDS } from "@/game/domain/seals";
@@ -102,7 +110,16 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
         {
           apply: (view) => ({
             ...withPlayer(view, event.playerId, (player) =>
-              event.blessing === "shield" ? { shielded: true } : { energy: player.energy + event.energyGained },
+              event.blessing === "shield"
+                ? { shielded: true }
+                : event.blessing === "energy"
+                  ? { energy: player.energy + event.energyGained }
+                  : {
+                      blessings: [
+                        ...player.blessings.filter((blessing) => blessing.kind !== event.blessing),
+                        { kind: event.blessing, turnsLeft: BLESSING_TURNS, fresh: true },
+                      ],
+                    },
             ),
             effect: {
               kind: "blessing",
@@ -230,7 +247,7 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
         {
           apply: (view) => {
             const charged = withPlayer(view, event.playerId, () => ({ abilityCharge: abilityCycle(event.ability) }));
-            return { ...charged, effect: abilityEffect(charged, event.playerId, "abilityReady", event.ability, 0) };
+            return { ...charged, effect: abilityEffect(charged, event.playerId, "abilityReady", event.ability) };
           },
           durationMs: timings.noticeMs,
         },
@@ -242,17 +259,62 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
           apply: (view) => {
             const spent = withPlayer(view, event.playerId, (player) => ({
               abilityCharge: 0,
-              energy: player.energy + event.energyGained,
               levitating: event.ability === "levitation" ? LEVITATION_TURNS : player.levitating,
             }));
             return {
               ...spent,
               // A reactive ability does its work at once; the others last for the turn.
               abilityInUse: isReactive(event.ability) ? view.abilityInUse : event.ability,
-              effect: abilityEffect(spent, event.playerId, "abilityUsed", event.ability, event.energyGained),
+              effect: abilityEffect(spent, event.playerId, "abilityUsed", event.ability),
             };
           },
           durationMs: abilityUsedMs(event.ability, timings),
+        },
+      ];
+
+    case "boardCleansed":
+      return [
+        {
+          apply: (view) => ({
+            ...view,
+            blackFlames: view.blackFlames.filter((flame) => !event.tiles.includes(flame.tile)),
+            enchantedTiles: view.enchantedTiles.filter((enchanted) => !event.tiles.includes(enchanted.tile)),
+            specters: view.specters.filter((specter) => !event.tiles.includes(specter.tile)),
+            seals: view.seals.filter((seal) => !event.tiles.includes(seal.tile)),
+            pinnedTraps: view.pinnedTraps.filter((tile) => !event.tiles.includes(tile)),
+            effect: { ...playerTileEffect(view, event.playerId, "cleansed"), count: event.tiles.length },
+          }),
+          durationMs: timings.noticeMs,
+        },
+      ];
+
+    case "timeBent":
+      // Shown over the opponent whose time was bent.
+      return [
+        {
+          apply: (view) => ({
+            ...withPlayer(view, event.targetId, (player) =>
+              event.power === "halt"
+                ? { skipTurns: player.skipTurns + event.rounds }
+                : { reversedRolls: Math.max(player.reversedRolls, event.rounds) },
+            ),
+            effect: { ...playerTileEffect(view, event.targetId, "timeBent"), time: event.power, count: event.rounds },
+          }),
+          durationMs: timings.noticeMs,
+        },
+      ];
+
+    case "opponentsFrozen":
+      return [
+        {
+          apply: (view) => ({
+            ...view,
+            players: view.players.map((player) =>
+              event.targets.includes(player.id) ? { ...player, skipTurns: player.skipTurns + 1 } : player,
+            ),
+            effect: { ...playerTileEffect(view, event.playerId, "frozen"), count: event.targets.length },
+          }),
+          durationMs: timings.noticeMs,
         },
       ];
 
@@ -313,7 +375,12 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
               ...withPlayer(view, event.from, (player) => ({
                 hand: player.hand.filter((held) => held.uid !== card.uid),
               })),
-              drawing: { id: (view.drawing?.id ?? 0) + 1, playerId: event.playerId, card },
+              drawing: {
+                id: (view.drawing?.id ?? 0) + 1,
+                playerId: event.playerId,
+                card,
+                takenFrom: view.players.find((player) => player.id === event.from)?.name,
+              },
             }),
             durationMs: timings.drawRevealMs,
           },
@@ -331,13 +398,13 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
       });
 
     case "spectersSummoned":
-      // The apparitions rise from the floor, the Warden's old ones gone.
+      // The apparitions rise from the floor, beside any summoned before.
       return [
         {
           apply: (view) => ({
             ...view,
             specters: [
-              ...view.specters.filter((specter) => specter.owner !== event.playerId),
+              ...view.specters,
               ...event.tiles.map((tile, index) => ({ tile, owner: event.playerId, kind: SPECTER_KINDS[index] })),
             ],
           }),
@@ -405,13 +472,13 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
       return [];
 
     case "sealsWritten":
-      // The scrolls appear on their tiles, the writer's old ones gone.
+      // The scrolls appear on their tiles, beside any written before.
       return [
         {
           apply: (view) => ({
             ...view,
             seals: [
-              ...view.seals.filter((seal) => seal.owner !== event.playerId),
+              ...view.seals,
               ...event.tiles.map((tile, index) => ({ tile, owner: event.playerId, kind: SEAL_KINDS[index] })),
             ],
           }),
@@ -481,6 +548,110 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
         },
       ];
 
+    case "tilesEnchanted":
+      // The harmful tiles ahead bloom, enchanted for good.
+      return [
+        {
+          apply: (view) => ({
+            ...view,
+            enchantedTiles: [...view.enchantedTiles, ...event.tiles.map((tile) => ({ tile, owner: event.playerId }))],
+          }),
+          durationMs: timings.noticeMs,
+        },
+      ];
+
+    case "enchantmentStirred":
+      return [
+        {
+          apply: (view) => {
+            const frozen = withPlayer(view, event.playerId, (player) => ({
+              skipTurns: player.skipTurns + event.frozen,
+            }));
+            const paid = withPlayer(frozen, event.owner, (player) => ({
+              abilityCharge: player.abilityCharge + (event.charged ? 1 : 0),
+            }));
+            return {
+              ...paid,
+              effect: {
+                kind: "enchanted",
+                playerId: event.playerId,
+                from: event.tile,
+                to: event.tile,
+                enchanted: { owner: event.owner, frozen: event.frozen },
+              },
+            };
+          },
+          durationMs: timings.noticeMs,
+        },
+      ];
+
+    case "flamesLit":
+      return [
+        {
+          apply: (view) => ({
+            ...view,
+            blackFlames: [
+              ...view.blackFlames,
+              ...event.tiles.map((tile) => ({ tile, owner: event.playerId, turnsLeft: FLAME_TURNS, hits: 0 })),
+            ],
+          }),
+          durationMs: timings.noticeMs,
+        },
+      ];
+
+    case "flamesScorched":
+      return [
+        {
+          apply: (view) => ({
+            ...withPlayer(
+              withPlayer(view, event.playerId, (player) => ({ energy: player.energy - event.energyLost })),
+              event.owner,
+              (player) => ({ abilityCharge: player.abilityCharge + (event.charged ? 1 : 0) }),
+            ),
+            effect: {
+              kind: "flames",
+              playerId: event.playerId,
+              from: event.tile,
+              to: event.tile,
+              flames: { energyLost: event.energyLost },
+            },
+          }),
+          durationMs: timings.noticeMs,
+        },
+      ];
+
+    case "flamesFaded":
+      return [
+        {
+          apply: (view) => ({
+            ...view,
+            blackFlames: view.blackFlames.filter(
+              (flame) => flame.owner !== event.owner || !event.tiles.includes(flame.tile),
+            ),
+          }),
+          durationMs: 0,
+        },
+      ];
+
+    case "armourRaised":
+      return [
+        {
+          apply: (view) => withPlayer(view, event.playerId, () => ({ spectralArmour: event.turns })),
+          durationMs: timings.noticeMs,
+        },
+      ];
+
+    case "armourHeld":
+      return [
+        {
+          apply: (view) => ({
+            ...view,
+            effect: { kind: "armour", playerId: event.playerId, from: event.tile, to: event.tile },
+          }),
+          durationMs: timings.noticeMs,
+        },
+      ];
+
     case "levitatedOver":
       return [
         {
@@ -540,6 +711,7 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
               id: (view.transmuting?.id ?? 0) + 1,
               playerId: event.playerId,
               from: event.from,
+              sacrificed: event.sacrificed,
               to: event.to,
             },
           }),
@@ -548,7 +720,9 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
         {
           apply: (view) => ({
             ...withPlayer(view, event.playerId, (player) => ({
-              hand: player.hand.map((card) => (card.uid === event.from.uid ? event.to : card)),
+              hand: player.hand
+                .filter((card) => card.uid !== event.sacrificed.uid)
+                .map((card) => (card.uid === event.from.uid ? event.to : card)),
             })),
             transmuting: null,
             lastDrawnUid: event.to.uid,
@@ -621,7 +795,11 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
       return [{ apply: (view) => ({ ...view, winnerId: event.playerId }), durationMs: 0 }];
 
     case "turnChanged":
-      return [{ apply: (view) => ({ ...view, activePlayerId: event.playerId }), durationMs: 0 }];
+      // A beat on where the turn left things (a knock-back's last tile) before the camera moves on.
+      return [
+        { apply: (view) => view, durationMs: timings.turnHandoffMs },
+        { apply: (view) => ({ ...view, activePlayerId: event.playerId }), durationMs: 0 },
+      ];
 
     // Silent: the tile turns to rubble as the blades strike.
     case "trapDestroyed":
@@ -649,6 +827,8 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
             pinnedTraps: [],
             seals: [],
             specters: [],
+            enchantedTiles: [],
+            blackFlames: [],
             volley: null,
           }),
           durationMs: 0,
@@ -675,6 +855,8 @@ export function syncStep(state: GameState): PlaybackStep {
       pinnedTraps: state.pinnedTraps,
       seals: sealViews(state),
       specters: specterViews(state),
+      enchantedTiles: state.enchantedTiles,
+      blackFlames: state.blackFlames,
       pendingPlunder: state.pendingPlunder,
     }),
     durationMs: 0,
@@ -697,8 +879,12 @@ function abilityEffect(
   playerId: PlayerId,
   kind: "abilityReady" | "abilityUsed",
   id: AbilityId,
-  energyGained: number,
 ): TileEffectView {
+  return { ...playerTileEffect(view, playerId, kind), ability: { id } };
+}
+
+/** An effect shown over the tile the player stands on. */
+function playerTileEffect(view: MatchView, playerId: PlayerId, kind: TileEffectView["kind"]): TileEffectView {
   const tile = view.players.find((player) => player.id === playerId)?.position ?? 0;
-  return { kind, playerId, from: tile, to: tile, ability: { id, energyGained } };
+  return { kind, playerId, from: tile, to: tile };
 }

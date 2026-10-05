@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { BOARD_PRESETS, DEFAULT_BOARD_ID } from "../match/boards";
-import { DEFAULT_CHARACTER_ID, PLAYABLE_CHARACTER_IDS, type CharacterId } from "../match/characters";
+import { DEFAULT_CHARACTER_ID } from "../match/characters";
 import type { EffectsQuality } from "../match/config";
 
 /**
@@ -17,7 +17,12 @@ export interface Preference<T> {
   fallback: T;
 }
 
-function createPreference<T>(key: string, fallback: T, parse: (stored: string) => T | undefined, serialize: (value: T) => string): Preference<T> {
+function createPreference<T>(
+  key: string,
+  fallback: T,
+  parse: (stored: string) => T | undefined,
+  serialize: (value: T) => string,
+): Preference<T> {
   const listeners = new Set<() => void>();
   let memory = fallback;
 
@@ -48,19 +53,41 @@ function createPreference<T>(key: string, fallback: T, parse: (stored: string) =
 }
 
 const booleanPreference = (key: string, fallback: boolean) =>
-  createPreference(key, fallback, (stored) => stored === "1", (value) => (value ? "1" : "0"));
+  createPreference(
+    key,
+    fallback,
+    (stored) => stored === "1",
+    (value) => (value ? "1" : "0"),
+  );
 
 /** A preference restricted to a fixed set of values; anything else stored is ignored. */
 function choicePreference<T extends string>(key: string, fallback: T, choices: readonly T[]): Preference<T> {
-  return createPreference(key, fallback, (stored) => choices.find((choice) => choice === stored), (value) => value);
+  return createPreference(
+    key,
+    fallback,
+    (stored) => choices.find((choice) => choice === stored),
+    (value) => value,
+  );
 }
 
 export const preferences = {
   muted: booleanPreference("battle-dice:muted", false),
   music: booleanPreference("battle-dice:music", true),
   effectsQuality: choicePreference<EffectsQuality>("battle-dice:effects-quality", "high", ["high", "low"]),
-  character: choicePreference<CharacterId>("battle-dice:character", DEFAULT_CHARACTER_ID, PLAYABLE_CHARACTER_IDS),
-  board: choicePreference("battle-dice:board", DEFAULT_BOARD_ID, BOARD_PRESETS.map((preset) => preset.id)),
+  /** The local match's characters in turn order, comma-separated (read with parseCharacterList). */
+  players: createPreference(
+    "battle-dice:players",
+    DEFAULT_CHARACTER_ID,
+    (stored) => stored,
+    (value) => value,
+  ),
+  /** Test mode: every ability starts the match charged, to try them out quickly. */
+  chargedAbilities: booleanPreference("battle-dice:charged-abilities", false),
+  board: choicePreference(
+    "battle-dice:board",
+    DEFAULT_BOARD_ID,
+    BOARD_PRESETS.map((preset) => preset.id),
+  ),
 };
 
 /** Reads a preference and re-renders when it changes; the server render uses the fallback. */

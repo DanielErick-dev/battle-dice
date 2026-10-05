@@ -75,6 +75,7 @@ export function ArenaEnvironment({ layout, scale }: ArenaEnvironmentProps) {
         outerRadius={45 * scale}
         level={WATER_LEVEL}
         count={18}
+        clear={layout.corridors}
       />
 
       <ArenaBase width={layout.width} depth={layout.depth} lowerTop={LOWER_TIER_TOP} lowerHeight={LOWER_TIER_HEIGHT} />

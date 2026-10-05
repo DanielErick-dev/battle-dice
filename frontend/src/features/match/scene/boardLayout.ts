@@ -14,20 +14,27 @@ export interface BoardLayout {
   width: number;
   depth: number;
   position: (id: TileId) => Vec3;
+  /** The realm corridors: each one's centre line (x), half its width and how far it reaches either side of z = 0. */
+  corridors: readonly { x: number; halfWidth: number; halfLength: number }[];
 }
 
 /** Which side of the board each realm's tracks run along (+1 right, -1 left). */
 const TRACK_SIDE = { infernal: 1, celestial: -1 } as const;
 /** Height of track tiles: just over the lava, or floating a little above the clouds. */
 const TRACK_LEVEL = { infernal: -0.35, celestial: 1.1 } as const;
-/** Gap from the grid's edge to the corridor, clear of the arena's stone tiers. */
-const TRACK_OFFSET = 5.4;
+/** Gap from the grid's edge to the corridor's wall, clear of the arena's stone tiers. */
+const TRACK_CLEARANCE = 3.65;
 /** Distance between consecutive track tiles. */
 const TRACK_SPACING = TILE_PITCH * 1.08;
-/** Each track of a realm gets its own corridor, this far from the next one (walls included). */
+/** Distance between the centre lines of two corridors of a realm, at the least. */
 const TRACK_LANE_WIDTH = TILE_PITCH * 3.2;
-/** Half the corridor's width: where its walls stand, either side of the tiles' centre line. */
-export const CORRIDOR_HALF_WIDTH = TILE_SIZE / 2 + 0.85;
+/** Room left between two corridors of a realm, when they're wide. */
+const LANE_GAP = 1.4;
+/**
+ * Half a corridor's width: where its walls stand, either side of the tiles' centre line. Hell is a
+ * tight passage; heaven an open, airy cloister.
+ */
+export const CORRIDOR_HALF_WIDTH = { infernal: TILE_SIZE / 2 + 0.85, celestial: TILE_SIZE / 2 + 2.4 } as const;
 
 /**
  * Snake layout read like a page: the start sits on the far (top) row and the path
@@ -49,12 +56,17 @@ export function createBoardLayout(board: Board, columns: number): BoardLayout {
   };
 
   const trackPositions = new Map<TileId, Vec3>();
+  const corridors: { x: number; halfWidth: number; halfLength: number }[] = [];
   const lanes = { infernal: 0, celestial: 0 };
   for (const track of board.tracks) {
     const lane = lanes[track.realm]++;
-    corridorPositions(track, width, lane).forEach((position, index) =>
-      trackPositions.set(track.tiles[index], position),
-    );
+    const positions = corridorPositions(track, width, lane);
+    positions.forEach((position, index) => trackPositions.set(track.tiles[index], position));
+    corridors.push({
+      x: positions[0][0],
+      halfWidth: CORRIDOR_HALF_WIDTH[track.realm],
+      halfLength: Math.abs(positions[0][2]) + TILE_PITCH,
+    });
   }
 
   return {
@@ -63,6 +75,7 @@ export function createBoardLayout(board: Board, columns: number): BoardLayout {
     width,
     depth,
     position: (id) => trackPositions.get(id) ?? grid(id),
+    corridors,
   };
 }
 
@@ -73,7 +86,9 @@ export function createBoardLayout(board: Board, columns: number): BoardLayout {
  */
 function corridorPositions(track: RealmTrack, width: number, lane: number): Vec3[] {
   const side = TRACK_SIDE[track.realm];
-  const x = side * (width / 2 + TRACK_OFFSET + lane * TRACK_LANE_WIDTH);
+  const halfWidth = CORRIDOR_HALF_WIDTH[track.realm];
+  const x =
+    side * (width / 2 + TRACK_CLEARANCE + halfWidth + lane * Math.max(TRACK_LANE_WIDTH, halfWidth * 2 + LANE_GAP));
   const count = track.tiles.length;
   return track.tiles.map((_, index) => [x, TRACK_LEVEL[track.realm], (index - (count - 1) / 2) * TRACK_SPACING]);
 }

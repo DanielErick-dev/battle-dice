@@ -14,6 +14,14 @@ const ACCENTS = {
     idle: "bg-teal-700/70",
     button: "bg-teal-500 hover:bg-teal-400",
   },
+  emerald: {
+    title: "text-emerald-300",
+    ring: "ring-emerald-300",
+    focus: "focus-visible:outline-emerald-400",
+    chosen: "bg-emerald-500",
+    idle: "bg-emerald-700/70",
+    button: "bg-emerald-500 hover:bg-emerald-400",
+  },
   sky: {
     title: "text-sky-300",
     ring: "ring-sky-300",
@@ -32,7 +40,7 @@ interface CardChoicePickerProps {
   cards: readonly CardInstance[];
   /** How many may be picked. */
   max: number;
-  /** Exactly `max` must be picked, and there's no backing out (a plunder must be settled). */
+  /** Exactly `max` must be picked (a Transmutation's sacrifice; a plunder, with no `onCancel` to back out). */
   required?: boolean;
   confirmLabel: string;
   onPick: (cardUids: string[]) => void;

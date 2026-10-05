@@ -1,6 +1,8 @@
 import { abilityBlocker, cardsPerTurn, type AbilityId } from "@/game/domain/abilities";
 import { currentPlayer } from "@/game/domain/engine";
 import type {
+  BlackFlame,
+  EnchantedTile,
   Blessing,
   CardInstance,
   GameState,
@@ -36,6 +38,18 @@ export type TileEffectKind =
   | "gamble"
   /** A forbidden seal broke under a player. */
   | "seal"
+  /** An enchanted tile stirred under a player (see enchanted). */
+  | "enchanted"
+  /** A player went through black fire. */
+  | "flames"
+  /** Spectral Armour turned something away from a player. */
+  | "armour"
+  /** Cleansing Tide washed the spells off the board. */
+  | "cleansed"
+  /** Glacial Howl froze the opponents in reach. */
+  | "frozen"
+  /** Time Warp halted or reversed a player's time (shown over them). */
+  | "timeBent"
   /** A player walked through a Shadow Warden's apparition, or through the Warden, dispelling them. */
   | "specter";
 
@@ -68,6 +82,8 @@ export interface CardDrawView {
   id: number;
   playerId: PlayerId;
   card: CardInstance;
+  /** Taken from another player's hand (their name), rather than drawn off the deck. */
+  takenFrom?: string;
 }
 
 /** A hand card turning into another (Transmutation); `id` changes on every one. */
@@ -83,6 +99,8 @@ export interface CardTransmuteView {
   id: number;
   playerId: PlayerId;
   from: CardInstance;
+  /** The second card sacrificed with `from`. */
+  sacrificed: CardInstance;
   to: CardInstance;
 }
 
@@ -112,7 +130,15 @@ export interface TileEffectView {
   /** What kept the trap off, and whether it was a hidden one (trapBlocked only). */
   ward?: { kind: TrapWard; hidden: boolean };
   /** The ability that got charged or was just used (abilityReady / abilityUsed only). */
-  ability?: { id: AbilityId; energyGained: number };
+  ability?: { id: AbilityId };
+  /** How many tiles Cleansing Tide washed (cleansed), or how many opponents Glacial Howl froze (frozen). */
+  count?: number;
+  /** How Time Warp bent the player's time (timeBent; `count` is the rounds). */
+  time?: "halt" | "reverse";
+  /** Whose enchanted tile it was and the energy it moved (enchanted only). */
+  enchanted?: { owner: PlayerId; frozen: number };
+  /** Energy the black fire took (flames only). */
+  flames?: { energyLost: number };
   /** Which seal broke, whose it was and the energy it moved (seal only). */
   seal?: { kind: SealKind; owner: PlayerId; energyLost: number; energyGained: number };
   /** Which apparition struck (null: the Warden's apparitions were dispelled) and what it took (specter only). */
@@ -185,6 +211,10 @@ export interface MatchView {
   seals: readonly SealView[];
   /** Shadow Warden apparitions on the board. */
   specters: readonly SpecterView[];
+  /** Tiles the Crystal Fairy enchanted for good. */
+  enchantedTiles: readonly EnchantedTile[];
+  /** Tiles on the Purgatory Kunoichi's black fire. */
+  blackFlames: readonly BlackFlame[];
   /** A Warden picking the cards their Plunder apparition takes from `victim`. */
   pendingPlunder: { owner: PlayerId; victim: PlayerId } | null;
   isAnimating: boolean;
@@ -217,6 +247,8 @@ export function createInitialView(state: GameState): MatchView {
     pinnedTraps: state.pinnedTraps,
     seals: sealViews(state),
     specters: specterViews(state),
+    enchantedTiles: state.enchantedTiles,
+    blackFlames: state.blackFlames,
     pendingPlunder: state.pendingPlunder,
     isAnimating: false,
     error: null,

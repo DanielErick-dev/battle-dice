@@ -1,4 +1,5 @@
 import type { GameClient, GameUpdate } from "@/game/application/gameClient";
+import type { AbilityPower } from "@/game/domain/abilities";
 import { GameRuleError, type GameCommand, type GameErrorCode } from "@/game/domain/commands";
 import type { Board } from "@/game/domain/types";
 import { DEFAULT_TIMINGS, type PlaybackTimings } from "../config";
@@ -26,6 +27,7 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   ABILITY_NOT_READY: "A habilidade ainda está carregando.",
   ABILITY_IN_USE: "A habilidade já está em uso neste turno.",
   ENERGY_FULL: "Sua energia já está no máximo.",
+  ABILITY_ALREADY_READY: "Sua habilidade já está pronta.",
   EMPTY_HAND: "Você não tem cartas na mão.",
   EMPTY_DISCARD: "Nenhuma carta foi jogada ainda.",
   HAND_FULL: "Sua mão está cheia.",
@@ -33,6 +35,7 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   INVALID_SEALS: "Escolha 4 casas diferentes dentro do alcance.",
   SILENCED: "Você está silenciado: não pode jogar cartas.",
   INVALID_SPECTERS: "Escolha 2 casas diferentes dentro do alcance.",
+  INVALID_FLAMES: "Escolha até 3 casas diferentes do caminho.",
   PLUNDER_PENDING: "Aguarde o Guardião escolher as cartas.",
   NO_PLUNDER_PENDING: "Não há cartas para pilhar agora.",
 };
@@ -91,10 +94,20 @@ export class MatchStore {
 
   /**
    * `cardUids`: the cards an ability works on (a hand card for Transmutation, discarded ones for
-   * Resurrection); `sealTiles`: where Forbidden Seals writes each seal.
+   * Resurrection); `sealTiles`: where Forbidden Seals writes each seal; `specterTiles`: where the
+   * apparitions rise; `targetId`: the opponent Card Gamble bets against; `volley`: where Arrow Rain falls; `power` and
+   * `flameTiles`: Ocular Awakening's pick.
    */
   activateAbility = (
-    choice: { cardUids?: readonly string[]; sealTiles?: readonly number[]; specterTiles?: readonly number[] } = {},
+    choice: {
+      cardUids?: readonly string[];
+      sealTiles?: readonly number[];
+      specterTiles?: readonly number[];
+      targetId?: string;
+      volley?: "opponents" | "traps";
+      power?: AbilityPower;
+      flameTiles?: readonly number[];
+    } = {},
   ): void => {
     if (!canActivateAbility(this.view)) return;
     this.dispatch({ type: "activateAbility", playerId: this.view.activePlayerId, ...choice });

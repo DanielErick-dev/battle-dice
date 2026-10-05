@@ -37,9 +37,16 @@ const EFFECT_SOUNDS: Record<TileEffectKind, (sounds: MatchSounds, effect: TileEf
   abilityReady: (sounds) => sounds.bonus(),
   abilityUsed: (sounds) => sounds.powerUp(),
   levitated: (sounds) => sounds.shieldBlock(),
+  cleansed: (sounds) => sounds.portal(),
+  frozen: (sounds) => sounds.penalty(),
+  timeBent: (sounds) => sounds.portal(),
   gamble: (sounds, effect) => (effect.gamble?.won ? sounds.bonus() : sounds.penalty()),
   // Breaking one's own seal (alone on the board) pays out; anyone else's strikes.
   seal: (sounds, effect) => (effect.seal?.owner === effect.playerId ? sounds.bonus() : sounds.trap()),
+  // The fairy's own enchanted tile carries her on; anyone else's traps them in the snow.
+  enchanted: (sounds, effect) => (effect.enchanted?.owner === effect.playerId ? sounds.boost() : sounds.penalty()),
+  flames: (sounds) => sounds.trap(),
+  armour: (sounds) => sounds.shieldBlock(),
   // Dispelled apparitions fade like a blocked trap; a struck one hits (or, alone, pays out).
   specter: (sounds, effect) =>
     !effect.specter?.kind

@@ -3,7 +3,7 @@
 import { OrbitControls } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef, type ComponentRef } from "react";
-import { PerspectiveCamera, Vector3 } from "three";
+import { MOUSE, PerspectiveCamera, TOUCH, Vector3 } from "three";
 import type { CardId } from "@/game/domain/cards";
 import type { CardCastView, TileEffectKind, TileEffectView } from "../model/matchView";
 import type { BoardLayout, Vec3 } from "./boardLayout";
@@ -49,6 +49,12 @@ const SHOTS: Record<TileEffectKind, Shot> = {
   gamble: { fovKick: 0.7 },
   seal: { closeUp: { distance: 0.62, seconds: 1.2 }, trauma: 0.5 },
   specter: { closeUp: { distance: 0.62, seconds: 1.2 }, trauma: 0.35 },
+  enchanted: { closeUp: { distance: 0.7, seconds: 1 } },
+  flames: { closeUp: { distance: 0.62, seconds: 1.2 }, trauma: 0.45 },
+  armour: { fovKick: 0.3 },
+  cleansed: { fovKick: 0.9, trauma: 0.3 },
+  frozen: { trauma: 0.5 },
+  timeBent: { closeUp: { distance: 0.7, seconds: 1.2 }, fovKick: 0.8 },
 };
 
 /** Cards whose cast is filmed too (the rest are covered by the effects they cause). */
@@ -71,30 +77,40 @@ export function boardScaleFor(layout: BoardLayout): number {
   return Math.max(1, layout.width / BASE_WIDTH, layout.depth / BASE_DEPTH);
 }
 
+/** Following the focus up close or from midway, or framing the whole board. */
+export type CameraFraming = "close" | "mid" | "board";
+
 interface CameraRigProps {
   layout: BoardLayout;
   /** Where the action is (the moving or active player). */
   focus: Vec3;
-  /** Track the focus up close instead of framing the whole board. */
-  follow: boolean;
+  /** How the camera frames the play: following the focus up close or from midway, or the whole board. */
+  framing: CameraFraming;
   /** Effect being shown; each new one gets its shot. */
   effect: TileEffectView | null;
   /** Someone won: close in on them and circle around. */
   celebrating: boolean;
   /** Card being played; each new one may get its shot. */
   cast: CardCastView | null;
+  /** The viewer moved the camera themselves: it stays where they put it, following nobody. */
+  free: boolean;
+  /** Called as the viewer drags the camera across the board. */
+  onFreeLook: () => void;
 }
 
 /**
  * Orbit camera that glides to its goal (the whole board, or a close-up following the
- * focus) and films events: close-ups, shakes and field-of-view kicks. Panning moves camera
- * and target together, so the player's chosen orbit angle is kept.
+ * focus) and films events: close-ups, shakes and field-of-view kicks. Following moves camera
+ * and target together, so the player's chosen orbit angle is kept. The viewer can drag across the
+ * board to look around: the camera then stays where they put it (`free`) until told to follow again.
  */
-export function CameraRig({ layout, focus, follow, effect, celebrating, cast }: CameraRigProps) {
+export function CameraRig({ layout, focus, framing, effect, celebrating, cast, free, onFreeLook }: CameraRigProps) {
   const camera = useThree((state) => state.camera);
   const aspect = useThree((state) => state.size.width / state.size.height);
   const controls = useRef<ComponentRef<typeof OrbitControls>>(null);
   const zooming = useRef(true);
+  /** The viewer is dragging the camera (between OrbitControls' start and end). */
+  const dragging = useRef(false);
   const lastGoalDistance = useRef(0);
   const lastEffect = useRef<TileEffectView | null>(null);
   const lastCast = useRef<CardCastView | null>(null);
@@ -109,15 +125,22 @@ export function CameraRig({ layout, focus, follow, effect, celebrating, cast }: 
     goal: new Vector3(),
     offset: new Vector3(),
     step: new Vector3(),
+    beforeUpdate: new Vector3(),
   });
 
   const aspectFit = Math.max(1, FIT_ASPECT / aspect);
   const overviewDistance = BASE_DISTANCE * boardScaleFor(layout) * aspectFit;
   const followDistance = BASE_DISTANCE * aspectFit;
+  // Midway (in proportion) between up close and the whole board.
+  const midDistance = Math.sqrt(followDistance * overviewDistance);
 
   useEffect(() => {
-    camera.position.copy(BASE_DIRECTION).multiplyScalar(overviewDistance);
-    camera.lookAt(0, 0, 0);
+    // The match opens already framed as chosen (on the player, unless it's the whole board).
+    const startDistance = framing === "close" ? followDistance : framing === "mid" ? midDistance : overviewDistance;
+    const start = framing === "board" ? new Vector3() : new Vector3(focus[0], focus[1] * 0.8, focus[2]);
+    camera.position.copy(BASE_DIRECTION).multiplyScalar(startDistance).add(start);
+    camera.lookAt(start);
+    controls.current?.target.copy(start);
     // Only on mount: later changes glide in useFrame.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [camera]);
@@ -146,27 +169,38 @@ export function CameraRig({ layout, focus, follow, effect, celebrating, cast }: 
 
     const closeUp = celebrating || now < state.closeUpUntil;
     const closeUpFactor = celebrating ? VICTORY_DISTANCE : state.closeUpFactor;
+    const follow = framing !== "board";
     const tracking = follow || closeUp;
-    const goalDistance = closeUp ? followDistance * closeUpFactor : follow ? followDistance : overviewDistance;
+    const goalDistance = closeUp
+      ? followDistance * closeUpFactor
+      : framing === "close"
+        ? followDistance
+        : framing === "mid"
+          ? midDistance
+          : overviewDistance;
     if (Math.abs(goalDistance - lastGoalDistance.current) > 0.01) zooming.current = true;
     lastGoalDistance.current = goalDistance;
 
-    const { goal, offset, step } = scratch.current;
+    const { goal, offset, step, beforeUpdate } = scratch.current;
     const k = 1 - Math.exp(-delta * FOLLOW_RATE * (closeUp ? 1.6 : 1));
-    // Up on a realm bridge the target rises with the player, so they stay framed.
+    // Up on a realm bridge the target rises with the player, so they stay framed. Left alone
+    // while the viewer looks around on their own.
     goal.set(tracking ? focus[0] : 0, tracking ? focus[1] * 0.8 : 0, tracking ? focus[2] : 0);
-    step.subVectors(goal, orbit.target).multiplyScalar(k);
+    step.subVectors(goal, orbit.target).multiplyScalar(free ? 0 : k);
     orbit.target.add(step);
     camera.position.add(step);
 
-    if (zooming.current) {
+    if (zooming.current && !free) {
       offset.subVectors(camera.position, orbit.target);
       const distance = offset.length();
       const next = distance + (goalDistance - distance) * k;
       camera.position.copy(orbit.target).add(offset.setLength(next));
       if (Math.abs(goalDistance - next) < 0.05) zooming.current = false;
     }
+    beforeUpdate.copy(orbit.target);
     orbit.update();
+    // Only the viewer's own drag moves the target inside the update (a pan): they're looking around.
+    if (!free && dragging.current && orbit.target.distanceTo(beforeUpdate) > 0.01) onFreeLook();
 
     state.trauma = Math.max(0, state.trauma - delta * TRAUMA_DECAY);
     const shake = state.trauma ** 2 * SHAKE_AMPLITUDE;
@@ -191,7 +225,11 @@ export function CameraRig({ layout, focus, follow, effect, celebrating, cast }: 
     <OrbitControls
       ref={controls}
       makeDefault
-      enablePan={false}
+      enablePan
+      // Drag to move across the board (along it, not the screen), right-drag or two fingers to turn.
+      screenSpacePanning={false}
+      mouseButtons={{ LEFT: MOUSE.PAN, MIDDLE: MOUSE.DOLLY, RIGHT: MOUSE.ROTATE }}
+      touches={{ ONE: TOUCH.PAN, TWO: TOUCH.DOLLY_ROTATE }}
       enableDamping
       autoRotate={celebrating}
       autoRotateSpeed={1.1}
@@ -201,6 +239,10 @@ export function CameraRig({ layout, focus, follow, effect, celebrating, cast }: 
       maxPolarAngle={1.2}
       onStart={() => {
         zooming.current = false;
+        dragging.current = true;
+      }}
+      onEnd={() => {
+        dragging.current = false;
       }}
     />
   );

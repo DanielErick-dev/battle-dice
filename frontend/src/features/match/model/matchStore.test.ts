@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LocalGameClient } from "@/game/application/localGameClient";
 import { CLASSIC_BOARD } from "@/game/domain/board";
+import { HAND_LIMIT } from "@/game/domain/cards";
 import { sequenceDice } from "@/game/domain/dice";
 import { seededRandom } from "@/game/domain/random";
 import { createGame } from "@/game/domain/engine";
@@ -89,7 +90,7 @@ describe("MatchStore", () => {
     const barrier = { uid: "b", cardId: "arcaneShield" } as const;
 
     it("plays a card: pays energy, removes it from the hand and announces the cast", () => {
-      const { store } = setup([1], withP1([barrier], 2));
+      const { store } = setup([1], withP1([barrier], 3));
 
       store.playCard("b");
       const view = store.getSnapshot();
@@ -150,7 +151,8 @@ describe("MatchStore", () => {
     });
 
     it("waits for a discard when the hand overflows, then resumes", () => {
-      const full: CardInstance[] = ["x", "y", "z", "u", "v", "w"].map((uid) => ({ uid, cardId: "healingHerb" }));
+      const uids = ["x", "y", "z", "u", "v", "w", "s", "t"].slice(0, HAND_LIMIT);
+      const full: CardInstance[] = uids.map((uid) => ({ uid, cardId: "healingHerb" }));
       const onCardTile = (state: GameState) => ({
         ...withP1(full, 1)(state),
         board: {
@@ -174,11 +176,7 @@ describe("MatchStore", () => {
       const resumed = store.getSnapshot();
       expect(resumed.pendingDiscard).toBeNull();
       expect(resumed.players[0].hand.map(({ uid }) => uid)).toEqual([
-        "x",
-        "z",
-        "u",
-        "v",
-        "w",
+        ...uids.filter((uid) => uid !== "y"),
         paused.pendingDiscard?.drawn.uid,
       ]);
       expect(resumed.activePlayerId).toBe("p2");

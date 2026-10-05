@@ -1,36 +1,33 @@
 import { ARROW_RAIN_PINS, ARROW_RAIN_PUSH } from "./abilities";
-import { getTile, sameSpace } from "./board";
+import { GameRuleError } from "./commands";
+import { getTile, opponentsInReach } from "./board";
 import { playerIn, pushPath, updatePlayer, type Draft } from "./draft";
 import { relocateHiddenTrap } from "./hiddenTraps";
 import { threatAt } from "./landing";
 import type { Board, PlayerId, TileId } from "./types";
 
 /**
- * Arrow Rain: the player looses a volley into the sky. It falls on every opponent, knocking
- * each back ARROW_RAIN_PUSH tiles; alone on the board, it pins down the next ARROW_RAIN_PINS
- * threats ahead instead (see pinnedTraps), revealing the hidden traps among them. Opponents in
- * another place (the main path or a realm track, see sameSpace) are out of reach: with none in
- * reach, it's as if alone.
+ * Arrow Rain: the player looses a volley into the sky. Aimed at the opponents, it falls on every
+ * one in reach (the same place, the main path or a realm track, see sameSpace) and knocks each
+ * back ARROW_RAIN_PUSH tiles; otherwise it pins down the next ARROW_RAIN_PINS threats ahead (see
+ * pinnedTraps), revealing the hidden traps among them.
  */
-export function loseArrowRain(draft: Draft, playerId: PlayerId): void {
+export function loseArrowRain(draft: Draft, playerId: PlayerId, volley: "opponents" | "traps" = "traps"): void {
   const { board } = draft.state;
-  const archer = playerIn(draft, playerId).position;
-  const opponents = draft.players.filter(
-    (player) => player.id !== playerId && sameSpace(board, player.position, archer),
-  );
-
-  if (opponents.length > 0) {
+  if (volley === "opponents") {
+    const targets = opponentsInReach(board, draft.players, playerId);
+    if (targets.length === 0) throw new GameRuleError("INVALID_TARGET");
     draft.events.push({
       type: "arrowsLoosed",
       playerId,
-      targets: opponents.map((opponent) => opponent.position),
+      targets: targets.map((target) => target.position),
       pinned: [],
       hidden: [],
     });
-    for (const opponent of opponents) {
-      const path = pushPath(board, opponent.position, ARROW_RAIN_PUSH);
-      draft.events.push({ type: "playerPushed", playerId: opponent.id, by: playerId, path });
-      updatePlayer(draft, opponent.id, () => ({ position: path.at(-1) ?? opponent.position }));
+    for (const target of targets) {
+      const path = pushPath(board, target.position, ARROW_RAIN_PUSH);
+      draft.events.push({ type: "playerPushed", playerId: target.id, by: playerId, path });
+      updatePlayer(draft, target.id, () => ({ position: path.at(-1) ?? target.position }));
     }
     return;
   }

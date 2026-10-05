@@ -1,6 +1,6 @@
 import { generateBoard } from "./boardGenerator";
 import { TRACK_LENGTH, trackEffects } from "./realms";
-import type { Board, RealmTrack, Tile, TileEffect, TileId, TrapZone } from "./types";
+import type { Board, Player, PlayerId, RealmTrack, Tile, TileEffect, TileId, TrapZone } from "./types";
 
 export interface BoardDefinition {
   size: number;
@@ -35,6 +35,9 @@ export const TRAINING_BOARD: BoardDefinition = {
     8: { kind: "trap", to: 6, curse: "drain" },
     15: { kind: "portal", to: 19, realm: "celestial" },
     18: { kind: "trap", to: 17, curse: "discard" },
+    // Blessings of energy, so cards can be played more often.
+    4: { kind: "blessing", blessing: "energy" },
+    16: { kind: "blessing", blessing: "energy" },
   },
   trapZones: [{ from: 9, to: 14, traps: 1 }],
 };
@@ -50,8 +53,11 @@ export const POWER_TOURNAMENT_BOARD: BoardDefinition = generateBoard({
     extraTurn: 4,
     skipTurn: 4,
     card: 12,
+    energy: 10,
   },
   trapZones: { count: 3, length: 10, traps: 2 },
+  // The opening has no portal: everyone plays through it, and the Mystic Gate can't skip it.
+  portalsFrom: 25,
 });
 
 function cards(tiles: readonly TileId[]): Record<TileId, TileEffect> {
@@ -139,6 +145,18 @@ export function mainTileOf(board: Board, id: TileId): TileId {
  */
 export function sameSpace(board: Board, a: TileId, b: TileId): boolean {
   return (getTile(board, a).track?.portal ?? null) === (getTile(board, b).track?.portal ?? null);
+}
+
+/**
+ * The opponents `playerId` can aim a card or an ability at: those in the same place (the main
+ * path or the same realm track, see sameSpace) and not under Spectral Armour.
+ */
+export function opponentsInReach(board: Board, players: readonly Player[], playerId: PlayerId): Player[] {
+  const here = players.find((player) => player.id === playerId)?.position;
+  if (here === undefined) return [];
+  return players.filter(
+    (player) => player.id !== playerId && player.spectralArmour === 0 && sameSpace(board, player.position, here),
+  );
 }
 
 export function trackOf(board: Board, id: TileId): RealmTrack | null {

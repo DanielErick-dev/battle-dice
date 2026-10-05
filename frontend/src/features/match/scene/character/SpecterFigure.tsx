@@ -1,6 +1,5 @@
 "use client";
 
-import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { Suspense, useMemo, useRef } from "react";
 import { AdditiveBlending, Color, type Group, type MeshBasicMaterial } from "three";
@@ -8,11 +7,10 @@ import type { CharacterClip } from "../../characters";
 import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "../boardLayout";
 import { useAge } from "../useAge";
 import { CharacterModel } from "./CharacterModel";
-import { FIGURE_HEIGHT } from "./figure";
+import { EFFECT_SCALE, FIGURE_HEIGHT } from "./figure";
+import { NameTag } from "./NameTag";
 
-/** How high the owner's view of it hovers over its tile, how much it sways, and how fast it rises in. */
-const HOVER = 0.25;
-const SWAY = 0.12;
+/** How fast the owner's view of it rises in out of its pool of darkness. */
 const APPEAR_SECONDS = 0.8;
 
 interface SpecterFigureProps {
@@ -32,7 +30,8 @@ interface SpecterFigureProps {
 
 /**
  * A Shadow Warden's apparition on its tile. Its Warden sees it for what it is: a see-through
- * shadow of themselves glowing at the edges, hovering and swaying over a pool of darkness, named.
+ * shadow of themselves glowing at the edges, rising out of a pool of darkness and standing on it,
+ * feet on the tile, named.
  * Everyone else sees the Warden standing there, exactly as the real one stands.
  */
 export function SpecterFigure({ model, position, color, disguised, facing, label }: SpecterFigureProps) {
@@ -47,12 +46,7 @@ export function SpecterFigure({ model, position, color, disguised, facing, label
     if (disguised) return;
     const t = age(clock.elapsedTime);
     const rise = Math.min(1, t / APPEAR_SECONDS);
-    if (body.current) {
-      body.current.position.y =
-        -FIGURE_HEIGHT * (1 - rise) ** 2 + HOVER + Math.sin(clock.elapsedTime * 1.4 + phase) * 0.08;
-      body.current.position.x = Math.sin(clock.elapsedTime * 0.9 + phase) * SWAY;
-      body.current.rotation.y = facing + Math.sin(clock.elapsedTime * 0.5 + phase) * 0.6;
-    }
+    if (body.current) body.current.position.y = -FIGURE_HEIGHT * (1 - rise) ** 2;
     if (pool.current) pool.current.opacity = (0.55 + 0.2 * Math.sin(clock.elapsedTime * 2 + phase)) * rise;
   });
 
@@ -88,13 +82,7 @@ export function SpecterFigure({ model, position, color, disguised, facing, label
           <CharacterModel url={model} height={FIGURE_HEIGHT} clip={clip} ghost={disguised ? undefined : color} />
         </Suspense>
       </group>
-      {label && !disguised && (
-        <Html center position={[0, FIGURE_HEIGHT + HOVER + 0.5, 0]} zIndexRange={[10, 0]}>
-          <span className="pointer-events-none rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-black tracking-wider whitespace-nowrap text-sky-200 uppercase ring-1 ring-sky-300/50">
-            {label}
-          </span>
-        </Html>
-      )}
+      {label && !disguised && <NameTag text={label} color="#7dd3fc" y={FIGURE_HEIGHT + 0.3} size={EFFECT_SCALE} />}
     </group>
   );
 }

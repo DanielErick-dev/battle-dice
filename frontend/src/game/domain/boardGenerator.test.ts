@@ -32,6 +32,17 @@ describe("generateBoard", () => {
     }
   });
 
+  it("keeps portals out of the opening, still placing about as many", () => {
+    const wanted = ((RECIPE.density.portal ?? 0) * RECIPE.size) / 100;
+    for (const seed of [42, 2026, 7]) {
+      const portals = Object.entries(generateBoard({ ...RECIPE, seed, portalsFrom: 25 }).effects)
+        .filter(([, effect]) => effect.kind === "portal")
+        .map(([tile]) => Number(tile));
+      expect(Math.min(...portals)).toBeGreaterThanOrEqual(25);
+      expect(portals.length).toBeGreaterThanOrEqual(wanted * 0.8);
+    }
+  });
+
   it("curses some traps with each curse and leaves some plain", () => {
     const traps = Object.values(generateBoard(RECIPE).effects).filter((effect) => effect.kind === "trap");
     const curses = new Set(traps.map((trap) => trap.curse ?? "none"));

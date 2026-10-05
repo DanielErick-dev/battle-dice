@@ -19,10 +19,10 @@ const SMOKE_PUFFS = [
 ] as const;
 
 /**
- * A card being transmuted: it rises to the middle of the screen, is swallowed whole by a cloud
- * of emerald smoke (a solid veil under the puffs), is swapped for the new card while hidden, and
- * as the smoke clears slowly the new card is there, then dealt to the hand (keyed by id so each
- * one replays it).
+ * Two cards being transmuted into one: they rise to the middle of the screen, fanned out, are
+ * swallowed whole by a cloud of emerald smoke (a solid veil under the puffs) and swapped for the
+ * new card while hidden; as the smoke clears slowly the new card is there, then dealt to the hand
+ * (keyed by id so each one replays it).
  */
 export function TransmuteOverlay({ transmuting }: { transmuting: CardTransmuteView | null }) {
   if (!transmuting) return null;
@@ -37,8 +37,14 @@ export function TransmuteOverlay({ transmuting }: { transmuting: CardTransmuteVi
         <div className="relative" style={{ animation: `transmute-new ${DURATION} linear forwards` }}>
           <CardView cardId={transmuting.to.cardId} />
         </div>
+        {/* The two sacrificed cards, fanned out, vanish together into the smoke. */}
         <div className="absolute inset-0" style={{ animation: `transmute-old ${DURATION} linear forwards` }}>
-          <CardView cardId={transmuting.from.cardId} />
+          <div className="absolute inset-0 translate-x-6 rotate-6">
+            <CardView cardId={transmuting.sacrificed.cardId} />
+          </div>
+          <div className="absolute inset-0 -translate-x-6 -rotate-6">
+            <CardView cardId={transmuting.from.cardId} />
+          </div>
         </div>
         <div
           className="absolute -inset-3 rounded-2xl bg-[radial-gradient(ellipse,rgba(16,185,129,1),rgba(6,78,59,0.97)_65%,rgba(6,78,59,0.8))] opacity-0 blur-sm"

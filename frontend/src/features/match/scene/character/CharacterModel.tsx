@@ -170,7 +170,9 @@ function shadowMaterial(rim: string): MeshStandardMaterial {
     emissiveIntensity: 0.08,
     transparent: true,
     opacity: 0.72,
-    depthWrite: false,
+    // Writing depth keeps the far side of the body (the back arm, the other leg) from showing
+    // through the near one, which made the shadow look twisted.
+    depthWrite: true,
     roughness: 1,
   });
   material.onBeforeCompile = (shader) => {

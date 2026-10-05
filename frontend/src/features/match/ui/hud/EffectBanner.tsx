@@ -1,7 +1,15 @@
 import type { TileEffectKind, TileEffectView } from "../../model/matchView";
-import { PLUNDER_CARDS, RUIN_PUSH, SOLO_RUIN_ADVANCE } from "@/game/domain/abilities";
+import {
+  CARD_GAMBLE_JACKPOT,
+  ENCHANT_ADVANCE,
+  FLAME_PUSH,
+  PLUNDER_CARDS,
+  RUIN_PUSH,
+  SOLO_RUIN_ADVANCE,
+} from "@/game/domain/abilities";
 import { ABILITY_TEXT } from "../abilityText";
 import { CARD_TEXT } from "../cards/cardText";
+import { BLESSING_DURATION, BLESSING_TEXT } from "../blessingText";
 
 interface EffectBannerProps {
   effect: TileEffectView | null;
@@ -17,7 +25,7 @@ interface Copy {
 
 /** Banner copy per effect; a realm gate's depends on the realm (see realmCopy). */
 const COPY: Record<
-  Exclude<TileEffectKind, "realmEnter" | "abilityReady" | "abilityUsed" | "gamble" | "seal" | "specter">,
+  Exclude<TileEffectKind, "realmEnter" | "abilityReady" | "abilityUsed" | "gamble" | "seal" | "specter" | "enchanted">,
   Copy
 > = {
   portal: { title: "PORTAL!", tone: "text-purple-300", subtitle: ({ from, to }) => `Casa ${from} → ${to}` },
@@ -39,10 +47,41 @@ const COPY: Record<
   trapCurse: { title: "MALDIÇÃO!", tone: "text-fuchsia-400", subtitle: curseSubtitle },
   blessing: { title: "BÊNÇÃO!", tone: "text-amber-200", subtitle: blessingSubtitle },
   teleport: { title: "TELETRANSPORTE!", tone: "text-sky-300", subtitle: ({ from, to }) => `Casa ${from} → ${to}` },
+  cleansed: {
+    title: "MARÉ PURIFICADORA!",
+    tone: "text-blue-300",
+    subtitle: ({ count }) => (count ? `A onda limpou ${count} casas do tabuleiro` : "O tabuleiro já estava limpo"),
+  },
+  frozen: {
+    title: "UIVO GLACIAL!",
+    tone: "text-sky-200",
+    subtitle: ({ count }, name) =>
+      count
+        ? `${count} oponente${count > 1 ? "s" : ""} congelado${count > 1 ? "s" : ""}: perde a próxima vez`
+        : `${name} corre mais neste turno`,
+  },
+  timeBent: {
+    title: "O TEMPO SE DOBRA!",
+    tone: "text-amber-500",
+    subtitle: ({ time, count }, name) =>
+      time === "halt"
+        ? `${name} fica ${count} rodadas sem jogar`
+        : `Por ${count} rodadas, o dado de ${name} anda para trás`,
+  },
   levitated: {
     title: "FLUTUANDO!",
     tone: "text-rose-300",
     subtitle: ({ from }, name) => `${name} paira sobre a casa ${from}: nada acontece`,
+  },
+  flames: {
+    title: "CHAMAS ETERNAS!",
+    tone: "text-red-500",
+    subtitle: ({ flames }, name) => `${name} perde ${flames?.energyLost ?? 0} de energia e volta ${FLAME_PUSH} casas`,
+  },
+  armour: {
+    title: "ARMADURA ESPECTRAL!",
+    tone: "text-rose-300",
+    subtitle: (_, name) => `Nada atinge ${name}`,
   },
 };
 
@@ -65,7 +104,9 @@ export function EffectBanner({ effect, winnerName, nameOf }: EffectBannerProps) 
             ? sealCopy(effect)
             : effect.kind === "specter"
               ? specterCopy(effect)
-              : COPY[effect.kind];
+              : effect.kind === "enchanted"
+                ? enchantedCopy(effect)
+                : COPY[effect.kind];
   return (
     <Banner
       key={`${effect.kind}:${effect.from}:${effect.to}:${effect.playerId}`}
@@ -138,9 +179,27 @@ function abilityCopy({ kind, ability }: TileEffectView): Copy {
 /** Card Gamble's verdict: what the die of fortune showed, and which way it went. */
 function gambleCopy({ gamble }: TileEffectView): Copy {
   const value = gamble?.value ?? 0;
+  if (value >= CARD_GAMBLE_JACKPOT) {
+    return { title: "JACKPOT!", tone: "text-fuchsia-300", subtitle: () => `Tirou ${value}: atrás das cartas épicas!` };
+  }
   return gamble?.won
     ? { title: "SORTE GRANDE!", tone: "text-amber-300", subtitle: () => `Tirou ${value}: a sorte sorriu` }
     : { title: "AZAR!", tone: "text-rose-400", subtitle: () => `Tirou ${value}: perdeu uma carta` };
+}
+
+/** An enchanted tile stirring: it carries the fairy on, or traps whoever else stopped on it. */
+function enchantedCopy({ enchanted, playerId }: TileEffectView): Copy {
+  return enchanted?.owner === playerId
+    ? {
+        title: "CASA ENCANTADA!",
+        tone: "text-cyan-200",
+        subtitle: (_, name) => `${name} avança ${ENCHANT_ADVANCE} casas`,
+      }
+    : {
+        title: "CASA ENCANTADA!",
+        tone: "text-cyan-300",
+        subtitle: (_, name) => `${name} fica preso na neve por ${enchanted?.frozen ?? 0} rodadas`,
+      };
 }
 
 /** The seal that broke: its name, and what it did (or, alone on the board, what it gave). */
@@ -209,11 +268,16 @@ function specterCopy({ specter, playerId }: TileEffectView): Copy {
 function blockedSubtitle({ ward }: TileEffectView): string {
   const what = ward?.hidden ? "a armadilha oculta" : "a armadilha";
   if (ward?.kind === "ability") return `A habilidade repeliu ${what}`;
+  if (ward?.kind === "halo") return "A Auréola Sagrada te guardou";
   return `O Escudo Arcano segurou ${what}`;
 }
 
 function blessingSubtitle({ blessing }: TileEffectView): string {
   if (!blessing) return "";
   if (blessing.kind === "shield") return "O Escudo Arcano te protege";
+  if (blessing.kind !== "energy") {
+    const { name, effect } = BLESSING_TEXT[blessing.kind];
+    return `${name}: ${effect} ${BLESSING_DURATION}`;
+  }
   return blessing.energyGained > 0 ? `+${blessing.energyGained} de energia` : "Energia já está no máximo";
 }

@@ -59,15 +59,16 @@ describe("Spectral Apparitions", () => {
   const ready = (state: GameState) =>
     patch(state, "warden", { position: 20, abilityCharge: abilityCycle("spectralApparitions") });
 
-  it("summons the Plunder and Hunger apparitions on the picked tiles, wiping the old ones", () => {
+  it("summons the Plunder and Hunger apparitions on the picked tiles, keeping the ones summoned before", () => {
     const { state, events } = summon({ ...ready(duel()), specters: [specter(30, "hunger")] }, [24, 17]);
-    expect(state.specters).toEqual([specter(24, "plunder"), specter(17, "hunger")]);
+    expect(state.specters).toEqual([specter(30, "hunger"), specter(24, "plunder"), specter(17, "hunger")]);
     expect(events).toContainEqual({ type: "spectersSummoned", playerId: "warden", tiles: [24, 17] });
     expect(abilityCycle("spectralApparitions")).toBe(5);
   });
 
-  it("only appears on plain tiles in range, never on a seal", () => {
+  it("only appears on plain tiles in range, never on a seal or another apparition", () => {
     const start = ready(duel());
+    expectRuleError(() => summon({ ...start, specters: [specter(24, "hunger")] }, [24, 17]), "INVALID_SPECTERS");
     expectRuleError(() => summon(start, [24]), "INVALID_SPECTERS");
     expectRuleError(() => summon(start, [24, 24]), "INVALID_SPECTERS");
     expectRuleError(() => summon(start, [24, 12]), "INVALID_SPECTERS");
@@ -100,7 +101,10 @@ describe("Spectral Apparitions", () => {
     const start = rivalWalks(20, [specter(21, "hunger")], 1, 2, { energy: 4 });
     expect(player(start.state, "rival").energy).toBe(0);
     const before = player(duel(), "warden");
-    expect(player(start.state, "warden").energy).toBe(Math.min(MAX_ENERGY, before.energy + 4));
+    // Plus the energy every turn starts with, the warden's coming up next.
+    expect(player(start.state, "warden").energy).toBe(
+      Math.min(MAX_ENERGY, Math.min(MAX_ENERGY, before.energy + 4) + 1),
+    );
     const overflow = before.energy + 4 - MAX_ENERGY;
     expect(start.events).toContainEqual(
       expect.objectContaining({

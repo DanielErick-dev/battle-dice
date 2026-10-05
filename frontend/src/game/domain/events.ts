@@ -30,6 +30,8 @@ export type GameEvent =
       bonus?: number;
       /** The total was multiplied by this (Dormant Fury), after the bonus. */
       multiplier?: number;
+      /** Walked backwards (Cronos's reversed time). */
+      reversed?: boolean;
     }
   /** `dash`: crossed in a flash of lightning (a Dormant Fury roll) rather than run. */
   | { type: "playerMoved"; playerId: PlayerId; path: readonly TileId[]; dash?: boolean }
@@ -136,6 +138,34 @@ export type GameEvent =
       energyLost: number;
       energyGained: number;
     }
+  /** Fairy Bloom enchanted `tiles` for good (a hidden trap among them is gone too). */
+  | { type: "tilesEnchanted"; playerId: PlayerId; tiles: readonly TileId[] }
+  /**
+   * `playerId` stopped on (or, its owner, walked over) `owner`'s enchanted `tile`: its owner is
+   * carried ahead (a playerMoved follows), an opponent is stuck in the snow for `frozen` rounds;
+   * `charged` says whether the owner's ability gained a turn of charge.
+   */
+  | {
+      type: "enchantmentStirred";
+      playerId: PlayerId;
+      owner: PlayerId;
+      tile: TileId;
+      frozen: number;
+      charged: boolean;
+    }
+  /** Eternal Flames set `tiles` on black fire. */
+  | { type: "flamesLit"; playerId: PlayerId; tiles: readonly TileId[] }
+  /**
+   * `playerId` stopped on `owner`'s black fire on `tile`: they lose energy, and a playerPushed
+   * follows; `charged` says whether the owner's ability gained a turn of charge.
+   */
+  | { type: "flamesScorched"; playerId: PlayerId; owner: PlayerId; tile: TileId; energyLost: number; charged: boolean }
+  /** `owner`'s black fire on `tiles` went out. */
+  | { type: "flamesFaded"; owner: PlayerId; tiles: readonly TileId[] }
+  /** Spectral Armour rose round the player for `turns` of their turns. */
+  | { type: "armourRaised"; playerId: PlayerId; turns: number }
+  /** Something aimed at `playerId` (a seal, an apparition, black fire) was turned away by their Spectral Armour. */
+  | { type: "armourHeld"; playerId: PlayerId; tile: TileId }
   /** Resurrection brought `cards` back from the player's discard pile to their hand. */
   | { type: "cardsResurrected"; playerId: PlayerId; cards: readonly CardInstance[] }
   /** A walk passed over a pinned trap, which works again (a hidden one moves elsewhere, unseen). */
@@ -146,18 +176,20 @@ export type GameEvent =
   | { type: "levitatedOver"; playerId: PlayerId; tile: TileId }
   /** The player's ability finished charging as their turn started. */
   | { type: "abilityReady"; playerId: PlayerId; ability: AbilityId }
-  /** The player spent their ability (`energyGained` for Celestial Grace). */
-  | {
-      type: "abilityUsed";
-      playerId: PlayerId;
-      ability: AbilityId;
-      energyGained: number;
-    }
+  /** The player spent their ability. */
+  | { type: "abilityUsed"; playerId: PlayerId; ability: AbilityId }
+  /** Cleansing Tide washed every spell off `tiles`. */
+  | { type: "boardCleansed"; playerId: PlayerId; tiles: readonly TileId[] }
+  /** Time Warp bent `targetId`'s time: halted (their next `rounds` turns lost) or reversed (their next `rounds` rolls walk back). */
+  | { type: "timeBent"; playerId: PlayerId; targetId: PlayerId; power: "halt" | "reverse"; rounds: number }
+  /** Glacial Howl froze `targets`: each loses their next turn. */
+  | { type: "opponentsFrozen"; playerId: PlayerId; targets: readonly PlayerId[] }
   /** A trap or curse is about to strike: the player chooses whether to ward it off with their ability. */
   | { type: "wardOffered"; playerId: PlayerId; tile: TileId; threat: Threat }
   | { type: "cardDrawn"; playerId: PlayerId; card: CardInstance }
   /** Transmutation turned the hand card `from` into `to`, in the same place in the hand. */
-  | { type: "cardTransmuted"; playerId: PlayerId; from: CardInstance; to: CardInstance }
+  /** `from` and `sacrificed` left the hand, `to` took `from`'s place. */
+  | { type: "cardTransmuted"; playerId: PlayerId; from: CardInstance; sacrificed: CardInstance; to: CardInstance }
   /** The deck ran out: the discard pile was shuffled into a new deck. */
   | { type: "deckReshuffled"; playerId: PlayerId; size: number }
   /** Hand was full: the player must pick a card to throw away (the drawn one included). */

@@ -7,6 +7,7 @@ import { AdditiveBlending, DoubleSide, type Group, type MeshBasicMaterial, type 
 import type { Tile } from "@/game/domain/types";
 import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "./boardLayout";
 import { PortalVortex } from "./PortalVortex";
+import { RelicCard } from "./RelicCard";
 import { themeFor } from "./tileTheme";
 import { useTileFaceTexture } from "./useTileFaceTexture";
 
@@ -29,7 +30,14 @@ interface TileMeshProps {
   inTrapZone?: boolean;
   /** Its trap was smashed by the Trap Ward: drawn as a wreck. */
   destroyed?: boolean;
+  /** Buried under a spell (the fairy's snow, black fire): what stands on the tile is hidden. */
+  covered?: boolean;
+  /** Can be picked for an ability (seals, apparitions, black fire): breathes, and a click picks it. */
+  onPick?: (tile: number) => void;
 }
+
+/** Pixels the pointer may move between press and release for it to still count as a click, not a drag. */
+const CLICK_SLOP = 6;
 
 const UNDERGLOW_SIZE = TILE_SIZE + 0.28;
 
@@ -43,6 +51,8 @@ export function TileMesh({
   textureSize,
   inTrapZone = false,
   destroyed = false,
+  covered = false,
+  onPick,
 }: TileMeshProps) {
   const theme = useMemo(() => themeFor(tile, { inTrapZone, destroyed }), [tile, inTrapZone, destroyed]);
   const emissive = theme.glowIntensity > 0 ? theme.glow : HIGHLIGHT_FALLBACK;
@@ -65,11 +75,11 @@ export function TileMesh({
       bodyMaterial.current.emissiveIntensity = theme.glowIntensity * 0.35 + pulse;
     }
     if (underglow.current) {
-      const breathe = reachable ? 0.75 + Math.sin(time * 4 - tile.id * 0.6) * 0.2 : 0.38;
+      const breathe = reachable || onPick ? 0.75 + Math.sin(time * 4 - tile.id * 0.6) * 0.2 : 0.38;
       underglow.current.opacity += (breathe - underglow.current.opacity) * Math.min(1, delta * 8);
     }
     if (lift.current) {
-      const target = reachable ? 0.06 : 0;
+      const target = reachable || onPick ? 0.06 : 0;
       lift.current.position.y += (target - lift.current.position.y) * Math.min(1, delta * 8);
     }
   });
@@ -90,29 +100,52 @@ export function TileMesh({
       </mesh>
 
       <group ref={lift}>
-        <RoundedBox args={[TILE_SIZE, TILE_HEIGHT, TILE_SIZE]} radius={0.1} smoothness={4} castShadow receiveShadow>
-          <meshStandardMaterial
-            ref={bodyMaterial}
-            color={theme.base}
-            emissive={emissive}
-            roughness={0.5}
-            metalness={0.25}
-          />
-        </RoundedBox>
+        {/*
+          Only the slab itself takes the pick: what stands on a tile (a floating card, an hourglass)
+          can reach over the tile behind it on screen, and must not steal its click.
+        */}
+        <group
+          onClick={
+            onPick &&
+            ((event) => {
+              // A drag across the board (to look around) isn't a pick.
+              if (event.delta > CLICK_SLOP) return;
+              event.stopPropagation();
+              onPick(tile.id);
+            })
+          }
+          onPointerOver={onPick && (() => (document.body.style.cursor = "pointer"))}
+          onPointerOut={onPick && (() => (document.body.style.cursor = ""))}
+        >
+          <RoundedBox args={[TILE_SIZE, TILE_HEIGHT, TILE_SIZE]} radius={0.1} smoothness={4} castShadow receiveShadow>
+            <meshStandardMaterial
+              ref={bodyMaterial}
+              color={theme.base}
+              emissive={emissive}
+              roughness={0.5}
+              metalness={0.25}
+            />
+          </RoundedBox>
 
-        <mesh rotation-x={-Math.PI / 2} position-y={TILE_HEIGHT / 2 + 0.003} receiveShadow>
-          <planeGeometry args={[TILE_SIZE * 0.95, TILE_SIZE * 0.95]} />
-          <meshStandardMaterial map={faceTexture} roughness={0.85} />
-        </mesh>
+          <mesh rotation-x={-Math.PI / 2} position-y={TILE_HEIGHT / 2 + 0.003} receiveShadow>
+            <planeGeometry args={[TILE_SIZE * 0.95, TILE_SIZE * 0.95]} />
+            <meshStandardMaterial map={faceTexture} roughness={0.85} />
+          </mesh>
+        </group>
 
-        {tile.effect.kind === "portal" && (
-          <PortalVortex color={theme.glow} active={highlighted} phase={tile.id * 1.7} />
+        {!covered && (
+          <>
+            {tile.effect.kind === "portal" && (
+              <PortalVortex color={theme.glow} active={highlighted} phase={tile.id * 1.7} />
+            )}
+            {tile.effect.kind === "trap" && <TrapSpikes color={theme.glow} />}
+            {tile.effect.kind === "advance" && <AdvanceChevrons color={theme.glow} angle={arrowAngle ?? 0} />}
+            {tile.effect.kind === "extraTurn" && <FloatingDie color={theme.glow} />}
+            {tile.effect.kind === "skipTurn" && <Hourglass color={theme.glow} />}
+            {tile.effect.kind === "card" &&
+              (tile.effect.cardId ? <RelicCard cardId={tile.effect.cardId} /> : <FloatingCard color={theme.glow} />)}
+          </>
         )}
-        {tile.effect.kind === "trap" && <TrapSpikes color={theme.glow} />}
-        {tile.effect.kind === "advance" && <AdvanceChevrons color={theme.glow} angle={arrowAngle ?? 0} />}
-        {tile.effect.kind === "extraTurn" && <FloatingDie color={theme.glow} />}
-        {tile.effect.kind === "skipTurn" && <Hourglass color={theme.glow} />}
-        {tile.effect.kind === "card" && <FloatingCard color={theme.glow} />}
         {tile.role === "finish" && <FinishBeacon color={theme.glow} />}
       </group>
     </group>

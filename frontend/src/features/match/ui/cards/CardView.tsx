@@ -1,8 +1,11 @@
 import type { PointerEvent } from "react";
-import { CARD_CATALOG, cardCost, type CardId } from "@/game/domain/cards";
+import { CARD_CATALOG, cardCost, RARITY_LEVEL, type CardId } from "@/game/domain/cards";
 import { cn } from "@/lib/utils";
 import { CARD_PALETTE, CardArt } from "./CardArt";
-import { CARD_TEXT, RARITY_LABEL } from "./cardText";
+import { CARD_TEXT, RARITY_LABEL, RELIC_LABEL } from "./cardText";
+
+/** The most orbs a card's cost is drawn with; a dearer card shows its number instead. */
+const MAX_COST_ORBS = 4;
 
 interface CardViewProps {
   cardId: CardId;
@@ -13,17 +16,19 @@ interface CardViewProps {
 }
 
 /**
- * A card face: cost in energy orbs, artwork, name and rules text, framed by rarity. Rare and
- * epic cards get a holographic foil that follows the pointer (and tilts the card).
+ * A card face: cost in energy orbs, artwork, name and rules text, framed by rarity (one to five
+ * stars; heaven's relics in white and gold). Every card above common gets a holographic foil that
+ * follows the pointer (and tilts the card).
  */
 export function CardView({ cardId, dimmed = false, selected = false, className }: CardViewProps) {
-  const { rarity } = CARD_CATALOG[cardId];
+  const { rarity, relic } = CARD_CATALOG[cardId];
+  const stars = RARITY_LEVEL[rarity];
   const palette = CARD_PALETTE[cardId];
   const text = CARD_TEXT[cardId];
 
   return (
     <div
-      data-rarity={rarity}
+      data-rarity={relic ? "divine" : rarity}
       onPointerMove={trackPointer}
       onPointerLeave={resetPointer}
       className={cn(
@@ -44,10 +49,21 @@ export function CardView({ cardId, dimmed = false, selected = false, className }
           >
             {text.name}
           </span>
-          <span className="mt-0.5 flex shrink-0 gap-0.5" aria-label={`Custa ${cardCost(cardId)} de energia`}>
-            {Array.from({ length: cardCost(cardId) }, (_, i) => (
-              <span key={i} className="energy-orb size-2.5 rounded-full" />
-            ))}
+          <span
+            className="mt-0.5 flex shrink-0 items-center gap-0.5"
+            aria-label={`Custa ${cardCost(cardId)} de energia`}
+          >
+            {cardCost(cardId) > MAX_COST_ORBS ? (
+              // A cost too long for a row of orbs (Troca de Destinos) is one orb and its number.
+              <>
+                <span className="text-[10px] leading-none font-black text-amber-200">{cardCost(cardId)}</span>
+                <span className="energy-orb size-2.5 rounded-full" />
+              </>
+            ) : (
+              Array.from({ length: cardCost(cardId) }, (_, i) => (
+                <span key={i} className="energy-orb size-2.5 rounded-full" />
+              ))
+            )}
           </span>
         </header>
 
@@ -61,8 +77,11 @@ export function CardView({ cardId, dimmed = false, selected = false, className }
         <p className="mx-1.5 mt-1.5 flex-1 rounded-md bg-white/5 px-1.5 py-1 text-[10px] leading-snug font-medium text-zinc-200">
           {text.description}
         </p>
-        <footer className="px-2 py-1 text-[8px] font-bold tracking-[0.2em] text-zinc-400 uppercase">
-          {RARITY_LABEL[rarity]}
+        <footer className="flex items-center justify-between gap-1 px-2 py-1 text-[8px] font-bold tracking-[0.2em] text-zinc-400 uppercase">
+          <span className="truncate">{relic ? RELIC_LABEL : RARITY_LABEL[rarity]}</span>
+          <span className="shrink-0 tracking-normal text-amber-300" aria-label={`Nível ${stars} de raridade`}>
+            {"★".repeat(stars)}
+          </span>
         </footer>
 
         {rarity !== "common" && <div className="card-foil pointer-events-none absolute inset-0" />}

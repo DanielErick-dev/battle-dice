@@ -4,7 +4,7 @@ import { useFrame } from "@react-three/fiber";
 import { Suspense, useCallback, useRef, useState } from "react";
 import { MathUtils, Vector3, type Group, type Mesh } from "three";
 import { AWAKENING_BONUS } from "@/game/domain/cards";
-import type { DiceBoost } from "@/game/domain/types";
+import type { DiceBonus, DiceBoost } from "@/game/domain/types";
 import type { CharacterClip, ClipLengths } from "../characters";
 import { DEFAULT_TIMINGS } from "../config";
 import type { CardCastView } from "../model/matchView";
@@ -20,6 +20,7 @@ import { LevitationAura, LevitationBurst, levitationLift, stepLevitation } from 
 import { HeldVial, VialShatter } from "./character/AlchemyVial";
 import { WitchStaff } from "./character/WitchStaff";
 import { EFFECT_SCALE, FIGURE_HEIGHT, LEVITATE_HEIGHT } from "./character/figure";
+import { NameTag } from "./character/NameTag";
 import { EnergyAura } from "./EnergyAura";
 
 interface PlayerTokenProps {
@@ -37,6 +38,8 @@ interface PlayerTokenProps {
   isPowered: boolean;
   /** Arcane Shield up. */
   isShielded: boolean;
+  /** Spectral Armour up (Ocular Awakening): a shell in the character's colour. */
+  isArmoured?: boolean;
   /** The character's own tint for the shield bubble; the usual cyan without one. */
   shieldColor?: string;
   /** Crossing the board as lightning (Dormant Fury): unseen, racing from tile to tile. */
@@ -47,6 +50,7 @@ interface PlayerTokenProps {
   isLevitating: boolean;
   /** Card modifier waiting for the next roll (Berserk Fury, Fate Rune…). */
   diceBoost: DiceBoost | null;
+  diceBonus: DiceBonus | null;
   /** Card this player just cast, for its one-shot effect. */
   cast: CardCastView | null;
   /** Changes every time the player uses their ability (null otherwise): the figure acts it out. */
@@ -68,6 +72,11 @@ interface PlayerTokenProps {
   handProp?: "vial";
   /** When the cast clip takes the hand prop out (it's thrown at castImpactSeconds). */
   castPropSeconds?: number;
+  /**
+   * A short tag over the head ("J2 Bruxa"), so players can tell whose figure is whose, and its
+   * seat (0 first), which lifts tags of figures sharing a tile apart. None alone on the board.
+   */
+  nameTag?: { text: string; seat: number };
 }
 
 type Motion = "run" | "leap" | "dash";
@@ -102,6 +111,12 @@ const DASH_VANISH_SECONDS = DEFAULT_TIMINGS.dashLaunchMs / 1000 + 0.1;
 const LAND_CRACKLE_SECONDS = 0.4;
 /** Keeps the run cycle going this long after arriving, so brief stops between tiles don't flicker. */
 const RUN_LINGER_SECONDS = 0.18;
+/**
+ * Name tags over the heads, in the effects' units (a figure stands 1.9 tall in them): how high, and
+ * how much higher each seat's goes so the tags of figures sharing a tile don't pile up.
+ */
+const TAG_HEIGHT = 2;
+const TAG_STAGGER = 0.32;
 const LEAP_SECONDS = 0.55;
 const LEAP_SECONDS_PER_UNIT = 0.03;
 /** Moves longer than this are never run, even without a teleport (e.g. restart). */
@@ -133,9 +148,11 @@ export function PlayerToken({
   isActive,
   isPowered,
   isShielded,
+  isArmoured = false,
   shieldColor,
   isLevitating,
   diceBoost,
+  diceBonus,
   cast,
   abilityCast,
   energyBlades,
@@ -145,6 +162,7 @@ export function PlayerToken({
   castImpactSeconds,
   handProp,
   castPropSeconds = 0,
+  nameTag,
 }: PlayerTokenProps) {
   const group = useRef<Group>(null);
   const body = useRef<Group>(null);
@@ -305,12 +323,16 @@ export function PlayerToken({
     <group ref={group}>
       {/* Effects around the figure, scaled to its size and following it up when it levitates. */}
       <group ref={effects} scale={EFFECT_SCALE}>
-        <EnergyAura active={isPowered || isAwakened(diceBoost)} />
+        {nameTag && (
+          <NameTag text={nameTag.text} color={color} active={isActive} y={TAG_HEIGHT + nameTag.seat * TAG_STAGGER} />
+        )}
+        <EnergyAura active={isPowered || isAwakened(diceBonus)} />
         <EnergyAura active={diceBoost?.kind === "double"} palette="red" />
-        {orbFor(diceBoost) && <BoostOrb palette={orbFor(diceBoost)!} />}
+        {orbFor(diceBoost, diceBonus) && <BoostOrb palette={orbFor(diceBoost, diceBonus)!} />}
         {isShielded && <ShieldBubble color={shieldColor} />}
-        {cast?.card.cardId === "windStep" && <WindCloud key={cast.id} />}
-        {cast?.card.cardId === "healingHerb" && <HealBurst key={cast.id} />}
+        {isArmoured && !isShielded && <ShieldBubble color={color} />}
+        {cast?.card.cardId === "windStep" && <WindCloud key={`wind${cast.id}`} />}
+        {cast?.card.cardId === "healingHerb" && <HealBurst key={`heal${cast.id}`} />}
         {abilityCast !== null &&
           !isLevitating &&
           !handProp &&
@@ -421,13 +443,14 @@ function easeInOut(t: number): number {
 }
 
 /** Ancestral Awakening shows as the golden aura for as long as its bonus lasts. */
-function isAwakened(boost: DiceBoost | null): boolean {
-  return boost?.kind === "bonus" && boost.amount === AWAKENING_BONUS;
+function isAwakened(bonus: DiceBonus | null): boolean {
+  return bonus?.amount === AWAKENING_BONUS;
 }
 
-function orbFor(boost: DiceBoost | null): OrbPalette | null {
+/** The orb of the throw waiting for the roll, or Lucky Charm's when it's the only modifier. */
+function orbFor(boost: DiceBoost | null, bonus: DiceBonus | null): OrbPalette | null {
   if (boost?.kind === "fixed") return "fate";
   if (boost?.kind === "best") return "oracle";
-  if (boost?.kind === "bonus" && !isAwakened(boost)) return "luck";
+  if (bonus !== null && !isAwakened(bonus)) return "luck";
   return null;
 }

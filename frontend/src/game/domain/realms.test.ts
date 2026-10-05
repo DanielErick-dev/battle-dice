@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 import { ARROW_RAIN_PUSH } from "./abilities";
 import { createBoard, getTile, sameSpace, type BoardDefinition } from "./board";
 import { sequenceDice } from "./dice";
+import { GameRuleError } from "./commands";
 import { applyCommand, createGame } from "./engine";
 import { seededRandom } from "./random";
 import { TRACK_LENGTH } from "./realms";
+import { DIVINE_CARDS } from "./cards";
 import type { GameState, Player, TileEffect } from "./types";
 
 const BOARD: BoardDefinition = {
@@ -29,7 +31,7 @@ const roll = (state: GameState, ...dice: number[]) =>
 
 /** Tile effects that only hurt, and those that only help. */
 const HARMFUL: ReadonlySet<TileEffect["kind"]> = new Set(["curse", "trap", "skipTurn"]);
-const HELPFUL: ReadonlySet<TileEffect["kind"]> = new Set(["blessing", "card", "extraTurn", "advance"]);
+const HELPFUL: ReadonlySet<TileEffect["kind"]> = new Set(["blessing", "card"]);
 
 describe("realm tracks", () => {
   const board = createBoard(BOARD);
@@ -54,14 +56,21 @@ describe("realm tracks", () => {
     for (const id of celestial.tiles) expect(HELPFUL.has(getTile(board, id).effect.kind), `tile ${id}`).toBe(true);
   });
 
-  it("keep setbacks and rushes inside their track", () => {
+  it("keep setbacks inside their track", () => {
     for (const track of board.tracks) {
       track.tiles.forEach((id, index) => {
         const { effect } = getTile(board, id);
         if (effect.kind === "trap") expect(track.tiles.indexOf(effect.to)).toBeLessThan(index);
-        if (effect.kind === "advance") expect(track.tiles.indexOf(effect.to)).toBeGreaterThan(index);
-        if (effect.kind === "trap" || effect.kind === "advance") expect(track.tiles).toContain(effect.to);
+        if (effect.kind === "trap") expect(track.tiles).toContain(effect.to);
       });
+    }
+  });
+
+  it("give in heaven only what can't be had elsewhere: timed blessings and divine cards", () => {
+    for (const id of celestial.tiles) {
+      const { effect } = getTile(board, id);
+      if (effect.kind === "blessing") expect(["wings", "halo", "inspiration", "spring"]).toContain(effect.blessing);
+      if (effect.kind === "card") expect(DIVINE_CARDS).toContain(effect.cardId);
     }
   });
 
@@ -152,12 +161,16 @@ describe("a realm track is cut off from the board", () => {
     expect(sameSpace(board, inside, board.tracks[1].tiles[0])).toBe(false);
   });
 
-  it("Arrow Rain from the board can't reach a player inside a realm, nor the other way round", () => {
-    const fromBoard = activate(duel(20, inside)).state;
-    expect(fromBoard.players[1].position).toBe(inside);
-    const fromRealm = activate(duel(inside, 20)).state;
-    expect(fromRealm.players[1].position).toBe(20);
-    expect(activate(duel(25, 20)).state.players[1].position).toBe(20 - ARROW_RAIN_PUSH);
+  it("Arrow Rain from the board can't be aimed at a player inside a realm, nor the other way round", () => {
+    const aim = (state: GameState) =>
+      applyCommand(
+        state,
+        { type: "activateAbility", playerId: "p1", volley: "opponents" },
+        { rollDice: sequenceDice([1]), random: seededRandom(3) },
+      );
+    expect(() => aim(duel(20, inside))).toThrow(GameRuleError);
+    expect(() => aim(duel(inside, 20))).toThrow(GameRuleError);
+    expect(aim(duel(25, 20)).state.players[1].position).toBe(20 - ARROW_RAIN_PUSH);
   });
 
   it("Card Gamble can't steal from a player in another place", () => {

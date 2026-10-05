@@ -1,42 +1,74 @@
-import { CARD_CATALOG, type CardId, type Rarity } from "./cards";
+import { TRANSMUTATION_CARDS, TRANSMUTATION_FALLBACK_LEVEL } from "./abilities";
+import { cardsOfLevel, HAND_LIMIT, MAX_RARITY_LEVEL, rarityLevel, type CardId } from "./cards";
 import { GameRuleError } from "./commands";
+import { throwOnPile } from "./deck";
 import { playerIn, updatePlayer, type Draft } from "./draft";
 import type { CardInstance, PlayerId } from "./types";
 
-/** What a transmuted card can become: a rare or an epic, whatever it was. */
-const TRANSMUTED_RARITIES: readonly Rarity[] = ["rare", "epic"];
-
 /**
- * The cards `cardId` can transmute into: any rare or epic but itself, and no opponent-targeting
- * card when there's nobody to aim it at.
+ * The rarity level sacrificing `cards` yields: their levels added up (two level-2 cards make a
+ * level 4), up to the highest.
  */
-export function transmutationPool(cardId: CardId, withOpponents: boolean): CardId[] {
-  return Object.values(CARD_CATALOG)
-    .filter(
-      (definition) =>
-        TRANSMUTED_RARITIES.includes(definition.rarity) &&
-        definition.id !== cardId &&
-        (withOpponents || !definition.targetsOpponent),
-    )
-    .map((definition) => definition.id);
+export function transmutationLevel(cards: readonly CardId[]): number {
+  return Math.min(
+    MAX_RARITY_LEVEL,
+    cards.reduce((sum, cardId) => sum + rarityLevel(cardId), 0),
+  );
 }
 
 /**
- * Transmutation: the chosen card in the player's hand becomes a random card from its pool, in
- * the same place in the hand. It's a new copy (a fresh uid), which stays in the deck from then on.
+ * What a transmutation into `level` can give: the cards of that level (relics too), falling back
+ * a level at a time when there's none to give (alone, a level holding only opponent cards).
  */
-export function transmuteCard(draft: Draft, playerId: PlayerId, cardUid: string | undefined): void {
-  const from = playerIn(draft, playerId).hand.find((card) => card.uid === cardUid);
-  if (!from) throw new GameRuleError("UNKNOWN_CARD");
+export function transmutationPool(level: number, withOpponents: boolean): CardId[] {
+  for (let wanted = level; wanted > 0; wanted--) {
+    const pool = cardsOfLevel(wanted, { withOpponents });
+    if (pool.length > 0) return pool;
+  }
+  return [];
+}
 
-  const pool = transmutationPool(from.cardId, draft.players.length > 1);
-  if (pool.length === 0) return;
-  const to: CardInstance = {
-    uid: `${from.uid}~t`,
+/**
+ * Transmutation: the player sacrifices TRANSMUTATION_CARDS cards from their hand and gets one
+ * random card of their levels added up (see transmutationLevel), in the first one's place. It's a
+ * new copy (a fresh uid), which stays in the deck from then on; the sacrificed cards are gone.
+ * With fewer cards in hand there's nothing to sacrifice, so one card of
+ * TRANSMUTATION_FALLBACK_LEVEL is distilled into it instead.
+ */
+export function transmuteCards(draft: Draft, playerId: PlayerId, cardUids: readonly string[]): void {
+  const { hand } = playerIn(draft, playerId);
+  const withOpponents = draft.players.length > 1;
+  if (hand.length < TRANSMUTATION_CARDS) {
+    distil(draft, playerId, withOpponents);
+    return;
+  }
+  const chosen = cardUids.map((uid) => hand.find((card) => card.uid === uid));
+  if (chosen.length !== TRANSMUTATION_CARDS || new Set(cardUids).size !== cardUids.length) {
+    throw new GameRuleError("UNKNOWN_CARD");
+  }
+  const [from, sacrificed] = chosen;
+  if (!from || !sacrificed) throw new GameRuleError("UNKNOWN_CARD");
+  const pool = transmutationPool(transmutationLevel([from.cardId, sacrificed.cardId]), withOpponents);
+  const to: CardInstance = { uid: `${from.uid}~t`, cardId: pool[Math.floor(draft.random() * pool.length)] };
+  updatePlayer(draft, playerId, (player) => ({
+    hand: player.hand.filter((card) => card.uid !== sacrificed.uid).map((card) => (card.uid === from.uid ? to : card)),
+  }));
+  draft.events.push({ type: "cardTransmuted", playerId, from, sacrificed, to });
+}
+
+/** A new random card of TRANSMUTATION_FALLBACK_LEVEL for a hand too thin to sacrifice from. */
+function distil(draft: Draft, playerId: PlayerId, withOpponents: boolean): void {
+  const pool = transmutationPool(TRANSMUTATION_FALLBACK_LEVEL, withOpponents);
+  const card: CardInstance = {
+    uid: `${playerId}:distilled${draft.state.turn}`,
     cardId: pool[Math.floor(draft.random() * pool.length)],
   };
-  updatePlayer(draft, playerId, (player) => ({
-    hand: player.hand.map((card) => (card.uid === from.uid ? to : card)),
-  }));
-  draft.events.push({ type: "cardTransmuted", playerId, from, to });
+  const { hand } = playerIn(draft, playerId);
+  if (hand.length < HAND_LIMIT) {
+    updatePlayer(draft, playerId, (player) => ({ hand: [...player.hand, card] }));
+    draft.events.push({ type: "cardDrawn", playerId, card });
+  } else {
+    updatePlayer(draft, playerId, (player) => ({ discard: throwOnPile(player.discard, [card]) }));
+    draft.events.push({ type: "cardDiscarded", playerId, card, hand });
+  }
 }

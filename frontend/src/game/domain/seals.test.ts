@@ -22,7 +22,7 @@ const duel = () =>
     BOARD,
     [
       { id: "scribe", name: "Escriba", ability: "forbiddenSeals" },
-      { id: "rival", name: "Rival", ability: "dragonHoard" },
+      { id: "rival", name: "Rival", ability: "studySession" },
     ],
     { random: seededRandom(7) },
   );
@@ -59,10 +59,16 @@ function expectRuleError(action: () => unknown, code: GameErrorCode) {
 }
 
 describe("Forbidden Seals", () => {
-  it("writes one seal of each kind on the picked tiles, in order, wiping the writer's old ones", () => {
+  it("writes one seal of each kind on the picked tiles, in order, keeping the ones written before", () => {
     const start = readyScribe(patch(duel(), "scribe", { position: 20 }));
     const { state, events } = write({ ...start, seals: [seal(30, "ruin")] }, [22, 25, 17, 28]);
-    expect(state.seals).toEqual([seal(22, "tithe"), seal(25, "ruin"), seal(17, "silence"), seal(28, "bloodPact")]);
+    expect(state.seals).toEqual([
+      seal(30, "ruin"),
+      seal(22, "tithe"),
+      seal(25, "ruin"),
+      seal(17, "silence"),
+      seal(28, "bloodPact"),
+    ]);
     expect(events).toContainEqual({ type: "sealsWritten", playerId: "scribe", tiles: [22, 25, 17, 28] });
     expect(player(state, "scribe").abilityCharge).toBe(0);
   });
@@ -71,7 +77,7 @@ describe("Forbidden Seals", () => {
     expect(abilityCycle("forbiddenSeals")).toBe(5);
   });
 
-  it("only writes on plain main-path tiles within range, never on an effect or someone else's seal", () => {
+  it("only writes on plain main-path tiles within range, never on an effect or another seal", () => {
     const tiles = sealableTiles(createGame(BOARD, [{ id: "a", name: "A" }]).board, 10, [15]);
     expect(tiles).not.toContain(10);
     expect(tiles).not.toContain(12);
@@ -87,6 +93,7 @@ describe("Forbidden Seals", () => {
     expectRuleError(() => write(start, [22, 25, 17, 40]), "INVALID_SEALS");
     expectRuleError(() => write(start, [22, 25, 17, 12]), "INVALID_SEALS");
     expectRuleError(() => write({ ...start, seals: [seal(22, "ruin", "rival")] }, [22, 25, 17, 28]), "INVALID_SEALS");
+    expectRuleError(() => write({ ...start, seals: [seal(22, "ruin")] }, [22, 25, 17, 28]), "INVALID_SEALS");
   });
 
   it("Tithe: the opponent who stops on it hands over their most valuable card", () => {
@@ -133,7 +140,7 @@ describe("Forbidden Seals", () => {
     });
     const { state } = send(start, { type: "rollDice", playerId: "rival" }, [1]);
     expect(player(state, "rival").energy).toBe(3 - BLOOD_PACT_ENERGY);
-    expect(player(state, "scribe").energy).toBe(1 + BLOOD_PACT_ENERGY);
+    expect(player(state, "scribe").energy).toBe(1 + BLOOD_PACT_ENERGY + 1); // + their turn's energy
   });
 
   it("does nothing to its own writer while there are opponents, and stays", () => {

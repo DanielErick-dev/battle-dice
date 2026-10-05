@@ -3,7 +3,19 @@ import { shuffle, throwOnPile } from "./deck";
 import type { GameEvent } from "./events";
 import type { RandomSource } from "./random";
 import { getTile } from "./board";
-import type { Board, CardInstance, GameState, Player, PlayerId, Seal, Specter, Threat, TileId } from "./types";
+import type {
+  BlackFlame,
+  Board,
+  CardInstance,
+  EnchantedTile,
+  GameState,
+  Player,
+  PlayerId,
+  Seal,
+  Specter,
+  Threat,
+  TileId,
+} from "./types";
 
 /**
  * Working copy of a command's effects: several rules touch players and emit events in
@@ -29,6 +41,10 @@ export interface Draft {
   seals: Seal[];
   /** Apparitions on the board; they go once struck or dispelled. */
   specters: Specter[];
+  /** Enchanted tiles; they stay for good. */
+  enchantedTiles: EnchantedTile[];
+  /** Tiles on black fire; they go out as their owner's turns pass. */
+  blackFlames: BlackFlame[];
   /** A Plunder specter caught someone this command: its owner picks the cards before play goes on. */
   plunder: { owner: PlayerId; victim: PlayerId } | null;
   /** Shuffles the discard pile back into an empty deck, and moves sprung hidden traps. */
@@ -48,6 +64,8 @@ export function startDraft(state: GameState, random: RandomSource): Draft {
     pinnedTraps: [...state.pinnedTraps],
     seals: [...state.seals],
     specters: [...state.specters],
+    enchantedTiles: [...state.enchantedTiles],
+    blackFlames: [...state.blackFlames],
     plunder: null,
     random,
   };
@@ -63,6 +81,8 @@ export function draftState(draft: Draft): GameState {
     pinnedTraps: draft.pinnedTraps,
     seals: draft.seals,
     specters: draft.specters,
+    enchantedTiles: draft.enchantedTiles,
+    blackFlames: draft.blackFlames,
   };
 }
 
@@ -87,15 +107,20 @@ export function drawCard(draft: Draft, playerId: PlayerId): void {
 
   const [card, ...deck] = playerIn(draft, playerId).deck;
   if (!card) return;
+  updatePlayer(draft, playerId, () => ({ deck }));
+  giveCard(draft, playerId, card);
+}
 
+/**
+ * `card` goes into the player's hand, drawn or found; a full hand makes them discard one first
+ * (see draft.overflow).
+ */
+export function giveCard(draft: Draft, playerId: PlayerId, card: CardInstance): void {
+  if (draft.overflow) return;
   if (playerIn(draft, playerId).hand.length < HAND_LIMIT) {
-    updatePlayer(draft, playerId, (player) => ({
-      deck,
-      hand: [...player.hand, card],
-    }));
+    updatePlayer(draft, playerId, (player) => ({ hand: [...player.hand, card] }));
     draft.events.push({ type: "cardDrawn", playerId, card });
   } else {
-    updatePlayer(draft, playerId, () => ({ deck }));
     draft.overflow = card;
     draft.events.push({ type: "discardRequired", playerId, card });
   }

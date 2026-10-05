@@ -3,6 +3,9 @@
 import { useMemo } from "react";
 import { seededRandom } from "@/game/domain/random";
 
+/** Room left between a spire and the walls of a realm corridor. */
+const CLEARANCE = 2;
+
 interface RockSpiresProps {
   /** Spires start this far from the arena centre... */
   innerRadius: number;
@@ -11,6 +14,8 @@ interface RockSpiresProps {
   /** Water level, where their bases sit. */
   level: number;
   count: number;
+  /** Strips kept clear: a realm corridor and the view down onto it from the camera's side (+z). */
+  clear?: readonly { x: number; halfWidth: number; halfLength: number }[];
 }
 
 interface Spire {
@@ -23,7 +28,7 @@ interface Spire {
 }
 
 /** Tall rock formations rising from the sea around the arena, placed deterministically. */
-export function RockSpires({ innerRadius, outerRadius, level, count }: RockSpiresProps) {
+export function RockSpires({ innerRadius, outerRadius, level, count, clear = [] }: RockSpiresProps) {
   const spires = useMemo<Spire[]>(() => {
     const random = seededRandom(7);
     return Array.from({ length: count }, (_, i) => {
@@ -38,8 +43,16 @@ export function RockSpires({ innerRadius, outerRadius, level, count }: RockSpire
         tilt: (random() - 0.5) * 0.25,
         turn: random() * Math.PI,
       };
-    });
-  }, [count, innerRadius, outerRadius]);
+    }).filter(
+      // Drawn and then dropped, so the spires that stay keep their places whatever the board.
+      (spire) =>
+        !clear.some(
+          ({ x, halfWidth, halfLength }) =>
+            Math.abs(spire.x - x) < halfWidth + CLEARANCE + spire.radius &&
+            spire.z > -halfLength - CLEARANCE - spire.radius,
+        ),
+    );
+  }, [count, innerRadius, outerRadius, clear]);
 
   return (
     <group position-y={level}>

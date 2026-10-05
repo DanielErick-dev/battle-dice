@@ -30,7 +30,16 @@ interface CardHandProps {
  * out, the second plays it; a card that needs a die value or a target shows those choices
  * beside it instead, and a card that can't be played says why there.
  */
-export function CardHand({ board, player, opponents, canPlay, cardsLeft, lastDrawnUid, onPlay, status }: CardHandProps) {
+export function CardHand({
+  board,
+  player,
+  opponents,
+  canPlay,
+  cardsLeft,
+  lastDrawnUid,
+  onPlay,
+  status,
+}: CardHandProps) {
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
 
   const blockedReason = (card: CardInstance): string | null => {
@@ -47,6 +56,10 @@ export function CardHand({ board, player, opponents, canPlay, cardsLeft, lastDra
         return "Já há uma carta de dado esperando a próxima rolagem";
       case "NO_PORTAL_AHEAD":
         return "Não há portal à frente";
+      case "ENERGY_FULL":
+        return "Sua energia já está no máximo";
+      case "ABILITY_ALREADY_READY":
+        return "Sua habilidade já está pronta";
     }
     if (CARD_CATALOG[card.cardId].targetsOpponent && opponents.length === 0) return "Sem oponentes";
     return null;
@@ -81,7 +94,9 @@ export function CardHand({ board, player, opponents, canPlay, cardsLeft, lastDra
           <EnergyMeter energy={player.energy} />
           {status}
           {cardsLeft > 1 && canPlay && (
-            <span className="text-[10px] font-black tracking-wider text-violet-200 uppercase">{cardsLeft} cartas neste turno</span>
+            <span className="text-[10px] font-black tracking-wider text-violet-200 uppercase">
+              {cardsLeft} cartas neste turno
+            </span>
           )}
         </div>
       </div>
@@ -101,8 +116,15 @@ export function CardHand({ board, player, opponents, canPlay, cardsLeft, lastDra
               key={card.uid}
               className={cn(
                 "relative w-28 transition-all duration-300 sm:w-36",
-                // A fuller hand overlaps more so six cards still fit on screen.
-                index > 0 && (player.hand.length > 3 ? "-mt-24 sm:-mt-32" : "-mt-16 sm:-mt-20"),
+                // A fuller hand overlaps more so a full hand (eight) still fits on screen.
+                index > 0 &&
+                  (player.hand.length > 6
+                    ? "-mt-28 sm:-mt-[9.6rem]"
+                    : player.hand.length > 4
+                      ? "-mt-24 sm:-mt-[8.5rem]"
+                      : player.hand.length > 3
+                        ? "-mt-24 sm:-mt-32"
+                        : "-mt-16 sm:-mt-20"),
                 isSelected ? "z-20 -translate-x-6 scale-105" : "hover:z-10 hover:-translate-x-3",
                 card.uid === lastDrawnUid && "animate-in slide-in-from-right-24 fade-in duration-500",
               )}
@@ -191,16 +213,19 @@ function CardAction({ card, reason, opponents, onPlay, onClose }: CardActionProp
         <>
           <p className="text-[11px] font-bold tracking-wider text-zinc-300 uppercase">Escolha o alvo</p>
           {opponents.map((opponent) => (
-            <button key={opponent.id} type="button" onClick={() => onPlay({ targetId: opponent.id })} className={button}>
+            <button
+              key={opponent.id}
+              type="button"
+              onClick={() => onPlay({ targetId: opponent.id })}
+              className={button}
+            >
               {opponent.name}
             </button>
           ))}
         </>
       ) : (
         <>
-          <p className="pr-3 text-[11px] text-zinc-300">
-            Clique na carta de novo para usar, ou aqui:
-          </p>
+          <p className="pr-3 text-[11px] text-zinc-300">Clique na carta de novo para usar, ou aqui:</p>
           <button type="button" onClick={() => onPlay({})} className={button}>
             Usar · {cardCost(card.cardId)} de energia
           </button>
@@ -214,7 +239,11 @@ function CardAction({ card, reason, opponents, onPlay, onClose }: CardActionProp
 function DeckPile({ count }: { count: number }) {
   const layers = Math.min(3, count);
   return (
-    <div className="relative w-12 sm:w-14" title={`Baralho: ${count} cartas para comprar`} aria-label={`Baralho com ${count} cartas`}>
+    <div
+      className="relative w-12 sm:w-14"
+      title={`Baralho: ${count} cartas para comprar`}
+      aria-label={`Baralho com ${count} cartas`}
+    >
       {count === 0 ? (
         <div className="aspect-[5/7] w-full rounded-xl border-2 border-dashed border-white/20" />
       ) : (

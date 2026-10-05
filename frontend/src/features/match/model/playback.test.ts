@@ -28,18 +28,13 @@ describe("playback of rule events", () => {
     expect(shown.players[0].abilityCharge).toBe(3);
   });
 
-  it("spends a used ability: energy it gave, and in effect for the turn unless it's reactive", () => {
-    const [grace] = replay(initial(), {
-      type: "abilityUsed",
-      playerId: "p1",
-      ability: "celestialGrace",
-      energyGained: 2,
-    });
-    expect(grace.effect).toMatchObject({ kind: "abilityUsed", ability: { id: "celestialGrace", energyGained: 2 } });
-    expect(grace.players[0]).toMatchObject({ energy: initial().players[0].energy + 2, abilityCharge: 0 });
-    expect(grace.abilityInUse).toBe("celestialGrace");
+  it("spends a used ability, in effect for the turn unless it's reactive", () => {
+    const [wind] = replay(initial(), { type: "abilityUsed", playerId: "p1", ability: "tailwind" });
+    expect(wind.effect).toMatchObject({ kind: "abilityUsed", ability: { id: "tailwind" } });
+    expect(wind.players[0]).toMatchObject({ abilityCharge: 0 });
+    expect(wind.abilityInUse).toBe("tailwind");
 
-    const [ward] = replay(initial(), { type: "abilityUsed", playerId: "p1", ability: "trapWard", energyGained: 0 });
+    const [ward] = replay(initial(), { type: "abilityUsed", playerId: "p1", ability: "trapWard" });
     expect(ward.abilityInUse).toBeNull();
   });
 

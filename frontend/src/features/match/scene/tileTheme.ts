@@ -1,6 +1,8 @@
 import { TRAP_DRAIN_ENERGY } from "@/game/domain/landing";
+import { WINGS_BONUS } from "@/game/domain/blessings";
 import { BLESSING_ENERGY } from "@/game/domain/realms";
-import type { RealmKind, Tile, TrapCurse } from "@/game/domain/types";
+import type { Blessing, RealmKind, Tile, TrapCurse } from "@/game/domain/types";
+import { CARD_TEXT } from "../ui/cards/cardText";
 
 export type TileKind =
   | "regular"
@@ -103,6 +105,16 @@ export function themeFor(
   return { kind: "regular", ...THEMES.regular, label: "", caption: "" };
 }
 
+/** What each blessing tile says it gives (heaven's timed ones last BLESSING_TURNS rounds). */
+const BLESSING_CAPTION: Readonly<Record<Blessing, string>> = {
+  energy: `+${BLESSING_ENERGY} ENERGIA`,
+  shield: "ESCUDO",
+  wings: `ASAS · +${WINGS_BONUS} CASAS`,
+  halo: "AURÉOLA SAGRADA",
+  inspiration: "INSPIRAÇÃO",
+  spring: "FONTE DE LUZ",
+};
+
 /** Track tiles share their realm's stone and glow; the effect decides the icon and words. */
 function trackTheme(tile: Tile, realm: RealmKind): TileTheme {
   const palette = REALM_PALETTES[realm];
@@ -117,9 +129,17 @@ function trackTheme(tile: Tile, realm: RealmKind): TileTheme {
   if (effect.kind === "curse")
     return { kind: "curse", ...base, glowIntensity: 0.8, label: "MALDIÇÃO", caption: CURSE_CAPTION[effect.curse] };
   if (effect.kind === "blessing") {
-    const caption = effect.blessing === "shield" ? "ESCUDO" : `+${BLESSING_ENERGY} ENERGIA`;
+    const caption = BLESSING_CAPTION[effect.blessing];
     return { kind: "blessing", ...base, glowIntensity: 0.8, label: "BÊNÇÃO", caption };
   }
+  if (effect.kind === "card" && effect.cardId)
+    return {
+      kind: "card",
+      ...base,
+      glowIntensity: 0.8,
+      label: "DIVINA",
+      caption: CARD_TEXT[effect.cardId].name.toUpperCase(),
+    };
   if (effect.kind === "card") return { kind: "card", ...base, label: "CARTA", caption: "+1 NA MÃO" };
   if (effect.kind === "extraTurn") return { kind: "extraTurn", ...base, label: "JOGUE", caption: "DE NOVO" };
   if (effect.kind === "skipTurn")

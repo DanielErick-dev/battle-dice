@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
 import type { BoardDefinition } from "./board";
 import { cardBlocker } from "./cardPlay";
-import { CARD_CATALOG, HAND_LIMIT, MAX_ENERGY, STARTING_HAND, standardDeck, type CardId } from "./cards";
+import {
+  CARD_CATALOG,
+  cardCost,
+  HAND_LIMIT,
+  HEALING_HERB_ENERGY,
+  MAX_ENERGY,
+  STARTING_HAND,
+  standardDeck,
+  type CardId,
+} from "./cards";
 import { GameRuleError, type GameCommand, type GameErrorCode } from "./commands";
 import { sequenceDice } from "./dice";
 import { applyCommand, createGame } from "./engine";
@@ -72,8 +81,8 @@ describe("dealing", () => {
   });
 
   it("builds a fixed, balanced standard deck", () => {
-    expect(standardDeck({ withOpponents: false })).toHaveLength(22);
-    expect(standardDeck({ withOpponents: true })).toHaveLength(26);
+    expect(standardDeck({ withOpponents: false })).toHaveLength(20);
+    expect(standardDeck({ withOpponents: true })).toHaveLength(25);
   });
 
   it("leaves opponent-targeting cards out of solo decks", () => {
@@ -84,13 +93,13 @@ describe("dealing", () => {
 });
 
 describe("energy", () => {
-  it("grows by one every two of the player's turns", () => {
+  it("grows by one every turn of the player's", () => {
     let state = game([DUO[0]]);
     state = roll(state, "p1", 1).state;
-    expect(player(state, "p1")).toMatchObject({ energy: 1, energyCharge: 1 });
+    expect(player(state, "p1")).toMatchObject({ energy: 2, energyCharge: 0 });
 
     state = roll(state, "p1", 1).state;
-    expect(player(state, "p1")).toMatchObject({ energy: 2, energyCharge: 0 });
+    expect(player(state, "p1")).toMatchObject({ energy: 3, energyCharge: 0 });
   });
 
   it("never goes past the maximum", () => {
@@ -118,7 +127,10 @@ describe("card tiles", () => {
   });
 
   it("pause for a discard when the hand is full, then pass the turn", () => {
-    const full = ["a", "b", "c", "d", "e", "f"].map((uid) => card("healingHerb", uid));
+    const full = "abcdefgh"
+      .slice(0, HAND_LIMIT)
+      .split("")
+      .map((uid) => card("healingHerb", uid));
     const state = withPlayer(game(), "p1", { hand: full });
     const drawn = player(state, "p1").deck[0];
 
@@ -132,7 +144,11 @@ describe("card tiles", () => {
       playerId: "p1",
       cardUid: "b",
     });
-    expect(player(resumed, "p1").hand.map(({ uid }) => uid)).toEqual(["a", "c", "d", "e", "f", drawn.uid]);
+    expect(player(resumed, "p1").hand.map(({ uid }) => uid)).toEqual([
+      "a",
+      ..."cdefgh".slice(0, HAND_LIMIT - 2).split(""),
+      drawn.uid,
+    ]);
     expect(player(resumed, "p1").hand).toHaveLength(HAND_LIMIT);
     expect(player(resumed, "p1").discard.map(({ uid }) => uid)).toEqual(["b"]);
     expect(events.at(-1)).toEqual({ type: "turnChanged", playerId: "p2" });
@@ -176,7 +192,7 @@ describe("playing cards", () => {
       energy: 5,
     });
     const after = play(state, "p1", "x").state;
-    expect(player(after, "p1").energy).toBe(4);
+    expect(player(after, "p1").energy).toBe(3);
     expectRuleError(() => play(after, "p1", "y"), "CARD_ALREADY_PLAYED");
   });
 
@@ -202,10 +218,10 @@ describe("playing cards", () => {
     expect(state.currentPlayerIndex).toBe(0);
   });
 
-  it("Healing Herb restores 4 energy and heals a lost turn", () => {
+  it("Healing Herb restores energy and heals a lost turn", () => {
     const state = withPlayer(holding("healingHerb", 1), "p1", { skipTurns: 1 });
     const healed = player(play(state, "p1", "test:healingHerb").state, "p1");
-    expect(healed.energy).toBe(4);
+    expect(healed.energy).toBe(1 - cardCost("healingHerb") + HEALING_HERB_ENERGY);
     expect(healed.skipTurns).toBe(0);
   });
 
@@ -234,11 +250,18 @@ describe("playing cards", () => {
     expectRuleError(() => play(shielded, "p1", "test:arcaneShield"), "ALREADY_SHIELDED");
   });
 
-  it("dice cards can't stack on a roll modifier that is still waiting", () => {
-    const boosted = withPlayer(holding("luckyCharm"), "p1", {
-      diceBoost: { kind: "double" },
-    });
-    expectRuleError(() => play(boosted, "p1", "test:luckyCharm"), "DICE_BOOST_ACTIVE");
+  it("a dice card can't stack on a waiting modifier of the same kind", () => {
+    const thrown = withPlayer(holding("oracleEye"), "p1", { diceBoost: { kind: "double" } });
+    expectRuleError(() => play(thrown, "p1", "test:oracleEye"), "DICE_BOOST_ACTIVE");
+    const bonused = withPlayer(holding("luckyCharm"), "p1", { diceBonus: { amount: 3, rolls: 2 } });
+    expectRuleError(() => play(bonused, "p1", "test:luckyCharm"), "DICE_BOOST_ACTIVE");
+  });
+
+  it("Berserk Fury combos with Ancestral Awakening's bonus still waiting", () => {
+    const awakened = withPlayer(holding("berserkFury"), "p1", { diceBonus: { amount: 3, rolls: 1 }, energy: 5 });
+    const { state, events } = roll(play(awakened, "p1", "test:berserkFury").state, "p1", 2, 4);
+    expect(events[0]).toMatchObject({ value: 9, dice: [2, 4], bonus: 3 });
+    expect(player(state, "p1")).toMatchObject({ diceBoost: null, diceBonus: null });
   });
 
   it("Ancient Scroll draws two cards", () => {
@@ -249,8 +272,14 @@ describe("playing cards", () => {
   });
 
   it("Ancient Scroll asks for a discard when the second card doesn't fit, without ending the turn", () => {
-    const hand = [card("ancientScroll"), ...["a", "b", "c", "d", "e"].map((uid) => card("windStep", uid))];
-    const state = withPlayer(game(), "p1", { hand, energy: 1 });
+    const hand = [
+      card("ancientScroll"),
+      ..."abcdefg"
+        .slice(0, HAND_LIMIT - 1)
+        .split("")
+        .map((uid) => card("windStep", uid)),
+    ];
+    const state = withPlayer(game(), "p1", { hand, energy: 2 });
     const paused = play(state, "p1", "test:ancientScroll").state;
     expect(player(paused, "p1").hand).toHaveLength(HAND_LIMIT);
     expect(paused.pendingDiscard).toMatchObject({
@@ -277,7 +306,7 @@ describe("playing cards", () => {
       dice: [3],
       bonus: 2,
     });
-    expect(player(state, "p1")).toMatchObject({ position: 6, diceBoost: null });
+    expect(player(state, "p1")).toMatchObject({ position: 6, diceBonus: null });
   });
 
   it("Oracle Eye throws two dice and keeps the higher one", () => {
@@ -297,15 +326,11 @@ describe("playing cards", () => {
     const awakened = play(holding("ancestralAwakening"), "p1", "test:ancestralAwakening").state;
     const first = roll(awakened, "p1", 1);
     expect(first.events[0]).toMatchObject({ value: 4, bonus: 3 });
-    expect(player(first.state, "p1").diceBoost).toEqual({
-      kind: "bonus",
-      amount: 3,
-      rolls: 1,
-    });
+    expect(player(first.state, "p1").diceBonus).toEqual({ amount: 3, rolls: 1 });
 
     const second = roll(roll(first.state, "p2", 1).state, "p1", 1);
     expect(second.events[0]).toMatchObject({ value: 4, bonus: 3 });
-    expect(player(second.state, "p1").diceBoost).toBeNull();
+    expect(player(second.state, "p1").diceBonus).toBeNull();
   });
 
   it("Berserk Fury rolls two dice and adds them", () => {
@@ -363,6 +388,15 @@ describe("playing cards", () => {
       path: [8, 7, 6],
     });
     expect(player(next, "p2").position).toBe(6);
+  });
+
+  it("Fate Swap trades places with an opponent", () => {
+    expectRuleError(() => play(holding("fateSwap", 9), "p1", "test:fateSwap", { targetId: "p2" }), "NOT_ENOUGH_ENERGY");
+    const state = withPlayer(withPlayer(holding("fateSwap", 10), "p1", { position: 4 }), "p2", { position: 17 });
+    const next = play(state, "p1", "test:fateSwap", { targetId: "p2" }).state;
+    expect(player(next, "p1").position).toBe(17);
+    expect(player(next, "p2").position).toBe(4);
+    expect(player(next, "p1").energy).toBe(0);
   });
 
   it("Blinding Flash costs an opponent their next turn", () => {

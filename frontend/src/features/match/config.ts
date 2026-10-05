@@ -38,6 +38,8 @@ export interface PlaybackTimings {
   arrowVolleyMs: number;
   /** Arrow Rain: the arrows hit, before the opponents are knocked back. */
   arrowImpactMs: number;
+  /** A turn's outcome stays in view this long before play (and the camera) moves on to the next player. */
+  turnHandoffMs: number;
 }
 
 export const DEFAULT_TIMINGS: PlaybackTimings = {
@@ -63,4 +65,5 @@ export const DEFAULT_TIMINGS: PlaybackTimings = {
   arrowAimMs: 700,
   arrowVolleyMs: 1500,
   arrowImpactMs: 450,
+  turnHandoffMs: 700,
 };

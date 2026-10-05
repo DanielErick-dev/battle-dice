@@ -3,20 +3,24 @@ import {
   ABILITY_CYCLE,
   ARROW_RAIN_PUSH,
   CARD_GAMBLE_DRAWS,
+  CARD_GAMBLE_EPICS,
+  CARD_GAMBLE_JACKPOT,
   CARD_GAMBLE_LOSES_UP_TO,
   CARD_GAMBLE_STOLEN,
-  CELESTIAL_GRACE_ENERGY,
-  CRIMSON_MARCH_BONUS,
+  TAILWIND_BONUS,
   DORMANT_FURY_MULTIPLIER,
   LEVITATION_TURNS,
   LONG_ABILITY_CYCLE,
+  SHORT_ABILITY_CYCLE,
+  TRANSMUTATION_CARDS,
+  TRANSMUTATION_FALLBACK_LEVEL,
   RESURRECTION_CARDS,
   abilityCycle,
   type AbilityId,
 } from "./abilities";
 import type { BoardDefinition } from "./board";
-import { CARD_CATALOG, HAND_LIMIT } from "./cards";
-import { transmutationPool } from "./transmutation";
+import { CARD_CATALOG, HAND_LIMIT, MAX_RARITY_LEVEL, rarityLevel } from "./cards";
+import { transmutationLevel, transmutationPool } from "./transmutation";
 import { GameRuleError, type GameCommand, type GameErrorCode } from "./commands";
 import { sequenceDice } from "./dice";
 import { applyCommand, createGame } from "./engine";
@@ -69,7 +73,7 @@ function expectRuleError(action: () => unknown, code: GameErrorCode) {
 
 describe("character abilities", () => {
   it("charge over three turns, counting the first, then stay ready until used", () => {
-    let state = game("crimsonMarch");
+    let state = game("tailwind");
     const readyAt: number[] = [];
     for (let turn = 1; turn <= 6; turn++) {
       const { state: next, events } = roll(state, 1);
@@ -81,7 +85,7 @@ describe("character abilities", () => {
   });
 
   it("recharge from empty once used", () => {
-    const used = activate(ready(game("crimsonMarch"))).state;
+    const used = activate(ready(game("tailwind"))).state;
     expect(used.players[0].abilityCharge).toBe(0);
     expectRuleError(() => activate(used), "ABILITY_NOT_READY");
     expectRuleError(() => activate(roll(roll(used, 1).state, 1).state), "ABILITY_NOT_READY");
@@ -100,15 +104,15 @@ describe("character abilities", () => {
     expect(play(activate(once).state, "c1").state.cardsPlayedThisTurn).toBe(2);
   });
 
-  it("Crimson March walks further on the turn it's used", () => {
-    const { events, state } = roll(activate(ready(game("crimsonMarch"))).state, 3);
+  it("Tailwind walks further on the turn it's used", () => {
+    const { events, state } = roll(activate(ready(game("tailwind"))).state, 3);
     expect(events).toContainEqual(
       expect.objectContaining({
         type: "diceRolled",
-        value: 3 + CRIMSON_MARCH_BONUS,
+        value: 3 + TAILWIND_BONUS,
       }),
     );
-    expect(state.players[0].position).toBe(1 + 3 + CRIMSON_MARCH_BONUS);
+    expect(state.players[0].position).toBe(1 + 3 + TAILWIND_BONUS);
   });
 
   describe("Dormant Fury", () => {
@@ -137,70 +141,63 @@ describe("character abilities", () => {
     });
   });
 
-  it("Celestial Grace gives energy right away, and waits while energy is full", () => {
-    const { state, events } = activate(withPlayer(ready(game("celestialGrace")), { energy: 1 }));
-    expect(events).toContainEqual({
-      type: "abilityUsed",
-      playerId: "p1",
-      ability: "celestialGrace",
-      energyGained: CELESTIAL_GRACE_ENERGY,
-    });
-    expect(state.players[0].energy).toBe(1 + CELESTIAL_GRACE_ENERGY);
-    expectRuleError(() => activate(withPlayer(ready(game("celestialGrace")), { energy: 5 })), "ENERGY_FULL");
-  });
-
-  it("Dragon Hoard draws cards right away", () => {
-    const before = withPlayer(ready(game("dragonHoard")), { hand: [] });
+  it("Study Session draws cards right away", () => {
+    const before = withPlayer(ready(game("studySession")), { hand: [] });
     const { state, events } = activate(before);
     expect(events.filter((event) => event.type === "cardDrawn")).toHaveLength(2);
     expect(state.players[0].hand).toHaveLength(2);
   });
 
   describe("Transmutation", () => {
-    const transmute = (state: GameState, cardUid?: string) =>
-      send(state, { type: "activateAbility", playerId: "p1", cardUids: cardUid === undefined ? [] : [cardUid] });
+    const transmute = (state: GameState, ...cardUids: string[]) =>
+      send(state, { type: "activateAbility", playerId: "p1", cardUids });
     const holding = (...ids: CardInstance["cardId"][]) =>
       withPlayer(ready(game("transmutation")), { hand: cards(...ids) });
 
-    it("turns the chosen card into a rare or epic, in the same place", () => {
-      const { state, events } = transmute(holding("windStep", "healingHerb"), "c1");
+    it("sacrifices two cards for one of their levels added up, in the first one's place", () => {
+      // Two uncommon (level 2) cards make an epic (level 4).
+      const { state, events } = transmute(holding("windStep", "arcaneShield", "oracleEye"), "c1", "c2");
       const [kept, changed] = state.players[0].hand;
+      expect(state.players[0].hand).toHaveLength(2);
       expect(kept).toEqual({ uid: "c0", cardId: "windStep" });
-      expect(["rare", "epic"]).toContain(CARD_CATALOG[changed.cardId].rarity);
-      expect(changed.uid).not.toBe("c1");
+      expect(CARD_CATALOG[changed.cardId].rarity).toBe("epic");
       expect(events).toContainEqual({
         type: "cardTransmuted",
         playerId: "p1",
-        from: { uid: "c1", cardId: "healingHerb" },
+        from: { uid: "c1", cardId: "arcaneShield" },
+        sacrificed: { uid: "c2", cardId: "oracleEye" },
         to: changed,
       });
       expect(state.players[0].abilityCharge).toBe(0);
     });
 
-    it("charges over the long cycle", () => {
-      expect(abilityCycle("transmutation")).toBe(LONG_ABILITY_CYCLE);
+    it("adds the levels up to the highest one", () => {
+      expect(transmutationLevel(["windStep", "healingHerb"])).toBe(2);
+      expect(transmutationLevel(["windStep", "mysticGate"])).toBe(MAX_RARITY_LEVEL);
+      expect(transmutationLevel(["fateRune", "mysticGate"])).toBe(MAX_RARITY_LEVEL);
     });
 
-    it("draws from every rare and epic but the card itself", () => {
-      expect(transmutationPool("windStep", false)).toEqual([
-        "berserkFury",
-        "oracleEye",
-        "mysticGate",
-        "fateRune",
-        "ancestralAwakening",
-      ]);
-      expect(transmutationPool("mysticGate", false)).not.toContain("mysticGate");
+    it(`takes exactly ${TRANSMUTATION_CARDS} cards`, () => {
+      const hand = holding("windStep", "healingHerb", "luckyCharm");
+      expectRuleError(() => transmute(hand, "c0"), "UNKNOWN_CARD");
+      expectRuleError(() => transmute(hand, "c0", "c1", "c2"), "UNKNOWN_CARD");
+      expectRuleError(() => transmute(hand, "c0", "nope"), "UNKNOWN_CARD");
     });
 
-    it("never gives a card that needs an opponent when playing alone", () => {
-      expect(transmutationPool("windStep", false)).not.toContain("arcaneBlast");
-      expect(transmutationPool("windStep", true)).toContain("arcaneBlast");
+    it(`with fewer than ${TRANSMUTATION_CARDS} cards in hand, distils one of level ${TRANSMUTATION_FALLBACK_LEVEL}`, () => {
+      const { state } = transmute(holding("windStep"));
+      expect(state.players[0].hand).toHaveLength(2);
+      expect(rarityLevel(state.players[0].hand[1].cardId)).toBe(TRANSMUTATION_FALLBACK_LEVEL);
     });
 
-    it("needs a card from the hand", () => {
-      expectRuleError(() => transmute(holding("windStep")), "UNKNOWN_CARD");
-      expectRuleError(() => transmute(holding("windStep"), "nope"), "UNKNOWN_CARD");
-      expectRuleError(() => transmute(holding(), "c0"), "EMPTY_HAND");
+    it("charges over the short cycle", () => {
+      expect(abilityCycle("transmutation")).toBe(ABILITY_CYCLE);
+    });
+
+    it("gives relics at the top level, and never a card that needs an opponent when playing alone", () => {
+      expect(transmutationPool(MAX_RARITY_LEVEL, false)).toEqual(["celestialLight", "heavenlyAegis", "ascension"]);
+      expect(transmutationPool(MAX_RARITY_LEVEL, true)).toContain("fateSwap");
+      expect(transmutationPool(2, false)).not.toContain("arcaneBlast");
     });
   });
 
@@ -215,7 +212,7 @@ describe("character abilities", () => {
 
     it("floats over traps without being thrown back or cursed", () => {
       const { state, events } = roll(floating(), 2);
-      expect(state.players[0]).toMatchObject({ position: 12, energy: 3 });
+      expect(state.players[0]).toMatchObject({ position: 12, energy: 4 });
       expect(events).toContainEqual({ type: "levitatedOver", playerId: "p1", tile: 12 });
       expect(events.some((event) => event.type === "trapTriggered" || event.type === "trapCursed")).toBe(false);
     });
@@ -264,7 +261,7 @@ describe("character abilities", () => {
 
     it("leaves a pinned trap harmless to land on, then frees it", () => {
       const { state, events } = roll(aiming().state, 2);
-      expect(state.players[0]).toMatchObject({ position: 12, energy: 3 });
+      expect(state.players[0]).toMatchObject({ position: 12, energy: 4 });
       expect(events.some((event) => event.type === "trapTriggered" || event.type === "wardOffered")).toBe(false);
       expect(events).toContainEqual({ type: "trapUnpinned", tile: 12 });
       expect(state.pinnedTraps).toEqual([20]);
@@ -283,7 +280,7 @@ describe("character abilities", () => {
       expect(events.some((event) => event.type === "hiddenTrapSprung")).toBe(false);
     });
 
-    it("knocks every opponent back instead of pinning traps", () => {
+    const table = () => {
       const start = createGame(
         BOARD,
         [
@@ -293,7 +290,7 @@ describe("character abilities", () => {
         ],
         { random: seededRandom(7) },
       );
-      const placed = {
+      return {
         ...start,
         players: start.players.map((player, index) => ({
           ...player,
@@ -301,11 +298,27 @@ describe("character abilities", () => {
           abilityCharge: index === 0 ? LONG_ABILITY_CYCLE : 0,
         })),
       };
-      const { state, events } = activate(placed);
+    };
+
+    it("aimed at the opponents, knocks every one of them back instead of pinning traps", () => {
+      const { state, events } = send(table(), { type: "activateAbility", playerId: "p1", volley: "opponents" });
       expect(state.players.map((player) => player.position)).toEqual([10, 30 - ARROW_RAIN_PUSH, 1]);
       expect(state.pinnedTraps).toEqual([]);
       expect(events).toContainEqual({ type: "arrowsLoosed", playerId: "p1", targets: [30, 3], pinned: [], hidden: [] });
       expect(events.filter((event) => event.type === "playerPushed")).toHaveLength(2);
+    });
+
+    it("with opponents about but aimed at nobody, pins the traps ahead", () => {
+      const { state } = activate(table());
+      expect(state.players.map((player) => player.position)).toEqual([10, 30, 3]);
+      expect(state.pinnedTraps.length).toBeGreaterThan(0);
+    });
+
+    it("can't be aimed at the opponents with none in reach", () => {
+      expectRuleError(
+        () => send(ready(game("arrowRain")), { type: "activateAbility", playerId: "p1", volley: "opponents" }),
+        "INVALID_TARGET",
+      );
     });
   });
 
@@ -352,12 +365,28 @@ describe("character abilities", () => {
     });
 
     it("a high roll steals two random cards from an opponent who has any", () => {
-      const { state, events } = gamble(table([theirs("p1", 1), theirs("p2", 4), []]), 6);
+      const { state, events } = gamble(table([theirs("p1", 1), theirs("p2", 4), []]), CARD_GAMBLE_JACKPOT - 1);
       expect(state.players.map((player) => player.hand.length)).toEqual([1 + CARD_GAMBLE_STOLEN, 2, 0]);
       const stolen = events.find((event) => event.type === "cardsStolen");
       expect(stolen).toMatchObject({ playerId: "p1", from: "p2", discarded: [] });
       expect(state.players[0].hand).toEqual(
         expect.arrayContaining([...(stolen?.type === "cardsStolen" ? stolen.cards : [])]),
+      );
+    });
+
+    it("bets against the opponent picked: a win steals from them, a loss hands them a card", () => {
+      const target = { type: "activateAbility" as const, playerId: "p1", targetId: "p3" };
+      const won = send(table([theirs("p1", 1), theirs("p2", 4), theirs("p3", 3)]), target, [CARD_GAMBLE_JACKPOT - 1]);
+      expect(won.state.players.map((player) => player.hand.length)).toEqual([1 + CARD_GAMBLE_STOLEN, 4, 1]);
+      const lost = send(table([theirs("p1", 2), theirs("p2", 4), theirs("p3", 3)]), target, [1]);
+      expect(lost.state.players.map((player) => player.hand.length)).toEqual([1, 4, 4]);
+    });
+
+    it("refuses a bet against someone who isn't an opponent", () => {
+      const start = table([theirs("p1", 1), theirs("p2", 4), []]);
+      expectRuleError(
+        () => send(start, { type: "activateAbility", playerId: "p1", targetId: "p1" }, [5]),
+        "INVALID_TARGET",
       );
     });
 
@@ -368,9 +397,40 @@ describe("character abilities", () => {
       expect(events).toContainEqual(expect.objectContaining({ type: "cardsStolen", from: "p1" }));
     });
 
+    it("alone, the jackpot conjures epic cards", () => {
+      const { state } = gamble(alone(), CARD_GAMBLE_JACKPOT);
+      const conjured = state.players[0].hand.slice(3);
+      expect(conjured).toHaveLength(CARD_GAMBLE_EPICS);
+      expect(conjured.every((card) => CARD_CATALOG[card.cardId].rarity === "epic")).toBe(true);
+    });
+
+    it("the jackpot steals epics first, from an opponent holding some", () => {
+      const epic = { uid: "p3:epic", cardId: "mysticGate" as const };
+      const { state, events } = gamble(table([[], theirs("p2", 3), [...theirs("p3", 2), epic]]), CARD_GAMBLE_JACKPOT);
+      expect(events).toContainEqual(expect.objectContaining({ type: "cardsStolen", from: "p3" }));
+      expect(state.players[0].hand).toHaveLength(CARD_GAMBLE_STOLEN);
+      expect(state.players[0].hand).toContainEqual(epic);
+    });
+
+    it("the jackpot tops up with random cards when there aren't enough epics", () => {
+      const { state } = gamble(table([[], theirs("p2", 3), []]), CARD_GAMBLE_JACKPOT);
+      expect(state.players.map((player) => player.hand.length)).toEqual([CARD_GAMBLE_STOLEN, 1, 0]);
+    });
+
+    it("alone, the jackpot never conjures a card aimed at an opponent", () => {
+      for (let seed = 0; seed < 20; seed++) {
+        const { state } = applyCommand(
+          alone(),
+          { type: "activateAbility", playerId: "p1" },
+          { rollDice: sequenceDice([CARD_GAMBLE_JACKPOT]), random: seededRandom(seed) },
+        );
+        expect(state.players[0].hand.every((card) => !CARD_CATALOG[card.cardId].targetsOpponent)).toBe(true);
+      }
+    });
+
     it("sends what doesn't fit a full hand to the discard pile", () => {
-      const { state, events } = gamble(table([theirs("p1", 5), theirs("p2", 3), []]), 5);
-      expect(state.players[0].hand).toHaveLength(6);
+      const { state, events } = gamble(table([theirs("p1", HAND_LIMIT - 1), theirs("p2", 3), []]), 5);
+      expect(state.players[0].hand).toHaveLength(HAND_LIMIT);
       expect(state.players[0].discard).toHaveLength(1);
       const stolen = events.find((event) => event.type === "cardsStolen");
       expect(stolen?.type === "cardsStolen" && stolen.discarded).toHaveLength(1);
@@ -404,7 +464,7 @@ describe("character abilities", () => {
         { ...pile[1], risen: true },
       ]);
       expectRuleError(() => resurrect(shaman({ hand: [], discard: pile }), "c0", "c1", "c2"), "TOO_MANY_CARDS");
-      const almostFull = cards("windStep", "windStep", "windStep", "windStep", "windStep").map((card) => ({
+      const almostFull = cards(...Array<"windStep">(HAND_LIMIT - 1).fill("windStep")).map((card) => ({
         ...card,
         uid: `h${card.uid}`,
       }));
@@ -472,7 +532,7 @@ describe("character abilities", () => {
       });
       expect(state.players[0]).toMatchObject({
         position: 12,
-        energy: 3,
+        energy: 4,
         abilityCharge: 1,
       });
       expect(state.pendingWard).toBeNull();
@@ -511,10 +571,10 @@ describe("character abilities", () => {
 
     it("declined, lets the trap strike and stays charged", () => {
       const { state } = answer(roll(onTheWay(), 1).state, false);
-      expect(state.players[0]).toMatchObject({ position: 8, energy: 1, abilityCharge: LONG_ABILITY_CYCLE });
+      expect(state.players[0]).toMatchObject({ position: 8, energy: 2, abilityCharge: SHORT_ABILITY_CYCLE });
     });
 
-    it("takes five turns to charge, counting the first", () => {
+    it("takes two turns to charge, counting the first", () => {
       let state = game("trapWard");
       const readyAt: number[] = [];
       for (let turn = 1; turn <= 8; turn++) {
@@ -522,8 +582,8 @@ describe("character abilities", () => {
         if (events.some((event) => event.type === "abilityReady")) readyAt.push(turn + 1);
         state = next;
       }
-      expect(readyAt).toEqual([LONG_ABILITY_CYCLE]);
-      expect(abilityCycle("trapWard")).toBe(5);
+      expect(readyAt).toEqual([SHORT_ABILITY_CYCLE]);
+      expect(abilityCycle("trapWard")).toBe(2);
     });
 
     it("is offered even behind the Arcane Shield, which it then keeps", () => {
@@ -534,7 +594,7 @@ describe("character abilities", () => {
 
     it("declined behind the Arcane Shield, lets the shield take the trap and stays charged", () => {
       const { state } = answer(roll(onTheWay({ shielded: true }), 1).state, false);
-      expect(state.players[0]).toMatchObject({ position: 12, shielded: false, abilityCharge: LONG_ABILITY_CYCLE });
+      expect(state.players[0]).toMatchObject({ position: 12, shielded: false, abilityCharge: SHORT_ABILITY_CYCLE });
       expect(state.destroyedTraps).toEqual([]);
     });
 

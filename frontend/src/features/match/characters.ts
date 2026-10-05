@@ -42,8 +42,12 @@ export interface CharacterDefinition {
   introCards?: IntroCardBeats;
   /** A bow of light is drawn and an arrow loosed into the sky through the intro (see ArcherIntro). */
   introArrows?: IntroArrowBeats;
+  /** Through the intro they write a sigil in the air that bursts into four scrolls (see ScribeIntro). */
+  introSeals?: IntroSealBeats;
   /** Bones and skulls rise from the ground round them through the intro (see BoneRise). */
   introBones?: IntroBoneBeats;
+  /** The ground they stand on in the menu, in place of the rune pedestal (see Graveyard, Scriptorium). */
+  stage?: "graveyard" | "scriptorium";
   /**
    * Lightning trails their hands and feet through the intro and their lightning dash, and crackles
    * in their hands while it waits for the roll (see LimbLightning).
@@ -85,6 +89,17 @@ export interface IntroBoneBeats {
   releaseSeconds: number;
 }
 
+/** Beats of an intro the sigil and scrolls follow (see CharacterDefinition.introSeals). */
+export interface IntroSealBeats {
+  /** Seconds into the intro when the finger starts writing, and when the writing is done. */
+  writeSeconds: number;
+  writtenSeconds: number;
+  /** Seconds into the intro when the arms go up: the sigil bursts into scrolls. */
+  raiseSeconds: number;
+  /** Seconds into the intro when the arms come down: the scrolls burn away. */
+  releaseSeconds: number;
+}
+
 const model = (id: string) => `/models/characters/${id}.glb`;
 
 /** Every character, made with Meshy AI (see `playable`). The ids name the model files. */
@@ -107,30 +122,6 @@ export const CHARACTERS = {
     model: model("crimsonEnchantress"),
     ability: "doubleCast",
     playable: true,
-  },
-  eclipseQueen: {
-    name: "Rainha do Eclipse",
-    epithet: "Soberana da lua rubra",
-    color: "#f97316",
-    model: model("eclipseQueen"),
-    ability: "crimsonMarch",
-    playable: false,
-  },
-  blindSeraph: {
-    name: "Serafim Vendado",
-    epithet: "Anjo que vê sem olhos",
-    color: "#fcd34d",
-    model: model("blindSeraph"),
-    ability: "celestialGrace",
-    playable: false,
-  },
-  rosewingDragoness: {
-    name: "Dragoa das Rosas",
-    epithet: "Asas de pétalas e fogo",
-    color: "#f472b6",
-    model: model("rosewingDragoness"),
-    ability: "dragonHoard",
-    playable: false,
   },
   crimsonWitch: {
     name: "Bruxa Carmesim",
@@ -212,6 +203,7 @@ export const CHARACTERS = {
     shieldColor: "#2dd4bf",
     // His intro: the arms rise from 0.5 s, are up from 1.4 s and come down from 2.9 s.
     introBones: { raiseSeconds: 0.5, peakSeconds: 1.4, releaseSeconds: 2.9 },
+    stage: "graveyard",
   },
   fleshScribe: {
     name: "Escriba da Carne",
@@ -222,6 +214,9 @@ export const CHARACTERS = {
     ability: "forbiddenSeals",
     playable: true,
     shieldColor: "#d946ef",
+    // His intro: he writes from 0.7 s to 3.3 s, throws his arms up at 4.4 s and lowers them at 7.15 s.
+    introSeals: { writeSeconds: 0.7, writtenSeconds: 3.3, raiseSeconds: 4.4, releaseSeconds: 7.15 },
+    stage: "scriptorium",
   },
   shadowWarden: {
     name: "Guardião das Sombras",
@@ -232,6 +227,101 @@ export const CHARACTERS = {
     ability: "spectralApparitions",
     playable: true,
     shieldColor: "#7dd3fc",
+  },
+  purgatoryKunoichi: {
+    name: "Kage Rubra",
+    epithet: "O olhar que queima",
+    // Scarlet flame, apart from the crimsons and pinks of the other reds.
+    color: "#ff4d2e",
+    model: model("purgatoryKunoichi"),
+    ability: "ocularAwakening",
+    playable: true,
+    shieldColor: "#ff4d2e",
+  },
+  crystalFairy: {
+    name: "Fada Cristalina",
+    epithet: "O encanto que cura o caminho",
+    // Bright cyan, the glint of her crystals; brighter and greener than the Warden's blue.
+    color: "#22d3ee",
+    model: model("crystalFairy"),
+    ability: "fairyBloom",
+    playable: true,
+    shieldColor: "#22d3ee",
+  },
+  // The eight below came from Meshy with idle and run only: names and abilities are placeholders
+  // until their kits (intro, cast, effects) are made.
+  windGuardian: {
+    name: "Zéfiro",
+    epithet: "O vento sempre a favor",
+    // Mint, the colour of a clear gust.
+    color: "#86efac",
+    model: model("windGuardian"),
+    ability: "tailwind",
+    playable: true,
+    shieldColor: "#86efac",
+  },
+  tideMaiden: {
+    name: "Nerissa",
+    epithet: "Os olhos vendados, o escudo nunca erra",
+    color: "#2563eb",
+    model: model("tideMaiden"),
+    ability: "sacredBulwark",
+    playable: true,
+    shieldColor: "#2563eb",
+  },
+  crimsonStudent: {
+    name: "Akane",
+    epithet: "Lição decorada, carta na mão",
+    color: "#f9a8d4",
+    model: model("crimsonStudent"),
+    ability: "studySession",
+    playable: true,
+    shieldColor: "#f9a8d4",
+  },
+  frostfangBerserker: {
+    name: "Bjorn Presa-Gélida",
+    epithet: "Um uivo que congela o sangue",
+    color: "#60a5fa",
+    model: model("frostfangBerserker"),
+    ability: "glacialHowl",
+    playable: true,
+    shieldColor: "#60a5fa",
+  },
+  goldenGuardian: {
+    name: "Auric",
+    epithet: "Senhor das marés douradas",
+    color: "#f59e0b",
+    model: model("goldenGuardian"),
+    ability: "cleansingTide",
+    playable: true,
+    shieldColor: "#f59e0b",
+  },
+  seraphGuardian: {
+    name: "Seraphiel",
+    epithet: "Asas que abençoam o caminho",
+    color: "#fef3c7",
+    model: model("seraphGuardian"),
+    ability: "seraphBlessing",
+    playable: true,
+    shieldColor: "#fde68a",
+  },
+  clockworkSentinel: {
+    name: "Cronos",
+    epithet: "O tempo gira a seu favor",
+    color: "#b45309",
+    model: model("clockworkSentinel"),
+    ability: "timeWarp",
+    playable: true,
+    shieldColor: "#d97706",
+  },
+  sentinelMech: {
+    name: "Unidade Alva",
+    epithet: "Alvo travado",
+    color: "#e2e8f0",
+    model: model("sentinelMech"),
+    ability: "plasmaCannon",
+    playable: true,
+    shieldColor: "#e2e8f0",
   },
 } as const satisfies Record<string, CharacterDefinition>;
 
@@ -250,21 +340,43 @@ export function isPlayableCharacter(id: string): id is CharacterId {
   return isCharacterId(id) && CHARACTERS[id].playable;
 }
 
-/** A local player: plays as `id`, which also serves as their player id. */
+/** At most this many players share a local match. */
+export const MAX_LOCAL_PLAYERS = 4;
+
+/**
+ * The characters in a comma-separated list (as kept in the URL and the preferences): the playable
+ * ones, at most MAX_LOCAL_PLAYERS, the default character when none is left.
+ */
+export function parseCharacterList(list: string): CharacterId[] {
+  const ids = list.split(",").filter(isPlayableCharacter).slice(0, MAX_LOCAL_PLAYERS);
+  return ids.length > 0 ? ids : [DEFAULT_CHARACTER_ID];
+}
+
+/** A local player: their player id and name, the character they play and its ability. */
 export interface RosterEntry {
-  id: CharacterId;
+  id: PlayerId;
   name: string;
   ability: AbilityId;
+  character: CharacterId;
 }
 
-export function rosterEntry(id: CharacterId): RosterEntry {
-  const { name, ability } = CHARACTERS[id];
-  return { id, name, ability };
+/**
+ * The players of a local match, one per character, in turn order. Several may play the same
+ * character: the player id is their seat and character (`p2:crimsonWitch`), and a character
+ * played more than once is named with each one's seat.
+ */
+export function rosterOf(characters: readonly CharacterId[]): RosterEntry[] {
+  return characters.map((character, index) => {
+    const { name, ability } = CHARACTERS[character];
+    const repeated = characters.filter((other) => other === character).length > 1;
+    return { id: `p${index + 1}:${character}`, name: repeated ? `${name} ${index + 1}` : name, ability, character };
+  });
 }
 
-/** Local players use their character id as player id, so the id finds the character. */
+/** The character a local player plays: what follows the seat in their id (see rosterOf). */
 export function characterFor(playerId: PlayerId): CharacterDefinition | null {
-  return isCharacterId(playerId) ? CHARACTERS[playerId] : null;
+  const id = playerId.slice(playerId.indexOf(":") + 1);
+  return isCharacterId(id) ? CHARACTERS[id] : null;
 }
 
 const FALLBACK_COLOR = "#38bdf8";

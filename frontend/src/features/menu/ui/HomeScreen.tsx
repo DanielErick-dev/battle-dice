@@ -3,12 +3,14 @@
 import { Layers, Lock, Play, Settings, ShoppingBag, Users, type LucideIcon } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { CHARACTERS } from "@/features/match/characters";
+import { CHARACTERS, parseCharacterList } from "@/features/match/characters";
 import { ABILITY_TEXT } from "@/features/match/ui/abilityText";
 import { preferences, usePreference } from "@/features/settings/preferences";
 import { MenuBackdrop } from "./MenuShell";
 
-const CharacterStage = dynamic(() => import("./CharacterStage").then((module) => module.CharacterStage), { ssr: false });
+const CharacterStage = dynamic(() => import("./CharacterStage").then((module) => module.CharacterStage), {
+  ssr: false,
+});
 
 /** Parts of the game still to come, shown so the menu hints at where it's going. */
 const COMING_SOON: readonly { label: string; icon: LucideIcon }[] = [
@@ -19,7 +21,7 @@ const COMING_SOON: readonly { label: string; icon: LucideIcon }[] = [
 
 /** Main menu: start a match, open the settings, and a peek at the chosen character. */
 export function HomeScreen() {
-  const characterId = usePreference(preferences.character);
+  const [characterId] = parseCharacterList(usePreference(preferences.players));
   const character = CHARACTERS[characterId];
 
   return (
@@ -79,7 +81,10 @@ export function HomeScreen() {
           <p className="mt-1 text-xs font-bold tracking-wider text-violet-300 uppercase">
             {ABILITY_TEXT[character.ability].name}
           </p>
-          <Link href="/jogar" className="mt-2 text-xs font-bold tracking-wider text-amber-300/90 uppercase hover:text-amber-200">
+          <Link
+            href="/jogar"
+            className="mt-2 text-xs font-bold tracking-wider text-amber-300/90 uppercase hover:text-amber-200"
+          >
             Trocar personagem
           </Link>
         </aside>

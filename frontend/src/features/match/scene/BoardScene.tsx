@@ -1,20 +1,24 @@
 "use client";
 
+import { Preload } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { useMemo } from "react";
+import { Suspense, useMemo } from "react";
 import { getTile } from "@/game/domain/board";
 import { DICE_SIDES } from "@/game/domain/dice";
-import type { Board, Player, PlayerId, RealmKind } from "@/game/domain/types";
+import type { Board, Player, PlayerId, RealmKind, TileId } from "@/game/domain/types";
 import { characterFor, playerColor } from "../characters";
 import type { EffectsQuality } from "../config";
 import type { MatchView } from "../model/matchView";
-import { boardScaleFor, CameraRig } from "./CameraRig";
+import { boardScaleFor, CameraRig, type CameraFraming } from "./CameraRig";
+import { SceneWarmup } from "./SceneWarmup";
 import { createBoardLayout, tileOffsetFor, TILE_PITCH, type BoardLayout, type Vec3 } from "./boardLayout";
 import { ArenaEnvironment, HORIZON_COLOR } from "./environment/ArenaEnvironment";
 import { ArcaneBeam } from "./CardEffects";
 import { LEVITATE_HEIGHT } from "./character/figure";
 import { ArrowVolley, PinnedTrapMark } from "./character/ArrowRain";
+import { PickedTileMark } from "./character/PickedTileMark";
 import { SealScroll } from "./character/SealScroll";
+import { BlackFlameMark, EnchantedTileMark } from "./character/TileSpells";
 import { SpecterFigure } from "./character/SpecterFigure";
 import { SEAL_TEXT, SPECTER_TEXT } from "../ui/placementText";
 import { LightningDash } from "./character/LightningDash";
@@ -30,12 +34,21 @@ import { TileMesh } from "./TileMesh";
 import { SmashedTrapMark } from "./TrapSmash";
 import { pathColor } from "./tileTheme";
 
+/** Tiles being picked for an ability, right on the board (see TilePicking). */
+export interface BoardPicking {
+  /** The tiles that can be picked: they breathe and take clicks. */
+  tiles: ReadonlySet<TileId>;
+  /** Those picked so far, each marked with its tag in its colour. */
+  picked: readonly { tile: TileId; tag: string; color: string }[];
+  onPick: (tile: TileId) => void;
+}
+
 interface BoardSceneProps {
   board: Board;
   columns: number;
   view: MatchView;
-  /** Close-up camera that follows the action (for boards too big to frame whole). */
-  followCamera: boolean;
+  /** How the camera frames the play (following the action matters on boards too big to frame whole). */
+  cameraFraming: CameraFraming;
   /** The 3D die hit the ground; strength is 1 for the first impact and smaller after. */
   onDiceImpact: (strength: number) => void;
   /** "low" also renders at 1× pixel density, on top of lighter screen effects. */
@@ -45,6 +58,15 @@ interface BoardSceneProps {
    * everyone else's look alike (apparitions just like their Warden). Null shows no secrets.
    */
   viewerId: PlayerId | null;
+  /** Every character model in the match: the scene waits for them all before it shows. */
+  models: readonly string[];
+  /** Everything has loaded and been compiled on the GPU: the match can start. */
+  onReady: () => void;
+  /** The viewer is looking around on their own: the camera follows nobody (see CameraRig). */
+  freeLook: boolean;
+  /** Tiles being picked for an ability, or null. */
+  picking: BoardPicking | null;
+  onFreeLook: () => void;
 }
 
 /** Above this many tiles, face textures drop to half resolution to save GPU memory. */
@@ -58,14 +80,24 @@ export default function BoardScene({
   board,
   columns,
   view,
-  followCamera,
+  cameraFraming,
   onDiceImpact,
   quality,
   viewerId,
+  models,
+  onReady,
+  freeLook,
+  onFreeLook,
+  picking,
 }: BoardSceneProps) {
   const layout = useMemo(() => createBoardLayout(board, columns), [board, columns]);
   const mainTiles = useMemo(() => board.tiles.filter((tile) => !tile.track), [board]);
   const trapZoneTiles = useMemo(() => new Set(board.trapZones.flatMap((zone) => zone.tiles)), [board]);
+  // Snowed-over and burning tiles hide what stands on them under the spell.
+  const coveredTiles = useMemo(
+    () => new Set([...view.enchantedTiles, ...view.blackFlames].map(({ tile }) => tile)),
+    [view.enchantedTiles, view.blackFlames],
+  );
   const dash = view.dash;
   const dashPath = useMemo(() => dash?.path.map((tile) => layout.position(tile)) ?? [], [dash?.path, layout]);
   const volley = view.volley;
@@ -85,156 +117,195 @@ export default function BoardScene({
 
   // Antialiasing happens in the effect composer (multisampling), not on the canvas.
   return (
-    <Canvas shadows="percentage" dpr={quality === "high" ? [1, 2] : 1} camera={{ fov: 40 }} gl={{ antialias: false }}>
+    <Canvas
+      shadows="percentage"
+      dpr={quality === "high" ? [1, 2] : 1}
+      camera={{ fov: 40 }}
+      gl={{ antialias: false }}
+      onCreated={({ gl }) => watchContext(gl.domElement)}
+    >
       <color attach="background" args={[HORIZON_COLOR]} />
       <fog attach="fog" args={[HORIZON_COLOR, 30 * scale, 85 * scale]} />
 
-      <RealmAtmosphere realm={focusRealm}>
-        <directionalLight
-          position={[7 * scale, 14 * scale, 8 * scale]}
-          intensity={1.6}
-          castShadow
-          shadow-mapSize={[2048, 2048]}
-          shadow-camera-left={-shadowExtent}
-          shadow-camera-right={shadowExtent}
-          shadow-camera-top={shadowExtent}
-          shadow-camera-bottom={-shadowExtent}
-          shadow-camera-far={60 * scale}
-        />
-        {/* Cool rim light from the moon's side of the sky. */}
-        <directionalLight position={[-0.3, 0.28, -0.8]} intensity={0.45} color="#b9b0ff" />
+      {/* Nothing shows until every model has loaded; then it's all compiled before the match starts. */}
+      <Suspense fallback={null}>
+        <RealmAtmosphere realm={focusRealm}>
+          <directionalLight
+            position={[7 * scale, 14 * scale, 8 * scale]}
+            intensity={1.6}
+            castShadow
+            shadow-mapSize={[2048, 2048]}
+            shadow-camera-left={-shadowExtent}
+            shadow-camera-right={shadowExtent}
+            shadow-camera-top={shadowExtent}
+            shadow-camera-bottom={-shadowExtent}
+            shadow-camera-far={60 * scale}
+          />
+          {/* Cool rim light from the moon's side of the sky. */}
+          <directionalLight position={[-0.3, 0.28, -0.8]} intensity={0.45} color="#b9b0ff" />
 
-        <ArenaEnvironment layout={layout} scale={scale} />
-        {mainTiles.map((tile) => (
-          <TileMesh
-            key={tile.id}
-            tile={tile}
-            position={layout.position(tile.id)}
-            accent={pathColor((tile.id - 1) / (lastTile - 1))}
-            arrowAngle={tile.next !== null ? directionBetween(layout, tile.id, tile.next) : null}
-            highlighted={highlighted.has(tile.id)}
-            reachable={reachable.has(tile.id)}
-            textureSize={textureSize}
-            inTrapZone={trapZoneTiles.has(tile.id)}
-            destroyed={view.destroyedTraps.includes(tile.id)}
-          />
-        ))}
-        <TileLinks board={board} layout={layout} activeFrom={view.effect?.from ?? null} />
-        {board.tracks.map((track) => (
-          <RealmTrackView
-            key={track.portal}
-            track={track}
-            board={board}
-            layout={layout}
-            open={openTracks.has(track.portal)}
-            highlighted={highlighted}
-            reachable={reachable}
-            textureSize={textureSize}
-          />
-        ))}
-        {gate?.realm && <RealmGate key={effectKey(gate)} realm={gate.realm} position={layout.position(gate.from)} />}
-        {view.destroyedTraps.map((tile) => (
-          <SmashedTrapMark key={tile} tile={tile} position={layout.position(tile)} color={SMASHED_TRAP_COLOR} />
-        ))}
-        {view.pinnedTraps.map((tile) => (
-          <PinnedTrapMark key={tile} position={layout.position(tile)} color={PINNED_TRAP_COLOR} />
-        ))}
-        {view.specters.map((specter) => {
-          const warden = characterFor(specter.owner);
-          return warden ? (
-            <SpecterFigure
-              key={`${specter.owner}:${specter.tile}`}
-              model={warden.model}
-              position={layout.position(specter.tile)}
-              color={warden.color}
-              disguised={specter.owner !== viewerId}
-              facing={headingAlong(pathDirection(board, layout, specter.tile))}
-              label={specter.owner === viewerId ? SPECTER_TEXT[specter.kind].name : undefined}
+          <ArenaEnvironment layout={layout} scale={scale} />
+          {mainTiles.map((tile) => (
+            <TileMesh
+              key={tile.id}
+              tile={tile}
+              position={layout.position(tile.id)}
+              accent={pathColor((tile.id - 1) / (lastTile - 1))}
+              arrowAngle={tile.next !== null ? directionBetween(layout, tile.id, tile.next) : null}
+              highlighted={highlighted.has(tile.id)}
+              reachable={reachable.has(tile.id)}
+              textureSize={textureSize}
+              inTrapZone={trapZoneTiles.has(tile.id)}
+              destroyed={view.destroyedTraps.includes(tile.id)}
+              covered={coveredTiles.has(tile.id)}
+              onPick={picking?.tiles.has(tile.id) ? picking.onPick : undefined}
             />
-          ) : null;
-        })}
-        {view.seals.map((seal) => (
-          <SealScroll
-            key={`${seal.owner}:${seal.tile}`}
-            position={layout.position(seal.tile)}
-            color={playerColor(seal.owner)}
-            label={seal.owner === viewerId ? SEAL_TEXT[seal.kind].name : undefined}
-          />
-        ))}
-        {volley && (
-          <ArrowVolley
-            key={volley.id}
-            from={layout.position(volley.from)}
-            targets={volleyTargets}
-            color={playerColor(volley.playerId)}
-          />
-        )}
-        {dash && <LightningDash key={dash.id} path={dashPath} color={playerColor(dash.playerId)} />}
-        {view.effect?.kind === "hiddenTrap" && (
-          <HiddenTrapBurst key={effectKey(view.effect)} position={layout.position(view.effect.from)} />
-        )}
+          ))}
+          {picking?.picked.map(({ tile, tag, color }) => (
+            <PickedTileMark key={`picked${tile}`} position={layout.position(tile)} tag={tag} color={color} />
+          ))}
+          <TileLinks board={board} layout={layout} activeFrom={view.effect?.from ?? null} />
+          {board.tracks.map((track) => (
+            <RealmTrackView
+              key={track.portal}
+              track={track}
+              board={board}
+              layout={layout}
+              open={openTracks.has(track.portal)}
+              highlighted={highlighted}
+              reachable={reachable}
+              textureSize={textureSize}
+            />
+          ))}
+          {gate?.realm && (
+            <RealmGate key={`gate${effectKey(gate)}`} realm={gate.realm} position={layout.position(gate.from)} />
+          )}
+          {view.destroyedTraps.map((tile) => (
+            <SmashedTrapMark
+              key={`smashed${tile}`}
+              tile={tile}
+              position={layout.position(tile)}
+              color={SMASHED_TRAP_COLOR}
+            />
+          ))}
+          {view.pinnedTraps.map((tile) => (
+            <PinnedTrapMark key={`pinned${tile}`} position={layout.position(tile)} color={PINNED_TRAP_COLOR} />
+          ))}
+          {view.enchantedTiles.map(({ tile, owner }) => (
+            <EnchantedTileMark key={`enchanted${tile}`} position={layout.position(tile)} color={playerColor(owner)} />
+          ))}
+          {view.blackFlames.map(({ tile, owner }) => (
+            <BlackFlameMark key={`flame${tile}`} position={layout.position(tile)} color={playerColor(owner)} />
+          ))}
+          {view.specters.map((specter) => {
+            const warden = characterFor(specter.owner);
+            return warden ? (
+              <SpecterFigure
+                key={`${specter.owner}:${specter.tile}`}
+                model={warden.model}
+                position={layout.position(specter.tile)}
+                color={warden.color}
+                disguised={specter.owner !== viewerId}
+                facing={headingAlong(pathDirection(board, layout, specter.tile))}
+                label={specter.owner === viewerId ? SPECTER_TEXT[specter.kind].name : undefined}
+              />
+            ) : null;
+          })}
+          {view.seals.map((seal) => (
+            <SealScroll
+              key={`${seal.owner}:${seal.tile}`}
+              position={layout.position(seal.tile)}
+              color={playerColor(seal.owner)}
+              label={seal.owner === viewerId ? SEAL_TEXT[seal.kind].name : undefined}
+            />
+          ))}
+          {volley && (
+            <ArrowVolley
+              key={`volley${volley.id}`}
+              from={layout.position(volley.from)}
+              targets={volleyTargets}
+              color={playerColor(volley.playerId)}
+            />
+          )}
+          {dash && <LightningDash key={`dash${dash.id}`} path={dashPath} color={playerColor(dash.playerId)} />}
+          {view.effect?.kind === "hiddenTrap" && (
+            <HiddenTrapBurst key={`hidden${effectKey(view.effect)}`} position={layout.position(view.effect.from)} />
+          )}
 
-        {view.players.map((player) => (
-          <PlayerToken
-            key={player.id}
-            color={playerColor(player.id)}
-            model={characterFor(player.id)?.model ?? null}
-            energyBlades={characterFor(player.id)?.energyBlades ?? false}
-            limbLightning={characterFor(player.id)?.limbLightning ?? false}
-            castsStill={characterFor(player.id)?.castsStill}
-            landImpactSeconds={characterFor(player.id)?.landImpactSeconds}
-            castImpactSeconds={characterFor(player.id)?.castImpactSeconds ?? null}
-            handProp={characterFor(player.id)?.handProp}
-            castPropSeconds={characterFor(player.id)?.castPropSeconds}
-            target={tokenTarget(player, view.players, layout)}
-            pathDirection={pathDirection(board, layout, player.position)}
-            isTeleporting={isTeleport(view.effect) && view.effect?.playerId === player.id}
-            isDashing={dash?.playerId === player.id && !dash.arrived}
-            isFuryAwake={
-              view.abilityInUse === "dormantFury" &&
-              view.activePlayerId === player.id &&
-              !(dash?.playerId === player.id && !dash.arrived)
-            }
-            isActive={view.activePlayerId === player.id}
-            isPowered={view.poweredPlayerId === player.id}
-            isShielded={player.shielded}
-            shieldColor={characterFor(player.id)?.shieldColor}
-            isLevitating={player.levitating > 0}
-            diceBoost={player.diceBoost}
-            cast={view.cast?.playerId === player.id ? view.cast : null}
-            abilityCast={
-              view.effect?.kind === "abilityUsed" && view.effect.playerId === player.id ? effectKey(view.effect) : null
-            }
-          />
-        ))}
+          {view.players.map((player, seat) => (
+            <PlayerToken
+              key={player.id}
+              nameTag={
+                view.players.length > 1 ? { text: `J${seat + 1} ${player.name.split(" ")[0]}`, seat } : undefined
+              }
+              color={playerColor(player.id)}
+              model={characterFor(player.id)?.model ?? null}
+              energyBlades={characterFor(player.id)?.energyBlades ?? false}
+              limbLightning={characterFor(player.id)?.limbLightning ?? false}
+              castsStill={characterFor(player.id)?.castsStill}
+              landImpactSeconds={characterFor(player.id)?.landImpactSeconds}
+              castImpactSeconds={characterFor(player.id)?.castImpactSeconds ?? null}
+              handProp={characterFor(player.id)?.handProp}
+              castPropSeconds={characterFor(player.id)?.castPropSeconds}
+              target={tokenTarget(player, view.players, layout)}
+              pathDirection={pathDirection(board, layout, player.position)}
+              isTeleporting={isTeleport(view.effect) && view.effect?.playerId === player.id}
+              isDashing={dash?.playerId === player.id && !dash.arrived}
+              isFuryAwake={
+                view.abilityInUse === "dormantFury" &&
+                view.activePlayerId === player.id &&
+                !(dash?.playerId === player.id && !dash.arrived)
+              }
+              isActive={view.activePlayerId === player.id}
+              isPowered={view.poweredPlayerId === player.id}
+              isShielded={player.shielded}
+              shieldColor={characterFor(player.id)?.shieldColor}
+              isLevitating={player.levitating > 0}
+              isArmoured={player.spectralArmour > 0}
+              diceBoost={player.diceBoost}
+              diceBonus={player.diceBonus}
+              cast={view.cast?.playerId === player.id ? view.cast : null}
+              abilityCast={
+                view.effect?.kind === "abilityUsed" && view.effect.playerId === player.id
+                  ? effectKey(view.effect)
+                  : null
+              }
+            />
+          ))}
 
-        {view.cast?.card.cardId === "arcaneBlast" && view.cast.targetId && (
-          <ArcaneBeam
-            key={view.cast.id}
-            from={tokenPosition(view, layout, view.cast.playerId)}
-            to={tokenPosition(view, layout, view.cast.targetId)}
-          />
-        )}
+          {view.cast?.card.cardId === "arcaneBlast" && view.cast.targetId && (
+            <ArcaneBeam
+              key={`beam${view.cast.id}`}
+              from={tokenPosition(view, layout, view.cast.playerId)}
+              to={tokenPosition(view, layout, view.cast.targetId)}
+            />
+          )}
 
-        {[0, 1].map((index) => (
-          <DiceThrow
-            key={index}
-            roll={dieRoll(view, index)}
-            landing={diceLanding(view, board, layout, index)}
-            onImpact={onDiceImpact}
-            realm={focusRealm}
-          />
-        ))}
+          {[0, 1].map((index) => (
+            <DiceThrow
+              key={`die${index}`}
+              roll={dieRoll(view, index)}
+              landing={diceLanding(view, board, layout, index)}
+              onImpact={onDiceImpact}
+              realm={focusRealm}
+            />
+          ))}
 
-        <CameraRig
-          layout={layout}
-          focus={focusPoint(view, layout)}
-          follow={followCamera || focusRealm !== null}
-          effect={view.effect}
-          celebrating={view.winnerId !== null}
-          cast={view.cast}
-        />
-      </RealmAtmosphere>
+          <CameraRig
+            layout={layout}
+            focus={focusPoint(view, layout)}
+            // A realm track is off the board: framing the whole board would lose the player.
+            framing={cameraFraming === "board" && focusRealm !== null ? "close" : cameraFraming}
+            effect={view.effect}
+            celebrating={view.winnerId !== null}
+            cast={view.cast}
+            free={freeLook}
+            onFreeLook={onFreeLook}
+          />
+        </RealmAtmosphere>
+        <Preload all />
+        <SceneWarmup models={models} onReady={onReady} />
+      </Suspense>
       <PostEffects quality={quality} />
     </Canvas>
   );
@@ -355,4 +426,17 @@ function tokenTarget(player: Player, players: readonly Player[], layout: BoardLa
   const [x, y, z] = layout.position(player.position);
   const [dx, , dz] = tileOffsetFor(player, players);
   return [x + dx, y, z + dz];
+}
+
+/**
+ * Logs when the browser takes the WebGL context away (and gives it back): the whole canvas blanks
+ * for a moment, which shows as the screen blinking. Kept to track down those blinks.
+ */
+function watchContext(canvas: HTMLCanvasElement): void {
+  canvas.addEventListener("webglcontextlost", () =>
+    console.warn(`[battle-dice] contexto WebGL perdido ${new Date().toLocaleTimeString()}`),
+  );
+  canvas.addEventListener("webglcontextrestored", () =>
+    console.warn(`[battle-dice] contexto WebGL restaurado ${new Date().toLocaleTimeString()}`),
+  );
 }

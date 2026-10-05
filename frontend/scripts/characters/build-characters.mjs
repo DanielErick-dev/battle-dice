@@ -97,10 +97,12 @@ async function buildCharacter({ folder, fallbacks = {}, sequences = {} }, output
   for (const [name, parts] of Object.entries(sequences)) {
     const played = [];
     for (const part of parts) {
-      const [, file, from, mode] = part.match(/^([^@:]+)(?:@([\d.]+))?(?::(\w+))?$/);
+      const [, file, from, to, mode] = part.match(/^([^@:]+)(?:@([\d.]+)(?:-([\d.]+))?)?(?::(\w+))?$/);
       const clip = await io.read(ownExport(file));
-      const channels = channelsOf(clip.getRoot().listAnimations()[0], {});
-      played.push({ channels: from ? trimStart(channels, Number(from)) : channels, reverse: mode === "reverse" });
+      let channels = channelsOf(clip.getRoot().listAnimations()[0], {});
+      if (to) channels = trimEnd(channels, Number(to));
+      if (from) channels = trimStart(channels, Number(from));
+      played.push({ channels, reverse: mode === "reverse" });
     }
     addAnimation(document, name, joinParts(played, name));
   }
@@ -164,6 +166,15 @@ function trimStart(channels, from) {
       }
     }
     return { ...channel, times: channel.times.slice(first).map((time) => Math.max(0, time - from)), values };
+  });
+}
+
+/** The channels up to `to` seconds (a keyframe is kept just after). */
+function trimEnd(channels, to) {
+  return channels.map((channel) => {
+    const index = channel.times.findIndex((time) => time >= to);
+    const kept = index < 0 ? channel.times.length : index + 1;
+    return { ...channel, times: channel.times.slice(0, kept), values: channel.values.slice(0, kept * channel.size) };
   });
 }
 

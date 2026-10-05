@@ -35,6 +35,7 @@ import { HeldVial, PourStream, SmokeCloud } from "@/features/match/scene/charact
 import { EnergyBlades } from "@/features/match/scene/character/EnergyBlades";
 import { ArcherIntro } from "@/features/match/scene/character/ArcherIntro";
 import { BoneRise } from "@/features/match/scene/character/BoneRise";
+import { ScribeIntro } from "@/features/match/scene/character/ScribeIntro";
 import { JesterCards } from "@/features/match/scene/character/JesterCards";
 import { LimbLightning } from "@/features/match/scene/character/LimbLightning";
 import {
@@ -47,6 +48,8 @@ import { useRuneTexture } from "@/features/match/scene/character/runeCircle";
 import { WitchStaff } from "@/features/match/scene/character/WitchStaff";
 import { preferences, usePreference } from "@/features/settings/preferences";
 import { cn } from "@/lib/utils";
+import { Graveyard } from "./Graveyard";
+import { Scriptorium } from "./Scriptorium";
 
 const FIGURE_HEIGHT = 1.7;
 /**
@@ -56,6 +59,8 @@ const FIGURE_HEIGHT = 1.7;
 const FLOOR_Y = -FIGURE_HEIGHT / 2 + 0.15;
 const PEDESTAL_RADIUS = 0.62;
 const PEDESTAL_DEPTH = 0.12;
+/** The cold glimmer over a graveyard stage (see CharacterDefinition.stage). */
+const GRAVE_LIGHT = "#6f8a6c";
 /** Radians the figure turns per pixel dragged. */
 const DRAG_TURN = 0.012;
 /** How quickly the figure follows the drag, and swings back to face the camera once let go. */
@@ -91,7 +96,10 @@ const TIP_RATE = 7;
  * and it swings back. One canvas for the whole menu page: the picker only swaps the model.
  */
 export function CharacterStage({ characterId, className }: { characterId: CharacterId; className?: string }) {
-  const { color } = CHARACTERS[characterId];
+  const { color: accent, stage }: CharacterDefinition = CHARACTERS[characterId];
+  const graveyard = stage === "graveyard";
+  // A graveyard is lit by a cold, sickly glimmer rather than the character's bright accent.
+  const color = graveyard ? GRAVE_LIGHT : accent;
   const quality = usePreference(preferences.effectsQuality);
   const turn = useDragTurn();
 
@@ -107,25 +115,45 @@ export function CharacterStage({ characterId, className }: { characterId: Charac
         aria-hidden
         className="absolute inset-x-[15%] bottom-[6%] h-[12%] rounded-[50%] opacity-70 blur-xl"
         style={{
-          background: `radial-gradient(ellipse, ${color}, transparent 70%)`,
+          background: `radial-gradient(ellipse, ${graveyard ? "#000" : color}, transparent 70%)`,
         }}
       />
       {/* Drawn past the stage's box (the figure stays the same size), so wide moves, blades
           and the pedestal aren't cut off at its edges. The wrapper takes the drag. */}
       <div className="pointer-events-none absolute" style={{ inset: `-${CANVAS_BLEED * 100}%` }}>
-        <Canvas dpr={[1, 2]} camera={{ position: [0, 1.25, 4.4], fov: CAMERA_FOV }} gl={{ alpha: true }}>
-          <ambientLight intensity={0.6} />
-          <directionalLight position={[2.5, 4, 3]} intensity={2.2} />
+        <Canvas
+          dpr={[1, 2]}
+          camera={{ position: [0, 1.25, 4.4], fov: CAMERA_FOV }}
+          gl={{ alpha: true }}
+          // The Necromancer's dead are cut at the floor as they climb out of it (see BoneRise).
+          onCreated={({ gl }) => {
+            gl.localClippingEnabled = true;
+          }}
+        >
+          <ambientLight intensity={graveyard ? 0.22 : 0.6} />
+          <directionalLight position={[2.5, 4, 3]} intensity={graveyard ? 1.3 : 2.2} />
           {/* Coloured rim light in the character's accent. */}
           <directionalLight position={[-3, 2, -2.5]} intensity={3} color={color} />
-          <spotLight position={[1.5, 3, -2.5]} angle={0.5} penumbra={0.8} intensity={12} color={color} />
+          <spotLight
+            position={[1.5, 3, -2.5]}
+            angle={0.5}
+            penumbra={0.8}
+            intensity={graveyard ? 5 : 12}
+            color={color}
+          />
           <Suspense fallback={null}>
             <Turntable angleRef={turn.angle} draggingRef={turn.dragging}>
               <Presentation key={characterId} characterId={characterId} />
             </Turntable>
           </Suspense>
-          <RunePedestal color={color} />
-          <RisingMotes key={color} color={color} count={quality === "high" ? 48 : 18} />
+          {stage ? (
+            <group position-y={FLOOR_Y}>
+              <Suspense fallback={null}>{stage === "graveyard" ? <Graveyard /> : <Scriptorium />}</Suspense>
+            </group>
+          ) : (
+            <RunePedestal color={color} />
+          )}
+          <RisingMotes key={color} color={color} count={(quality === "high" ? 48 : 18) / (graveyard ? 2 : 1)} />
           <ContactShadows position={[0, FLOOR_Y + 0.002, 0]} scale={3} blur={2.4} opacity={0.7} far={2} />
         </Canvas>
       </div>
@@ -256,14 +284,11 @@ function Presentation({ characterId }: { characterId: CharacterId }) {
                   active={inIntro}
                 />
               )}
+              {character.introSeals && (
+                <ScribeIntro figure={figure} size={FIGURE_HEIGHT} beats={character.introSeals} active={inIntro} />
+              )}
               {character.introBones && (
-                <BoneRise
-                  figure={figure}
-                  size={FIGURE_HEIGHT}
-                  color={character.color}
-                  beats={character.introBones}
-                  active={inIntro}
-                />
+                <BoneRise figure={figure} size={FIGURE_HEIGHT} beats={character.introBones} active={inIntro} />
               )}
               {character.limbLightning && (
                 <LimbLightning

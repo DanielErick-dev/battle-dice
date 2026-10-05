@@ -10,32 +10,28 @@ export const SPECTER_KINDS: readonly SpecterKind[] = ["plunder", "hunger"];
 
 /**
  * Tiles an apparition can appear on from `position`: plain main-path tiles within SPECTER_RANGE
- * (as for seals, see sealableTiles), other than those already taken (`taken`: every seal, and
- * other Wardens' apparitions). Nearest first.
+ * (as for seals, see sealableTiles), other than those already taken (`taken`: every seal and every
+ * apparition). Nearest first.
  */
 export function hauntableTiles(board: Board, position: TileId, taken: readonly TileId[]): TileId[] {
   return sealableTiles(board, position, taken).filter((tile) => Math.abs(tile - position) <= SPECTER_RANGE);
 }
 
-/** What keeps `playerId`'s apparitions off a tile: every seal, other Wardens' apparitions. */
-export function takenForSpecters(
-  seals: readonly { tile: TileId }[],
-  specters: readonly { tile: TileId; owner: PlayerId }[],
-  playerId: PlayerId,
-): TileId[] {
-  return [...seals.map((seal) => seal.tile), ...specters.filter((s) => s.owner !== playerId).map((s) => s.tile)];
+/** What keeps an apparition off a tile: every seal and every apparition, the Warden's own too. */
+export function takenForSpecters(seals: readonly { tile: TileId }[], specters: readonly { tile: TileId }[]): TileId[] {
+  return [...seals.map((seal) => seal.tile), ...specters.map((specter) => specter.tile)];
 }
 
 /**
  * Spectral Apparitions: one apparition of each kind on the tiles picked (`tiles[i]` for
- * SPECTER_KINDS[i]). The player's earlier ones fade first.
+ * SPECTER_KINDS[i]). Those summoned before stay, so they pile up until they strike or the Warden
+ * is walked through.
  */
 export function summonSpecters(draft: Draft, playerId: PlayerId, tiles: readonly TileId[]): void {
-  const others = draft.specters.filter((specter) => specter.owner !== playerId);
   const allowed = hauntableTiles(
     draft.state.board,
     playerIn(draft, playerId).position,
-    takenForSpecters(draft.seals, others, playerId),
+    takenForSpecters(draft.seals, draft.specters),
   );
   if (
     tiles.length !== SPECTER_KINDS.length ||
@@ -44,7 +40,10 @@ export function summonSpecters(draft: Draft, playerId: PlayerId, tiles: readonly
   ) {
     throw new GameRuleError("INVALID_SPECTERS");
   }
-  draft.specters = [...others, ...tiles.map((tile, index) => ({ tile, kind: SPECTER_KINDS[index], owner: playerId }))];
+  draft.specters = [
+    ...draft.specters,
+    ...tiles.map((tile, index) => ({ tile, kind: SPECTER_KINDS[index], owner: playerId })),
+  ];
   draft.events.push({ type: "spectersSummoned", playerId, tiles: [...tiles] });
 }
 
@@ -68,6 +67,11 @@ export function crossSpecters(draft: Draft, playerId: PlayerId, path: readonly T
       (candidate) => candidate.tile === tile && (alone || candidate.owner !== playerId),
     );
     if (!specter) continue;
+    // Spectral Armour turns the apparition away; it stays.
+    if (!alone && playerIn(draft, playerId).spectralArmour > 0) {
+      draft.events.push({ type: "armourHeld", playerId, tile });
+      continue;
+    }
     draft.specters = draft.specters.filter((candidate) => candidate !== specter);
     if (alone) rewardOwner(draft, specter.owner, specter.kind, tile);
     else strike(draft, playerId, specter.owner, specter.kind, tile);

@@ -20,7 +20,7 @@ export const SEAL_KINDS: readonly SealKind[] = ["tithe", "ruin", "silence", "blo
 /**
  * Tiles a seal can be written on from `position`: plain tiles of the main path (no effect, not
  * the start or finish, not a realm track) up to SEAL_RANGE tiles ahead or behind, other than the
- * player's own and those already holding a seal (`taken`, someone else's). Nearest first.
+ * player's own and those already taken (`taken`: seals, apparitions). Nearest first.
  */
 export function sealableTiles(board: Board, position: TileId, taken: readonly TileId[]): TileId[] {
   const near = [...walkPath(board, position, SEAL_RANGE), ...pushPath(board, position, SEAL_RANGE)];
@@ -33,20 +33,20 @@ export function sealableTiles(board: Board, position: TileId, taken: readonly Ti
     .sort((a, b) => Math.abs(a - position) - Math.abs(b - position) || a - b);
 }
 
-/** Tiles holding another player's seals, where `playerId` can't write. */
-export function takenBySealsOf(seals: readonly Pick<Seal, "tile" | "owner">[], playerId: PlayerId): TileId[] {
-  return seals.filter((seal) => seal.owner !== playerId).map((seal) => seal.tile);
+/** Tiles already holding a seal, anyone's: no seal is written over another. */
+export function sealedTiles(seals: readonly Pick<Seal, "tile">[]): TileId[] {
+  return seals.map((seal) => seal.tile);
 }
 
 /**
  * Forbidden Seals: one seal of each kind on the tiles picked (`tiles[i]` for SEAL_KINDS[i]), each
- * a tile the player can write on. Seals they wrote before are wiped out first.
+ * a tile the player can write on. Seals written before stay, the player's own too, so they pile
+ * up until someone breaks them.
  */
 export function writeSeals(draft: Draft, playerId: PlayerId, tiles: readonly TileId[]): void {
   const { board } = draft.state;
-  const others = draft.seals.filter((seal) => seal.owner !== playerId);
-  // Not on another player's seal, nor where an apparition stands.
-  const taken = [...takenBySealsOf(others, playerId), ...draft.specters.map((specter) => specter.tile)];
+  // Not on another seal, nor where an apparition stands.
+  const taken = [...sealedTiles(draft.seals), ...draft.specters.map((specter) => specter.tile)];
   const allowed = sealableTiles(board, playerIn(draft, playerId).position, taken);
   const distinct = new Set(tiles);
   if (
@@ -56,7 +56,7 @@ export function writeSeals(draft: Draft, playerId: PlayerId, tiles: readonly Til
   ) {
     throw new GameRuleError("INVALID_SEALS");
   }
-  draft.seals = [...others, ...tiles.map((tile, index) => ({ tile, kind: SEAL_KINDS[index], owner: playerId }))];
+  draft.seals = [...draft.seals, ...tiles.map((tile, index) => ({ tile, kind: SEAL_KINDS[index], owner: playerId }))];
   draft.events.push({ type: "sealsWritten", playerId, tiles: [...tiles] });
 }
 
@@ -70,6 +70,11 @@ export function breakSeal(draft: Draft, playerId: PlayerId, tile: TileId): boole
   if (!seal) return false;
   const alone = draft.players.length === 1;
   if (seal.owner === playerId && !alone) return false;
+  // Spectral Armour turns the seal away; it stays, waiting for someone else.
+  if (!alone && playerIn(draft, playerId).spectralArmour > 0) {
+    draft.events.push({ type: "armourHeld", playerId, tile });
+    return false;
+  }
 
   draft.seals = draft.seals.filter((candidate) => candidate !== seal);
   if (alone) rewardOwner(draft, seal);
