@@ -24,11 +24,27 @@ import sharp from "sharp";
 const OUTPUT_DIR = path.resolve(fileURLToPath(import.meta.url), "../../../public/models/props");
 const TEXTURE_SIZE = 512;
 
-/** Prop id → its export (relative to the source folder) and how many vertices it keeps. */
+/** Prop id → its export (relative to the source folder), how many vertices it keeps and its texture size (TEXTURE_SIZE by default). */
 const PROPS = {
   skull: { file: "necromante/props/skull.glb", vertices: 6_000 },
   skeletalHand: { file: "necromante/props/hand.glb", vertices: 4_000 },
   skeleton: { file: "necromante/props/skeleton.glb", vertices: 8_000 },
+  // Many at once in an Arrow Rain: kept light.
+  elvenArrow: { file: "arqueira-elfica/props/arrow.glb", vertices: 3_000 },
+  frostWand: { file: "fada-cristalina/props/wand.glb", vertices: 6_000 },
+  // Her wings, flapped in code on her back (Meshy can't rig a winged figure): see FairyWings.
+  fairyWings: { file: "fada-cristalina/props/wings.glb", vertices: 8_000, texture: 1024 },
+  seraphWings: { file: "seraphiel-serafim-guardiao/props/wings.glb", vertices: 8_000, texture: 1024 },
+  fallenWings: { file: "seraphiel-caido/props/wings.glb", vertices: 8_000, texture: 1024 },
+  blackFlame: { file: "kunoichi-do-purgatorio/props/flame.glb", vertices: 9_000 },
+  // Chairs the characters sit on while they've lost turns (see RestChair).
+  frostThrone: { file: "fada-cristalina/props/chair.glb", vertices: 9_000 },
+  infernalThrone: { file: "akane-estudante-rubra/props/chair.glb", vertices: 9_000 },
+  wolfThrone: { file: "bjorn-presa-gelida/props/chair.glb", vertices: 9_000 },
+  celestialThrone: { file: "seraphiel-serafim-guardiao/props/chair.glb", vertices: 9_000 },
+  ashenThrone: { file: "seraphiel-caido/props/chair.glb", vertices: 9_000 },
+  // Kage Rubra's Susanoo towers over the tile: more detail than the small props.
+  susanoo: { file: "kunoichi-do-purgatorio/props/susanoo.glb", vertices: 16_000, texture: 1024 },
 };
 
 const { values } = parseArgs({ options: { source: { type: "string" }, only: { type: "string" } } });
@@ -42,7 +58,7 @@ await MeshoptSimplifier.ready;
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ "meshopt.encoder": MeshoptEncoder });
 await mkdir(OUTPUT_DIR, { recursive: true });
 
-for (const [id, { file, vertices }] of Object.entries(PROPS)) {
+for (const [id, { file, vertices, texture = TEXTURE_SIZE }] of Object.entries(PROPS)) {
   if (values.only && values.only !== id) continue;
   const document = await io.read(path.join(values.source, file));
   const root = document.getRoot();
@@ -55,7 +71,7 @@ for (const [id, { file, vertices }] of Object.entries(PROPS)) {
     dedup(),
     weld(),
     simplify({ simplifier: MeshoptSimplifier, ratio: Math.min(1, vertices / count), error: 0.01 }),
-    textureCompress({ encoder: sharp, targetFormat: "webp", resize: [TEXTURE_SIZE, TEXTURE_SIZE] }),
+    textureCompress({ encoder: sharp, targetFormat: "webp", resize: [texture, texture] }),
     prune(),
     meshopt({ encoder: MeshoptEncoder, level: "medium" }),
   );
