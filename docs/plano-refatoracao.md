@@ -12,7 +12,7 @@ O problema é de **crescimento**. Com 20 personagens, alguns arquivos viraram "c
 |---|---|---|
 | ~~`features/match/model/playback.ts`~~ | 1275 | ~~um único `switch` com 63 casos~~ ✅ etapa 1 |
 | `features/match/scene/PlayerToken.tsx` | 718 | todos os efeitos de todos os personagens num componente |
-| `features/match/ui/MatchScreen.tsx` | 657 | `if (ability === "cardGamble")…` repetido para cada seletor de alvo |
+| ~~`features/match/ui/MatchScreen.tsx`~~ | 657 → 409 | ~~`ability === "…"` repetido~~ ✅ etapa 2 |
 | `features/match/scene/BoardScene.tsx` | 615 | 42 imports; monta tudo de todos os personagens |
 | `features/match/model/matchView.ts` | 409 | `MatchView` com 38 campos, muitos de um único personagem (`trample`, `tide`, `drag`…) |
 | `features/match/characters.ts` | 460 | ficha visual de 20 personagens num arquivo só |
@@ -31,9 +31,16 @@ O problema é de **crescimento**. Com 20 personagens, alguns arquivos viraram "c
 - **Por quê:** para entender ou mexer na animação de um personagem, abre-se um arquivo de ~100 linhas em vez de rolar 1275. Personagem novo = arquivo novo + uma linha no `index.ts`.
 - Feito com um script que cortou o `switch` automaticamente (sem copiar e colar à mão); os 281 testes passaram sem alteração.
 
-### 2. Seletores de alvo das habilidades fora da `MatchScreen`
-- Cada habilidade mirada declara o seu seletor num registro (`ui/abilityPickers/`), e a `MatchScreen` só renderiza "o seletor da habilidade atual".
-- Some o bloco de `ability === "…"` repetido.
+### 2. Seletores de alvo das habilidades fora da `MatchScreen` ✅
+- Nova pasta `ui/abilities/`: cada habilidade que pergunta algo antes de ser usada tem um arquivo que exporta um `AbilityFlow`:
+  - `start(scene)`: o que o botão "Usar" faz primeiro: `"picker"` (abre o seletor), `"seals" | "specters" | "flames"` (escolher casas no tabuleiro) ou `null` (usa direto);
+  - `Picker`: o componente do seletor, que recebe um `ctx` com `use(choice)`, `place(placement)` e `cancel()`.
+- `ui/abilities/index.ts` tem o registro `ABILITY_FLOWS`. A `MatchScreen` só faz `ABILITY_FLOWS[ability]`.
+- Os 3 tipos de colocação em casas (selos, aparições, fogo negro) foram para `placements.ts`. O `placementOf` devolve a **escolha** (`{ sealTiles }`) em vez de chamar o store, então a interface monta o comando e quem envia é a tela.
+- O estado interno do Cronos (escolher o poder antes do alvo) virou `useState` dentro do próprio seletor dele. Antes era um estado da `MatchScreen` inteira só para isso.
+- Removidas do domínio `needsCardChoice`, `needsSealPlacement` e `needsSpecterPlacement`: eram perguntas de interface ("abre seletor?") morando nas regras. `needsDiscardChoice` ficou, porque a regra da Ressurreição usa.
+- **Por quê:** a tela da partida não conhece mais nenhuma habilidade. Personagem novo com seletor = um arquivo em `ui/abilities/` + uma linha no registro. `MatchScreen`: 657 → 409 linhas.
+- **Ligação com o backend:** o seletor produz um `AbilityChoice`, que é exatamente o payload do comando `activateAbility`, o mesmo JSON que vai pelo WebSocket. As listas de alvos vêm de funções do domínio (`gambleTargets`, `dragTargets`), que o servidor também vai rodar para validar.
 
 ### 3. Agrupar os campos de efeito da `MatchView`
 - `trample`, `tide`, `drag`, `frostStream`, `volley`, `dash`… vão para um sub-objeto de efeitos em andamento.
@@ -59,3 +66,4 @@ O problema é de **crescimento**. Com 20 personagens, alguns arquivos viraram "c
 |---|---|---|
 | 17/10 | 0 | Commits divididos (assets, kits, lab). Docs criadas. |
 | 17/10 | 1 | `playback.ts` (1275 linhas, 63 casos) → `model/playback/` com 12 arquivos temáticos. |
+| 17/10 | 2 | Seletores das habilidades → registro `ui/abilities/` (9 habilidades). `MatchScreen` 657 → 409 linhas. |

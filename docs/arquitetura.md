@@ -14,6 +14,7 @@ frontend/src/
 │   │   ├── model/           ← traduz eventos em animação (playback) e monta a MatchView
 │   │   ├── hooks/           ← useMatch, áudio
 │   │   ├── ui/              ← HUD, cartas, banners, menus de escolha (HTML/CSS)
+│   │   │   └── abilities/   ← registro: o que "Usar" faz em cada habilidade que pergunta algo
 │   │   ├── scene/           ← mundo 3D (React Three Fiber): tabuleiro, personagens, efeitos
 │   │   ├── audio/           ← motor de som e efeitos sonoros
 │   │   └── characters.ts    ← ficha visual de cada personagem (modelo, clipes, cores, efeitos)

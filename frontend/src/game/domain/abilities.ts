@@ -226,24 +226,9 @@ export const SERAPH_CARD_CHANCE = 0.5;
 /** How far her Susanoo throws back anyone stopping on her tile. */
 export const SUSANOO_PUSH = 1;
 
-/** Abilities used on a card the player picks from their hand. */
-export function needsCardChoice(ability: AbilityId | null): boolean {
-  return ability === "transmutation";
-}
-
 /** Abilities used on cards the player picks from their own discard pile. */
 export function needsDiscardChoice(ability: AbilityId | null): boolean {
   return ability === "resurrection";
-}
-
-/** Abilities used by writing seals on tiles the player picks. */
-export function needsSealPlacement(ability: AbilityId | null): boolean {
-  return ability === "forbiddenSeals";
-}
-
-/** Abilities used by summoning apparitions on tiles the player picks. */
-export function needsSpecterPlacement(ability: AbilityId | null): boolean {
-  return ability === "spectralApparitions";
 }
 
 /** Abilities that answer a threat instead of being used on the player's turn. */

@@ -2,7 +2,6 @@
 
 import {
   ArrowLeft,
-  Layers,
   LocateFixed,
   Map as MapIcon,
   Maximize,
@@ -22,38 +21,16 @@ import { useTurnState } from "@/lib/useTurnState";
 import { cn } from "@/lib/utils";
 import { boardPresetFor, isLargeBoard, type BoardPreset } from "../boards";
 import { CHARACTERS, rosterOf, type CharacterDefinition, type CharacterId, type RosterEntry } from "../characters";
-import {
-  needsCardChoice,
-  needsDiscardChoice,
-  needsSealPlacement,
-  needsSpecterPlacement,
-  ARMOUR_TURNS,
-  ARROW_RAIN_PINS,
-  ARROW_RAIN_PUSH,
-  FLAME_TILES,
-  FLAME_TURNS,
-  PLUNDER_CARDS,
-  RESURRECTION_CARDS,
-  TRANSMUTATION_CARDS,
-  TIME_ROUNDS,
-} from "@/game/domain/abilities";
-import { timeTargets } from "@/game/domain/newcomerAbilities";
-import { gambleTargets } from "@/game/domain/cardGamble";
-import { dragTargets } from "@/game/domain/seraph";
 import { blessingTurns } from "@/game/domain/blessings";
 import { DIVINE_CARDS } from "@/game/domain/cards";
-import { opponentsInReach } from "@/game/domain/board";
-import { sealableTiles, sealedTiles } from "@/game/domain/seals";
-import { flammableTiles } from "@/game/domain/kunoichi";
-import { hauntableTiles, takenForSpecters } from "@/game/domain/specters";
-import { HAND_LIMIT, MAX_RARITY_LEVEL } from "@/game/domain/cards";
+import { PLUNDER_CARDS } from "@/game/domain/abilities";
 import { activePlayerOf, canActivateAbility, canPlayCard, canRoll, cardsLeftThisTurn } from "../model/matchView";
 import { useMatch } from "../hooks/useMatch";
 import { useGameAudio, type GameAudio } from "../hooks/useGameAudio";
 import { useMatchAudio } from "../hooks/useMatchAudio";
 import type { BoardPicking } from "../scene/BoardScene";
 import type { CameraFraming } from "../scene/CameraRig";
-import type { Player, TileId } from "@/game/domain/types";
+import type { TileId } from "@/game/domain/types";
 import { preloadCharacterModel } from "../scene/character/CharacterModel";
 import { CardHand } from "./cards/CardHand";
 import { CastOverlay } from "./cards/CastOverlay";
@@ -71,8 +48,7 @@ import { ErrorToast } from "./hud/ErrorToast";
 import { LoadingCurtain } from "./hud/LoadingCurtain";
 import { PlayersPanel } from "./hud/PlayersPanel";
 import { TilePicking } from "./hud/TilePicking";
-import { FLAME_STEPS, SEAL_STEPS, SPECTER_STEPS } from "./placementText";
-import { TargetPicker } from "./hud/TargetPicker";
+import { ABILITY_FLOWS, placementOf, type AbilityContext, type AbilityScene, type Placement } from "./abilities";
 import { GracePrompt } from "./hud/GracePrompt";
 import { WardPrompt } from "./hud/WardPrompt";
 
@@ -141,56 +117,38 @@ function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
   const wardingPlayer = view.players.find((player) => player.id === view.pendingWard?.playerId);
   const plunderVictim = view.players.find((player) => player.id === view.pendingPlunder?.victim);
   const gracedPlayer = view.players.find((player) => player.id === view.pendingGrace?.playerId);
-  /** Picking what an ability works on: cards, tiles or an opponent (Transmutation, Forbidden Seals, Card Gamble…). */
   // These choices belong to the turn they're made on: the next player starts with none of them.
-  const [choosingCard, setChoosingCard] = useTurnState(false, view.activePlayerId);
+  /** An ability's picker is open (whom to aim at, which power or cards: see ui/abilities). */
+  const [choosing, setChoosing] = useTurnState(false, view.activePlayerId);
   /** Picking tiles on the board for an ability (seals, apparitions, black fire), and those picked so far. */
-  const [placing, setPlacing] = useTurnState<"seals" | "specters" | "flames" | null>(null, view.activePlayerId);
+  const [placing, setPlacing] = useTurnState<Placement | null>(null, view.activePlayerId);
   const [picked, setPicked] = useTurnState<TileId[]>(NO_TILES, view.activePlayerId);
   const stopPlacing = () => {
     setPlacing(null);
     setPicked([]);
   };
-  const placement = placing && activePlayer && canActivateAbility(view) ? placementOf(placing) : null;
-  function placementOf(kind: "seals" | "specters" | "flames") {
-    const position = activePlayer?.position ?? 0;
-    switch (kind) {
-      case "seals":
-        return {
-          title: "Escritura dos 4 Selos",
-          tone: "text-fuchsia-300",
-          steps: SEAL_STEPS,
-          tiles: sealableTiles(store.board, position, [
-            ...sealedTiles(view.seals),
-            ...view.specters.map((specter) => specter.tile),
-          ]),
-          confirmLabel: "Escrever selos",
-          use: (sealTiles: TileId[]) => store.activateAbility({ sealTiles }),
-        };
-      case "specters":
-        return {
-          title: "Aparições Espectrais",
-          tone: "text-sky-300",
-          steps: SPECTER_STEPS,
-          tiles: hauntableTiles(store.board, position, takenForSpecters(view.seals, view.specters)),
-          confirmLabel: "Invocar aparições",
-          use: (specterTiles: TileId[]) => store.activateAbility({ specterTiles }),
-        };
-      case "flames":
-        return {
-          title: "Chamas Eternas",
-          tone: "text-orange-400",
-          steps: FLAME_STEPS,
-          tiles: flammableTiles(
-            store.board,
-            position,
-            view.blackFlames.map((flame) => flame.tile),
-          ),
-          confirmLabel: "Incendiar",
-          use: (flameTiles: TileId[]) => store.activateAbility({ power: "flames", flameTiles }),
-        };
-    }
-  }
+  const ability = activePlayer?.ability ?? null;
+  const flow = ability ? ABILITY_FLOWS[ability] : undefined;
+  const scene: AbilityScene | null = activePlayer ? { board: store.board, view, player: activePlayer } : null;
+  const abilityCtx: AbilityContext | null = scene && {
+    ...scene,
+    use: (choice) => {
+      setChoosing(false);
+      store.activateAbility(choice);
+    },
+    place: (placement) => {
+      setChoosing(false);
+      setPlacing(placement);
+    },
+    cancel: () => setChoosing(false),
+  };
+  const activateAbility = () => {
+    const first = scene && flow ? flow.start(scene) : null;
+    if (first === "picker") setChoosing(true);
+    else if (first) setPlacing(first);
+    else store.activateAbility();
+  };
+  const placement = placing && scene && canActivateAbility(view) ? placementOf(placing, scene) : null;
   const picking: BoardPicking | null = placement && {
     tiles: new Set(
       picked.length < placement.steps.length ? placement.tiles.filter((tile) => !picked.includes(tile)) : [],
@@ -203,51 +161,7 @@ function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
     onPick: (tile) => setPicked((current) => (current.includes(tile) ? current : [...current, tile])),
     cursor: placing!,
   };
-  const ability = activePlayer?.ability ?? null;
-  const seated = (players: readonly Player[]) =>
-    players.map((player) => ({ player, seat: view.players.indexOf(player) }));
-  // The opponents an aimed ability can reach (Arrow Rain), with their seats.
-  const reachable = activePlayer ? seated(opponentsInReach(store.board, view.players, activePlayer.id)) : [];
-  // Card Gamble bets against anyone in the same place, armoured or not (anyone at all, with nobody to win from).
-  const bettable = activePlayer ? seated(gambleTargets(store.board, view.players, activePlayer.id)) : [];
-  // With nobody to win from, the die can be thrown for cards instead.
-  const fortune = view.players.length > 1 && reachable.length === 0;
-  // Time Warp reaches the opponents in the same place; armoured ones turn it away.
-  const timeBendable = activePlayer ? seated(timeTargets(store.board, view.players, activePlayer.id)) : [];
-  // Hell's Drag reaches any opponent on the board not in heaven or hell already; armoured ones turn it away.
-  const draggable = activePlayer ? seated(dragTargets(store.board, view.players, activePlayer.id)) : [];
-  /** Time Warp's power, once picked: the opponent comes next. */
-  const [timePower, setTimePower] = useTurnState<"halt" | "reverse" | null>(null, view.activePlayerId);
-  const stopChoosing = () => {
-    setChoosingCard(false);
-    setTimePower(null);
-  };
-  const activateAbility = () => {
-    // Card Gamble asks whom to bet against; Arrow Rain, whether to strike whoever is in reach.
-    if (
-      (ability === "cardGamble" && bettable.length > 0) ||
-      (ability === "arrowRain" && reachable.length > 0) ||
-      (ability === "timeWarp" && timeBendable.length > 0) ||
-      (ability === "hellsDrag" && draggable.length > 0) ||
-      ability === "ocularAwakening"
-    ) {
-      setChoosingCard(true);
-      return;
-    }
-    if (needsSealPlacement(ability)) setPlacing("seals");
-    else if (needsSpecterPlacement(ability)) setPlacing("specters");
-    // A hand too thin to sacrifice from leaves Transmutation nothing to pick: it distils a card straight away.
-    else if (
-      (needsCardChoice(ability) && (activePlayer?.hand.length ?? 0) >= TRANSMUTATION_CARDS) ||
-      needsDiscardChoice(ability)
-    ) {
-      setChoosingCard(true);
-    } else store.activateAbility();
-  };
-  const pickCards = (cardUids: string[]) => {
-    setChoosingCard(false);
-    store.activateAbility({ cardUids });
-  };
+  const AbilityPicker = flow?.Picker;
 
   return (
     <main className="relative h-dvh w-full overflow-hidden bg-[#05060b] text-white select-none">
@@ -430,32 +344,7 @@ function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
       <DrawOverlay drawing={view.drawing} />
       <FusionOverlay fusing={view.fusing} />
       <TransmuteOverlay transmuting={view.transmuting} />
-      {choosingCard && activePlayer && canActivateAbility(view) && needsCardChoice(ability) && (
-        <CardChoicePicker
-          title="Transmutação"
-          subtitle={`Sacrifique ${TRANSMUTATION_CARDS} cartas: os níveis delas se somam numa carta aleatória desse nível (ex.: duas de nível 2 viram uma de nível 4; máximo ${MAX_RARITY_LEVEL}).`}
-          accent="emerald"
-          cards={activePlayer.hand}
-          max={TRANSMUTATION_CARDS}
-          required
-          confirmLabel="Transmutar"
-          onPick={pickCards}
-          onCancel={() => setChoosingCard(false)}
-        />
-      )}
-      {choosingCard && activePlayer && canActivateAbility(view) && needsDiscardChoice(ability) && (
-        <CardChoicePicker
-          title="Ressurreição"
-          subtitle="Escolha cartas já jogadas: elas voltam para a sua mão."
-          accent="teal"
-          // Newest first: the cards just played are the ones most often wanted back.
-          cards={[...activePlayer.discard].reverse()}
-          max={Math.min(RESURRECTION_CARDS, HAND_LIMIT - activePlayer.hand.length)}
-          confirmLabel="Trazer de volta"
-          onPick={pickCards}
-          onCancel={() => setChoosingCard(false)}
-        />
-      )}
+      {choosing && abilityCtx && canActivateAbility(view) && AbilityPicker && <AbilityPicker ctx={abilityCtx} />}
       {placement && (
         <TilePicking
           title={placement.title}
@@ -467,146 +356,9 @@ function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
           onUndo={() => setPicked((current) => current.slice(0, -1))}
           onCancel={stopPlacing}
           onConfirm={() => {
-            placement.use(picked);
+            store.activateAbility(placement.choice(picked));
             stopPlacing();
           }}
-        />
-      )}
-      {choosingCard && activePlayer && canActivateAbility(view) && ability === "cardGamble" && (
-        <TargetPicker
-          title="Aposta do Coringa"
-          tone="text-rose-300"
-          subtitle={
-            fortune
-              ? "Nenhum oponente ao seu alcance: aposte mesmo assim (perdendo, uma carta sua vai fora) ou tente o Lance da Sorte."
-              : "Contra quem você aposta? Ganhando, rouba cartas dele; perdendo, ele leva uma sua."
-          }
-          alternatives={
-            fortune
-              ? [
-                  {
-                    label: "Lance da Sorte",
-                    detail: "o número do dado = cartas na mão",
-                    onPick: () => {
-                      setChoosingCard(false);
-                      store.activateAbility({ power: "fortune" });
-                    },
-                  },
-                ]
-              : []
-          }
-          targets={bettable}
-          detail={(player) => (
-            <>
-              <Layers className="size-3.5" />
-              {player.hand.length}
-            </>
-          )}
-          onPick={(targetId) => {
-            setChoosingCard(false);
-            store.activateAbility({ targetId });
-          }}
-          onCancel={() => setChoosingCard(false)}
-        />
-      )}
-      {choosingCard && activePlayer && canActivateAbility(view) && ability === "arrowRain" && (
-        <TargetPicker
-          title="Chuva de Flechas"
-          tone="text-lime-300"
-          subtitle={`Prenda as próximas ${ARROW_RAIN_PINS} armadilhas à frente ou faça todos os oponentes voltarem ${ARROW_RAIN_PUSH} casas.`}
-          alternatives={[
-            {
-              label: "Atacar os oponentes",
-              detail: `${reachable.length === 1 ? "1 volta" : `${reachable.length} voltam`} ${ARROW_RAIN_PUSH} casas`,
-              onPick: () => {
-                setChoosingCard(false);
-                store.activateAbility({ volley: "opponents" });
-              },
-            },
-            {
-              label: "Prender armadilhas",
-              detail: `${ARROW_RAIN_PINS} à frente`,
-              onPick: () => {
-                setChoosingCard(false);
-                store.activateAbility();
-              },
-            },
-          ]}
-          onCancel={() => setChoosingCard(false)}
-        />
-      )}
-      {choosingCard && activePlayer && canActivateAbility(view) && ability === "ocularAwakening" && (
-        <TargetPicker
-          title="Despertar Ocular"
-          tone="text-orange-400"
-          subtitle="Escolha o poder que seus olhos despertam."
-          alternatives={[
-            {
-              label: "Chamas Eternas",
-              detail: `fogo negro em ${FLAME_TILES} casas por ${FLAME_TURNS} rodadas`,
-              onPick: () => {
-                setChoosingCard(false);
-                setPlacing("flames");
-              },
-            },
-            {
-              label: "Armadura Espectral",
-              detail: `imune aos outros por ${ARMOUR_TURNS} rodadas`,
-              onPick: () => {
-                setChoosingCard(false);
-                store.activateAbility({ power: "armour" });
-              },
-            },
-          ]}
-          onCancel={() => setChoosingCard(false)}
-        />
-      )}
-      {choosingCard && activePlayer && canActivateAbility(view) && ability === "timeWarp" && !timePower && (
-        <TargetPicker
-          title="Engrenagem do Tempo"
-          tone="text-amber-500"
-          subtitle="O que fazer com o tempo de um oponente?"
-          alternatives={[
-            {
-              label: "Parar o tempo",
-              detail: `fica ${TIME_ROUNDS} rodadas sem jogar`,
-              onPick: () => setTimePower("halt"),
-            },
-            {
-              label: "Inverter o tempo",
-              detail: `o dado anda para trás por ${TIME_ROUNDS} rodadas`,
-              onPick: () => setTimePower("reverse"),
-            },
-          ]}
-          onCancel={stopChoosing}
-        />
-      )}
-      {choosingCard && activePlayer && canActivateAbility(view) && ability === "timeWarp" && timePower && (
-        <TargetPicker
-          title={timePower === "halt" ? "Parar o tempo" : "Inverter o tempo"}
-          tone="text-amber-500"
-          subtitle="Escolha o oponente."
-          targets={timeBendable}
-          detail={(player) => <span className="font-mono">{player.position}</span>}
-          onPick={(targetId) => {
-            store.activateAbility({ power: timePower, targetId });
-            stopChoosing();
-          }}
-          onCancel={stopChoosing}
-        />
-      )}
-      {choosingCard && activePlayer && canActivateAbility(view) && ability === "hellsDrag" && (
-        <TargetPicker
-          title="Arrastar ao Inferno"
-          tone="text-red-500"
-          subtitle="Quem a mão do inferno vai buscar?"
-          targets={draggable}
-          detail={(player) => <span className="font-mono">{player.position}</span>}
-          onPick={(targetId) => {
-            setChoosingCard(false);
-            store.activateAbility({ targetId });
-          }}
-          onCancel={() => setChoosingCard(false)}
         />
       )}
       {view.pendingGrace?.offer === "blessing" && gracedPlayer && !view.isAnimating && (
