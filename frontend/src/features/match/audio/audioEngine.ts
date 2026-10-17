@@ -1,11 +1,18 @@
-export type AudioBus = "sfx" | "music" | "ambience";
+export type AudioBus = "sfx" | "voice" | "music" | "ambience";
 
-const BUS_VOLUME: Record<AudioBus, number> = { sfx: 1, music: 0.32, ambience: 0.55 };
+const BUS_VOLUME: Record<AudioBus, number> = {
+  sfx: 1,
+  voice: 1,
+  music: 0.32,
+  ambience: 0.55,
+};
+/** Buses that only follow the global mute; the rest also go quiet with the music switched off. */
+const ALWAYS_ON: readonly AudioBus[] = ["sfx", "voice"];
 const FADE_SECONDS = 0.4;
 
 /**
- * One AudioContext for the whole game, split into buses so sound effects, music and
- * ambience can be muted independently. Created lazily; browsers only let it run after
+ * One AudioContext for the whole game, split into buses so sound effects, voices, music and
+ * ambience can be muted independently. Recorded sounds (voices) are fetched and decoded once. Created lazily; browsers only let it run after
  * a user gesture, so call `unlock` from an input handler.
  */
 export class AudioEngine {
@@ -15,6 +22,8 @@ export class AudioEngine {
   private muted = false;
   private musicEnabled = true;
   private readonly readyListeners = new Set<() => void>();
+  /** Decoded recordings by URL; null once one failed to load (missing file), so it isn't fetched again. */
+  private readonly samples = new Map<string, Promise<AudioBuffer | null>>();
 
   unlock(): void {
     const context = this.ensureContext();
@@ -40,10 +49,41 @@ export class AudioEngine {
     this.applyVolumes();
   }
 
-  /** Music and ambience together; sound effects follow only the global mute. */
+  /** Music and ambience together; sound effects and voices follow only the global mute. */
   setMusicEnabled(enabled: boolean): void {
     this.musicEnabled = enabled;
     this.applyVolumes();
+  }
+
+  /**
+   * Plays the recording at `url` on `bus`, `delay` seconds from now. Resolves to whether it played:
+   * false while the context isn't running or when the file can't be loaded.
+   */
+  async playSample(url: string, bus: AudioBus, delay = 0): Promise<boolean> {
+    const context = this.running;
+    const output = this.bus(bus);
+    if (!context || !output) return false;
+    const requested = context.currentTime;
+    const buffer = await this.sample(context, url);
+    if (!buffer) return false;
+    const source = context.createBufferSource();
+    source.buffer = buffer;
+    source.connect(output);
+    // Loading may have eaten into the delay: what's left of it, if any.
+    source.start(Math.max(context.currentTime, requested + delay));
+    return true;
+  }
+
+  private sample(context: AudioContext, url: string): Promise<AudioBuffer | null> {
+    let loading = this.samples.get(url);
+    if (!loading) {
+      loading = fetch(url)
+        .then((response) => (response.ok ? response.arrayBuffer() : Promise.reject(new Error(url))))
+        .then((data) => context.decodeAudioData(data))
+        .catch(() => null);
+      this.samples.set(url, loading);
+    }
+    return loading;
   }
 
   /** Runs `listener` whenever the context starts running (and right away if it already is). */
@@ -58,6 +98,7 @@ export class AudioEngine {
     void this.context?.close();
     this.context = null;
     this.buses.clear();
+    this.samples.clear();
   }
 
   private ensureContext(): AudioContext | null {
@@ -84,7 +125,7 @@ export class AudioEngine {
 
   private targetVolume(name: AudioBus): number {
     if (this.muted) return 0;
-    if (name !== "sfx" && !this.musicEnabled) return 0;
+    if (!ALWAYS_ON.includes(name) && !this.musicEnabled) return 0;
     return BUS_VOLUME[name];
   }
 

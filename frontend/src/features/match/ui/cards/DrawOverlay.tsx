@@ -27,7 +27,7 @@ export function DrawOverlay({ drawing }: { drawing: CardDrawView | null }) {
           style={{ animation: "card-draw-flip 1.5s ease-in-out forwards" }}
         >
           <div className="[backface-visibility:hidden]">
-            <CardView cardId={drawing.card.cardId} />
+            <CardView cardId={drawing.card.cardId} fused={drawing.card.fused} />
           </div>
           <div className="absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)]">
             <CardBack />

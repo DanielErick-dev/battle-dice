@@ -6,10 +6,12 @@ import {
   FLAME_PUSH,
   FLAME_TILES,
   FLAME_TURNS,
+  SUSANOO_PUSH,
 } from "./abilities";
 import { GameRuleError } from "./commands";
-import { playerIn, pushPath, updatePlayer, type Draft } from "./draft";
-import { groundSpellsSpare } from "./players";
+import { getTile } from "./board";
+import { playerIn, pushPath, updatePlayer, walkPath, type Draft } from "./draft";
+import { groundSpellsSpare, inSusanoo, isUntouchable } from "./players";
 import type { Board, PlayerId, TileId } from "./types";
 
 /**
@@ -43,6 +45,8 @@ export function lightFlames(draft: Draft, playerId: PlayerId, tiles: readonly Ti
     ...draft.blackFlames,
     ...tiles.map((tile) => ({ tile, owner: playerId, turnsLeft: FLAME_TURNS, hits: 0 })),
   ];
+  // Fire beats frost: the fairy's snow under it melts away for good.
+  draft.enchantedTiles = draft.enchantedTiles.filter((enchanted) => !tiles.includes(enchanted.tile));
   draft.events.push({ type: "flamesLit", playerId, tiles: [...tiles] });
 }
 
@@ -56,13 +60,16 @@ export function raiseArmour(draft: Draft, playerId: PlayerId): void {
  * The player stopped on `tile`: black fire there that isn't theirs scorches them, taking
  * FLAME_ENERGY energy and throwing them FLAME_PUSH tiles back, and the fire's owner gains a turn
  * of ability charge. Walking through doesn't burn.
- * Spectral Armour turns it away, and the Crimson Witch walks through fire unharmed (see
+ * Spectral Armour (or being Untamed) turns it away, though not Kage Rubra's Susanoo (see inSusanoo), and the
+ * Crimson Witch walks through fire unharmed (see
  * groundSpellsSpare). The player's own fire doesn't burn them.
  */
 export function scorch(draft: Draft, playerId: PlayerId, tile: TileId): void {
   const flame = draft.blackFlames.find((candidate) => candidate.owner !== playerId && candidate.tile === tile);
   if (!flame || groundSpellsSpare(playerIn(draft, playerId))) return;
-  if (playerIn(draft, playerId).spectralArmour > 0) {
+  // Fire gets inside a Susanoo: it's the one armour it burns through.
+  const victim = playerIn(draft, playerId);
+  if (isUntouchable(victim) && !inSusanoo(victim)) {
     draft.events.push({ type: "armourHeld", playerId, tile: flame.tile });
     return;
   }
@@ -106,4 +113,39 @@ export function burnDown(draft: Draft, owner: PlayerId): void {
   const out = lowered.filter((flame) => flame.turnsLeft <= 0).map((flame) => flame.tile);
   draft.blackFlames = lowered.filter((flame) => flame.turnsLeft > 0);
   if (out.length > 0) draft.events.push({ type: "flamesFaded", owner, tiles: out });
+}
+
+/**
+ * Stopping on Kage Rubra's tile while her Susanoo stands there: it won't let them, and they're thrown
+ * back SUSANOO_PUSH tiles (where nothing on the tile happens to them). False when no Susanoo is
+ * there, or there's nowhere behind to throw them.
+ */
+export function repelledBySusanoo(draft: Draft, playerId: PlayerId, landed: TileId): boolean {
+  const guardian = draft.players.find(
+    (player) => player.id !== playerId && player.position === landed && inSusanoo(player),
+  );
+  if (!guardian) return false;
+  const path = pushPath(draft.state.board, landed, SUSANOO_PUSH, playerIn(draft, playerId).realmEntry);
+  const to = path.at(-1);
+  if (to === undefined) return false;
+  draft.events.push({ type: "susanooRepelled", playerId, by: guardian.id, tile: landed, to, ahead: false });
+  updatePlayer(draft, playerId, () => ({ position: to }));
+  return true;
+}
+
+/**
+ * Kage Rubra stopping, inside her Susanoo, on a tile where others stand: it sweeps them off it,
+ * SUSANOO_PUSH tiles ahead (where nothing on the tile happens to them; never onto the finish).
+ * Those Untamed or armoured hold their ground.
+ */
+export function sweptBySusanoo(draft: Draft, playerId: PlayerId, landed: TileId): void {
+  if (!inSusanoo(playerIn(draft, playerId))) return;
+  const { board } = draft.state;
+  for (const other of draft.players) {
+    if (other.id === playerId || other.position !== landed || isUntouchable(other)) continue;
+    const to = walkPath(board, landed, SUSANOO_PUSH, other.realmEntry).at(-1);
+    if (to === undefined || getTile(board, to).role === "finish") continue;
+    draft.events.push({ type: "susanooRepelled", playerId: other.id, by: playerId, tile: landed, to, ahead: true });
+    updatePlayer(draft, other.id, () => ({ position: to }));
+  }
 }

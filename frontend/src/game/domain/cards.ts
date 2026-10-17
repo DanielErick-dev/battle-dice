@@ -12,6 +12,7 @@ export type CardId =
   | "fateRune"
   | "ancestralAwakening"
   | "fateSwap"
+  | "abyssCall"
   | "celestialLight"
   | "heavenlyAegis"
   | "ascension";
@@ -77,10 +78,13 @@ export const CARD_CATALOG: Readonly<Record<CardId, CardDefinition>> = {
   mysticGate: card("mysticGate", "epic"),
   fateRune: card("fateRune", "epic", { needsValue: true, dice: "throw" }),
   ancestralAwakening: card("ancestralAwakening", "epic", { dice: "bonus" }),
+  // Hell's Drag in a card: only on a board with hell, at someone out on the main path.
+  abyssCall: card("abyssCall", "epic", { targetsOpponent: true }),
   // Swapping places can win a race outright: it takes a full bar of energy.
   fateSwap: card("fateSwap", "legendary", { targetsOpponent: true, cost: 10 }),
   // Heaven's gifts are cheap to play: the hard part is reaching them.
-  celestialLight: card("celestialLight", "legendary", { relic: true, cost: 2 }),
+  // An angel's gift: filling the energy costs none of it.
+  celestialLight: card("celestialLight", "legendary", { relic: true, cost: 0 }),
   heavenlyAegis: card("heavenlyAegis", "legendary", { relic: true, cost: 2 }),
   ascension: card("ascension", "legendary", { relic: true, cost: 2 }),
 };
@@ -101,11 +105,11 @@ export const RARITY_COST: Readonly<Record<Rarity, number>> = {
 export const MAX_ENERGY = 10;
 export const STARTING_ENERGY = 1;
 /** A player gains 1 energy every this many of their own turns. */
-export const TURNS_PER_ENERGY = 1;
+export const TURNS_PER_ENERGY = 2;
 export const HAND_LIMIT = 8;
 export const STARTING_HAND = 6;
 export const WIND_STEP_TILES = 3;
-export const ARCANE_BLAST_PUSH = 3;
+export const ARCANE_BLAST_PUSH = 7;
 export const HEALING_HERB_ENERGY = 6;
 export const ANCIENT_SCROLL_DRAWS = 2;
 export const LUCKY_CHARM_BONUS = 2;
@@ -142,7 +146,7 @@ export function cardCost(cardId: CardId): number {
 }
 
 /**
- * The deck everyone plays with until collections exist: 20 cards solo, 25 with opponents.
+ * The deck everyone plays with until collections exist: 20 cards solo, 26 with opponents.
  * Later, a player's own deck (built in the organiser from cards won on the roulette, daily
  * cards…) replaces it.
  */

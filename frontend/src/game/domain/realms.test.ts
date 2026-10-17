@@ -51,6 +51,52 @@ describe("realm tracks", () => {
     expect(getTile(board, 31).previous).toBe(5);
   });
 
+  it("lay out one hell for every portal into it: each player leaves where their own portal leads", () => {
+    const twoGates: BoardDefinition = {
+      size: 40,
+      effects: {
+        5: { kind: "portal", to: 12, realm: "infernal" },
+        25: { kind: "portal", to: 33, realm: "infernal" },
+      },
+    };
+    const shared = createBoard(twoGates);
+    expect(shared.tracks).toHaveLength(1);
+    expect(shared.tracks[0].entries).toEqual([
+      { portal: 5, exit: 12 },
+      { portal: 25, exit: 33 },
+    ]);
+    const [first] = shared.tracks[0].tiles;
+    const last = shared.tracks[0].tiles.at(-1)!;
+
+    // In by the second portal: onto the same first tile, and out at that portal's exit.
+    const start = createGame(twoGates, [{ id: "p1", name: "Aria" }], {
+      random: seededRandom(7),
+    });
+    const inHell = roll(withPlayer(start, { position: 24 }), 1).state;
+    expect(inHell.players[0]).toMatchObject({
+      position: first,
+      realmEntry: { portal: 25, exit: 33 },
+    });
+    const out = roll(withPlayer(inHell, { position: last - 1 }), 2).state;
+    expect(out.players[0].position).toBe(33);
+  });
+
+  it("lay out one heaven too: two players in by different portals walk the same corridor", () => {
+    const twoGates: BoardDefinition = {
+      size: 40,
+      effects: {
+        5: { kind: "portal", to: 12, realm: "celestial" },
+        25: { kind: "portal", to: 33, realm: "celestial" },
+      },
+    };
+    const shared = createBoard(twoGates);
+    expect(shared.tracks).toHaveLength(1);
+    expect(shared.tracks[0].entries).toEqual([
+      { portal: 5, exit: 12 },
+      { portal: 25, exit: 33 },
+    ]);
+  });
+
   it("fill every infernal tile with something bad and every celestial tile with something good", () => {
     for (const id of infernal.tiles) expect(HARMFUL.has(getTile(board, id).effect.kind), `tile ${id}`).toBe(true);
     for (const id of celestial.tiles) expect(HELPFUL.has(getTile(board, id).effect.kind), `tile ${id}`).toBe(true);
@@ -176,5 +222,34 @@ describe("a realm track is cut off from the board", () => {
   it("Card Gamble can't steal from a player in another place", () => {
     const { state } = activate(duel(20, inside, "cardGamble"), [6]);
     expect(state.players[1].hand).toHaveLength(1);
+  });
+
+  it("Card Gamble may still bet against someone out of reach: a win is turned away, a loss costs a card", () => {
+    const bet = (dice: number[]) =>
+      applyCommand(
+        duel(20, inside, "cardGamble"),
+        { type: "activateAbility", playerId: "p1", targetId: "p2" },
+        { rollDice: sequenceDice(dice), random: seededRandom(3) },
+      );
+    const won = bet([5]);
+    expect(won.events).toContainEqual(expect.objectContaining({ type: "abilityBlocked", ward: "away" }));
+    expect(won.state.players[1].hand).toHaveLength(1);
+    const lost = bet([1]);
+    const hand = duel(20, inside, "cardGamble").players[0].hand.length;
+    expect(lost.state.players[0].hand).toHaveLength(hand - 1);
+    expect(lost.state.players[1].hand).toHaveLength(1);
+  });
+
+  it("with nobody in reach, Card Gamble's lucky throw draws as many cards as the die shows", () => {
+    const start = duel(20, inside, "cardGamble");
+    const lucky = (state: GameState) =>
+      applyCommand(
+        state,
+        { type: "activateAbility", playerId: "p1", power: "fortune" },
+        { rollDice: sequenceDice([2]), random: seededRandom(3) },
+      );
+    const hand = start.players[0].hand.length;
+    expect(lucky(start).state.players[0].hand).toHaveLength(hand + 2);
+    expect(() => lucky(duel(20, 25, "cardGamble"))).toThrow(GameRuleError);
   });
 });

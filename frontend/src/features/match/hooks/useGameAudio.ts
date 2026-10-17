@@ -47,11 +47,14 @@ export function useGameAudio(): GameAudio {
 
   useEffect(() => {
     const unlock = () => engine.unlock();
-    window.addEventListener("pointerdown", unlock);
-    window.addEventListener("keydown", unlock);
+    // Arriving from a menu click (the page was already interacted with), it can start right away;
+    // on a fresh load the browser holds it until the first click or key press.
+    unlock();
+    window.addEventListener("pointerdown", unlock, { capture: true });
+    window.addEventListener("keydown", unlock, { capture: true });
     return () => {
-      window.removeEventListener("pointerdown", unlock);
-      window.removeEventListener("keydown", unlock);
+      window.removeEventListener("pointerdown", unlock, { capture: true });
+      window.removeEventListener("keydown", unlock, { capture: true });
       engine.dispose();
     };
   }, [engine]);

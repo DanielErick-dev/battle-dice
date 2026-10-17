@@ -25,9 +25,16 @@ export function loseArrowRain(draft: Draft, playerId: PlayerId, volley: "opponen
       hidden: [],
     });
     for (const target of targets) {
-      const path = pushPath(board, target.position, ARROW_RAIN_PUSH);
-      draft.events.push({ type: "playerPushed", playerId: target.id, by: playerId, path });
-      updatePlayer(draft, target.id, () => ({ position: path.at(-1) ?? target.position }));
+      const path = pushPath(board, target.position, ARROW_RAIN_PUSH, target.realmEntry);
+      draft.events.push({
+        type: "playerPushed",
+        playerId: target.id,
+        by: playerId,
+        path,
+      });
+      updatePlayer(draft, target.id, () => ({
+        position: path.at(-1) ?? target.position,
+      }));
     }
     return;
   }

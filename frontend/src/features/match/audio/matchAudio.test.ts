@@ -35,6 +35,10 @@ function setup(rolls: number[], start = 1) {
     thunder: record("thunder"),
     electricRush: record("electricRush"),
     arrowVolley: record("arrowVolley"),
+    abilityVoice: record("abilityVoice"),
+    shove: record("shove"),
+    hellGrasp: record("hellGrasp"),
+    fall: record("fall"),
     win: record("win"),
   };
   connectMatchAudio(store, sounds);

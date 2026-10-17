@@ -79,7 +79,7 @@ describe("Forbidden Seals", () => {
 
   it("only writes on plain main-path tiles within range, never on an effect or another seal", () => {
     const tiles = sealableTiles(createGame(BOARD, [{ id: "a", name: "A" }]).board, 10, [15]);
-    expect(tiles).not.toContain(10);
+    expect(tiles).toContain(10);
     expect(tiles).not.toContain(12);
     expect(tiles).not.toContain(15);
     expect(tiles).toContain(10 + SEAL_RANGE);
@@ -90,7 +90,7 @@ describe("Forbidden Seals", () => {
     const start = readyScribe(patch(duel(), "scribe", { position: 20 }));
     expectRuleError(() => write(start, [22, 25, 17]), "INVALID_SEALS");
     expectRuleError(() => write(start, [22, 22, 17, 28]), "INVALID_SEALS");
-    expectRuleError(() => write(start, [22, 25, 17, 40]), "INVALID_SEALS");
+    expectRuleError(() => write(start, [22, 25, 17, 20 + SEAL_RANGE + 1]), "INVALID_SEALS");
     expectRuleError(() => write(start, [22, 25, 17, 12]), "INVALID_SEALS");
     expectRuleError(() => write({ ...start, seals: [seal(22, "ruin", "rival")] }, [22, 25, 17, 28]), "INVALID_SEALS");
     expectRuleError(() => write({ ...start, seals: [seal(22, "ruin")] }, [22, 25, 17, 28]), "INVALID_SEALS");
@@ -140,7 +140,7 @@ describe("Forbidden Seals", () => {
     });
     const { state } = send(start, { type: "rollDice", playerId: "rival" }, [1]);
     expect(player(state, "rival").energy).toBe(3 - BLOOD_PACT_ENERGY);
-    expect(player(state, "scribe").energy).toBe(1 + BLOOD_PACT_ENERGY + 1); // + their turn's energy
+    expect(player(state, "scribe").energy).toBe(1 + BLOOD_PACT_ENERGY);
   });
 
   it("does nothing to its own writer while there are opponents, and stays", () => {

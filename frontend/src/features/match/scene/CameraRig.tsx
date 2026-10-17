@@ -35,6 +35,7 @@ const SHOTS: Record<TileEffectKind, Shot> = {
   turnSkipped: { trauma: 0.2 },
   extraTurn: { fovKick: 0.6 },
   trapBlocked: { fovKick: 0.4 },
+  abilityBlocked: { fovKick: 0.4 },
   trapCurse: { trauma: 0.4 },
   realmEnter: {
     closeUp: { distance: 0.5, seconds: 2.4 },
@@ -51,10 +52,16 @@ const SHOTS: Record<TileEffectKind, Shot> = {
   specter: { closeUp: { distance: 0.62, seconds: 1.2 }, trauma: 0.35 },
   enchanted: { closeUp: { distance: 0.7, seconds: 1 } },
   flames: { closeUp: { distance: 0.62, seconds: 1.2 }, trauma: 0.45 },
+  winter: { closeUp: { distance: 0.8, seconds: 1.2 } },
   armour: { fovKick: 0.3 },
   cleansed: { fovKick: 0.9, trauma: 0.3 },
-  frozen: { trauma: 0.5 },
-  timeBent: { closeUp: { distance: 0.7, seconds: 1.2 }, fovKick: 0.8 },
+  trampled: { trauma: 0.7 },
+  repelled: { trauma: 0.6 },
+  timeBent: { closeUp: { distance: 0.7, seconds: 2.6 }, fovKick: 0.8 },
+  fallen: { closeUp: { distance: 0.5, seconds: 2.4 }, trauma: 0.6, fovKick: 1 },
+  crown: { closeUp: { distance: 0.62, seconds: 1.2 }, fovKick: 0.5 },
+  heavenBarred: { trauma: 0.3 },
+  dragged: { closeUp: { distance: 0.62, seconds: 1.2 }, trauma: 0.5 },
 };
 
 /** Cards whose cast is filmed too (the rest are covered by the effects they cause). */

@@ -3,19 +3,11 @@
 import { RoundedBox, Sparkles } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
-import {
-  AdditiveBlending,
-  CanvasTexture,
-  Color,
-  DoubleSide,
-  MeshBasicMaterial,
-  ShaderMaterial,
-  SRGBColorSpace,
-  type Group,
-} from "three";
+import { CanvasTexture, Color, DoubleSide, SRGBColorSpace, type Group, type MeshStandardMaterial } from "three";
 import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "../boardLayout";
-import { NOISE_GLSL } from "../realm/noise";
 import { useAge } from "../useAge";
+import { preloadProps, PROP_HEIGHT, usePropMesh } from "./props";
+import { withRim, type RimUniforms } from "./rimGlow";
 
 const TILE_TOP = TILE_HEIGHT / 2;
 
@@ -144,105 +136,105 @@ function useSnowTexture(): CanvasTexture {
   return texture;
 }
 
-const FLAME_VERTEX = /* glsl */ `
-  varying vec2 vUv;
-  void main() {
-    vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }
-`;
-
-/**
- * A tongue of black fire: a flame shape licked into shape by rising noise, swaying, its heart
- * pitch black and its edges glowing like embers in the owner's colour.
- */
-const FLAME_FRAGMENT = /* glsl */ `
-  uniform float uTime;
-  uniform float uSeed;
-  uniform vec3 uRim;
-  varying vec2 vUv;
-  ${NOISE_GLSL}
-  void main() {
-    float t = uTime * 1.6 + uSeed;
-    float rise = vUv.y;
-    float licks = fbm(vec2(vUv.x * 3.0 + uSeed, rise * 2.5 - t * 1.8));
-    float sway = (fbm(vec2(rise * 1.5 - t * 0.7, uSeed)) - 0.5) * 0.35 * rise;
-    float across = abs(vUv.x - 0.5 - sway);
-    float width = mix(0.42, 0.02, pow(rise, 0.9));
-    float body = 1.0 - smoothstep(width * 0.55, width, across + (licks - 0.5) * 0.22);
-    float top = 1.0 - smoothstep(0.5, 1.0, rise + (licks - 0.5) * 0.5);
-    float shape = body * top * smoothstep(0.0, 0.06, rise);
-    if (shape < 0.02) discard;
-    float edge = 1.0 - smoothstep(0.0, 0.4, body * top);
-    vec3 color = mix(vec3(0.012, 0.0, 0.02), uRim * 2.4, edge);
-    gl_FragColor = vec4(color, shape * 0.95);
-  }
-`;
-
-/**
- * Flames on a burning tile: a dense carpet of low tongues from edge to edge (a jittered 4×4 grid,
- * shares of the tile), each with its height, width and a seed for its flicker, so the whole tile
- * reads as fire rather than one tall flame.
- */
-const FLAMES = Array.from({ length: 16 }, (_, index) => {
-  const [column, row] = [index % 4, Math.floor(index / 4)];
-  const jitter = (n: number) => (((Math.sin(index * 12.9898 + n * 78.233) * 43758.5453) % 1) + 1) % 1;
-  return {
-    x: (column - 1.5) * 0.24 + (jitter(1) - 0.5) * 0.08,
-    z: (row - 1.5) * 0.24 + (jitter(2) - 0.5) * 0.08,
-    height: 0.75 + jitter(3) * 0.45,
-    width: 0.62 + jitter(4) * 0.2,
-    seed: jitter(5) * 20,
-  };
-});
-/** Shader materials the flames share (each with its own seed), so the carpet doesn't flicker in step. */
-const FLAME_SEEDS = [0.3, 4.1, 7.7, 11.9];
 /** The clock every black fire flickers to (one for all of them, set as the scene draws). */
 const FLAME_TIME = { value: 0 };
-/** Each flame is drawn on two planes crossed round the vertical, so it reads from any side. */
-const CROSSINGS = [Math.PI / 4, (3 * Math.PI) / 4];
+/** The fires on a burning tile: a tall one in the middle, two lower ones beside it (shares of the tile). */
+const FIRES = [
+  { x: 0, z: 0, height: 1.7, turn: 0 },
+  // A ring of smaller fires out to the edges, so the whole tile burns.
+  { x: -0.3, z: -0.3, height: 1.15, turn: 1.3 },
+  { x: 0.3, z: -0.3, height: 1.05, turn: 2.9 },
+  { x: -0.3, z: 0.3, height: 1.0, turn: 4.4 },
+  { x: 0.3, z: 0.3, height: 1.2, turn: 5.6 },
+  { x: 0, z: -0.34, height: 0.85, turn: 0.7 },
+  { x: 0, z: 0.34, height: 0.9, turn: 3.6 },
+  { x: -0.34, z: 0, height: 0.8, turn: 2.2 },
+  { x: 0.34, z: 0, height: 0.85, turn: 5.0 },
+];
+/** The model's own height (PROP_HEIGHT), and how far its lowest point is below its middle. */
+const FIRE_MODEL_BOTTOM = 0.95;
+
+/**
+ * Bends the black fire model as it burns: its tongues sway and lick, more the higher they are (the
+ * base stays put), each part of it out of step with the rest.
+ */
+const FIRE_SWAY_GLSL = /* glsl */ `
+  #include <begin_vertex>
+  float flameRise = clamp((position.y + 0.95) / 1.85, 0.0, 1.0);
+  float flameSway = flameRise * flameRise;
+  transformed.x += sin(uFlameTime * 2.4 - position.y * 3.5 + position.z * 2.0) * 0.08 * flameSway;
+  transformed.z += cos(uFlameTime * 2.1 - position.y * 3.0 + position.x * 2.5) * 0.08 * flameSway;
+  transformed.y += sin(uFlameTime * 3.2 - position.y * 4.0 + position.x * 3.0) * 0.04 * flameSway;
+`;
+
+preloadProps(["blackFlame"]);
+
+/**
+ * Amaterasu's look, like Itachi's: pitch-black fire (FIRE_BODY), a faint ember glow inside it, and a
+ * dark crimson burning along its edges.
+ */
+const FIRE_BODY = "#050104";
+const FIRE_EMBER = "#ff3048";
+const FIRE_EMBER_GLOW = 0.18;
+const FIRE_RIM = "#c0102c";
+const FIRE_RIM_STRENGTH = 1.6;
+
+/** The black fire model's material, glowing red along its edges and bent by FIRE_SWAY_GLSL. */
+function useFireMaterial(): MeshStandardMaterial {
+  const { material } = usePropMesh("blackFlame");
+  const fire = useMemo(() => {
+    const copy = material.clone();
+    copy.side = DoubleSide;
+    // Amaterasu: the fire itself is black, its texture only a faint ember glow deep inside it…
+    copy.color = new Color(FIRE_BODY);
+    copy.emissive = new Color(FIRE_EMBER);
+    copy.emissiveMap = copy.map;
+    copy.emissiveIntensity = FIRE_EMBER_GLOW;
+    copy.roughness = 1;
+    // …and its edges burn a dark crimson.
+    const rim: RimUniforms = { uRimColor: { value: new Color(FIRE_RIM) }, uRimStrength: { value: FIRE_RIM_STRENGTH } };
+    copy.onBeforeCompile = (shader) => {
+      shader.uniforms.uFlameTime = FLAME_TIME;
+      Object.assign(shader.uniforms, rim);
+      shader.vertexShader = `uniform float uFlameTime;\n${shader.vertexShader.replace("#include <begin_vertex>", FIRE_SWAY_GLSL)}`;
+      shader.fragmentShader = withRim(shader.fragmentShader);
+    };
+    copy.customProgramCacheKey = () => "blackFlameSwayRim";
+    return copy;
+  }, [material]);
+  useEffect(() => () => fire.dispose(), [fire]);
+  return fire;
+}
 
 /**
  * A tile under the Kunoichi's black fire (Amaterasu): the tile is gone under a charred, smouldering
- * slab, and a carpet of pitch-black flames with ember edges burns over all of it, sparks rising
- * off them. Flares up as it's lit.
+ * slab, and black flames edged in red burn all over it, swaying and breathing slowly (their height
+ * and glow rise and fall), sparks rising off them. Flares up as it's lit.
  */
 export function BlackFlameMark({ position, color }: { position: Vec3; color: string }) {
   const root = useRef<Group>(null);
+  const fires = useRef<(Group | null)[]>([]);
   const age = useAge();
   const rim = useMemo(() => new Color(color), [color]);
   const embers = useEmberTexture();
-  const materials = useMemo(
-    () => ({
-      flames: FLAME_SEEDS.map(
-        (seed) =>
-          new ShaderMaterial({
-            vertexShader: FLAME_VERTEX,
-            fragmentShader: FLAME_FRAGMENT,
-            uniforms: { uTime: FLAME_TIME, uSeed: { value: seed }, uRim: { value: rim } },
-            transparent: true,
-            depthWrite: false,
-            side: DoubleSide,
-            toneMapped: false,
-          }),
-      ),
-      glow: new MeshBasicMaterial({
-        color: rim.clone().multiplyScalar(1.3),
-        transparent: true,
-        opacity: 0.35,
-        depthWrite: false,
-        blending: AdditiveBlending,
-        toneMapped: false,
-      }),
-    }),
-    [rim],
-  );
-  useEffect(() => () => [...materials.flames, materials.glow].forEach((material) => material.dispose()), [materials]);
+  const { geometry } = usePropMesh("blackFlame");
+  const fire = useFireMaterial();
 
   useFrame(({ clock }) => {
     const t = age(clock.elapsedTime);
+    const now = clock.elapsedTime;
     root.current?.scale.set(1, Math.min(1, 0.1 + t * 2.5), 1);
-    FLAME_TIME.value = clock.elapsedTime;
+    FLAME_TIME.value = now;
+    // Breathing: each fire rises and settles slowly, out of step with the others.
+    fires.current.forEach((node, index) => {
+      if (!node) return;
+      const phase = now + index * 1.7;
+      const jump = Math.sin(phase * 2.3) * 0.05 + Math.sin(phase * 3.9) * 0.025;
+      node.scale.set(1 - jump * 0.3, 1 + jump, 1 - jump * 0.3);
+    });
+    fire.setValues({
+      emissiveIntensity: FIRE_EMBER_GLOW * (1 + Math.sin(now * 2.6) * 0.25 + Math.sin(now * 4.1) * 0.15),
+    });
   });
 
   return (
@@ -258,20 +250,25 @@ export function BlackFlameMark({ position, color }: { position: Vec3; color: str
           map={embers}
           emissive={rim}
           emissiveMap={embers}
-          emissiveIntensity={1.4}
+          emissiveIntensity={0.45}
           roughness={1}
         />
       </RoundedBox>
-      <mesh rotation-x={-Math.PI / 2} position-y={COVER_HEIGHT - 0.01} material={materials.glow}>
-        <planeGeometry args={[TILE_SIZE * 1.15, TILE_SIZE * 1.15]} />
-      </mesh>
-      {FLAMES.map(({ x, z, height, width }, index) => (
-        <group key={index} position={[x * TILE_SIZE, COVER_HEIGHT - 0.04 + height / 2, z * TILE_SIZE]}>
-          {CROSSINGS.map((turn) => (
-            <mesh key={turn} rotation-y={turn + index} material={materials.flames[index % FLAME_SEEDS.length]}>
-              <planeGeometry args={[width, height]} />
-            </mesh>
-          ))}
+      {FIRES.map(({ x, z, height, turn }, index) => (
+        <group
+          key={index}
+          ref={(node) => {
+            fires.current[index] = node;
+          }}
+          position={[x * TILE_SIZE, COVER_HEIGHT - 0.03, z * TILE_SIZE]}
+          rotation-y={turn}
+        >
+          <mesh
+            geometry={geometry}
+            material={fire}
+            scale={height / PROP_HEIGHT}
+            position-y={(FIRE_MODEL_BOTTOM * height) / PROP_HEIGHT}
+          />
         </group>
       ))}
       <Sparkles

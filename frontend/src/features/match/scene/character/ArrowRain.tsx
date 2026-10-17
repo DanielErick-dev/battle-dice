@@ -4,11 +4,13 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import {
   AdditiveBlending,
+  BufferAttribute,
   Color,
+  CylinderGeometry,
   DoubleSide,
   MeshBasicMaterial,
-  Shape,
-  ShapeGeometry,
+  type BufferGeometry,
+  type MeshStandardMaterial,
   type Group,
   type Mesh,
 } from "three";
@@ -17,6 +19,7 @@ import { DEFAULT_TIMINGS } from "../../config";
 import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "../boardLayout";
 import { useAge } from "../useAge";
 import { CHEST_HEIGHT } from "./figure";
+import { fadingMaterial, preloadProps, PROP_HEIGHT, usePropMesh } from "./props";
 
 /** Arrows shot up into the sky, and how long each takes to vanish up there. */
 const RISING_ARROWS = 16;
@@ -267,88 +270,79 @@ function Sight({ material }: { material: MeshBasicMaterial }) {
   );
 }
 
-/** An additive, bloom-bright material for arrows of light; faded with `setValues({ opacity })`. */
-export function useGlowMaterial(glow: Color): MeshBasicMaterial {
+/**
+ * An additive, bloom-bright material for arrows of light; faded with `setValues({ opacity })`.
+ * With `vertexColors`, the geometry's colours shade it (black: nothing shows).
+ */
+export function useGlowMaterial(glow: Color, vertexColors = false): MeshBasicMaterial {
   const material = useMemo(
     () =>
       new MeshBasicMaterial({
         color: glow,
+        vertexColors,
         transparent: true,
         depthWrite: false,
         blending: AdditiveBlending,
         toneMapped: false,
         side: DoubleSide,
       }),
-    [glow],
+    [glow, vertexColors],
   );
   useEffect(() => () => material.dispose(), [material]);
   return material;
 }
 
 export interface ArrowMaterials {
-  /** The coloured sheath of light round the arrow. */
+  /** The elven arrow's mesh (see PROPS.elvenArrow). */
+  geometry: BufferGeometry;
+  /** Its own textured material, its green flames glowing a little, faded with the rest. */
+  solid: MeshStandardMaterial;
+  /** A faint sheath of light in the flight's colour round the shaft. */
   glow: MeshBasicMaterial;
-  /** Its white-hot core. */
-  core: MeshBasicMaterial;
   fade: (opacity: number) => void;
 }
 
-/** The two materials of a flight of arrows, faded together. */
+preloadProps(["elvenArrow"]);
+
+/** The materials of a flight of elven arrows, faded together. */
 export function useArrowMaterials(glow: Color): ArrowMaterials {
   const sheath = useGlowMaterial(glow);
-  const core = useGlowMaterial(useMemo(() => new Color("#fffbea").multiplyScalar(1.6), []));
+  const { geometry, material } = usePropMesh("elvenArrow");
+  const solid = useMemo(() => {
+    const copy = fadingMaterial(material);
+    copy.depthWrite = false;
+    copy.emissive = new Color("#ffffff");
+    copy.emissiveMap = copy.map;
+    copy.emissiveIntensity = 0.45;
+    return copy;
+  }, [material]);
+  useEffect(() => () => solid.dispose(), [solid]);
   return useMemo(
     () => ({
+      geometry,
+      solid,
       glow: sheath,
-      core,
       fade: (opacity: number) => {
-        sheath.setValues({ opacity: opacity * 0.85 });
-        core.setValues({ opacity });
+        sheath.setValues({ opacity: opacity * 0.25 });
+        solid.setValues({ opacity });
       },
     }),
-    [sheath, core],
+    [geometry, solid, sheath],
   );
 }
 
-/** A leaf-shaped blade or vane, pointing up its +Y, `width` wide and `length` long. */
-function leafGeometry(width: number, length: number): ShapeGeometry {
-  const shape = new Shape();
-  shape.moveTo(0, length / 2);
-  shape.quadraticCurveTo(width / 2, 0, 0, -length / 2);
-  shape.quadraticCurveTo(-width / 2, 0, 0, length / 2);
-  return new ShapeGeometry(shape, 8);
-}
-const HEAD = leafGeometry(0.2, 0.36);
-const VANE = leafGeometry(0.16, 0.34);
-
 /**
- * One arrow of light pointing up its local +Y, centred on its middle: a white-hot shaft in a
- * coloured sheath, a leaf-shaped head and three fletchings. The arrows of one flight share their
- * materials, so fading them fades them all.
+ * One elven arrow (green flames curling round its gilded shaft) pointing up its local +Y,
+ * ARROW_LENGTH long and centred on its middle, in a faint sheath of light. The arrows of one
+ * flight share their materials, so fading them fades them all.
  */
 export function LightArrow({ materials }: { materials: ArrowMaterials }) {
   return (
     <group>
-      <mesh material={materials.core}>
-        <cylinderGeometry args={[0.016, 0.016, ARROW_LENGTH, 5]} />
-      </mesh>
+      <mesh geometry={materials.geometry} material={materials.solid} scale={ARROW_LENGTH / PROP_HEIGHT} />
       <mesh material={materials.glow}>
-        <cylinderGeometry args={[0.045, 0.045, ARROW_LENGTH, 6]} />
+        <cylinderGeometry args={[0.06, 0.06, ARROW_LENGTH, 6]} />
       </mesh>
-      {[0, Math.PI / 2].map((turn) => (
-        <mesh
-          key={turn}
-          geometry={HEAD}
-          position-y={ARROW_LENGTH / 2 + 0.16}
-          rotation-y={turn}
-          material={materials.core}
-        />
-      ))}
-      {[0, (Math.PI * 2) / 3, (Math.PI * 4) / 3].map((turn) => (
-        <group key={turn} rotation-y={turn}>
-          <mesh geometry={VANE} position={[0.07, -ARROW_LENGTH / 2 + 0.17, 0]} material={materials.glow} />
-        </group>
-      ))}
     </group>
   );
 }
@@ -361,20 +355,25 @@ const PINNING_ARROWS = [
   { x: -0.2, z: 0.12, tilt: [-0.08, -0.18] },
 ] as const;
 const PIN_PULSE_RATE = 2.2;
-/** The column of light rising from a pinned tile, and the rune ring's turning speed. */
-const COLUMN_HEIGHT = 3.2;
+/** The column of light rising from a pinned tile (fading out towards its top), and the rune ring's turning speed. */
+const COLUMN_HEIGHT = 2.4;
 const RUNE_TURN_RATE = 0.6;
 
 /**
  * A trap Arrow Rain pinned down: four arrows of light stuck in the tile inside a double ring of
- * binding (the inner one broken into turning runes), under a soft column of light that marks it
- * from across the board. It pulses until the archer walks past and frees it.
+ * binding (the inner one broken into turning runes), under a faint column of light, fading upwards,
+ * that marks it from across the board. It pulses until the archer walks past and frees it.
  */
 export function PinnedTrapMark({ position, color }: { position: Vec3; color: string }) {
-  const glow = useMemo(() => glowOf(color, 1.9), [color]);
+  const glow = useMemo(() => glowOf(color, 1.3), [color]);
   const arrows = useArrowMaterials(glow);
   const ringMaterial = useGlowMaterial(glow);
-  const columnMaterial = useGlowMaterial(useMemo(() => glowOf(color, 0.9), [color]));
+  const columnMaterial = useGlowMaterial(
+    useMemo(() => glowOf(color, 0.7), [color]),
+    true,
+  );
+  const column = useMemo(() => fadingColumn(TILE_SIZE * 0.36, TILE_SIZE * 0.46, COLUMN_HEIGHT), []);
+  useEffect(() => () => column.dispose(), [column]);
   const runes = useRef<Group>(null);
   const root = useRef<Group>(null);
   const age = useAge();
@@ -384,16 +383,17 @@ export function PinnedTrapMark({ position, color }: { position: Vec3; color: str
     // Snaps in as the rain lands, then breathes.
     root.current?.scale.setScalar(Math.min(1, 0.6 + t * 4));
     const pulse = 0.5 + 0.5 * Math.sin(clock.elapsedTime * PIN_PULSE_RATE * Math.PI);
-    ringMaterial.setValues({ opacity: 0.5 + 0.4 * pulse });
-    columnMaterial.setValues({ opacity: 0.12 + 0.1 * pulse });
-    arrows.fade(0.8 + 0.2 * pulse);
+    ringMaterial.setValues({ opacity: 0.4 + 0.3 * pulse });
+    columnMaterial.setValues({ opacity: 0.07 + 0.05 * pulse });
+    arrows.fade(1);
     if (runes.current) runes.current.rotation.z += delta * RUNE_TURN_RATE;
   });
 
   return (
     <group ref={root} position={[position[0], position[1] + TILE_TOP, position[2]]}>
       {PINNING_ARROWS.map(({ x, z, tilt }, index) => (
-        <group key={index} position={[x, ARROW_LENGTH * 0.32, z]} rotation={[Math.PI + tilt[0], 0, tilt[1]]}>
+        // Heads up and out of the stone, the fletching end driven into it.
+        <group key={index} position={[x, ARROW_LENGTH * 0.32, z]} rotation={[tilt[0], 0, tilt[1]]}>
           <LightArrow materials={arrows} />
         </group>
       ))}
@@ -409,9 +409,23 @@ export function PinnedTrapMark({ position, color }: { position: Vec3; color: str
           ))}
         </group>
       </group>
-      <mesh position-y={COLUMN_HEIGHT / 2} material={columnMaterial}>
-        <cylinderGeometry args={[TILE_SIZE * 0.36, TILE_SIZE * 0.46, COLUMN_HEIGHT, 32, 1, true]} />
-      </mesh>
+      <mesh position-y={COLUMN_HEIGHT / 2} geometry={column} material={columnMaterial} />
     </group>
   );
+}
+
+/**
+ * An open cylinder whose vertex colours go from white at the bottom to black at the top: under an
+ * additive material, light that thins out as it rises instead of ending in a hard rim.
+ */
+function fadingColumn(top: number, bottom: number, height: number): CylinderGeometry {
+  const geometry = new CylinderGeometry(top, bottom, height, 32, 6, true);
+  const heights = geometry.getAttribute("position");
+  const colors = new Float32Array(heights.count * 3);
+  for (let index = 0; index < heights.count; index++) {
+    const shade = (1 - (heights.getY(index) + height / 2) / height) ** 2;
+    colors.set([shade, shade, shade], index * 3);
+  }
+  geometry.setAttribute("color", new BufferAttribute(colors, 3));
+  return geometry;
 }

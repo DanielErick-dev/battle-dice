@@ -9,11 +9,23 @@ export const PROPS = {
   skull: "/models/props/skull.glb",
   skeletalHand: "/models/props/skeletalHand.glb",
   skeleton: "/models/props/skeleton.glb",
+  elvenArrow: "/models/props/elvenArrow.glb",
+  frostWand: "/models/props/frostWand.glb",
+  fairyWings: "/models/props/fairyWings.glb",
+  seraphWings: "/models/props/seraphWings.glb",
+  fallenWings: "/models/props/fallenWings.glb",
+  blackFlame: "/models/props/blackFlame.glb",
+  frostThrone: "/models/props/frostThrone.glb",
+  infernalThrone: "/models/props/infernalThrone.glb",
+  wolfThrone: "/models/props/wolfThrone.glb",
+  celestialThrone: "/models/props/celestialThrone.glb",
+  ashenThrone: "/models/props/ashenThrone.glb",
+  susanoo: "/models/props/susanoo.glb",
 } as const;
 export type PropId = keyof typeof PROPS;
 
 /** Meshy exports every prop at this height, centred on the origin and facing +Z. */
-const PROP_HEIGHT = 1.9;
+export const PROP_HEIGHT = 1.9;
 
 export function preloadProps(ids: PropId[]): void {
   for (const id of ids) useGLTF.preload(PROPS[id]);

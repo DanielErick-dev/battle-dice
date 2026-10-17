@@ -1,6 +1,6 @@
 "use client";
 
-import { Billboard, QuadraticBezierLine, Sparkles } from "@react-three/drei";
+import { Billboard, Sparkles } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef, useState } from "react";
 import {
@@ -15,6 +15,7 @@ import {
 } from "three";
 import { getTile } from "@/game/domain/board";
 import type { Board, RealmTrack } from "@/game/domain/types";
+import type { BoardPicking } from "../BoardScene";
 import { TILE_HEIGHT, TILE_SIZE, type BoardLayout, type Vec3 } from "../boardLayout";
 import { TileMesh } from "../TileMesh";
 import { REALM_PALETTES } from "../tileTheme";
@@ -59,7 +60,11 @@ interface RealmTrackViewProps {
   open: boolean;
   highlighted: ReadonlySet<number>;
   reachable: ReadonlySet<number>;
+  /** Tiles someone stands on (what floats over them makes way). */
+  occupied: ReadonlySet<number>;
   textureSize: number;
+  /** Tiles being picked for an ability (apparitions in heaven): those of this track take the pick. */
+  picking?: BoardPicking | null;
 }
 
 /**
@@ -75,7 +80,9 @@ export function RealmTrackView({
   open,
   highlighted,
   reachable,
+  occupied,
   textureSize,
+  picking,
 }: RealmTrackViewProps) {
   const palette = REALM_PALETTES[track.realm];
   const presence = useRef(0);
@@ -90,20 +97,6 @@ export function RealmTrackView({
     const lift = (position: Vec3) => new Vector3(position[0], position[1] + TILE_HEIGHT / 2 + 0.05, position[2]);
     return new TubeGeometry(new CatmullRomCurve3(positions.map(lift), false, "centripetal"), 120, 0.08, 8, false);
   }, [positions]);
-  const links = useMemo(() => {
-    const lift = ([x, y, z]: Vec3): Vec3 => [x, y + TILE_HEIGHT / 2 + 0.1, z];
-    const arc = (from: Vec3, to: Vec3) => {
-      const [a, b] = [lift(from), lift(to)];
-      const length = Math.hypot(b[0] - a[0], b[2] - a[2]);
-      return {
-        start: a,
-        end: b,
-        mid: [(a[0] + b[0]) / 2, Math.max(a[1], b[1]) + 1.5 + length * 0.25, (a[2] + b[2]) / 2] as Vec3,
-      };
-    };
-    return [arc(layout.position(track.portal), positions[0]), arc(positions.at(-1)!, layout.position(track.exit))];
-  }, [track, layout, positions]);
-  const linkLines = useRef<({ material: { opacity: number } } | null)[]>([]);
   const ribbonUniforms = useMemo(
     () => ({
       uTime: { value: 0 },
@@ -135,9 +128,6 @@ export function RealmTrackView({
     // The corridor's walls rise out of its floor as the track appears, and sink back into it.
     if (walls.current) walls.current.scale.y = Math.max(0.001, 1 - (1 - Math.min(1, amount * 1.2)) ** 3);
 
-    linkLines.current.forEach((line) => {
-      if (line) line.material.opacity = amount * 0.6;
-    });
     flames.forEach((material) => {
       material.uniforms.uTime.value = clock.elapsedTime;
       material.uniforms.uOpacity.value = amount;
@@ -164,22 +154,6 @@ export function RealmTrackView({
         />
       </mesh>
 
-      {links.map((link, i) => (
-        <QuadraticBezierLine
-          key={i}
-          ref={(line) => {
-            linkLines.current[i] = line as unknown as { material: { opacity: number } } | null;
-          }}
-          {...link}
-          color={palette.glow}
-          lineWidth={2.5}
-          dashed
-          dashScale={5}
-          transparent
-          opacity={0}
-        />
-      ))}
-
       {track.tiles.map((id, i) => {
         const tile = getTile(board, id);
         const next = tile.next ? layout.position(tile.next) : null;
@@ -199,7 +173,10 @@ export function RealmTrackView({
               arrowAngle={arrowAngle}
               highlighted={highlighted.has(id)}
               reachable={reachable.has(id)}
+              occupied={occupied.has(id)}
               textureSize={textureSize}
+              onPick={picking?.tiles.has(id) ? picking.onPick : undefined}
+              pickCursor={picking?.cursor}
             />
             {track.realm === "infernal" ? (
               <>

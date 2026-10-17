@@ -9,5 +9,7 @@ export const BLESSING_TEXT: Readonly<Record<TimedBlessing, { name: string; effec
   spring: { name: "Fonte de Luz", effect: `+${SPRING_ENERGY} de energia a cada rodada` },
 };
 
-/** "por 3 rodadas", as a blessing tile or banner says how long it lasts. */
-export const BLESSING_DURATION = `por ${BLESSING_TURNS} rodadas`;
+/** How long a blessing lasts on a player: BLESSING_TURNS rounds unless `turns` says otherwise (Seraphiel's). */
+export function blessingDuration(turns = BLESSING_TURNS): string {
+  return `por ${turns} rodadas`;
+}

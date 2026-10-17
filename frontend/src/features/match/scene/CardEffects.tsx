@@ -1,6 +1,5 @@
 "use client";
 
-import { Sparkles } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef, useState } from "react";
 import {
@@ -16,6 +15,7 @@ import {
 import type { Vec3 } from "./boardLayout";
 import { CHEST_HEIGHT } from "./character/figure";
 import { useAge } from "./useAge";
+import { HealingEmitter } from "./vfx/healing";
 
 // Colours pushed past 1.0 glow through the bloom pass.
 /** The Arcane Shield's usual tint; a character may raise it in their own colour (see CharacterDefinition.shieldColor). */
@@ -127,19 +127,12 @@ export function WindCloud() {
   );
 }
 
-const BURST_SECONDS = 1.6;
+/** Seconds of healing motes: within the card's cast (timings.castMs), which unmounts the emitter. */
+const BURST_SECONDS = 1;
 
-/** Healing Herb: a burst of green sparks rising around the player. */
+/** Healing Herb: green motes rising round the player for a moment (see HealingParticles). */
 export function HealBurst() {
-  const [visible, setVisible] = useState(true);
-  const age = useAge();
-
-  useFrame(({ clock }) => {
-    if (visible && age(clock.elapsedTime) > BURST_SECONDS) setVisible(false);
-  });
-
-  if (!visible) return null;
-  return <Sparkles count={40} scale={[1.6, 2.4, 1.6]} position-y={1.1} size={5} speed={2.5} color="#4ade80" />;
+  return <HealingEmitter seconds={BURST_SECONDS} />;
 }
 
 const BEAM_SECONDS = 1.4;

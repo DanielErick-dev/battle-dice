@@ -244,6 +244,25 @@
 }
 
 /* Heaven's relics: white marble veined with gold, haloed in light. */
+.game-card[data-rarity="fused"] {
+  background: linear-gradient(145deg, #fde68a, #f97316 30%, #c026d3 60%, #fbbf24 85%, #fff7ed);
+  background-size: 200% 200%;
+  animation: fused-frame 3s ease-in-out infinite alternate;
+  box-shadow:
+    0 12px 28px rgb(0 0 0 / 0.55),
+    0 0 22px rgb(249 115 22 / 0.75);
+}
+
+/* A fused card's frame burns: its colours roll round slowly. */
+@keyframes fused-frame {
+  from {
+    background-position: 0% 0%;
+  }
+  to {
+    background-position: 100% 100%;
+  }
+}
+
 .game-card[data-rarity="divine"] {
   background: linear-gradient(145deg, #ffffff, #fde68a 30%, #f8fafc 55%, #facc15 80%, #ffffff);
   box-shadow:
@@ -272,7 +291,8 @@
 .game-card[data-hover="on"] .card-foil,
 .game-card[data-rarity="epic"] .card-foil,
 .game-card[data-rarity="legendary"] .card-foil,
-.game-card[data-rarity="divine"] .card-foil {
+.game-card[data-rarity="divine"] .card-foil,
+.game-card[data-rarity="fused"] .card-foil {
   opacity: 1;
 }
 
@@ -310,6 +330,24 @@
 .energy-orb {
   background: radial-gradient(circle at 35% 30%, #fff7cc, #fbbf24 45%, #b45309);
   box-shadow: 0 0 6px rgb(251 191 36 / 0.8);
+}
+
+/* An energy orb lighting up: it pops in with a flash as it fills. */
+.energy-orb-fill {
+  animation: energy-orb-fill 0.5s ease-out;
+}
+
+@keyframes energy-orb-fill {
+  0% {
+    transform: scale(0.4);
+    box-shadow: 0 0 14px rgb(254 243 199 / 1);
+  }
+  55% {
+    transform: scale(1.35);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* A card flying into the arena when played. */
@@ -528,5 +566,130 @@
 @media (prefers-reduced-motion: reduce) {
   .game-card {
     transform: none;
+  }
+}
+
+/* Card Fusion (FusionOverlay): three copies fly in and spin into one another... */
+@keyframes fusion-copy-left {
+  0% {
+    opacity: 0;
+    transform: translate(-170%, 10%) rotate(-20deg) scale(0.85);
+  }
+  20% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(160deg) scale(0.7);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(200deg) scale(0.4);
+  }
+}
+
+@keyframes fusion-copy-top {
+  0% {
+    opacity: 0;
+    transform: translate(0, -150%) rotate(0deg) scale(0.85);
+  }
+  20% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(-140deg) scale(0.7);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(-180deg) scale(0.4);
+  }
+}
+
+@keyframes fusion-copy-right {
+  0% {
+    opacity: 0;
+    transform: translate(170%, 10%) rotate(20deg) scale(0.85);
+  }
+  20% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(-160deg) scale(0.7);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(-200deg) scale(0.4);
+  }
+}
+
+/* ...a flash and rings of fire where they meet... */
+@keyframes fusion-flash {
+  0%,
+  42% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+@keyframes fusion-ring {
+  0%,
+  46% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  52% {
+    opacity: 1;
+  }
+  85%,
+  100% {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+
+/* ...and the fused card rising out of the light, blazing, then settling. */
+@keyframes fusion-reveal {
+  0%,
+  46% {
+    opacity: 0;
+    transform: scale(0.5);
+    filter: brightness(3) drop-shadow(0 0 40px rgb(251 146 60));
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.15);
+    filter: brightness(1.8) drop-shadow(0 0 40px rgb(251 146 60));
+  }
+  75%,
+  92% {
+    opacity: 1;
+    transform: scale(1);
+    filter: brightness(1) drop-shadow(0 0 28px rgb(249 115 22 / 0.9));
+  }
+  100% {
+    opacity: 0;
+    transform: translate(60%, 10%) scale(0.6);
+    filter: none;
+  }
+}
+
+@keyframes fusion-dim {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  15%,
+  85% {
+    opacity: 1;
   }
 }

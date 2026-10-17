@@ -12,12 +12,13 @@ import {
   CARD_GAMBLE_LOST,
   CARD_GAMBLE_STOLEN,
   DORMANT_FURY_MULTIPLIER,
-  GLACIAL_SOLO_BONUS,
   PLASMA_PUSH,
   PLASMA_TRAPS,
   STUDY_DRAWS,
   TAILWIND_BONUS,
   TIDE_RANGE,
+  TRAMPLE_PUSH,
+  UNTAMED_TURNS,
   TIME_ROUNDS,
   LEVITATION_TURNS,
   RESURRECTION_CARDS,
@@ -29,6 +30,7 @@ import {
   ARMOUR_TURNS,
   ENCHANT_ADVANCE,
   ENCHANT_FREEZE,
+  SNOW_DRAIN,
   ENCHANT_TILES,
   FLAME_ENERGY,
   FLAME_HITS,
@@ -37,6 +39,8 @@ import {
   FLAME_TURNS,
 } from "@/game/domain/abilities";
 import { MAX_RARITY_LEVEL } from "@/game/domain/cards";
+import { BLESSING_TURNS, SERAPH_BLESSING_TURNS } from "@/game/domain/blessings";
+import { CROWN_BONUS, DRAG_TRAPS } from "@/game/domain/seraph";
 
 /**
  * Player-facing ability copy (pt-BR). Rules live in the domain; this is only what the ability
@@ -65,18 +69,23 @@ export const ABILITY_TEXT: Readonly<Record<AbilityId, { name: string; descriptio
   },
   seraphBlessing: {
     name: "Bênção do Serafim",
-    description: `Carrega em ${abilityCycle("seraphBlessing")} turnos. Ao usar, recebe uma bênção do céu aleatória (Asas, Auréola, Inspiração ou Fonte de Luz).`,
+    description: `Carrega em ${abilityCycle("seraphBlessing")} turnos. Ao usar, recebe um presente do céu aleatório: uma bênção (Asas, Auréola, Inspiração ou Fonte de Luz) ou uma carta qualquer do baralho na mão. Passivas: suas bênçãos duram ${SERAPH_BLESSING_TURNS} rodadas (as dos outros, ${BLESSING_TURNS}); no céu, você escolhe a bênção e a relíquia de cada casa; ao sair do céu ganha a Coroa Seráfica (+${CROWN_BONUS} casas em toda rolagem até o fim). Cuidado: se pisar no inferno, cai para sempre e vira o Anjo Caído.`,
     active: "Uma bênção desce do céu",
+  },
+  hellsDrag: {
+    name: "Arrastar ao Inferno",
+    description: `Carrega em ${abilityCycle("hellsDrag")} turnos. Ao usar, escolha um oponente: uma mão do inferno o agarra e o leva direto para o começo do inferno (quem está no céu ou no inferno escapa). Se ele estiver Indomável ou com armadura, a mão é repelida e a habilidade é gasta à toa. Sozinho, o inferno engole as próximas ${DRAG_TRAPS} armadilhas à frente. Passivas do Anjo Caído: o inferno não te fere, o céu está fechado para você e a Coroa Infernal dá +${CROWN_BONUS} casas em toda rolagem.`,
+    active: "O inferno cobra a sua parte",
   },
   cleansingTide: {
     name: "Maré Purificadora",
     description: `Carrega em ${abilityCycle("cleansingTide")} turnos. Ao usar, uma onda varre a sua casa e as ${TIDE_RANGE} casas à frente: fogo negro, neve, aparições, selos e flechas que prendem armadilhas somem, de quem quer que sejam.`,
     active: "A maré lavou o caminho",
   },
-  glacialHowl: {
-    name: "Uivo Glacial",
-    description: `Carrega em ${abilityCycle("glacialHowl")} turnos. Ao usar, todos os oponentes ao alcance congelam e perdem a próxima vez. Sozinho no tabuleiro, a rolagem do turno anda +${GLACIAL_SOLO_BONUS} casas.`,
-    active: "Os oponentes congelaram",
+  untamed: {
+    name: "Indomável",
+    description: `Passiva: todo oponente que você atravessa ou em quem para, com o dado ou cartas de movimento, volta ${TRAMPLE_PUSH} casas na hora. Carrega em ${abilityCycle("untamed")} turnos. Ao usar, por ${UNTAMED_TURNS} turnos nada te atinge: armadilhas, maldições, perder a vez, neve, fogo, selos, aparições e o que os outros mirarem em você. Bênçãos continuam valendo, e se o tempo do seu dado estiver invertido ele volta a andar para a frente. A carga só volta a contar quando acaba (uma casa de habilidade ainda carrega).`,
+    active: `Nada te detém por ${UNTAMED_TURNS} turnos`,
   },
   sacredBulwark: {
     name: "Baluarte Sagrado",
@@ -85,7 +94,7 @@ export const ABILITY_TEXT: Readonly<Record<AbilityId, { name: string; descriptio
   },
   timeWarp: {
     name: "Engrenagem do Tempo",
-    description: `Carrega em ${abilityCycle("timeWarp")} turnos. Ao usar, escolha um oponente e o que fazer com o tempo dele: Parar (fica ${TIME_ROUNDS} rodadas sem jogar) ou Inverter (nas próximas ${TIME_ROUNDS} rodadas o dado dele anda para trás). Sozinho no tabuleiro, você joga de novo depois deste turno.`,
+    description: `Carrega em ${abilityCycle("timeWarp")} turnos. Ao usar, escolha um oponente e o que fazer com o tempo dele: Parar (fica ${TIME_ROUNDS} rodadas sem jogar) ou Inverter (nas próximas ${TIME_ROUNDS} rodadas o dado dele anda para trás). Soma com o que ele já tinha. Só alcança quem está no mesmo lugar que você (o tabuleiro, o céu ou o inferno). Se o alvo estiver Indomável, no Susanoo, com armadura ou sob a Égide Celestial, o tempo é bloqueado e a habilidade é gasta à toa. A carga só volta a contar depois que essas ${TIME_ROUNDS} rodadas passam (uma casa de habilidade ainda carrega). Sem ninguém ao alcance, você joga de novo depois deste turno.`,
     active: "O tempo obedece",
   },
   plasmaCannon: {
@@ -115,7 +124,7 @@ export const ABILITY_TEXT: Readonly<Record<AbilityId, { name: string; descriptio
   },
   cardGamble: {
     name: "Aposta do Coringa",
-    description: `Carrega em ${abilityCycle("cardGamble")} turnos. Ao usar, escolha o oponente e role o dado da sorte: de 1 a ${CARD_GAMBLE_LOSES_UP_TO} ele leva ${CARD_GAMBLE_LOST} carta aleatória sua; de ${CARD_GAMBLE_LOSES_UP_TO + 1} a ${CARD_GAMBLE_JACKPOT - 1} você rouba ${CARD_GAMBLE_STOLEN} cartas aleatórias dele (sozinho, compra ${CARD_GAMBLE_DRAWS}); no ${CARD_GAMBLE_JACKPOT}, rouba ${CARD_GAMBLE_STOLEN} cartas épicas (se faltar épica, completa com outras; sozinho, ganha ${CARD_GAMBLE_EPICS} épicas). Sozinho, o azar descarta 1 carta.`,
+    description: `Carrega em ${abilityCycle("cardGamble")} turnos. Ao usar, escolha o oponente e role o dado da sorte: de 1 a ${CARD_GAMBLE_LOSES_UP_TO} ele leva ${CARD_GAMBLE_LOST} carta aleatória sua; de ${CARD_GAMBLE_LOSES_UP_TO + 1} a ${CARD_GAMBLE_JACKPOT - 1} você rouba ${CARD_GAMBLE_STOLEN} cartas aleatórias dele (sozinho, compra ${CARD_GAMBLE_DRAWS}); no ${CARD_GAMBLE_JACKPOT}, rouba ${CARD_GAMBLE_STOLEN} cartas épicas (se faltar épica, completa com outras; sozinho, ganha ${CARD_GAMBLE_EPICS} épicas). Sozinho, o azar descarta 1 carta. Dá para apostar contra quem está protegido ou fora de alcance: ganhando, é bloqueado; perdendo, 1 carta sua vai fora. Sem nenhum oponente ao alcance, você também pode tentar o Lance da Sorte: compra tantas cartas quanto o dado mostrar.`,
     active: "Os dados da sorte rolaram",
   },
   resurrection: {
@@ -135,12 +144,12 @@ export const ABILITY_TEXT: Readonly<Record<AbilityId, { name: string; descriptio
   },
   fairyBloom: {
     name: "Florescimento Feérico",
-    description: `Carrega em ${abilityCycle("fairyBloom")} turnos. Ao usar, as próximas ${ENCHANT_TILES} casas ruins à frente (armadilhas, ocultas também, e maldições) viram casas encantadas para sempre. Passando por cima ou parando numa delas você avança ${ENCHANT_ADVANCE} casas; o oponente que parar numa delas fica preso na neve por ${ENCHANT_FREEZE} rodadas. Nos dois casos sua habilidade ganha +1 de carga.`,
+    description: `Carrega em ${abilityCycle("fairyBloom")} turnos. Ao usar, as próximas ${ENCHANT_TILES} casas ruins à frente (armadilhas, ocultas também, e maldições) viram casas encantadas para sempre (o fogo negro derrete a neve; a neve não pousa sobre ele). Parando numa delas (passar por cima não conta) você avança ${ENCHANT_ADVANCE} casas; se o avanço terminar em outra neve sua, avança mais ${ENCHANT_ADVANCE} (em qualquer outra casa, nada acontece); o oponente que parar numa delas fica preso na neve por ${ENCHANT_FREEZE} rodadas, e cada rodada presa suga ${SNOW_DRAIN} de energia dele para você. Nos dois casos sua habilidade ganha +1 de carga.`,
     active: "As casas floresceram",
   },
   ocularAwakening: {
     name: "Despertar Ocular",
-    description: `Carrega em ${abilityCycle("ocularAwakening")} turnos. Ao usar, escolha: Chamas Eternas (até ${FLAME_TILES} casas de qualquer lugar do caminho pegam fogo negro por ${FLAME_TURNS} rodadas; o oponente que parar numa delas perde ${FLAME_ENERGY} de energia e volta ${FLAME_PUSH} casas; cada fogo apaga depois de queimar ${FLAME_HITS} vezes, e cada vítima dá +1 de carga à sua habilidade) ou Armadura Espectral (por ${ARMOUR_TURNS} rodadas, cartas, habilidades, selos e aparições dos outros não te atingem; armadilhas e maldições do tabuleiro sim).`,
+    description: `Carrega em ${abilityCycle("ocularAwakening")} turnos. Ao usar, escolha: Chamas Eternas (até ${FLAME_TILES} casas de qualquer lugar do caminho pegam fogo negro por ${FLAME_TURNS} rodadas; o oponente que parar numa delas perde ${FLAME_ENERGY} de energia e volta ${FLAME_PUSH} casas; cada fogo apaga depois de queimar ${FLAME_HITS} vezes, e cada vítima dá +1 de carga à sua habilidade) ou Susanoo (por ${ARMOUR_TURNS} rodadas, cartas, habilidades, selos, aparições, armadilhas, maldições e perder a vez não te atingem; só o que ataca por dentro passa: o espinho da armadilha oculta, o fogo negro e a manipulação do tempo).`,
     active: "Os olhos despertaram",
   },
 };

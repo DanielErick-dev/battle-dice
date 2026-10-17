@@ -6,15 +6,15 @@ import {
   SILENCE_TURNS,
   type AbilityId,
 } from "@/game/domain/abilities";
-import { BLESSING_TURNS } from "@/game/domain/blessings";
-import { cardCost } from "@/game/domain/cards";
+import { blessingTurns } from "@/game/domain/blessings";
+import { cardCost, MAX_ENERGY } from "@/game/domain/cards";
 import { throwOnPile } from "@/game/domain/deck";
 import { SEAL_KINDS } from "@/game/domain/seals";
 import { SPECTER_KINDS } from "@/game/domain/specters";
 import { DICE_SIDES } from "@/game/domain/dice";
 import { currentPlayer } from "@/game/domain/engine";
 import type { GameEvent } from "@/game/domain/events";
-import type { GameState, PlayerId } from "@/game/domain/types";
+import type { GameState, PlayerId, TileId } from "@/game/domain/types";
 import type { PlaybackTimings } from "../config";
 import { sealViews, specterViews, withPlayer, withPlayerAt, type MatchView, type TileEffectView } from "./matchView";
 
@@ -56,8 +56,12 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
       ];
 
     case "playerMoved": {
+      // The Berserker runs on from where he shoved someone.
       const steps = event.path.map((tile) => ({
-        apply: (view: MatchView) => withPlayerAt(view, event.playerId, tile),
+        apply: (view: MatchView) => ({
+          ...withPlayerAt(view, event.playerId, tile),
+          trample: view.trample?.by === event.playerId ? null : view.trample,
+        }),
         durationMs: event.dash ? timings.dashStepMs : timings.stepMs,
       }));
       if (!event.dash) return steps;
@@ -112,21 +116,34 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
             ...withPlayer(view, event.playerId, (player) =>
               event.blessing === "shield"
                 ? { shielded: true }
-                : event.blessing === "energy"
-                  ? { energy: player.energy + event.energyGained }
-                  : {
-                      blessings: [
-                        ...player.blessings.filter((blessing) => blessing.kind !== event.blessing),
-                        { kind: event.blessing, turnsLeft: BLESSING_TURNS, fresh: true },
-                      ],
-                    },
+                : event.blessing === "charge"
+                  ? {
+                      abilityCharge: player.abilityCharge + (event.charged ? 1 : 0),
+                    }
+                  : event.blessing === "energy"
+                    ? { energy: player.energy + event.energyGained }
+                    : {
+                        blessings: [
+                          ...player.blessings.filter((blessing) => blessing.kind !== event.blessing),
+                          {
+                            kind: event.blessing,
+                            turnsLeft: blessingTurns(player),
+                            fresh: true,
+                          },
+                        ],
+                      },
             ),
             effect: {
               kind: "blessing",
               playerId: event.playerId,
               from: event.tile,
               to: event.tile,
-              blessing: { kind: event.blessing, energyGained: event.energyGained },
+              blessing: {
+                kind: event.blessing,
+                energyGained: event.energyGained,
+                charged: event.charged,
+                turns: blessingTurnsOf(view, event.playerId),
+              },
             },
           }),
           durationMs: timings.noticeMs,
@@ -158,18 +175,59 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
       ];
 
     case "extraTurnGranted":
-    case "skipTurnGained": {
-      const kind = event.type === "extraTurnGranted" ? "extraTurn" : "skipTurn";
-      const effect = { kind, playerId: event.playerId, from: event.tile, to: event.tile } as const;
-      return [{ apply: (view) => ({ ...view, effect }), durationMs: timings.noticeMs }];
-    }
+      return [
+        {
+          apply: (view) => ({ ...view, effect: { kind: "extraTurn", ...tileOf(event) } }),
+          durationMs: timings.noticeMs,
+        },
+      ];
+
+    case "skipTurnGained":
+      // Counted at once, so the player sits down to wait while still in view.
+      return [
+        {
+          apply: (view) => ({
+            ...withPlayer(view, event.playerId, (player) => ({ skipTurns: player.skipTurns + 1 })),
+            effect: { kind: "skipTurn", ...tileOf(event) },
+          }),
+          durationMs: timings.noticeMs,
+        },
+      ];
 
     case "turnSkipped":
       return [
         {
           apply: (view) => {
             const tile = view.players.find((player) => player.id === event.playerId)?.position ?? 0;
-            return { ...view, effect: { kind: "turnSkipped", playerId: event.playerId, from: tile, to: tile } };
+            return {
+              ...view,
+              effect: {
+                kind: "turnSkipped",
+                playerId: event.playerId,
+                from: tile,
+                to: tile,
+              },
+            };
+          },
+          durationMs: timings.noticeMs,
+        },
+      ];
+
+    // The snow drinks from its prisoner, and loosens its grip a round.
+    case "snowDrained":
+      return [
+        {
+          apply: (view) => {
+            const drained = withPlayer(view, event.playerId, (player) => ({
+              energy: player.energy - event.energy,
+              snowbound:
+                player.snowbound && player.snowbound.rounds > 1
+                  ? { ...player.snowbound, rounds: player.snowbound.rounds - 1 }
+                  : null,
+            }));
+            return withPlayer(drained, event.owner, (owner) => ({
+              energy: Math.min(MAX_ENERGY, owner.energy + event.energy),
+            }));
           },
           durationMs: timings.noticeMs,
         },
@@ -273,7 +331,20 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
       ];
 
     case "boardCleansed":
+      // The wave rolls over the tiles ahead, then what it washed away is gone.
       return [
+        {
+          apply: (view) => ({
+            ...view,
+            tide: {
+              id: (view.tide?.id ?? 0) + 1,
+              playerId: event.playerId,
+              path: event.reach,
+              rolling: true,
+            },
+          }),
+          durationMs: timings.tideMs,
+        },
         {
           apply: (view) => ({
             ...view,
@@ -282,7 +353,11 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
             specters: view.specters.filter((specter) => !event.tiles.includes(specter.tile)),
             seals: view.seals.filter((seal) => !event.tiles.includes(seal.tile)),
             pinnedTraps: view.pinnedTraps.filter((tile) => !event.tiles.includes(tile)),
-            effect: { ...playerTileEffect(view, event.playerId, "cleansed"), count: event.tiles.length },
+            tide: view.tide && { ...view.tide, rolling: false },
+            effect: {
+              ...playerTileEffect(view, event.playerId, "cleansed"),
+              count: event.tiles.length,
+            },
           }),
           durationMs: timings.noticeMs,
         },
@@ -296,25 +371,118 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
             ...withPlayer(view, event.targetId, (player) =>
               event.power === "halt"
                 ? { skipTurns: player.skipTurns + event.rounds }
-                : { reversedRolls: Math.max(player.reversedRolls, event.rounds) },
+                : { reversedRolls: player.reversedRolls + event.rounds },
             ),
             effect: { ...playerTileEffect(view, event.targetId, "timeBent"), time: event.power, count: event.rounds },
           }),
-          durationMs: timings.noticeMs,
+          durationMs: timings.timeBentMs,
         },
       ];
 
-    case "opponentsFrozen":
+    case "abilityBlocked":
+    case "cardBlocked": {
+      // Shown over whoever threw it: the opponent turned it away, and it's spent.
       return [
         {
           apply: (view) => ({
             ...view,
-            players: view.players.map((player) =>
-              event.targets.includes(player.id) ? { ...player, skipTurns: player.skipTurns + 1 } : player,
-            ),
-            effect: { ...playerTileEffect(view, event.playerId, "frozen"), count: event.targets.length },
+            effect: {
+              ...playerTileEffect(view, event.playerId, "abilityBlocked"),
+              blocked: {
+                ...(event.type === "abilityBlocked" ? { ability: event.ability } : { cardId: event.cardId }),
+                ward: event.ward,
+                targetName: view.players.find((player) => player.id === event.targetId)?.name ?? "",
+              },
+            },
           }),
           durationMs: timings.noticeMs,
+        },
+      ];
+    }
+
+    case "untamedUnleashed":
+      return [
+        {
+          apply: (view) =>
+            withPlayer(view, event.playerId, () => ({
+              untamed: event.turns,
+              reversedRolls: 0,
+            })),
+          durationMs: 0,
+        },
+      ];
+
+    case "playerTrampled": {
+      // The Berserker turns on them and shoves; they fly back to where the knock-back leaves them,
+      // and he turns back to run on.
+      const trample = {
+        by: event.by,
+        victim: event.playerId,
+        tile: event.tile,
+      };
+      // Caught sitting out a lost turn on their chair, they get up first.
+      const getUp = {
+        apply: (view: MatchView) => ({
+          ...view,
+          trample: { id: (view.trample?.id ?? 0) + 1, ...trample, phase: "rise" as const },
+        }),
+        durationMs: timings.trampleRiseMs,
+      };
+      return [
+        ...(event.seated ? [getUp] : []),
+        {
+          apply: (view) => ({
+            ...view,
+            trample: {
+              id: view.trample?.phase === "rise" ? view.trample.id : (view.trample?.id ?? 0) + 1,
+              ...trample,
+              phase: "shove",
+            },
+          }),
+          durationMs: timings.trampleShoveMs,
+        },
+        {
+          apply: (view) => ({
+            ...withPlayerAt(view, event.playerId, event.path.at(-1) ?? event.tile),
+            trample: view.trample && { ...view.trample, phase: "flying" },
+            effect: {
+              ...playerTileEffect(view, event.playerId, "trampled"),
+              count: event.path.length,
+            },
+          }),
+          durationMs: timings.trampleFlightMs,
+        },
+        {
+          apply: (view) => ({
+            ...view,
+            trample: view.trample && { ...view.trample, phase: "over" },
+          }),
+          durationMs: timings.trampleRecoverMs,
+        },
+      ];
+    }
+
+    case "susanooRepelled":
+      // They reach her tile and the Susanoo throws them back; they get up there.
+      return [
+        {
+          apply: (view) => ({
+            ...withPlayerAt(view, event.playerId, event.to),
+            trample: {
+              id: (view.trample?.id ?? 0) + 1,
+              by: event.by,
+              victim: event.playerId,
+              tile: event.tile,
+              phase: "flying",
+              susanoo: true,
+            },
+            effect: { kind: "repelled", playerId: event.playerId, from: event.tile, to: event.to },
+          }),
+          durationMs: timings.trampleFlightMs,
+        },
+        {
+          apply: (view) => ({ ...view, trample: view.trample && { ...view.trample, phase: "over" } }),
+          durationMs: timings.trampleRecoverMs,
         },
       ];
 
@@ -354,7 +522,11 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
         {
           apply: (view) => {
             const tile = view.players.find((player) => player.id === event.playerId)?.position ?? 0;
-            const gamble = { value: event.value, won: event.won };
+            const gamble = {
+              value: event.value,
+              won: event.won,
+              fortune: event.fortune,
+            };
             return {
               ...view,
               isRolling: false,
@@ -548,15 +720,52 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
         },
       ];
 
-    case "tilesEnchanted":
-      // The harmful tiles ahead bloom, enchanted for good.
+    case "tilesEnchanted": {
+      // Snow streams from her wand to each harmful tile ahead in turn (the camera following it),
+      // and the tile blooms, enchanted for good, as it lands; then back to her.
+      const landed = (view: MatchView, index: number): MatchView =>
+        index < 0
+          ? view
+          : { ...view, enchantedTiles: [...view.enchantedTiles, { tile: event.tiles[index], owner: event.playerId }] };
+      return [
+        ...event.tiles.map((tile, index) => ({
+          apply: (view: MatchView) => ({
+            ...landed(view, index - 1),
+            frostStream: { id: (view.frostStream?.id ?? 0) + 1, playerId: event.playerId, tile },
+          }),
+          durationMs: timings.frostStreamMs,
+        })),
+        {
+          apply: (view: MatchView) => ({ ...landed(view, event.tiles.length - 1), frostStream: null }),
+          durationMs: timings.noticeMs,
+        },
+      ];
+    }
+
+    case "winterBegan":
       return [
         {
           apply: (view) => ({
             ...view,
-            enchantedTiles: [...view.enchantedTiles, ...event.tiles.map((tile) => ({ tile, owner: event.playerId }))],
+            winter: {
+              owner: event.playerId,
+              frontier: view.winter?.frontier ?? 1,
+            },
+            effect: playerTileEffect(view, event.playerId, "winter"),
           }),
           durationMs: timings.noticeMs,
+        },
+      ];
+
+    case "winterSpread":
+      // The ice creeps on along the path.
+      return [
+        {
+          apply: (view) => ({
+            ...view,
+            winter: { owner: event.owner, frontier: event.to },
+          }),
+          durationMs: 0,
         },
       ];
 
@@ -566,6 +775,12 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
           apply: (view) => {
             const frozen = withPlayer(view, event.playerId, (player) => ({
               skipTurns: player.skipTurns + event.frozen,
+              ...(event.frozen > 0 && {
+                snowbound: {
+                  owner: event.owner,
+                  rounds: Math.max(event.frozen, player.snowbound?.rounds ?? 0),
+                },
+              }),
             }));
             const paid = withPlayer(frozen, event.owner, (player) => ({
               abilityCharge: player.abilityCharge + (event.charged ? 1 : 0),
@@ -581,7 +796,8 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
               },
             };
           },
-          durationMs: timings.noticeMs,
+          // On her own snow the fairy hops before it carries her on.
+          durationMs: event.playerId === event.owner ? timings.snowHopMs : timings.noticeMs,
         },
       ];
 
@@ -594,6 +810,8 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
               ...view.blackFlames,
               ...event.tiles.map((tile) => ({ tile, owner: event.playerId, turnsLeft: FLAME_TURNS, hits: 0 })),
             ],
+            // The fairy's snow under the fire melts.
+            enchantedTiles: view.enchantedTiles.filter((enchanted) => !event.tiles.includes(enchanted.tile)),
           }),
           durationMs: timings.noticeMs,
         },
@@ -642,11 +860,25 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
       ];
 
     case "armourHeld":
+      // Untamed, it's not armour that turned it away: the Berserker just shrugs it off.
       return [
         {
           apply: (view) => ({
             ...view,
-            effect: { kind: "armour", playerId: event.playerId, from: event.tile, to: event.tile },
+            effect: view.players.some((player) => player.id === event.playerId && player.untamed > 0)
+              ? {
+                  kind: "trapBlocked",
+                  playerId: event.playerId,
+                  from: event.tile,
+                  to: event.tile,
+                  ward: { kind: "untamed", hidden: false },
+                }
+              : {
+                  kind: "armour",
+                  playerId: event.playerId,
+                  from: event.tile,
+                  to: event.tile,
+                },
           }),
           durationMs: timings.noticeMs,
         },
@@ -662,6 +894,111 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
           durationMs: timings.noticeMs,
         },
       ];
+
+    case "seraphFell":
+      return [
+        {
+          apply: (view) => ({
+            ...withPlayer(view, event.playerId, () => ({
+              ability: "hellsDrag",
+              blessings: [],
+              crown: "infernal",
+            })),
+            effect: {
+              ...playerTileEffect(view, event.playerId, "fallen"),
+              crown: "infernal",
+            },
+          }),
+          durationMs: timings.fallMs,
+        },
+      ];
+
+    case "crownGained":
+      return [
+        {
+          apply: (view) => ({
+            ...withPlayer(view, event.playerId, () => ({ crown: event.crown })),
+            effect: {
+              ...playerTileEffect(view, event.playerId, "crown"),
+              crown: event.crown,
+            },
+          }),
+          durationMs: timings.noticeMs,
+        },
+      ];
+
+    case "heavenBarred":
+      return [
+        {
+          apply: (view) => ({
+            ...withPlayer(view, event.playerId, (player) => ({
+              skipTurns: player.skipTurns + event.rounds,
+              chained: player.chained + event.rounds,
+            })),
+            effect: {
+              kind: "heavenBarred",
+              playerId: event.playerId,
+              from: event.tile,
+              to: event.tile,
+            },
+          }),
+          durationMs: timings.noticeMs,
+        },
+      ];
+
+    case "graceOffered":
+      return [
+        {
+          apply: (view) => ({
+            ...view,
+            pendingGrace: {
+              playerId: event.playerId,
+              tile: event.tile,
+              offer: event.offer,
+            },
+          }),
+          durationMs: 0,
+        },
+      ];
+
+    case "hellDragged": {
+      // The hand rises under the victim and closes on them, sinks back with them, and they're in hell.
+      const drag = (view: MatchView, phase: "grab" | "sink" | "over") => ({
+        id: phase === "grab" ? (view.drag?.id ?? 0) + 1 : (view.drag?.id ?? 1),
+        playerId: event.playerId,
+        targetId: event.targetId,
+        from: event.from,
+        phase,
+      });
+      return [
+        {
+          apply: (view) => ({ ...view, drag: drag(view, "grab") }),
+          durationMs: timings.dragGrabMs,
+        },
+        {
+          apply: (view) => ({ ...view, drag: drag(view, "sink") }),
+          durationMs: timings.dragSinkMs,
+        },
+        {
+          apply: (view) => {
+            const moved = withPlayer(view, event.targetId, () => ({
+              position: event.to,
+            }));
+            return {
+              ...moved,
+              drag: drag(view, "over"),
+              effect: {
+                kind: "dragged",
+                playerId: event.targetId,
+                from: event.from,
+                to: event.to,
+              },
+            };
+          },
+          durationMs: timings.noticeMs,
+        },
+      ];
+    }
 
     case "wardOffered":
       return [
@@ -679,6 +1016,34 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
         apply: (view) => withPlayerAt(view, event.playerId, tile),
         durationMs: timings.pushStepMs,
       }));
+
+    // The three copies leave the hand, and the fused card is shown off as it joins it.
+    case "cardsFused":
+      return [
+        {
+          apply: (view) => ({
+            ...withPlayer(view, event.playerId, (player) => ({
+              hand: player.hand.filter((card) => !event.used.includes(card.uid)),
+            })),
+            fusing: {
+              id: (view.fusing?.id ?? 0) + 1,
+              playerId: event.playerId,
+              card: event.card,
+            },
+          }),
+          durationMs: timings.fusionMs,
+        },
+        {
+          apply: (view) => ({
+            ...withPlayer(view, event.playerId, (player) => ({
+              hand: [...player.hand, event.card],
+            })),
+            fusing: null,
+            lastDrawnUid: event.card.uid,
+          }),
+          durationMs: timings.drawMs,
+        },
+      ];
 
     case "cardDrawn":
       return [
@@ -829,7 +1194,11 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
             specters: [],
             enchantedTiles: [],
             blackFlames: [],
+            winter: null,
+            frostStream: null,
             volley: null,
+            tide: null,
+            drag: null,
           }),
           durationMs: 0,
         },
@@ -851,12 +1220,14 @@ export function syncStep(state: GameState): PlaybackStep {
       cardsPlayedThisTurn: state.cardsPlayedThisTurn,
       abilityInUse: state.abilityInUse,
       pendingWard: state.pendingWard,
+      pendingGrace: state.pendingGrace,
       destroyedTraps: state.destroyedTraps,
       pinnedTraps: state.pinnedTraps,
       seals: sealViews(state),
       specters: specterViews(state),
       enchantedTiles: state.enchantedTiles,
       blackFlames: state.blackFlames,
+      winter: state.winter,
       pendingPlunder: state.pendingPlunder,
     }),
     durationMs: 0,
@@ -870,7 +1241,16 @@ export function syncStep(state: GameState): PlaybackStep {
 function abilityUsedMs(ability: AbilityId, timings: PlaybackTimings): number {
   if (ability === "transmutation") return timings.transmuteThrowMs;
   if (ability === "arrowRain") return timings.arrowAimMs;
+  if (ability === "untamed") return timings.untamedCastMs;
+  if (ability === "hellsDrag") return timings.dragCastMs;
+  if (ability === "fairyBloom") return timings.frostAimMs;
   return timings.noticeMs;
+}
+
+/** Rounds a blessing lasts on the player (Seraphiel's last longer). */
+function blessingTurnsOf(view: MatchView, playerId: PlayerId): number | undefined {
+  const player = view.players.find((candidate) => candidate.id === playerId);
+  return player && blessingTurns(player);
 }
 
 /** An ability notice over the player's tile. */
@@ -881,6 +1261,11 @@ function abilityEffect(
   id: AbilityId,
 ): TileEffectView {
   return { ...playerTileEffect(view, playerId, kind), ability: { id } };
+}
+
+/** Where a notice about a player on a tile shows. */
+function tileOf(event: { playerId: PlayerId; tile: TileId }) {
+  return { playerId: event.playerId, from: event.tile, to: event.tile };
 }
 
 /** An effect shown over the tile the player stands on. */

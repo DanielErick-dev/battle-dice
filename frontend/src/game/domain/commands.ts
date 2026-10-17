@@ -1,5 +1,6 @@
 import type { AbilityPower } from "./abilities";
-import type { PlayerId, TileId } from "./types";
+import type { CardId } from "./cards";
+import type { PlayerId, TileId, TimedBlessing } from "./types";
 
 export type GameCommand =
   | { type: "rollDice"; playerId: PlayerId }
@@ -12,6 +13,8 @@ export type GameCommand =
       value?: number;
     }
   | { type: "discardCard"; playerId: PlayerId; cardUid: string }
+  /** Fuses FUSION_COPIES plain copies of a card in hand into one fused card (see fusion.ts). */
+  | { type: "fuseCards"; playerId: PlayerId; cardId: CardId }
   /**
    * Uses the player's charged ability (not a reactive one: those answer a ward prompt);
    * `cardUids` names the cards it works on, for the abilities that need some: a hand card
@@ -25,7 +28,7 @@ export type GameCommand =
       cardUids?: readonly string[];
       sealTiles?: readonly TileId[];
       specterTiles?: readonly TileId[];
-      /** The opponent Card Gamble bets against (one at random when not given). */
+      /** The opponent Card Gamble bets against (one at random when not given), Time Warp bends or Hell's Drag pulls down. */
       targetId?: PlayerId;
       /** Where Arrow Rain falls: on every opponent in reach, or (by default) on the traps ahead. */
       volley?: "opponents" | "traps";
@@ -37,6 +40,13 @@ export type GameCommand =
   | { type: "plunderCards"; playerId: PlayerId; cardUids: readonly string[] }
   /** Answers the prompt to spend a reactive ability on the trap or curse about to strike. */
   | { type: "answerWard"; playerId: PlayerId; use: boolean }
+  /** Seraphiel's pick on a heaven tile: a `blessing` on a blessing tile, a divine `cardId` on a relic. */
+  | {
+      type: "chooseGrace";
+      playerId: PlayerId;
+      blessing?: TimedBlessing;
+      cardId?: CardId;
+    }
   | { type: "restart" };
 
 export type GameErrorCode =
@@ -53,12 +63,13 @@ export type GameErrorCode =
   | "INVALID_TARGET"
   | "INVALID_VALUE"
   | "NO_PORTAL_AHEAD"
+  | "NO_HELL"
   | "WARD_PENDING"
   | "NO_WARD_PENDING"
   | "NO_ABILITY"
+  | "CANNOT_FUSE"
   | "ABILITY_REACTIVE"
   | "ABILITY_NOT_READY"
-  | "ABILITY_IN_USE"
   | "ENERGY_FULL"
   | "ABILITY_ALREADY_READY"
   | "EMPTY_HAND"
@@ -70,7 +81,10 @@ export type GameErrorCode =
   | "INVALID_SPECTERS"
   | "INVALID_FLAMES"
   | "PLUNDER_PENDING"
-  | "NO_PLUNDER_PENDING";
+  | "NO_PLUNDER_PENDING"
+  | "GRACE_PENDING"
+  | "NO_GRACE_PENDING"
+  | "INVALID_GRACE";
 
 export class GameRuleError extends Error {
   constructor(readonly code: GameErrorCode) {

@@ -21,6 +21,8 @@ import type { CharacterClip, ClipLengths } from "../../characters";
 const CROSSFADE_SECONDS = 0.25;
 /** Slower blend out of an intro or cast, so its final pose settles into the next loop. */
 const SETTLE_CROSSFADE_SECONDS = 0.8;
+/** Sitting down on the chair, and getting up off it: unhurried. */
+const SIT_CROSSFADE_SECONDS = 1.2;
 /** Playback speed per clip: the run cycle is sped up to match how fast tokens cover a tile. */
 const CLIP_SPEED: Readonly<Record<CharacterClip, number>> = {
   idle: 1,
@@ -31,9 +33,13 @@ const CLIP_SPEED: Readonly<Record<CharacterClip, number>> = {
   float: 1,
   dash: 1,
   land: 1,
+  shove: 1,
+  knocked: 1,
+  rest: 1,
+  hop: 1,
 };
 /** Clips played once, holding their last pose until the next clip takes over. */
-const ONE_SHOT_CLIPS: readonly CharacterClip[] = ["cast", "intro", "dash", "land"];
+const ONE_SHOT_CLIPS: readonly CharacterClip[] = ["cast", "intro", "dash", "land", "shove", "knocked", "hop"];
 
 interface CharacterModelProps {
   url: string;
@@ -47,6 +53,8 @@ interface CharacterModelProps {
   introSpeed?: number;
   /** Drawn as a translucent apparition glowing in this colour instead of its own textures. */
   ghost?: string;
+  /** Charred and smouldering: Seraphiel after the Fall, until he has a model of his own. */
+  fallen?: boolean;
   /** Extras bound to the figure's own skeleton (e.g. EnergyBlades in its hands). */
   children?: (figure: Object3D) => ReactNode;
 }
@@ -63,10 +71,11 @@ export function CharacterModel({
   onClipLengths,
   introSpeed = 1,
   ghost,
+  fallen = false,
   children,
 }: CharacterModelProps) {
   const { scene: source, animations } = useGLTF(url);
-  const figure = useMemo(() => prepareFigure(source, ghost), [source, ghost]);
+  const figure = useMemo(() => prepareFigure(source, ghost, fallen), [source, ghost, fallen]);
   const scale = useMemo(() => height / modelHeight(source), [source, height]);
   const mixer = useMemo(() => new AnimationMixer(figure), [figure]);
   const clips = useMemo(() => new Map(animations.map((animation) => [animation.name, animation])), [animations]);
@@ -125,9 +134,11 @@ export function CharacterModel({
           .setEffectiveWeight(1)
           .play();
         const fade =
-          playing.current === "intro" || playing.current === "cast" || playing.current === "land"
-            ? SETTLE_CROSSFADE_SECONDS
-            : CROSSFADE_SECONDS;
+          wanted === "rest" || playing.current === "rest"
+            ? SIT_CROSSFADE_SECONDS
+            : playing.current === "intro" || playing.current === "cast" || playing.current === "land"
+              ? SETTLE_CROSSFADE_SECONDS
+              : CROSSFADE_SECONDS;
         if (previous) next.crossFadeFrom(previous, fade, false);
       }
       playing.current = wanted;
@@ -146,12 +157,13 @@ export function CharacterModel({
  * A private copy of the model (own skeleton) that casts shadows; with `ghost`, a see-through
  * shadow of it instead, its outline glowing in that colour, casting none.
  */
-function prepareFigure(source: Object3D, ghost?: string) {
+function prepareFigure(source: Object3D, ghost?: string, fallen = false) {
   const figure = cloneSkinned(source);
   const ghostMaterial = ghost ? shadowMaterial(ghost) : null;
   figure.traverse((node) => {
     if (!(node instanceof Mesh)) return;
     if (ghostMaterial) node.material = ghostMaterial;
+    else if (fallen && node.material instanceof MeshStandardMaterial) node.material = charredMaterial(node.material);
     node.castShadow = !ghostMaterial;
     // The bind-pose bounds don't follow the animated bones; a running figure could get culled.
     node.frustumCulled = false;
@@ -184,6 +196,27 @@ function shadowMaterial(rim: string): MeshStandardMaterial {
         totalEmissiveRadiance += uRim * pow(1.0 - facing, 3.0);`,
     );
   };
+  return material;
+}
+
+/**
+ * The figure's own material burnt: its colours darkened to soot, embers glowing along its outline
+ * and a slow smoulder (Seraphiel fallen, until his own model is made).
+ */
+function charredMaterial(source: MeshStandardMaterial): MeshStandardMaterial {
+  const material = source.clone();
+  material.color.multiplyScalar(0.32);
+  material.emissive = new Color("#2a0402");
+  material.emissiveIntensity = 1;
+  material.onBeforeCompile = (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace(
+      "#include <emissivemap_fragment>",
+      `#include <emissivemap_fragment>
+        float facing = abs(dot(normalize(normal), normalize(vViewPosition)));
+        totalEmissiveRadiance += vec3(1.0, 0.16, 0.03) * pow(1.0 - facing, 2.5) * 1.6;`,
+    );
+  };
+  material.customProgramCacheKey = () => "fallen-charred";
   return material;
 }
 

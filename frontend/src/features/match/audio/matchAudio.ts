@@ -30,22 +30,32 @@ const EFFECT_SOUNDS: Record<TileEffectKind, (sounds: MatchSounds, effect: TileEf
   skipTurn: (sounds) => sounds.penalty(),
   turnSkipped: (sounds) => sounds.penalty(),
   trapBlocked: (sounds) => sounds.shieldBlock(),
+  abilityBlocked: (sounds) => sounds.shieldBlock(),
   trapCurse: (sounds) => sounds.penalty(),
   realmEnter: (sounds, effect) => sounds.realmGate(effect.realm ?? "infernal"),
   blessing: (sounds) => sounds.bonus(),
   teleport: (sounds) => sounds.portal(),
   abilityReady: (sounds) => sounds.bonus(),
-  abilityUsed: (sounds) => sounds.powerUp(),
+  abilityUsed: (sounds, effect) => {
+    sounds.powerUp();
+    if (effect.ability) sounds.abilityVoice(effect.ability.id);
+  },
   levitated: (sounds) => sounds.shieldBlock(),
   cleansed: (sounds) => sounds.portal(),
-  frozen: (sounds) => sounds.penalty(),
+  trampled: (sounds) => sounds.shove(),
+  repelled: (sounds) => sounds.shove(),
   timeBent: (sounds) => sounds.portal(),
+  fallen: (sounds) => sounds.fall(),
+  crown: (sounds, effect) => (effect.crown === "infernal" ? sounds.powerUp() : sounds.bonus()),
+  heavenBarred: (sounds) => sounds.penalty(),
+  dragged: (sounds) => sounds.realmGate("infernal"),
   gamble: (sounds, effect) => (effect.gamble?.won ? sounds.bonus() : sounds.penalty()),
   // Breaking one's own seal (alone on the board) pays out; anyone else's strikes.
   seal: (sounds, effect) => (effect.seal?.owner === effect.playerId ? sounds.bonus() : sounds.trap()),
   // The fairy's own enchanted tile carries her on; anyone else's traps them in the snow.
   enchanted: (sounds, effect) => (effect.enchanted?.owner === effect.playerId ? sounds.boost() : sounds.penalty()),
   flames: (sounds) => sounds.trap(),
+  winter: (sounds) => sounds.boost(),
   armour: (sounds) => sounds.shieldBlock(),
   // Dispelled apparitions fade like a blocked trap; a struck one hits (or, alone, pays out).
   specter: (sounds, effect) =>
@@ -68,6 +78,7 @@ export function playTransition(previous: MatchView, next: MatchView, sounds: Mat
     sounds.thunder(DEFAULT_TIMINGS.dashLaunchMs / 1000);
   }
   if (next.dash?.arrived && !previous.dash?.arrived) sounds.thunder();
+  if (next.drag && next.drag.id !== previous.drag?.id) sounds.hellGrasp();
   if (next.volley && next.volley.id !== previous.volley?.id) sounds.arrowVolley(DEFAULT_TIMINGS.arrowVolleyMs / 1000);
   if (next.effect && next.effect !== previous.effect) EFFECT_SOUNDS[next.effect.kind](sounds, next.effect);
   if (next.cast && next.cast.id !== previous.cast?.id) sounds.cardCast(next.cast.card.cardId);

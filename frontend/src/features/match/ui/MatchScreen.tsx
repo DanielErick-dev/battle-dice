@@ -18,9 +18,10 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { preferences, usePreference } from "@/features/settings/preferences";
 import { useFullscreen } from "@/lib/useFullscreen";
+import { useTurnState } from "@/lib/useTurnState";
 import { cn } from "@/lib/utils";
 import { boardPresetFor, isLargeBoard, type BoardPreset } from "../boards";
-import { CHARACTERS, rosterOf, type CharacterId, type RosterEntry } from "../characters";
+import { CHARACTERS, rosterOf, type CharacterDefinition, type CharacterId, type RosterEntry } from "../characters";
 import {
   needsCardChoice,
   needsDiscardChoice,
@@ -37,36 +38,45 @@ import {
   TIME_ROUNDS,
 } from "@/game/domain/abilities";
 import { timeTargets } from "@/game/domain/newcomerAbilities";
+import { gambleTargets } from "@/game/domain/cardGamble";
+import { dragTargets } from "@/game/domain/seraph";
+import { blessingTurns } from "@/game/domain/blessings";
+import { DIVINE_CARDS } from "@/game/domain/cards";
 import { opponentsInReach } from "@/game/domain/board";
 import { sealableTiles, sealedTiles } from "@/game/domain/seals";
 import { flammableTiles } from "@/game/domain/kunoichi";
 import { hauntableTiles, takenForSpecters } from "@/game/domain/specters";
 import { HAND_LIMIT, MAX_RARITY_LEVEL } from "@/game/domain/cards";
-import { activePlayerOf, canActivateAbility, canPlayCard, cardsLeftThisTurn } from "../model/matchView";
+import { activePlayerOf, canActivateAbility, canPlayCard, canRoll, cardsLeftThisTurn } from "../model/matchView";
 import { useMatch } from "../hooks/useMatch";
 import { useGameAudio, type GameAudio } from "../hooks/useGameAudio";
 import { useMatchAudio } from "../hooks/useMatchAudio";
 import type { BoardPicking } from "../scene/BoardScene";
 import type { CameraFraming } from "../scene/CameraRig";
-import type { TileId } from "@/game/domain/types";
+import type { Player, TileId } from "@/game/domain/types";
 import { preloadCharacterModel } from "../scene/character/CharacterModel";
 import { CardHand } from "./cards/CardHand";
 import { CastOverlay } from "./cards/CastOverlay";
 import { DiscardPicker } from "./cards/DiscardPicker";
 import { DrawOverlay } from "./cards/DrawOverlay";
+import { FusionOverlay } from "./cards/FusionOverlay";
 import { CardChoicePicker } from "./cards/CardChoicePicker";
 import { TransmuteOverlay } from "./cards/TransmuteOverlay";
 import { DicePanel } from "./hud/DicePanel";
 import { EffectBanner } from "./hud/EffectBanner";
 import { AbilityMeter } from "./hud/AbilityMeter";
 import { BlessingBadges } from "./hud/BlessingBadges";
+import { inHeaven } from "@/game/domain/blessings";
 import { ErrorToast } from "./hud/ErrorToast";
 import { LoadingCurtain } from "./hud/LoadingCurtain";
 import { PlayersPanel } from "./hud/PlayersPanel";
 import { TilePicking } from "./hud/TilePicking";
 import { FLAME_STEPS, SEAL_STEPS, SPECTER_STEPS } from "./placementText";
 import { TargetPicker } from "./hud/TargetPicker";
+import { GracePrompt } from "./hud/GracePrompt";
 import { WardPrompt } from "./hud/WardPrompt";
+
+const NO_TILES: TileId[] = [];
 
 /** The camera's framings, closest first: following the player up close, from midway, or the whole board. */
 const FRAMINGS: readonly { framing: CameraFraming; label: string; Icon: LucideIcon }[] = [
@@ -94,7 +104,7 @@ export function MatchScreen({ boardId, characters, chargedAbilities }: MatchScre
   const [roster] = useState(() => rosterOf(characters));
   const audio = useGameAudio();
   // Start fetching the models while the arena's code is still loading.
-  useEffect(() => roster.forEach(({ character }) => preloadCharacterModel(CHARACTERS[character].model)), [roster]);
+  useEffect(() => roster.flatMap(({ character }) => modelsOf(character)).forEach(preloadCharacterModel), [roster]);
 
   return <Match preset={preset} roster={roster} chargedAbilities={chargedAbilities} audio={audio} />;
 }
@@ -121,7 +131,7 @@ function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
   const [lookingAroundOn, setLookingAroundOn] = useState<string | null>(null);
   const freeLook = lookingAroundOn !== null && lookingAroundOn === view.activePlayerId;
   const onFreeLook = useCallback(() => setLookingAroundOn(view.activePlayerId), [view.activePlayerId]);
-  const models = useMemo(() => [...new Set(roster.map(({ character }) => CHARACTERS[character].model))], [roster]);
+  const models = useMemo(() => [...new Set(roster.flatMap(({ character }) => modelsOf(character)))], [roster]);
   /** The scene has loaded and compiled everything: the curtain lifts. */
   const [ready, setReady] = useState(false);
   const onReady = useCallback(() => setReady(true), []);
@@ -130,11 +140,13 @@ function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
   const discardingPlayer = view.players.find((player) => player.id === view.pendingDiscard?.playerId);
   const wardingPlayer = view.players.find((player) => player.id === view.pendingWard?.playerId);
   const plunderVictim = view.players.find((player) => player.id === view.pendingPlunder?.victim);
+  const gracedPlayer = view.players.find((player) => player.id === view.pendingGrace?.playerId);
   /** Picking what an ability works on: cards, tiles or an opponent (Transmutation, Forbidden Seals, Card Gamble…). */
-  const [choosingCard, setChoosingCard] = useState(false);
+  // These choices belong to the turn they're made on: the next player starts with none of them.
+  const [choosingCard, setChoosingCard] = useTurnState(false, view.activePlayerId);
   /** Picking tiles on the board for an ability (seals, apparitions, black fire), and those picked so far. */
-  const [placing, setPlacing] = useState<"seals" | "specters" | "flames" | null>(null);
-  const [picked, setPicked] = useState<TileId[]>([]);
+  const [placing, setPlacing] = useTurnState<"seals" | "specters" | "flames" | null>(null, view.activePlayerId);
+  const [picked, setPicked] = useTurnState<TileId[]>(NO_TILES, view.activePlayerId);
   const stopPlacing = () => {
     setPlacing(null);
     setPicked([]);
@@ -189,39 +201,37 @@ function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
       color: placement.steps[index].color,
     })),
     onPick: (tile) => setPicked((current) => (current.includes(tile) ? current : [...current, tile])),
+    cursor: placing!,
   };
   const ability = activePlayer?.ability ?? null;
-  // The opponents an aimed ability can reach (Card Gamble, Arrow Rain), with their seats.
-  const reachable = activePlayer
-    ? opponentsInReach(store.board, view.players, activePlayer.id).map((player) => ({
-        player,
-        seat: view.players.indexOf(player),
-      }))
-    : [];
-  const holders = reachable.filter(({ player }) => player.hand.length > 0);
-  // Time Warp reaches any opponent not under Spectral Armour, wherever they are.
-  const timeBendable = activePlayer
-    ? timeTargets(view.players, activePlayer.id).map((player) => ({ player, seat: view.players.indexOf(player) }))
-    : [];
+  const seated = (players: readonly Player[]) =>
+    players.map((player) => ({ player, seat: view.players.indexOf(player) }));
+  // The opponents an aimed ability can reach (Arrow Rain), with their seats.
+  const reachable = activePlayer ? seated(opponentsInReach(store.board, view.players, activePlayer.id)) : [];
+  // Card Gamble bets against anyone in the same place, armoured or not (anyone at all, with nobody to win from).
+  const bettable = activePlayer ? seated(gambleTargets(store.board, view.players, activePlayer.id)) : [];
+  // With nobody to win from, the die can be thrown for cards instead.
+  const fortune = view.players.length > 1 && reachable.length === 0;
+  // Time Warp reaches the opponents in the same place; armoured ones turn it away.
+  const timeBendable = activePlayer ? seated(timeTargets(store.board, view.players, activePlayer.id)) : [];
+  // Hell's Drag reaches any opponent on the board not in heaven or hell already; armoured ones turn it away.
+  const draggable = activePlayer ? seated(dragTargets(store.board, view.players, activePlayer.id)) : [];
   /** Time Warp's power, once picked: the opponent comes next. */
-  const [timePower, setTimePower] = useState<"halt" | "reverse" | null>(null);
+  const [timePower, setTimePower] = useTurnState<"halt" | "reverse" | null>(null, view.activePlayerId);
   const stopChoosing = () => {
     setChoosingCard(false);
     setTimePower(null);
   };
   const activateAbility = () => {
-    // Card Gamble asks whom to bet against when there's a choice; Arrow Rain, whether to strike whoever is in reach.
+    // Card Gamble asks whom to bet against; Arrow Rain, whether to strike whoever is in reach.
     if (
-      (ability === "cardGamble" && holders.length > 1) ||
+      (ability === "cardGamble" && bettable.length > 0) ||
       (ability === "arrowRain" && reachable.length > 0) ||
       (ability === "timeWarp" && timeBendable.length > 0) ||
+      (ability === "hellsDrag" && draggable.length > 0) ||
       ability === "ocularAwakening"
     ) {
       setChoosingCard(true);
-      return;
-    }
-    if (ability === "cardGamble" && holders.length === 1) {
-      store.activateAbility({ targetId: holders[0].player.id });
       return;
     }
     if (needsSealPlacement(ability)) setPlacing("seals");
@@ -240,7 +250,7 @@ function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
   };
 
   return (
-    <main className="relative h-dvh w-full overflow-hidden bg-[#05060b] text-white">
+    <main className="relative h-dvh w-full overflow-hidden bg-[#05060b] text-white select-none">
       <div className="absolute inset-0">
         <BoardScene
           board={store.board}
@@ -343,12 +353,13 @@ function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
                 key={activePlayer.id}
                 board={store.board}
                 player={activePlayer}
-                // Only opponents in the same place, and not under Spectral Armour, can be aimed at.
-                opponents={reachable.map(({ player }) => player)}
+                // Who each card can be aimed at (see cardTargets); a protected one turns it away.
+                players={view.players}
                 canPlay={canPlayCard(view)}
                 cardsLeft={cardsLeftThisTurn(view)}
                 lastDrawnUid={view.lastDrawnUid}
                 onPlay={store.playCard}
+                onFuse={canRoll(view) ? store.fuseCards : null}
                 status={
                   <>
                     <AbilityMeter
@@ -357,7 +368,7 @@ function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
                       onActivate={activateAbility}
                       canActivate={canActivateAbility(view)}
                     />
-                    <BlessingBadges player={activePlayer} />
+                    <BlessingBadges player={activePlayer} waiting={inHeaven(store.board, activePlayer.position)} />
                   </>
                 }
               />
@@ -417,6 +428,7 @@ function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
 
       <CastOverlay cast={view.cast} />
       <DrawOverlay drawing={view.drawing} />
+      <FusionOverlay fusing={view.fusing} />
       <TransmuteOverlay transmuting={view.transmuting} />
       {choosingCard && activePlayer && canActivateAbility(view) && needsCardChoice(ability) && (
         <CardChoicePicker
@@ -464,15 +476,32 @@ function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
         <TargetPicker
           title="Aposta do Coringa"
           tone="text-rose-300"
-          subtitle="Contra quem você aposta? Ganhando, rouba cartas dele; perdendo, ele leva uma sua."
-          targets={reachable}
+          subtitle={
+            fortune
+              ? "Nenhum oponente ao seu alcance: aposte mesmo assim (perdendo, uma carta sua vai fora) ou tente o Lance da Sorte."
+              : "Contra quem você aposta? Ganhando, rouba cartas dele; perdendo, ele leva uma sua."
+          }
+          alternatives={
+            fortune
+              ? [
+                  {
+                    label: "Lance da Sorte",
+                    detail: "o número do dado = cartas na mão",
+                    onPick: () => {
+                      setChoosingCard(false);
+                      store.activateAbility({ power: "fortune" });
+                    },
+                  },
+                ]
+              : []
+          }
+          targets={bettable}
           detail={(player) => (
             <>
               <Layers className="size-3.5" />
               {player.hand.length}
             </>
           )}
-          unavailable={(player) => (player.hand.length === 0 ? "Sem cartas na mão" : undefined)}
           onPick={(targetId) => {
             setChoosingCard(false);
             store.activateAbility({ targetId });
@@ -566,6 +595,38 @@ function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
           onCancel={stopChoosing}
         />
       )}
+      {choosingCard && activePlayer && canActivateAbility(view) && ability === "hellsDrag" && (
+        <TargetPicker
+          title="Arrastar ao Inferno"
+          tone="text-red-500"
+          subtitle="Quem a mão do inferno vai buscar?"
+          targets={draggable}
+          detail={(player) => <span className="font-mono">{player.position}</span>}
+          onPick={(targetId) => {
+            setChoosingCard(false);
+            store.activateAbility({ targetId });
+          }}
+          onCancel={() => setChoosingCard(false)}
+        />
+      )}
+      {view.pendingGrace?.offer === "blessing" && gracedPlayer && !view.isAnimating && (
+        <GracePrompt turns={blessingTurns(gracedPlayer)} onPick={(blessing) => store.chooseGrace({ blessing })} />
+      )}
+      {view.pendingGrace?.offer === "relic" && !view.isAnimating && (
+        <CardChoicePicker
+          title="Relicário do Céu"
+          subtitle="Escolha a relíquia que você leva."
+          accent="amber"
+          cards={DIVINE_CARDS.map((cardId) => ({ uid: cardId, cardId }))}
+          max={1}
+          required
+          confirmLabel="Levar relíquia"
+          onPick={([cardId]) => {
+            const relic = DIVINE_CARDS.find((candidate) => candidate === cardId);
+            if (relic) store.chooseGrace({ cardId: relic });
+          }}
+        />
+      )}
       {view.pendingPlunder && plunderVictim && !view.isAnimating && (
         <CardChoicePicker
           title="Pilhagem Espectral"
@@ -587,4 +648,10 @@ function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
       <LoadingCurtain ready={ready} />
     </main>
   );
+}
+
+/** The models a character may show in the match: their own, and their fallen form's (Seraphiel). */
+function modelsOf(character: CharacterId): string[] {
+  const { model, fallenModel }: CharacterDefinition = CHARACTERS[character];
+  return fallenModel ? [model, fallenModel] : [model];
 }

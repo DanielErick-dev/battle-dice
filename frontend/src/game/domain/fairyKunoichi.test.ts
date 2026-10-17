@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   ARMOUR_TURNS,
-  ENCHANT_ADVANCE,
   ENCHANT_FREEZE,
   FLAME_TILES,
   FLAME_ENERGY,
   FLAME_PUSH,
   FLAME_HITS,
   FLAME_TURNS,
+  SUSANOO_PUSH,
+  WINTER_TILES,
   abilityCycle,
   type AbilityId,
 } from "./abilities";
@@ -58,6 +59,29 @@ const rivalRolls = (state: GameState, from: number, die: number) =>
 describe("Fairy Bloom", () => {
   const bloomed = () => activate(ready(patch(duel("fairyBloom"), "hero", { position: 10 }), "fairyBloom")).state;
 
+  it("an opponent stuck in the snow feeds the fairy a point of energy each round, gripped less each time", () => {
+    const start = patch(patch(bloomed(), "rival", { energy: 5 }), "hero", {
+      energy: 2,
+    });
+    let state = rivalRolls(start, 9, 3).state;
+    expect(player(state, "rival").snowbound).toEqual({
+      owner: "hero",
+      rounds: ENCHANT_FREEZE,
+    });
+    state = send(state, { type: "rollDice", playerId: "hero" }).state;
+    expect(player(state, "rival")).toMatchObject({
+      energy: 4,
+      snowbound: { owner: "hero", rounds: 1 },
+    });
+    expect(player(state, "hero").energy).toBeGreaterThanOrEqual(3);
+    state = send(state, { type: "rollDice", playerId: "hero" }).state;
+    expect(player(state, "rival")).toMatchObject({
+      energy: 3,
+      snowbound: null,
+      skipTurns: 0,
+    });
+  });
+
   it("enchants the next three harmful tiles ahead for good", () => {
     expect(bloomed().enchantedTiles).toEqual([
       { tile: 12, owner: "hero" },
@@ -75,22 +99,54 @@ describe("Fairy Bloom", () => {
     expect(player(state, "hero").abilityCharge).toBeGreaterThanOrEqual(1);
   });
 
-  it("the fairy walking over her own is carried ahead too, once per walk", () => {
-    const start = { ...patch(bloomed(), "hero", { position: 10, abilityCharge: 0 }), currentPlayerIndex: 0 };
+  it("the fairy walking over her own snow isn't carried: only stopping on it counts", () => {
+    // Snow at 12, 15 and 20: from 10 a 4 crosses 12 and stops on 14, and stays there.
+    const start = {
+      ...patch(bloomed(), "hero", { position: 10, abilityCharge: 0 }),
+      currentPlayerIndex: 0,
+    };
     const { state, events } = send(start, { type: "rollDice", playerId: "hero" }, [4]);
-    expect(player(state, "hero").position).toBe(14 + ENCHANT_ADVANCE);
-    expect(events.filter((event) => event.type === "enchantmentStirred")).toHaveLength(1);
+    expect(player(state, "hero").position).toBe(14);
+    expect(events.some((event) => event.type === "enchantmentStirred")).toBe(false);
   });
 
-  it("the fairy stopping on her own is carried ahead", () => {
-    const start = { ...patch(bloomed(), "hero", { position: 9, abilityCharge: 0 }), currentPlayerIndex: 0 };
-    const { state } = send(start, { type: "rollDice", playerId: "hero" }, [3]);
-    expect(player(state, "hero").position).toBe(12 + ENCHANT_ADVANCE);
+  it("the fairy stopping on her own is carried ahead, and on again only when that stops on more snow", () => {
+    // Snow at 12, 17 and 22: stops on 12, carried to 17 (snow), 22 (snow), then 27.
+    const snowy = {
+      ...bloomed(),
+      enchantedTiles: [12, 17, 22].map((tile) => ({ tile, owner: "hero" })),
+    };
+    const start = {
+      ...patch(snowy, "hero", { position: 9, abilityCharge: 0 }),
+      currentPlayerIndex: 0,
+    };
+    const { state, events } = send(start, { type: "rollDice", playerId: "hero" }, [3]);
+    expect(player(state, "hero").position).toBe(27);
+    expect(events.filter((event) => event.type === "enchantmentStirred")).toHaveLength(3);
+    // Carried onto the trap at 20 (snow only at 12 and 15): nothing happens there.
+    const trapped = {
+      ...bloomed(),
+      enchantedTiles: [{ tile: 15, owner: "hero" }],
+    };
+    const onTrap = send(
+      { ...patch(trapped, "hero", { position: 13 }), currentPlayerIndex: 0 },
+      { type: "rollDice", playerId: "hero" },
+      [2],
+    );
+    expect(player(onTrap.state, "hero").position).toBe(20);
   });
 });
 
 describe("Ocular Awakening", () => {
   const kunoichi = () => ready(patch(duel("ocularAwakening"), "hero", { position: 20 }), "ocularAwakening");
+
+  it("burns the fairy's snow away for good: fire beats frost", () => {
+    const snowy = {
+      ...kunoichi(),
+      enchantedTiles: [{ tile: 24, owner: "rival" }],
+    };
+    expect(activate(snowy, { power: "flames", flameTiles: [24] }).state.enchantedTiles).toEqual([]);
+  });
 
   it("Eternal Flames: an opponent stopping on one loses energy and is thrown back; walking through is harmless", () => {
     const lit = activate(kunoichi(), { power: "flames", flameTiles: [24, 26] }).state;
@@ -157,8 +213,102 @@ describe("Ocular Awakening", () => {
       ...patch(armoured, "rival", { position: 20, hand: [{ uid: "b", cardId: "arcaneBlast" }], energy: 5 }),
       currentPlayerIndex: 1,
     };
-    expect(() => send(rivalTurn, { type: "playCard", playerId: "rival", cardUid: "b", targetId: "hero" })).toThrow(
-      GameRuleError,
+    const { state, events } = send(rivalTurn, {
+      type: "playCard",
+      playerId: "rival",
+      cardUid: "b",
+      targetId: "hero",
+    });
+    expect(events).toContainEqual(expect.objectContaining({ type: "cardBlocked", ward: "susanoo" }));
+    expect(player(state, "hero").position).toBe(player(armoured, "hero").position);
+  });
+  it(`Inside her Susanoo no one stops on her tile: they're thrown back ${SUSANOO_PUSH}`, () => {
+    const armoured = activate(kunoichi(), { power: "armour" }).state;
+    const { state, events } = rivalRolls(armoured, 17, 3);
+    expect(events).toContainEqual({
+      type: "susanooRepelled",
+      playerId: "rival",
+      by: "hero",
+      tile: 20,
+      to: 20 - SUSANOO_PUSH,
+      ahead: false,
+    });
+    expect(player(state, "rival").position).toBe(20 - SUSANOO_PUSH);
+    // Walking past her is fine, and without her armour her tile is anyone's.
+    expect(player(rivalRolls(armoured, 17, 4).state, "rival").position).toBe(21);
+    const bare = patch(armoured, "hero", { spectralArmour: 0 });
+    expect(rivalRolls(bare, 17, 3).events.some((event) => event.type === "susanooRepelled")).toBe(false);
+  });
+
+  it(`Inside her Susanoo she sweeps those on the tile she stops on ${SUSANOO_PUSH} ahead`, () => {
+    const armoured = patch(activate(kunoichi(), { power: "armour" }).state, "rival", { position: 23 });
+    const { state, events } = send(armoured, { type: "rollDice", playerId: "hero" }, [3]);
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        type: "susanooRepelled",
+        playerId: "rival",
+        tile: 23,
+        to: 23 + SUSANOO_PUSH,
+        ahead: true,
+      }),
     );
+    expect(player(state, "rival").position).toBe(23 + SUSANOO_PUSH);
+    expect(player(state, "hero").position).toBe(23);
+  });
+});
+
+describe("Eternal Winter", () => {
+  const bloomed = () => activate(ready(patch(duel("fairyBloom"), "hero", { position: 10 }), "fairyBloom"));
+  const winter = (state: GameState, frontier: number) => ({
+    ...state,
+    winter: { owner: "hero", frontier },
+  });
+
+  it("sets in once no harm is left ahead of the fairy", () => {
+    const { state, events } = bloomed();
+    expect(state.winter).toEqual({
+      owner: "hero",
+      frontier: state.board.startTile,
+    });
+    expect(events).toContainEqual({ type: "winterBegan", playerId: "hero" });
+  });
+
+  it("waits while there's still harm ahead to snow", () => {
+    // A hidden trap further on is still left once her three tiles are snowed.
+    const hidden = {
+      ...patch(duel("fairyBloom"), "hero", { position: 10 }),
+      hiddenTraps: [40],
+    };
+    const { state } = activate(ready(hidden, "fairyBloom"));
+    expect(state.winter).toBeNull();
+  });
+
+  it("freezes WINTER_TILES more tiles every round", () => {
+    const afterHero = send(bloomed().state, { type: "rollDice", playerId: "hero" }, [1]).state;
+    expect(afterHero.winter?.frontier).toBe(afterHero.board.startTile);
+    const { state, events } = send(
+      patch(afterHero, "rival", { position: 40 }),
+      { type: "rollDice", playerId: "rival" },
+      [1],
+    );
+    const start = state.board.startTile;
+    expect(state.winter?.frontier).toBe(start + WINTER_TILES);
+    expect(events).toContainEqual({
+      type: "winterSpread",
+      owner: "hero",
+      from: start + 1,
+      to: start + WINTER_TILES,
+    });
+  });
+
+  it("an opponent stopping on the ice is stuck in it; the fairy walks it freely", () => {
+    const frozen = winter(duel("fairyBloom"), 40);
+    const rival = rivalRolls(frozen, 3, 2).state;
+    expect(player(rival, "rival")).toMatchObject({
+      skipTurns: ENCHANT_FREEZE,
+      snowbound: { owner: "hero" },
+    });
+    const hero = send(patch(frozen, "hero", { position: 3 }), { type: "rollDice", playerId: "hero" }, [2]).state;
+    expect(player(hero, "hero")).toMatchObject({ position: 5, skipTurns: 0 });
   });
 });

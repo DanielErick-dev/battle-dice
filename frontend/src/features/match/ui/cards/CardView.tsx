@@ -2,13 +2,15 @@ import type { PointerEvent } from "react";
 import { CARD_CATALOG, cardCost, RARITY_LEVEL, type CardId } from "@/game/domain/cards";
 import { cn } from "@/lib/utils";
 import { CARD_PALETTE, CardArt } from "./CardArt";
-import { CARD_TEXT, RARITY_LABEL, RELIC_LABEL } from "./cardText";
+import { cardText, FUSED_LABEL, RARITY_LABEL, RELIC_LABEL } from "./cardText";
 
 /** The most orbs a card's cost is drawn with; a dearer card shows its number instead. */
 const MAX_COST_ORBS = 4;
 
 interface CardViewProps {
   cardId: CardId;
+  /** Three copies fused into one: its fused name and rules, in a fiery frame. */
+  fused?: boolean;
   /** Greyed out (not enough energy, card already played…). */
   dimmed?: boolean;
   selected?: boolean;
@@ -20,15 +22,15 @@ interface CardViewProps {
  * stars; heaven's relics in white and gold). Every card above common gets a holographic foil that
  * follows the pointer (and tilts the card).
  */
-export function CardView({ cardId, dimmed = false, selected = false, className }: CardViewProps) {
+export function CardView({ cardId, fused = false, dimmed = false, selected = false, className }: CardViewProps) {
   const { rarity, relic } = CARD_CATALOG[cardId];
   const stars = RARITY_LEVEL[rarity];
   const palette = CARD_PALETTE[cardId];
-  const text = CARD_TEXT[cardId];
+  const text = cardText(cardId, fused);
 
   return (
     <div
-      data-rarity={relic ? "divine" : rarity}
+      data-rarity={fused ? "fused" : relic ? "divine" : rarity}
       onPointerMove={trackPointer}
       onPointerLeave={resetPointer}
       className={cn(
@@ -78,13 +80,18 @@ export function CardView({ cardId, dimmed = false, selected = false, className }
           {text.description}
         </p>
         <footer className="flex items-center justify-between gap-1 px-2 py-1 text-[8px] font-bold tracking-[0.2em] text-zinc-400 uppercase">
-          <span className="truncate">{relic ? RELIC_LABEL : RARITY_LABEL[rarity]}</span>
+          <span className="truncate">{fused ? FUSED_LABEL : relic ? RELIC_LABEL : RARITY_LABEL[rarity]}</span>
           <span className="shrink-0 tracking-normal text-amber-300" aria-label={`Nível ${stars} de raridade`}>
             {"★".repeat(stars)}
           </span>
         </footer>
 
-        {rarity !== "common" && <div className="card-foil pointer-events-none absolute inset-0" />}
+        {(fused || rarity !== "common") && <div className="card-foil pointer-events-none absolute inset-0" />}
+        {fused && (
+          <span className="absolute top-[38%] right-2 rounded-full bg-gradient-to-br from-amber-300 to-fuchsia-600 px-1.5 py-0.5 text-[9px] font-black text-white shadow-[0_0_10px_rgba(251,146,60,0.9)]">
+            ×3
+          </span>
+        )}
         <div className="card-glare pointer-events-none absolute inset-0" />
       </div>
     </div>

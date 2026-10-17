@@ -11,7 +11,7 @@ export function CastOverlay({ cast }: { cast: CardCastView | null }) {
   return (
     <div key={cast.id} className="pointer-events-none absolute inset-0 z-30 grid place-items-center" aria-hidden>
       <div className="w-40 opacity-0 sm:w-48" style={{ animation: "card-cast 1.1s ease-out forwards" }}>
-        <CardView cardId={cast.card.cardId} />
+        <CardView cardId={cast.card.cardId} fused={cast.card.fused} />
       </div>
       {cast.card.cardId === "blindingFlash" && (
         <div className="absolute inset-0 bg-white opacity-0" style={{ animation: "solar-flash 1.2s ease-out 0.7s forwards" }} />

@@ -6,10 +6,13 @@ import {
   PLUNDER_CARDS,
   RUIN_PUSH,
   SOLO_RUIN_ADVANCE,
+  SUSANOO_PUSH,
+  WINTER_TILES,
 } from "@/game/domain/abilities";
 import { ABILITY_TEXT } from "../abilityText";
 import { CARD_TEXT } from "../cards/cardText";
-import { BLESSING_DURATION, BLESSING_TEXT } from "../blessingText";
+import { BLESSING_TEXT, blessingDuration } from "../blessingText";
+import { CROWN_BONUS, DIVINE_CHAINS_ROUNDS } from "@/game/domain/seraph";
 
 interface EffectBannerProps {
   effect: TileEffectView | null;
@@ -25,7 +28,10 @@ interface Copy {
 
 /** Banner copy per effect; a realm gate's depends on the realm (see realmCopy). */
 const COPY: Record<
-  Exclude<TileEffectKind, "realmEnter" | "abilityReady" | "abilityUsed" | "gamble" | "seal" | "specter" | "enchanted">,
+  Exclude<
+    TileEffectKind,
+    "realmEnter" | "abilityReady" | "abilityUsed" | "gamble" | "seal" | "specter" | "enchanted" | "abilityBlocked"
+  >,
   Copy
 > = {
   portal: { title: "PORTAL!", tone: "text-purple-300", subtitle: ({ from, to }) => `Casa ${from} → ${to}` },
@@ -52,13 +58,16 @@ const COPY: Record<
     tone: "text-blue-300",
     subtitle: ({ count }) => (count ? `A onda limpou ${count} casas do tabuleiro` : "O tabuleiro já estava limpo"),
   },
-  frozen: {
-    title: "UIVO GLACIAL!",
-    tone: "text-sky-200",
-    subtitle: ({ count }, name) =>
-      count
-        ? `${count} oponente${count > 1 ? "s" : ""} congelado${count > 1 ? "s" : ""}: perde a próxima vez`
-        : `${name} corre mais neste turno`,
+  trampled: {
+    title: "ATROPELADO!",
+    tone: "text-sky-300",
+    subtitle: ({ count }, name) => `${name} voou ${count ?? 0} casas para trás`,
+  },
+  repelled: {
+    title: "O SUSANOO NÃO DEIXA!",
+    tone: "text-red-400",
+    subtitle: ({ from, to }, name) =>
+      `${name} foi arremessado ${SUSANOO_PUSH === 1 ? "1 casa" : `${SUSANOO_PUSH} casas`} para ${to > from ? "frente" : "trás"}`,
   },
   timeBent: {
     title: "O TEMPO SE DOBRA!",
@@ -77,6 +86,34 @@ const COPY: Record<
     title: "CHAMAS ETERNAS!",
     tone: "text-red-500",
     subtitle: ({ flames }, name) => `${name} perde ${flames?.energyLost ?? 0} de energia e volta ${FLAME_PUSH} casas`,
+  },
+  winter: {
+    title: "INVERNO ETERNO!",
+    tone: "text-sky-200",
+    subtitle: (_, name) =>
+      `Não sobrou armadilha para ${name} nevar: o caminho congela ${WINTER_TILES} casas a cada rodada, desde o início`,
+  },
+  fallen: {
+    title: "A QUEDA!",
+    tone: "text-red-500",
+    subtitle: (_, name) => `${name} pisou no inferno e virou o Anjo Caído, para sempre`,
+  },
+  crown: {
+    title: "COROA!",
+    tone: "text-amber-300",
+    subtitle: ({ crown }) =>
+      `${crown === "infernal" ? "Coroa Infernal" : "Coroa Seráfica"}: +${CROWN_BONUS} casas em toda rolagem até o fim da partida`,
+  },
+  heavenBarred: {
+    title: "O CÉU SE FECHA",
+    tone: "text-slate-300",
+    subtitle: (_, name) =>
+      `${name} caiu: o céu não se abre para ele, e correntes divinas o prendem por ${DIVINE_CHAINS_ROUNDS} rodadas`,
+  },
+  dragged: {
+    title: "ARRASTADO AO INFERNO!",
+    tone: "text-red-500",
+    subtitle: (_, name) => `${name} foi puxado para o inferno`,
   },
   armour: {
     title: "ARMADURA ESPECTRAL!",
@@ -100,13 +137,15 @@ export function EffectBanner({ effect, winnerName, nameOf }: EffectBannerProps) 
         ? abilityCopy(effect)
         : effect.kind === "gamble"
           ? gambleCopy(effect)
-          : effect.kind === "seal"
-            ? sealCopy(effect)
-            : effect.kind === "specter"
-              ? specterCopy(effect)
-              : effect.kind === "enchanted"
-                ? enchantedCopy(effect)
-                : COPY[effect.kind];
+          : effect.kind === "abilityBlocked"
+            ? abilityBlockedCopy(effect)
+            : effect.kind === "seal"
+              ? sealCopy(effect)
+              : effect.kind === "specter"
+                ? specterCopy(effect)
+                : effect.kind === "enchanted"
+                  ? enchantedCopy(effect)
+                  : COPY[effect.kind];
   return (
     <Banner
       key={`${effect.kind}:${effect.from}:${effect.to}:${effect.playerId}`}
@@ -176,9 +215,41 @@ function abilityCopy({ kind, ability }: TileEffectView): Copy {
   };
 }
 
+/** An ability thrown at an opponent who turned it away: it's spent all the same. */
+function abilityBlockedCopy({ blocked }: TileEffectView): Copy {
+  const target = blocked?.targetName ?? "";
+  const thrown = blocked?.cardId
+    ? `A carta ${CARD_TEXT[blocked.cardId].name}`
+    : blocked?.ability
+      ? ABILITY_TEXT[blocked.ability].name
+      : "A habilidade";
+  const why =
+    blocked?.ward === "untamed"
+      ? `${target} está Indomável`
+      : blocked?.ward === "susanoo"
+        ? `${target} está com o Susanoo ativado`
+        : blocked?.ward === "armour"
+          ? `${target} está sob a Armadura Espectral`
+          : blocked?.ward === "aegis"
+            ? `${target} está sob a Égide Celestial`
+            : `${target} está fora de alcance`;
+  return {
+    title: "BLOQUEADO!",
+    tone: "text-cyan-200",
+    subtitle: () => `Opa, ${why}! ${thrown} foi gasta à toa`,
+  };
+}
+
 /** Card Gamble's verdict: what the die of fortune showed, and which way it went. */
 function gambleCopy({ gamble }: TileEffectView): Copy {
   const value = gamble?.value ?? 0;
+  if (gamble?.fortune) {
+    return {
+      title: "LANCE DA SORTE!",
+      tone: "text-amber-300",
+      subtitle: () => `Tirou ${value}: +${value} ${value === 1 ? "carta" : "cartas"} na mão`,
+    };
+  }
   if (value >= CARD_GAMBLE_JACKPOT) {
     return { title: "JACKPOT!", tone: "text-fuchsia-300", subtitle: () => `Tirou ${value}: atrás das cartas épicas!` };
   }
@@ -269,15 +340,20 @@ function blockedSubtitle({ ward }: TileEffectView): string {
   const what = ward?.hidden ? "a armadilha oculta" : "a armadilha";
   if (ward?.kind === "ability") return `A habilidade repeliu ${what}`;
   if (ward?.kind === "halo") return "A Auréola Sagrada te guardou";
+  if (ward?.kind === "untamed") return "Indomável: nada o detém";
+  if (ward?.kind === "susanoo") return "O Susanoo a protege";
+  if (ward?.kind === "fallen") return "O inferno não fere o Anjo Caído";
   return `O Escudo Arcano segurou ${what}`;
 }
 
 function blessingSubtitle({ blessing }: TileEffectView): string {
   if (!blessing) return "";
   if (blessing.kind === "shield") return "O Escudo Arcano te protege";
+  if (blessing.kind === "charge")
+    return blessing.charged ? "+1 de carga na habilidade" : "A habilidade já está carregada";
   if (blessing.kind !== "energy") {
     const { name, effect } = BLESSING_TEXT[blessing.kind];
-    return `${name}: ${effect} ${BLESSING_DURATION}`;
+    return `${name}: ${effect} ${blessingDuration(blessing.turns)}`;
   }
   return blessing.energyGained > 0 ? `+${blessing.energyGained} de energia` : "Energia já está no máximo";
 }

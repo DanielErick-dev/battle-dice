@@ -72,7 +72,7 @@ describe("Spectral Apparitions", () => {
     expectRuleError(() => summon(start, [24]), "INVALID_SPECTERS");
     expectRuleError(() => summon(start, [24, 24]), "INVALID_SPECTERS");
     expectRuleError(() => summon(start, [24, 12]), "INVALID_SPECTERS");
-    expectRuleError(() => summon(start, [24, 40]), "INVALID_SPECTERS");
+    expectRuleError(() => summon(start, [24, 55]), "INVALID_SPECTERS");
     expectRuleError(
       () => summon({ ...start, seals: [{ tile: 24, kind: "ruin", owner: "rival" }] }, [24, 17]),
       "INVALID_SPECTERS",
@@ -101,10 +101,7 @@ describe("Spectral Apparitions", () => {
     const start = rivalWalks(20, [specter(21, "hunger")], 1, 2, { energy: 4 });
     expect(player(start.state, "rival").energy).toBe(0);
     const before = player(duel(), "warden");
-    // Plus the energy every turn starts with, the warden's coming up next.
-    expect(player(start.state, "warden").energy).toBe(
-      Math.min(MAX_ENERGY, Math.min(MAX_ENERGY, before.energy + 4) + 1),
-    );
+    expect(player(start.state, "warden").energy).toBe(Math.min(MAX_ENERGY, before.energy + 4));
     const overflow = before.energy + 4 - MAX_ENERGY;
     expect(start.events).toContainEqual(
       expect.objectContaining({

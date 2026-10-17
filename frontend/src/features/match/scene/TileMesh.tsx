@@ -2,12 +2,14 @@
 
 import { RoundedBox, Sparkles } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AdditiveBlending, DoubleSide, type Group, type MeshBasicMaterial, type MeshStandardMaterial } from "three";
 import type { Tile } from "@/game/domain/types";
 import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "./boardLayout";
+import { pickCursor, type PickCursor } from "./pickCursor";
 import { PortalVortex } from "./PortalVortex";
 import { RelicCard } from "./RelicCard";
+import { FIGURE_HEIGHT } from "./character/figure";
 import { themeFor } from "./tileTheme";
 import { useTileFaceTexture } from "./useTileFaceTexture";
 
@@ -32,8 +34,15 @@ interface TileMeshProps {
   destroyed?: boolean;
   /** Buried under a spell (the fairy's snow, black fire): what stands on the tile is hidden. */
   covered?: boolean;
+  /**
+   * Someone stands on it: what floats over the tile (a card, a die, an hourglass) makes way for
+   * them instead of turning inside them, and the finish's trophy rises over their head.
+   */
+  occupied?: boolean;
   /** Can be picked for an ability (seals, apparitions, black fire): breathes, and a click picks it. */
   onPick?: (tile: number) => void;
+  /** The pointer over it while it can be picked (an enchanted hand; the plain pointer without one). */
+  pickCursor?: PickCursor;
 }
 
 /** Pixels the pointer may move between press and release for it to still count as a click, not a drag. */
@@ -52,8 +61,22 @@ export function TileMesh({
   inTrapZone = false,
   destroyed = false,
   covered = false,
+  occupied = false,
   onPick,
+  pickCursor: cursor,
 }: TileMeshProps) {
+  /** The pointer is over it while it can be picked: it rises and lights up. */
+  const [hovered, setHovered] = useState(false);
+  if (hovered && !onPick) setHovered(false);
+  const hovering = hovered && onPick !== undefined;
+  // Picked (or the picking over) under the pointer: the pointer goes back to normal.
+  useEffect(() => {
+    if (!hovering) return;
+    document.body.style.cursor = cursor ? pickCursor(cursor) : "pointer";
+    return () => {
+      document.body.style.cursor = "";
+    };
+  }, [hovering, cursor]);
   const theme = useMemo(() => themeFor(tile, { inTrapZone, destroyed }), [tile, inTrapZone, destroyed]);
   const emissive = theme.glowIntensity > 0 ? theme.glow : HIGHLIGHT_FALLBACK;
   const glowColor = theme.kind === "regular" ? accent : theme.glow;
@@ -71,15 +94,16 @@ export function TileMesh({
   useFrame(({ clock }, delta) => {
     const time = clock.elapsedTime;
     if (bodyMaterial.current) {
-      const pulse = highlighted ? 1.2 + Math.sin(time * 10) * 0.6 : 0;
+      const pulse = highlighted ? 1.2 + Math.sin(time * 10) * 0.6 : hovering ? 0.9 + Math.sin(time * 8) * 0.25 : 0;
       bodyMaterial.current.emissiveIntensity = theme.glowIntensity * 0.35 + pulse;
     }
     if (underglow.current) {
-      const breathe = reachable || onPick ? 0.75 + Math.sin(time * 4 - tile.id * 0.6) * 0.2 : 0.38;
+      const breathe = hovering ? 1 : reachable || onPick ? 0.75 + Math.sin(time * 4 - tile.id * 0.6) * 0.2 : 0.38;
       underglow.current.opacity += (breathe - underglow.current.opacity) * Math.min(1, delta * 8);
+      underglow.current.color.set(hovering ? "#ffffff" : glowColor);
     }
     if (lift.current) {
-      const target = reachable || onPick ? 0.06 : 0;
+      const target = hovering ? 0.32 : reachable || onPick ? 0.06 : 0;
       lift.current.position.y += (target - lift.current.position.y) * Math.min(1, delta * 8);
     }
   });
@@ -114,8 +138,15 @@ export function TileMesh({
               onPick(tile.id);
             })
           }
-          onPointerOver={onPick && (() => (document.body.style.cursor = "pointer"))}
-          onPointerOut={onPick && (() => (document.body.style.cursor = ""))}
+          onPointerOver={
+            onPick &&
+            ((event) => {
+              // Only the tile nearest the pointer lights up, not the ones behind it.
+              event.stopPropagation();
+              setHovered(true);
+            })
+          }
+          onPointerOut={onPick && (() => setHovered(false))}
         >
           <RoundedBox args={[TILE_SIZE, TILE_HEIGHT, TILE_SIZE]} radius={0.1} smoothness={4} castShadow receiveShadow>
             <meshStandardMaterial
@@ -140,13 +171,21 @@ export function TileMesh({
             )}
             {tile.effect.kind === "trap" && <TrapSpikes color={theme.glow} />}
             {tile.effect.kind === "advance" && <AdvanceChevrons color={theme.glow} angle={arrowAngle ?? 0} />}
-            {tile.effect.kind === "extraTurn" && <FloatingDie color={theme.glow} />}
-            {tile.effect.kind === "skipTurn" && <Hourglass color={theme.glow} />}
-            {tile.effect.kind === "card" &&
-              (tile.effect.cardId ? <RelicCard cardId={tile.effect.cardId} /> : <FloatingCard color={theme.glow} />)}
+            {!occupied && (
+              <>
+                {tile.effect.kind === "extraTurn" && <FloatingDie color={theme.glow} />}
+                {tile.effect.kind === "skipTurn" && <Hourglass color={theme.glow} />}
+                {tile.effect.kind === "card" &&
+                  (tile.effect.cardId ? (
+                    <RelicCard cardId={tile.effect.cardId} />
+                  ) : (
+                    <FloatingCard color={theme.glow} />
+                  ))}
+              </>
+            )}
           </>
         )}
-        {tile.role === "finish" && <FinishBeacon color={theme.glow} />}
+        {tile.role === "finish" && <FinishBeacon color={theme.glow} occupied={occupied} />}
       </group>
     </group>
   );
@@ -291,13 +330,20 @@ function Hourglass({ color }: { color: string }) {
   );
 }
 
-function FinishBeacon({ color }: { color: string }) {
-  const trophy = useRef<Group>(null);
+/** Where the finish's trophy hovers: at chest height over the empty tile, over the head of whoever stands on it. */
+const TROPHY_HEIGHT = 1.9;
+const TROPHY_HEIGHT_OCCUPIED = FIGURE_HEIGHT + 0.7;
 
-  useFrame(({ clock }) => {
+function FinishBeacon({ color, occupied }: { color: string; occupied: boolean }) {
+  const trophy = useRef<Group>(null);
+  const height = useRef(TROPHY_HEIGHT);
+
+  useFrame(({ clock }, delta) => {
     if (!trophy.current) return;
+    const goal = occupied ? TROPHY_HEIGHT_OCCUPIED : TROPHY_HEIGHT;
+    height.current += (goal - height.current) * Math.min(1, delta * 4);
     trophy.current.rotation.y = clock.elapsedTime * 0.8;
-    trophy.current.position.y = 1.9 + Math.sin(clock.elapsedTime * 2) * 0.12;
+    trophy.current.position.y = height.current + Math.sin(clock.elapsedTime * 2) * 0.12;
   });
 
   return (

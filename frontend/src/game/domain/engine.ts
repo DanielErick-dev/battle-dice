@@ -9,13 +9,24 @@ import {
 } from "./abilities";
 import { loseArrowRain, unpinPassed } from "./arrowRain";
 import { createBoard, type BoardDefinition } from "./board";
+import { unleash, walkTrampling } from "./berserker";
 import { playCardGamble } from "./cardGamble";
 import { playCard, type CardChoice } from "./cardPlay";
 import { STARTING_HAND, STARTING_ENERGY, standardDeck, type CardId } from "./cards";
 import { GameRuleError, type GameCommand } from "./commands";
 import { buildDeck, throwOnPile } from "./deck";
 import type { DiceRoller } from "./dice";
-import { draftState, drawCard, playerIn, pushPath, startDraft, updatePlayer, walkPath, type Draft } from "./draft";
+import {
+  draftState,
+  drawCard,
+  giveCard,
+  playerIn,
+  pushPath,
+  startDraft,
+  updatePlayer,
+  walkPath,
+  type Draft,
+} from "./draft";
 import type { GameEvent } from "./events";
 import { placeHiddenTraps } from "./hiddenTraps";
 import { resolveLanding, resolveWard } from "./landing";
@@ -25,11 +36,13 @@ import { writeSeals } from "./seals";
 import { lightFlames, raiseArmour } from "./kunoichi";
 import { isBlessed, WINGS_BONUS } from "./blessings";
 import { crossSpecters, summonSpecters, takePlunder } from "./specters";
-import { bloom, glideOverSnow } from "./fairy";
-import { cleansingTide, glacialHowl, sacredBulwark, plasmaCannon, seraphBlessing, timeWarp } from "./newcomerAbilities";
+import { bloom } from "./fairy";
+import { fuseCards } from "./fusion";
+import { cleansingTide, sacredBulwark, plasmaCannon, seraphBlessing, timeWarp } from "./newcomerAbilities";
 import { transmuteCards } from "./transmutation";
+import { CROWN_BONUS, crownAndFall, hellsDrag, receiveGrace } from "./seraph";
 import { endTurn } from "./turn";
-import type { DiceBoost, GameState, Player, PlayerId, TileId } from "./types";
+import type { DiceBoost, GameState, Player, PlayerId, TileId, TimedBlessing } from "./types";
 
 export interface NewPlayer {
   id: PlayerId;
@@ -90,6 +103,7 @@ export function createGame(
     bonusTurn: false,
     pendingDiscard: null,
     pendingWard: null,
+    pendingGrace: null,
     hiddenTraps: placeHiddenTraps(createdBoard, random),
     destroyedTraps: [],
     pinnedTraps: [],
@@ -97,6 +111,7 @@ export function createGame(
     specters: [],
     enchantedTiles: [],
     blackFlames: [],
+    winter: null,
     pendingPlunder: null,
   };
 }
@@ -114,12 +129,23 @@ export function applyCommand(state: GameState, command: GameCommand, deps: GameD
       return playCardCommand(state, command.playerId, command.cardUid, command, deps);
     case "discardCard":
       return discardCard(state, command.playerId, command.cardUid, deps);
+    case "fuseCards": {
+      assertCanAct(state, command.playerId);
+      const draft = startDraft(state, deps.random);
+      fuseCards(draft, command.playerId, command.cardId);
+      return settle(draft, command.playerId, {
+        endsTurn: false,
+        extraTurn: false,
+      });
+    }
     case "activateAbility":
       return activateAbility(state, command.playerId, command, deps);
     case "plunderCards":
       return plunderCards(state, command.playerId, command.cardUids, deps);
     case "answerWard":
       return answerWard(state, command.playerId, command.use, deps);
+    case "chooseGrace":
+      return chooseGrace(state, command.playerId, command, deps);
     case "restart":
       return restart(state, deps);
   }
@@ -130,42 +156,41 @@ function rollDice(state: GameState, playerId: PlayerId, deps: GameDependencies):
   const draft = startDraft(state, deps.random);
   const player = playerIn(draft, playerId);
 
-  const { diceBonus } = player;
+  const { diceBonuses } = player;
   const { event: rolled, boostLeft } = throwDice(
     playerId,
     player.diceBoost,
     {
       extra:
-        (diceBonus?.amount ?? 0) +
-        rollBonus(state.abilityInUse, state.players.length === 1) +
-        (isBlessed(player, "wings") ? WINGS_BONUS : 0),
+        diceBonuses.reduce((sum, { amount }) => sum + amount, 0) +
+        rollBonus(state.abilityInUse) +
+        (isBlessed(state.board, player, "wings") ? WINGS_BONUS : 0) +
+        (player.crown ? CROWN_BONUS : 0),
       multiplier: rollMultiplier(state.abilityInUse),
     },
     deps.rollDice,
   );
   updatePlayer(draft, playerId, () => ({
     diceBoost: boostLeft,
-    diceBonus: diceBonus && diceBonus.rolls > 1 ? { ...diceBonus, rolls: diceBonus.rolls - 1 } : null,
+    diceBonuses: diceBonuses.filter(({ rolls }) => rolls > 1).map((bonus) => ({ ...bonus, rolls: bonus.rolls - 1 })),
   }));
 
   // Under Cronos's reversed time the roll walks back the way the player came.
   const reversed = player.reversedRolls > 0;
   if (reversed) updatePlayer(draft, playerId, (current) => ({ reversedRolls: current.reversedRolls - 1 }));
   const path = reversed
-    ? pushPath(state.board, player.position, rolled.value)
-    : walkPath(state.board, player.position, rolled.value);
+    ? pushPath(state.board, player.position, rolled.value, player.realmEntry)
+    : walkPath(state.board, player.position, rolled.value, player.realmEntry);
   const dash = rolled.multiplier !== undefined;
-  draft.events.push(reversed ? { ...rolled, reversed } : rolled, {
-    type: "playerMoved",
-    playerId,
-    path,
-    ...(dash && { dash }),
-  });
+  if (reversed)
+    draft.events.push({ ...rolled, reversed }, { type: "playerMoved", playerId, path, ...(dash && { dash }) });
+  else {
+    draft.events.push(rolled);
+    walkTrampling(draft, playerId, path, dash);
+  }
   crossSpecters(draft, playerId, path);
-  const glide = reversed ? [] : glideOverSnow(draft, playerId, path);
-  crossSpecters(draft, playerId, glide);
-  resolveLanding(draft, playerId, glide.at(-1) ?? path.at(-1) ?? player.position);
-  unpinPassed(draft, [...path, ...glide]);
+  resolveLanding(draft, playerId, path.at(-1) ?? player.position);
+  unpinPassed(draft, path);
 
   const extraTurn = draft.extraTurn || state.bonusTurn;
   return settle(draft, playerId, { endsTurn: true, extraTurn });
@@ -276,7 +301,9 @@ function discardCard(state: GameState, playerId: PlayerId, cardUid: string, deps
     discard: throwOnPile(player.discard, [card]),
   }));
   draft.events.push({ type: "cardDiscarded", playerId, card, hand });
-  return settle(draft, playerId, {
+  // The next card waiting on a full hand comes in, asking for another discard if it still doesn't fit.
+  for (const next of pending.queued) giveCard(draft, next.playerId, next.card);
+  return settle(draft, currentPlayer(state).id, {
     endsTurn: pending.endsTurn,
     extraTurn: pending.extraTurn,
   });
@@ -308,7 +335,7 @@ function activateAbility(
   assertCanAct(state, playerId);
   const draft = startDraft(state, deps.random);
   const player = playerIn(draft, playerId);
-  const blocker = abilityBlocker(player, state.abilityInUse);
+  const blocker = abilityBlocker(player);
   if (blocker || !player.ability) throw new GameRuleError(blocker ?? "NO_ABILITY");
 
   updatePlayer(draft, playerId, () => ({ abilityCharge: 0 }));
@@ -317,8 +344,9 @@ function activateAbility(
     for (let draw = 0; draw < STUDY_DRAWS; draw++) drawCard(draft, playerId);
   }
   if (player.ability === "seraphBlessing") seraphBlessing(draft, playerId);
+  if (player.ability === "hellsDrag") hellsDrag(draft, playerId, targetId);
   if (player.ability === "cleansingTide") cleansingTide(draft, playerId);
-  if (player.ability === "glacialHowl") glacialHowl(draft, playerId);
+  if (player.ability === "untamed") unleash(draft, playerId);
   if (player.ability === "sacredBulwark") sacredBulwark(draft, playerId);
   if (player.ability === "timeWarp") timeWarp(draft, playerId, power, targetId);
   if (player.ability === "plasmaCannon") plasmaCannon(draft, playerId);
@@ -328,7 +356,7 @@ function activateAbility(
   if (player.ability === "forbiddenSeals") writeSeals(draft, playerId, sealTiles);
   if (player.ability === "spectralApparitions") summonSpecters(draft, playerId, specterTiles);
   if (player.ability === "arrowRain") loseArrowRain(draft, playerId, volley);
-  if (player.ability === "cardGamble") playCardGamble(draft, playerId, deps.rollDice, targetId);
+  if (player.ability === "cardGamble") playCardGamble(draft, playerId, deps.rollDice, targetId, power);
   if (player.ability === "fairyBloom") bloom(draft, playerId);
   if (player.ability === "ocularAwakening") {
     if (power === "armour") raiseArmour(draft, playerId);
@@ -378,9 +406,30 @@ function answerWard(state: GameState, playerId: PlayerId, use: boolean, deps: Ga
   });
 }
 
+/** Seraphiel's pick on the heaven tile he stopped on; play goes on as the move left it. */
+function chooseGrace(
+  state: GameState,
+  playerId: PlayerId,
+  pick: { blessing?: TimedBlessing; cardId?: CardId },
+  deps: GameDependencies,
+): GameTransition {
+  if (state.status === "finished") throw new GameRuleError("GAME_FINISHED");
+  const pending = state.pendingGrace;
+  if (!pending) throw new GameRuleError("NO_GRACE_PENDING");
+  if (pending.playerId !== playerId) throw new GameRuleError("NOT_YOUR_TURN");
+
+  const draft = startDraft({ ...state, pendingGrace: null }, deps.random);
+  receiveGrace(draft, playerId, pending.tile, pending.offer, pick);
+  return settle(draft, playerId, {
+    endsTurn: pending.endsTurn,
+    extraTurn: pending.extraTurn,
+  });
+}
+
 /**
  * Turns a draft into the next state: a win ends the game, a ward prompt or an overflowing
  * draw pauses for the player's choice, and otherwise the turn ends if the command ends it.
+ * Seraphiel is crowned or falls first, wherever the command took him (see seraph.ts).
  */
 function settle(
   draft: Draft,
@@ -388,6 +437,7 @@ function settle(
   { endsTurn, extraTurn }: { endsTurn: boolean; extraTurn: boolean },
 ): GameTransition {
   const { state } = draft;
+  crownAndFall(draft);
   // A plunder waits for its Warden's pick across any other pause, then holds the turn itself.
   const pendingPlunder = draft.plunder ? { ...draft.plunder, endsTurn, extraTurn } : state.pendingPlunder;
 
@@ -400,8 +450,22 @@ function settle(
         winnerId: playerId,
         pendingDiscard: null,
         pendingWard: null,
+        pendingGrace: null,
         pendingPlunder: null,
       },
+      events: draft.events,
+    };
+  }
+
+  if (draft.pendingGrace) {
+    const pendingGrace = {
+      playerId,
+      ...draft.pendingGrace,
+      endsTurn,
+      extraTurn,
+    };
+    return {
+      state: { ...draftState(draft), pendingGrace, pendingPlunder },
       events: draft.events,
     };
   }
@@ -414,10 +478,12 @@ function settle(
     };
   }
 
-  if (draft.overflow) {
+  const [overflow, ...queued] = draft.overflow;
+  if (overflow) {
     const pendingDiscard = {
-      playerId,
-      drawn: draft.overflow,
+      playerId: overflow.playerId,
+      drawn: overflow.card,
+      queued,
       endsTurn,
       extraTurn,
     };
@@ -467,6 +533,7 @@ function restart(state: GameState, deps: GameDependencies): GameTransition {
       bonusTurn: false,
       pendingDiscard: null,
       pendingWard: null,
+      pendingGrace: null,
       hiddenTraps: placeHiddenTraps(state.board, deps.random),
       destroyedTraps: [],
       pinnedTraps: [],
@@ -474,6 +541,7 @@ function restart(state: GameState, deps: GameDependencies): GameTransition {
       specters: [],
       enchantedTiles: [],
       blackFlames: [],
+      winter: null,
       pendingPlunder: null,
     },
     events: [{ type: "gameRestarted" }, { type: "turnChanged", playerId: players[0].id }],
@@ -486,6 +554,7 @@ function assertCanAct(state: GameState, playerId: PlayerId): void {
   if (currentPlayer(state).id !== playerId) throw new GameRuleError("NOT_YOUR_TURN");
   if (state.pendingDiscard) throw new GameRuleError("DISCARD_PENDING");
   if (state.pendingWard) throw new GameRuleError("WARD_PENDING");
+  if (state.pendingGrace) throw new GameRuleError("GRACE_PENDING");
   if (state.pendingPlunder) throw new GameRuleError("PLUNDER_PENDING");
 }
 
@@ -512,13 +581,20 @@ function dealPlayer({ id, name, ability = null }: NewPlayer, { startTile, cards,
     discard: [],
     shielded: false,
     diceBoost: null,
-    diceBonus: null,
+    diceBonuses: [],
     ability,
     abilityCharge: ability && playsFirst ? 1 : 0,
     levitating: 0,
     silencedTurns: 0,
     spectralArmour: 0,
+    divineAegis: 0,
+    untamed: 0,
     blessings: [],
     reversedRolls: 0,
+    snowbound: null,
+    realmEntry: null,
+    chargeHeld: 0,
+    crown: null,
+    chained: 0,
   };
 }

@@ -212,8 +212,12 @@ describe("character abilities", () => {
 
     it("floats over traps without being thrown back or cursed", () => {
       const { state, events } = roll(floating(), 2);
-      expect(state.players[0]).toMatchObject({ position: 12, energy: 4 });
-      expect(events).toContainEqual({ type: "levitatedOver", playerId: "p1", tile: 12 });
+      expect(state.players[0]).toMatchObject({ position: 12, energy: 3 });
+      expect(events).toContainEqual({
+        type: "levitatedOver",
+        playerId: "p1",
+        tile: 12,
+      });
       expect(events.some((event) => event.type === "trapTriggered" || event.type === "trapCursed")).toBe(false);
     });
 
@@ -261,7 +265,7 @@ describe("character abilities", () => {
 
     it("leaves a pinned trap harmless to land on, then frees it", () => {
       const { state, events } = roll(aiming().state, 2);
-      expect(state.players[0]).toMatchObject({ position: 12, energy: 4 });
+      expect(state.players[0]).toMatchObject({ position: 12, energy: 3 });
       expect(events.some((event) => event.type === "trapTriggered" || event.type === "wardOffered")).toBe(false);
       expect(events).toContainEqual({ type: "trapUnpinned", tile: 12 });
       expect(state.pinnedTraps).toEqual([20]);
@@ -351,6 +355,16 @@ describe("character abilities", () => {
       expect(abilityCycle("cardGamble")).toBe(ABILITY_CYCLE);
     });
 
+    it("with opponents in the match but none in reach, a win brings nothing", () => {
+      const start = table([theirs("p1", 2), theirs("p2", 3), theirs("p3", 3)]);
+      const guarded = {
+        ...start,
+        players: start.players.map((player) => (player.id === "p1" ? player : { ...player, spectralArmour: 2 })),
+      };
+      const { state } = gamble(guarded, CARD_GAMBLE_JACKPOT);
+      expect(state.players.map((player) => player.hand.length)).toEqual([2, 3, 3]);
+    });
+
     it("alone, a low roll throws a random card away", () => {
       const { state, events } = gamble(alone(), CARD_GAMBLE_LOSES_UP_TO);
       expect(events).toContainEqual({ type: "gambleRolled", playerId: "p1", value: 2, won: false });
@@ -428,12 +442,27 @@ describe("character abilities", () => {
       }
     });
 
-    it("sends what doesn't fit a full hand to the discard pile", () => {
-      const { state, events } = gamble(table([theirs("p1", HAND_LIMIT - 1), theirs("p2", 3), []]), 5);
+    it("never throws a won card away: what doesn't fit a full hand waits for the player's discards", () => {
+      const { state } = gamble(table([theirs("p1", HAND_LIMIT), theirs("p2", 3), []]), 5);
       expect(state.players[0].hand).toHaveLength(HAND_LIMIT);
-      expect(state.players[0].discard).toHaveLength(1);
-      const stolen = events.find((event) => event.type === "cardsStolen");
-      expect(stolen?.type === "cardsStolen" && stolen.discarded).toHaveLength(1);
+      expect(state.pendingDiscard).toMatchObject({
+        playerId: "p1",
+        queued: [{ playerId: "p1" }],
+      });
+
+      // One discard each: the first won card, then the second.
+      const discard = (from: GameState) =>
+        send(from, {
+          type: "discardCard",
+          playerId: "p1",
+          cardUid: from.players[0].hand[0].uid,
+        }).state;
+      const once = discard(state);
+      expect(once.pendingDiscard).toMatchObject({ playerId: "p1", queued: [] });
+      const twice = discard(once);
+      expect(twice.pendingDiscard).toBeNull();
+      expect(twice.players[0].hand).toHaveLength(HAND_LIMIT);
+      expect(twice.players[0].hand.filter((card) => card.uid.startsWith("p2:"))).toHaveLength(2);
     });
   });
 
@@ -532,7 +561,7 @@ describe("character abilities", () => {
       });
       expect(state.players[0]).toMatchObject({
         position: 12,
-        energy: 4,
+        energy: 3,
         abilityCharge: 1,
       });
       expect(state.pendingWard).toBeNull();
@@ -571,7 +600,11 @@ describe("character abilities", () => {
 
     it("declined, lets the trap strike and stays charged", () => {
       const { state } = answer(roll(onTheWay(), 1).state, false);
-      expect(state.players[0]).toMatchObject({ position: 8, energy: 2, abilityCharge: SHORT_ABILITY_CYCLE });
+      expect(state.players[0]).toMatchObject({
+        position: 8,
+        energy: 1,
+        abilityCharge: SHORT_ABILITY_CYCLE,
+      });
     });
 
     it("takes two turns to charge, counting the first", () => {

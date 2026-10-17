@@ -53,6 +53,62 @@ describe("playback of rule events", () => {
     expect(views.at(-1)?.players[0].position).toBe(4);
   });
 
+  it("acts a trample out: the Berserker shoves, the victim flies back, then he runs on from there", () => {
+    const [shoving, flying, over] = replay(initial(), {
+      type: "playerTrampled",
+      playerId: "p1",
+      by: "wolf",
+      tile: 9,
+      path: [8, 7, 6],
+      seated: false,
+    });
+    expect(shoving.trample).toMatchObject({
+      by: "wolf",
+      victim: "p1",
+      tile: 9,
+      phase: "shove",
+    });
+    expect(shoving.players[0].position).toBe(1);
+    expect(flying.trample?.phase).toBe("flying");
+    expect(flying.players[0].position).toBe(6);
+    expect(flying.effect).toMatchObject({ kind: "trampled", count: 3 });
+    expect(over.trample?.phase).toBe("over");
+    const [runOn] = replay(
+      { ...over, players: over.players.map((p) => ({ ...p, id: "wolf" })) },
+      {
+        type: "playerMoved",
+        playerId: "wolf",
+        path: [10],
+      },
+    );
+    expect(runOn.trample).toBeNull();
+  });
+
+  it("gets a trampled player up off their chair before the shove", () => {
+    const event = { type: "playerTrampled", playerId: "p1", by: "wolf", tile: 9, path: [8], seated: true } as const;
+    const steps = eventToSteps(event, DEFAULT_TIMINGS);
+    expect(steps[0].durationMs).toBe(DEFAULT_TIMINGS.trampleRiseMs);
+    const [rising, shoving] = replay(initial(), event);
+    expect(rising.trample?.phase).toBe("rise");
+    expect(shoving.trample).toMatchObject({ id: rising.trample?.id, phase: "shove" });
+  });
+
+  it("shows what Untamed shrugs off as blocked, not as armour", () => {
+    const untamed: MatchView = {
+      ...initial(),
+      players: initial().players.map((p) => ({ ...p, untamed: 2 })),
+    };
+    const [held] = replay(untamed, {
+      type: "armourHeld",
+      playerId: "p1",
+      tile: 8,
+    });
+    expect(held.effect).toMatchObject({
+      kind: "trapBlocked",
+      ward: { kind: "untamed" },
+    });
+  });
+
   it("holds a ward prompt until the player answers", () => {
     const [asking] = replay(initial(), { type: "wardOffered", playerId: "p1", tile: 8, threat: "trap" });
     expect(asking.pendingWard).toEqual({ playerId: "p1", tile: 8, threat: "trap" });
@@ -159,6 +215,45 @@ describe("playback of rule events", () => {
     const [dispelled] = replay(struck, { type: "spectersDispelled", playerId: "p1", owner: "p1", tiles: [4] });
     expect(dispelled.specters).toEqual([]);
     expect(dispelled.effect).toMatchObject({ kind: "specter", specter: { kind: null } });
+  });
+
+  it("counts a lost turn as soon as the player lands on it, so they sit down while still in view", () => {
+    const [shown] = replay(initial(), { type: "skipTurnGained", playerId: "p1", tile: 9 });
+    expect(shown.effect).toMatchObject({ kind: "skipTurn", from: 9 });
+    expect(shown.players[0].skipTurns).toBe(1);
+  });
+
+  it("streams the fairy's snow to each tile she enchants in turn, each blooming as its snow lands", () => {
+    const steps = eventToSteps({ type: "tilesEnchanted", playerId: "p1", tiles: [9, 14] }, DEFAULT_TIMINGS);
+    expect(steps.map((step) => step.durationMs)).toEqual([
+      DEFAULT_TIMINGS.frostStreamMs,
+      DEFAULT_TIMINGS.frostStreamMs,
+      DEFAULT_TIMINGS.noticeMs,
+    ]);
+    const [first, second, over] = replay(initial(), { type: "tilesEnchanted", playerId: "p1", tiles: [9, 14] });
+    expect(first.frostStream).toMatchObject({ tile: 9 });
+    expect(first.enchantedTiles).toEqual([]);
+    expect(second.frostStream).toMatchObject({ tile: 14 });
+    expect(second.enchantedTiles.map(({ tile }) => tile)).toEqual([9]);
+    expect(over.frostStream).toBeNull();
+    expect(over.enchantedTiles.map(({ tile }) => tile)).toEqual([9, 14]);
+  });
+
+  it("holds on the fairy hopping on her own snow, longer than on someone stuck in it", () => {
+    const stirred = (playerId: string) =>
+      eventToSteps(
+        {
+          type: "enchantmentStirred",
+          playerId,
+          owner: "p1",
+          tile: 9,
+          frozen: playerId === "p1" ? 0 : 2,
+          charged: true,
+        },
+        DEFAULT_TIMINGS,
+      )[0].durationMs;
+    expect(stirred("p1")).toBe(DEFAULT_TIMINGS.snowHopMs);
+    expect(stirred("p2")).toBe(DEFAULT_TIMINGS.noticeMs);
   });
 
   it("counts cards left in the turn, two once Double Cast is used", () => {

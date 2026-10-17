@@ -1,7 +1,8 @@
 import type { GameClient, GameUpdate } from "@/game/application/gameClient";
 import type { AbilityPower } from "@/game/domain/abilities";
+import type { CardId } from "@/game/domain/cards";
 import { GameRuleError, type GameCommand, type GameErrorCode } from "@/game/domain/commands";
-import type { Board } from "@/game/domain/types";
+import type { Board, TimedBlessing } from "@/game/domain/types";
 import { DEFAULT_TIMINGS, type PlaybackTimings } from "../config";
 import { canActivateAbility, canPlayCard, canRoll, createInitialView, type MatchView } from "./matchView";
 import { eventToSteps, syncStep, type PlaybackStep } from "./playback";
@@ -20,12 +21,12 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   INVALID_TARGET: "Escolha um oponente como alvo.",
   INVALID_VALUE: "Escolha um valor de 1 a 6.",
   NO_PORTAL_AHEAD: "Não há portal à frente.",
+  NO_HELL: "Não há inferno neste tabuleiro.",
   WARD_PENDING: "Decida primeiro se usa a habilidade contra a armadilha.",
   NO_WARD_PENDING: "Não há armadilha esperando resposta.",
   NO_ABILITY: "Este personagem não tem habilidade.",
   ABILITY_REACTIVE: "Esta habilidade é usada quando uma armadilha te atinge.",
   ABILITY_NOT_READY: "A habilidade ainda está carregando.",
-  ABILITY_IN_USE: "A habilidade já está em uso neste turno.",
   ENERGY_FULL: "Sua energia já está no máximo.",
   ABILITY_ALREADY_READY: "Sua habilidade já está pronta.",
   EMPTY_HAND: "Você não tem cartas na mão.",
@@ -38,6 +39,10 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   INVALID_FLAMES: "Escolha até 3 casas diferentes do caminho.",
   PLUNDER_PENDING: "Aguarde o Guardião escolher as cartas.",
   NO_PLUNDER_PENDING: "Não há cartas para pilhar agora.",
+  CANNOT_FUSE: "Você precisa de 3 cartas iguais que se fundem.",
+  GRACE_PENDING: "Escolha primeiro a sua dádiva do céu.",
+  NO_GRACE_PENDING: "Não há dádiva do céu para escolher.",
+  INVALID_GRACE: "Essa dádiva não está à escolha aqui.",
 };
 
 /**
@@ -83,7 +88,22 @@ export class MatchStore {
 
   playCard = (cardUid: string, choice: { targetId?: string; value?: number } = {}): void => {
     if (!canPlayCard(this.view)) return;
-    this.dispatch({ type: "playCard", playerId: this.view.activePlayerId, cardUid, ...choice });
+    this.dispatch({
+      type: "playCard",
+      playerId: this.view.activePlayerId,
+      cardUid,
+      ...choice,
+    });
+  };
+
+  /** Fuses three copies of a card in the active player's hand, any time they could act on their turn. */
+  fuseCards = (cardId: CardId): void => {
+    if (!canRoll(this.view)) return;
+    this.dispatch({
+      type: "fuseCards",
+      playerId: this.view.activePlayerId,
+      cardId,
+    });
   };
 
   discardCard = (cardUid: string): void => {
@@ -118,6 +138,13 @@ export class MatchStore {
     const pending = this.view.pendingPlunder;
     if (!pending || this.view.isAnimating) return;
     this.dispatch({ type: "plunderCards", playerId: pending.owner, cardUids });
+  };
+
+  /** Seraphiel's pick on a heaven tile: a blessing, or a divine card. */
+  chooseGrace = (pick: { blessing?: TimedBlessing; cardId?: CardId }): void => {
+    const pending = this.view.pendingGrace;
+    if (!pending || this.view.isAnimating) return;
+    this.dispatch({ type: "chooseGrace", playerId: pending.playerId, ...pick });
   };
 
   answerWard = (use: boolean): void => {

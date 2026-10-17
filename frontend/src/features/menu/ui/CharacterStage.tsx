@@ -32,9 +32,13 @@ import {
 } from "@/features/match/characters";
 import { CharacterModel } from "@/features/match/scene/character/CharacterModel";
 import { HeldVial, PourStream, SmokeCloud } from "@/features/match/scene/character/AlchemyVial";
+import { Wings } from "@/features/match/scene/character/Wings";
+import { FrostWand } from "@/features/match/scene/character/FrostWand";
 import { EnergyBlades } from "@/features/match/scene/character/EnergyBlades";
 import { ArcherIntro } from "@/features/match/scene/character/ArcherIntro";
 import { BoneRise } from "@/features/match/scene/character/BoneRise";
+import { FrostSlam } from "@/features/match/scene/character/FrostSlam";
+import { DESCENT_SECONDS, HeavenDescent, descentHeight } from "@/features/match/scene/character/HeavenDescent";
 import { ScribeIntro } from "@/features/match/scene/character/ScribeIntro";
 import { JesterCards } from "@/features/match/scene/character/JesterCards";
 import { LimbLightning } from "@/features/match/scene/character/LimbLightning";
@@ -46,9 +50,16 @@ import {
 } from "@/features/match/scene/character/Levitation";
 import { useRuneTexture } from "@/features/match/scene/character/runeCircle";
 import { WitchStaff } from "@/features/match/scene/character/WitchStaff";
+import { useAge } from "@/features/match/scene/useAge";
 import { preferences, usePreference } from "@/features/settings/preferences";
 import { cn } from "@/lib/utils";
+import type { StageSounds } from "../audio/stageSounds";
+import { useStageSounds } from "../audio/useStageSounds";
+import { FrozenWastes } from "./FrozenWastes";
 import { Graveyard } from "./Graveyard";
+import { Sanctuary } from "./Sanctuary";
+import { GUSTS, gustAt, wingStroke } from "./seraphEntrance";
+import { WindGusts, type WingTips } from "./WindGusts";
 import { Scriptorium } from "./Scriptorium";
 
 const FIGURE_HEIGHT = 1.7;
@@ -69,6 +80,18 @@ const TURN_RETURN = 2.5;
 /** Share of the stage's size the canvas extends past each of its edges. */
 const CANVAS_BLEED = 0.2;
 /** Widened with the bleed so the figure keeps the size a 32° view of the stage gives it. */
+/**
+ * Mask fading the canvas out above the stage's box, for characters whose effects come down from
+ * the sky (see CharacterDefinition.descends): they'd spill over the page above it otherwise.
+ */
+const FADE_TOP = `linear-gradient(to bottom, transparent ${(CANVAS_BLEED / (1 + 2 * CANVAS_BLEED)) * 60}%, black ${(CANVAS_BLEED / (1 + 2 * CANVAS_BLEED)) * 100 + 4}%)`;
+/**
+ * The canvas fades out over its bleed on every side, so what reaches past the stage's box (a burst of
+ * snow off a wand held out) thins away instead of ending in a hard edge over what's beside it.
+ */
+const BLEED_SHARE = (CANVAS_BLEED / (1 + 2 * CANVAS_BLEED)) * 100;
+const FADE_SIDES = `linear-gradient(to right, transparent, black ${BLEED_SHARE}%, black ${100 - BLEED_SHARE}%, transparent)`;
+const FADE_ENDS = `linear-gradient(to bottom, transparent, black ${BLEED_SHARE}%, black ${100 - BLEED_SHARE}%, transparent)`;
 const CAMERA_FOV = (2 * Math.atan((1 + 2 * CANVAS_BLEED) * Math.tan((16 * Math.PI) / 180)) * 180) / Math.PI;
 /** The intro's last pose is held this long before the figure eases into its showcase. */
 const INTRO_HOLD_MS = 700;
@@ -96,12 +119,17 @@ const TIP_RATE = 7;
  * and it swings back. One canvas for the whole menu page: the picker only swaps the model.
  */
 export function CharacterStage({ characterId, className }: { characterId: CharacterId; className?: string }) {
-  const { color: accent, stage }: CharacterDefinition = CHARACTERS[characterId];
+  const { color: accent, stage, descends }: CharacterDefinition = CHARACTERS[characterId];
   const graveyard = stage === "graveyard";
   // A graveyard is lit by a cold, sickly glimmer rather than the character's bright accent.
   const color = graveyard ? GRAVE_LIGHT : accent;
   const quality = usePreference(preferences.effectsQuality);
-  const turn = useDragTurn();
+  const sounds = useStageSounds();
+  // Clicking the figure plays its intro again (with sound, now the page has had a click).
+  const [encore, setEncore] = useState(0);
+  const turn = useDragTurn(() => setEncore((count) => count + 1));
+  /** How hard the wind blows through the stage (0 to 1): Seraphiel's wingbeats in his entrance. */
+  const gust = useRef(0);
 
   return (
     <div
@@ -109,7 +137,7 @@ export function CharacterStage({ characterId, className }: { characterId: Charac
       onPointerDown={turn.onPointerDown}
       onPointerMove={turn.onPointerMove}
       onPointerUp={turn.onPointerUp}
-      onPointerCancel={turn.onPointerUp}
+      onPointerCancel={turn.onPointerCancel}
     >
       <div
         aria-hidden
@@ -120,7 +148,15 @@ export function CharacterStage({ characterId, className }: { characterId: Charac
       />
       {/* Drawn past the stage's box (the figure stays the same size), so wide moves, blades
           and the pedestal aren't cut off at its edges. The wrapper takes the drag. */}
-      <div className="pointer-events-none absolute" style={{ inset: `-${CANVAS_BLEED * 100}%` }}>
+      <div
+        className="pointer-events-none absolute"
+        style={{
+          inset: `-${CANVAS_BLEED * 100}%`,
+          maskImage: `${FADE_SIDES}, ${descends ? FADE_TOP : FADE_ENDS}`,
+          maskComposite: "intersect",
+          WebkitMaskComposite: "source-in",
+        }}
+      >
         <Canvas
           dpr={[1, 2]}
           camera={{ position: [0, 1.25, 4.4], fov: CAMERA_FOV }}
@@ -143,17 +179,31 @@ export function CharacterStage({ characterId, className }: { characterId: Charac
           />
           <Suspense fallback={null}>
             <Turntable angleRef={turn.angle} draggingRef={turn.dragging}>
-              <Presentation key={characterId} characterId={characterId} />
+              <Presentation key={`${characterId}:${encore}`} characterId={characterId} sounds={sounds} gustRef={gust} />
             </Turntable>
           </Suspense>
           {stage ? (
             <group position-y={FLOOR_Y}>
-              <Suspense fallback={null}>{stage === "graveyard" ? <Graveyard /> : <Scriptorium />}</Suspense>
+              <Suspense fallback={null}>
+                {stage === "graveyard" ? (
+                  <Graveyard />
+                ) : stage === "tundra" ? (
+                  <FrozenWastes />
+                ) : stage === "sanctuary" ? (
+                  <Sanctuary gust={gust} />
+                ) : (
+                  <Scriptorium />
+                )}
+              </Suspense>
             </group>
           ) : (
             <RunePedestal color={color} />
           )}
-          <RisingMotes key={color} color={color} count={(quality === "high" ? 48 : 18) / (graveyard ? 2 : 1)} />
+          {/* Snow falls on the tundra instead. */}
+          {stage !== "tundra" && (
+            <RisingMotes key={color} color={color} count={(quality === "high" ? 48 : 18) / (graveyard ? 2 : 1)} />
+          )}
+          <StageShake gust={gust} />
           <ContactShadows position={[0, FLOOR_Y + 0.002, 0]} scale={3} blur={2.4} opacity={0.7} far={2} />
         </Canvas>
       </div>
@@ -165,8 +215,18 @@ export function CharacterStage({ characterId, className }: { characterId: Charac
  * The figure's intro once (when it has one), then its showcase loop, centred in frame. A
  * levitating character rises off the pedestal instead, floating with its staff.
  */
-function Presentation({ characterId }: { characterId: CharacterId }) {
+function Presentation({
+  characterId,
+  sounds,
+  gustRef,
+}: {
+  characterId: CharacterId;
+  sounds: StageSounds;
+  /** Set every frame to how hard the wind of the entrance blows (see seraphEntrance). */
+  gustRef: RefObject<number>;
+}) {
   const character: CharacterDefinition = CHARACTERS[characterId];
+  const frost = character.introFrost;
   const showcase: CharacterClip = character.levitates ? "float" : "showcase";
   const pourSeconds = character.introPourSeconds;
   const clip = useRef<CharacterClip>("intro");
@@ -183,7 +243,36 @@ function Presentation({ characterId }: { characterId: CharacterId }) {
   const mouth = useRef(new Vector3());
   /** Set as the poured liquid hits the floor, to burst into smoke once. */
   const [smoke, setSmoke] = useState<number | null>(null);
+  /** A descending character comes down out of the sky onto the pedestal. */
+  const descent = useRef<Group>(null);
+  const age = useAge();
+  /** A winged descent ends in mighty wingbeats (see seraphEntrance): the wings' swing, driven from here. */
+  const entrance = character.descends === true && character.wings !== undefined;
+  const stroke = useRef<number | null>(null);
+  /** Where the wing tips are (kept up to date by the wings): what the downstrokes shake off flies from there. */
+  const [tips] = useState<WingTips>(() => ({ left: new Vector3(), right: new Vector3() }));
+  useEffect(() => {
+    if (!character.descends) return;
+    sounds.heavenDescent();
+    const landing = window.setTimeout(sounds.heavenLanding, DESCENT_SECONDS * 1000);
+    const beats = entrance
+      ? GUSTS.map(({ at, strength }) => window.setTimeout(() => sounds.wingBeat(strength), (at - 0.1) * 1000))
+      : [];
+    return () => [landing, ...beats].forEach((timer) => window.clearTimeout(timer));
+  }, [character.descends, entrance, sounds]);
+  useEffect(
+    () => () => {
+      gustRef.current = 0;
+    },
+    [gustRef],
+  );
   useFrame((state, delta) => {
+    const since = age(state.clock.elapsedTime);
+    if (character.descends && descent.current) descent.current.position.y = descentHeight(since) * FIGURE_HEIGHT;
+    if (entrance) {
+      stroke.current = wingStroke(since);
+      gustRef.current = gustAt(since);
+    }
     tilt.current += ((tipped.current ? 1 : 0) - tilt.current) * (1 - Math.exp(-TIP_RATE * delta));
     if (!hover.current) return;
     rise.current = stepLevitation(rise.current, hovering.current, delta);
@@ -219,6 +308,8 @@ function Presentation({ characterId }: { characterId: CharacterId }) {
           introMs > 0 ? introMs + INTRO_HOLD_MS : floats ? RISE_DELAY_MS : 0,
         ),
       ];
+      // The ground breaks under the blow.
+      if (introMs > 0 && frost) timers.current.push(window.setTimeout(sounds.groundBreak, frost.impactSeconds * 1000));
       // Mid-intro, the vial is tipped over and poured out; the liquid bursts into smoke.
       const pourAt = (pourSeconds ?? Infinity) * 1000;
       if (introMs > 0 && pourAt < introMs) {
@@ -236,7 +327,7 @@ function Presentation({ characterId }: { characterId: CharacterId }) {
         );
       }
     },
-    [showcase, pourSeconds],
+    [showcase, pourSeconds, frost, sounds],
   );
   useEffect(() => () => timers.current.forEach((timer) => window.clearTimeout(timer)), []);
 
@@ -254,71 +345,100 @@ function Presentation({ characterId }: { characterId: CharacterId }) {
           {smoke !== null && <SmokeCloud key={smoke} size={FIGURE_HEIGHT} color={character.color} />}
         </>
       )}
-      <group ref={hover}>
-        <CharacterModel
-          url={character.model}
-          height={FIGURE_HEIGHT}
-          clip={clip}
-          onClipLengths={onClipLengths}
-          introSpeed={character.introSpeed}
-        >
-          {(figure) => (
-            <>
-              {character.energyBlades && <EnergyBlades figure={figure} color={character.color} active={inIntro} />}
-              {character.levitates && <WitchStaff figure={figure} color={character.color} active={hovering} />}
-              {character.introCards && (
-                <JesterCards
-                  figure={figure}
-                  size={FIGURE_HEIGHT}
-                  color={character.color}
-                  beats={character.introCards}
-                  active={inIntro}
-                />
-              )}
-              {character.introArrows && (
-                <ArcherIntro
-                  figure={figure}
-                  size={FIGURE_HEIGHT}
-                  color={character.color}
-                  beats={character.introArrows}
-                  active={inIntro}
-                />
-              )}
-              {character.introSeals && (
-                <ScribeIntro figure={figure} size={FIGURE_HEIGHT} beats={character.introSeals} active={inIntro} />
-              )}
-              {character.introBones && (
-                <BoneRise figure={figure} size={FIGURE_HEIGHT} beats={character.introBones} active={inIntro} />
-              )}
-              {character.limbLightning && (
-                <LimbLightning
-                  figure={figure}
-                  size={FIGURE_HEIGHT}
-                  color={character.color}
-                  active={inIntro}
-                  strikeSeconds={
-                    character.introStrikeSeconds === undefined
-                      ? undefined
-                      : character.introStrikeSeconds / (character.introSpeed ?? 1)
-                  }
-                />
-              )}
-              {character.handProp === "vial" && (
-                <HeldVial figure={figure} color={character.color} active={propOut} tilt={tilt} mouth={mouth} />
-              )}
-            </>
-          )}
-        </CharacterModel>
+      {character.descends && <HeavenDescent size={FIGURE_HEIGHT} color={character.color} />}
+      {entrance && <WindGusts tips={tips} />}
+      <group ref={descent} position-y={character.descends ? descentHeight(0) * FIGURE_HEIGHT : 0}>
+        <group ref={hover}>
+          <CharacterModel
+            url={character.model}
+            height={FIGURE_HEIGHT}
+            clip={clip}
+            onClipLengths={onClipLengths}
+            introSpeed={character.introSpeed}
+          >
+            {(figure) => (
+              <>
+                {character.energyBlades && <EnergyBlades figure={figure} color={character.color} active={inIntro} />}
+                {character.levitates && <WitchStaff figure={figure} color={character.color} active={hovering} />}
+                {character.introCards && (
+                  <JesterCards
+                    figure={figure}
+                    size={FIGURE_HEIGHT}
+                    color={character.color}
+                    beats={character.introCards}
+                    active={inIntro}
+                  />
+                )}
+                {character.introArrows && (
+                  <ArcherIntro
+                    figure={figure}
+                    size={FIGURE_HEIGHT}
+                    color={character.color}
+                    beats={character.introArrows}
+                    active={inIntro}
+                  />
+                )}
+                {character.introSeals && (
+                  <ScribeIntro figure={figure} size={FIGURE_HEIGHT} beats={character.introSeals} active={inIntro} />
+                )}
+                {character.introBones && (
+                  <BoneRise figure={figure} size={FIGURE_HEIGHT} beats={character.introBones} active={inIntro} />
+                )}
+                {character.introFrost && (
+                  <FrostSlam figure={figure} size={FIGURE_HEIGHT} beats={character.introFrost} active={inIntro} />
+                )}
+                {character.limbLightning && (
+                  <LimbLightning
+                    figure={figure}
+                    size={FIGURE_HEIGHT}
+                    color={character.color}
+                    active={inIntro}
+                    strikeSeconds={
+                      character.introStrikeSeconds === undefined
+                        ? undefined
+                        : character.introStrikeSeconds / (character.introSpeed ?? 1)
+                    }
+                  />
+                )}
+                {character.wand && (
+                  <FrostWand
+                    figure={figure}
+                    active={inIntro}
+                    hand={character.introWand?.hand}
+                    flourish={character.introWand}
+                  />
+                )}
+                {character.wings && (
+                  <Wings figure={figure} wings={character.wings} stroke={stroke} tips={entrance ? tips : undefined} />
+                )}
+                {character.handProp === "vial" && (
+                  <HeldVial figure={figure} color={character.color} active={propOut} tilt={tilt} mouth={mouth} />
+                )}
+              </>
+            )}
+          </CharacterModel>
+        </group>
       </group>
     </group>
   );
 }
 
-/** Drag state shared by the DOM wrapper (which reads the pointer) and the scene (which turns). */
-function useDragTurn() {
+/** Pixels a press can travel and still count as a click on the figure rather than a drag. */
+const TAP_SLOP = 6;
+
+/**
+ * Drag state shared by the DOM wrapper (which reads the pointer) and the scene (which turns). A
+ * press that hardly moves is a click on the figure: `onTap`.
+ */
+function useDragTurn(onTap: () => void) {
   const angle = useRef(0);
   const dragging = useRef(false);
   const lastX = useRef(0);
+  const travel = useRef(0);
+  const tap = useRef(onTap);
+  useEffect(() => {
+    tap.current = onTap;
+  });
 
   return useMemo(
     () => ({
@@ -327,14 +447,20 @@ function useDragTurn() {
       onPointerDown(event: ReactPointerEvent) {
         dragging.current = true;
         lastX.current = event.clientX;
+        travel.current = 0;
         event.currentTarget.setPointerCapture(event.pointerId);
       },
       onPointerMove(event: ReactPointerEvent) {
         if (!dragging.current) return;
         angle.current += (event.clientX - lastX.current) * DRAG_TURN;
+        travel.current += Math.abs(event.clientX - lastX.current);
         lastX.current = event.clientX;
       },
       onPointerUp() {
+        if (dragging.current && travel.current < TAP_SLOP) tap.current();
+        dragging.current = false;
+      },
+      onPointerCancel() {
         dragging.current = false;
       },
     }),
@@ -476,4 +602,24 @@ function useMoteSprite() {
   }, []);
   useEffect(() => () => texture.dispose(), [texture]);
   return texture;
+}
+
+/** How far the view jolts in the strongest gust (stage units). */
+const SHAKE = 0.035;
+
+/** The view shaken by the wind of an entrance's wingbeats (see seraphEntrance). */
+function StageShake({ gust }: { gust: RefObject<number> }) {
+  const applied = useRef(new Vector3());
+  useFrame(({ camera, clock }) => {
+    camera.position.sub(applied.current);
+    const strength = gust.current ** 2 * SHAKE;
+    const t = clock.elapsedTime;
+    applied.current.set(
+      Math.sin(t * 43) * strength,
+      Math.sin(t * 37 + 1.3) * strength * 0.7,
+      Math.sin(t * 51) * strength * 0.4,
+    );
+    camera.position.add(applied.current);
+  });
+  return null;
 }

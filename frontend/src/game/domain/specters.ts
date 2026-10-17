@@ -1,8 +1,10 @@
 import { abilityCycle, PLUNDER_CARDS, SPECTER_RANGE } from "./abilities";
 import { MAX_ENERGY } from "./cards";
+import { trackOf } from "./board";
 import { GameRuleError } from "./commands";
 import { drawCard, handOverCards, playerIn, updatePlayer, type Draft } from "./draft";
 import { sealableTiles } from "./seals";
+import { isUntouchable } from "./players";
 import type { Board, PendingPlunder, PlayerId, SpecterKind, TileId } from "./types";
 
 /** The apparitions summoned by one use of Spectral Apparitions, in the order their tiles are picked. */
@@ -11,10 +13,19 @@ export const SPECTER_KINDS: readonly SpecterKind[] = ["plunder", "hunger"];
 /**
  * Tiles an apparition can appear on from `position`: plain main-path tiles within SPECTER_RANGE
  * (as for seals, see sealableTiles), other than those already taken (`taken`: every seal and every
- * apparition). Nearest first.
+ * apparition). In heaven, the Warden haunts heaven instead: any tile of their track within range
+ * (they all hold a blessing or a relic). Nearest first.
  */
 export function hauntableTiles(board: Board, position: TileId, taken: readonly TileId[]): TileId[] {
-  return sealableTiles(board, position, taken).filter((tile) => Math.abs(tile - position) <= SPECTER_RANGE);
+  const near = (tile: TileId) => Math.abs(tile - position) <= SPECTER_RANGE;
+  const track = trackOf(board, position);
+  if (track?.realm === "celestial") {
+    return track.tiles
+      .filter((tile) => near(tile) && !taken.includes(tile))
+      .sort((a, b) => Math.abs(a - position) - Math.abs(b - position) || a - b);
+  }
+  if (track) return [];
+  return sealableTiles(board, position, taken).filter(near);
 }
 
 /** What keeps an apparition off a tile: every seal and every apparition, the Warden's own too. */
@@ -68,7 +79,7 @@ export function crossSpecters(draft: Draft, playerId: PlayerId, path: readonly T
     );
     if (!specter) continue;
     // Spectral Armour turns the apparition away; it stays.
-    if (!alone && playerIn(draft, playerId).spectralArmour > 0) {
+    if (!alone && isUntouchable(playerIn(draft, playerId))) {
       draft.events.push({ type: "armourHeld", playerId, tile });
       continue;
     }

@@ -1,8 +1,8 @@
 import { HAND_LIMIT } from "./cards";
-import { shuffle, throwOnPile } from "./deck";
+import { shuffle } from "./deck";
 import type { GameEvent } from "./events";
 import type { RandomSource } from "./random";
-import { getTile } from "./board";
+import { nextTile, previousTile } from "./board";
 import type {
   BlackFlame,
   Board,
@@ -11,10 +11,12 @@ import type {
   GameState,
   Player,
   PlayerId,
+  RealmEntry,
   Seal,
   Specter,
   Threat,
   TileId,
+  Winter,
 } from "./types";
 
 /**
@@ -27,10 +29,15 @@ export interface Draft {
   events: GameEvent[];
   /** Landing earned another turn. */
   extraTurn: boolean;
-  /** A card was drawn with a full hand; the command decides when the turn resumes. */
-  overflow: CardInstance | null;
+  /**
+   * Cards that came to a full hand, in order, each waiting for its player to throw one away (see
+   * PendingDiscard); the command decides when the turn resumes.
+   */
+  overflow: OverflowCard[];
   /** A threat on this tile waits for the player's choice to ward it off; resolving stops here. */
   pendingWard: { tile: TileId; threat: Threat } | null;
+  /** Seraphiel picks his gift from heaven on this tile; resolving stops here. */
+  pendingGrace: { tile: TileId; offer: "blessing" | "relic" } | null;
   /** Where the hidden traps are; they move once sprung. */
   hiddenTraps: TileId[];
   /** Tiles whose trap the Trap Ward smashed for good. */
@@ -45,6 +52,7 @@ export interface Draft {
   enchantedTiles: EnchantedTile[];
   /** Tiles on black fire; they go out as their owner's turns pass. */
   blackFlames: BlackFlame[];
+  winter: Winter | null;
   /** A Plunder specter caught someone this command: its owner picks the cards before play goes on. */
   plunder: { owner: PlayerId; victim: PlayerId } | null;
   /** Shuffles the discard pile back into an empty deck, and moves sprung hidden traps. */
@@ -57,8 +65,9 @@ export function startDraft(state: GameState, random: RandomSource): Draft {
     players: [...state.players],
     events: [],
     extraTurn: false,
-    overflow: null,
+    overflow: [],
     pendingWard: null,
+    pendingGrace: null,
     hiddenTraps: [...state.hiddenTraps],
     destroyedTraps: [...state.destroyedTraps],
     pinnedTraps: [...state.pinnedTraps],
@@ -66,6 +75,7 @@ export function startDraft(state: GameState, random: RandomSource): Draft {
     specters: [...state.specters],
     enchantedTiles: [...state.enchantedTiles],
     blackFlames: [...state.blackFlames],
+    winter: state.winter,
     plunder: null,
     random,
   };
@@ -83,6 +93,7 @@ export function draftState(draft: Draft): GameState {
     specters: draft.specters,
     enchantedTiles: draft.enchantedTiles,
     blackFlames: draft.blackFlames,
+    winter: draft.winter,
   };
 }
 
@@ -96,13 +107,17 @@ export function updatePlayer(draft: Draft, playerId: PlayerId, patch: (player: P
   draft.players = draft.players.map((player) => (player.id === playerId ? { ...player, ...patch(player) } : player));
 }
 
+/** A card that came to a full hand, waiting for `playerId` to throw one away. */
+export interface OverflowCard {
+  playerId: PlayerId;
+  card: CardInstance;
+}
+
 /**
  * Draws the top card into the hand, or sets it aside as overflow when the hand is full. An
- * empty deck is first rebuilt from the shuffled discard pile. Only one card can wait on a
- * discard, so nothing more is drawn while one does.
+ * empty deck is first rebuilt from the shuffled discard pile.
  */
 export function drawCard(draft: Draft, playerId: PlayerId): void {
-  if (draft.overflow) return;
   if (playerIn(draft, playerId).deck.length === 0) reshuffleDiscard(draft, playerId);
 
   const [card, ...deck] = playerIn(draft, playerId).deck;
@@ -112,18 +127,20 @@ export function drawCard(draft: Draft, playerId: PlayerId): void {
 }
 
 /**
- * `card` goes into the player's hand, drawn or found; a full hand makes them discard one first
- * (see draft.overflow).
+ * `card` goes into the player's hand, drawn, found or taken; a full hand makes them throw one away
+ * first (see draft.overflow), one card at a time, so none is ever lost without their choice.
  */
 export function giveCard(draft: Draft, playerId: PlayerId, card: CardInstance): void {
-  if (draft.overflow) return;
-  if (playerIn(draft, playerId).hand.length < HAND_LIMIT) {
-    updatePlayer(draft, playerId, (player) => ({ hand: [...player.hand, card] }));
+  const waiting = draft.overflow.some((overflow) => overflow.playerId === playerId);
+  if (!waiting && playerIn(draft, playerId).hand.length < HAND_LIMIT) {
+    updatePlayer(draft, playerId, (player) => ({
+      hand: [...player.hand, card],
+    }));
     draft.events.push({ type: "cardDrawn", playerId, card });
-  } else {
-    draft.overflow = card;
-    draft.events.push({ type: "discardRequired", playerId, card });
+    return;
   }
+  if (draft.overflow.length === 0) draft.events.push({ type: "discardRequired", playerId, card });
+  draft.overflow.push({ playerId, card });
 }
 
 function reshuffleDiscard(draft: Draft, playerId: PlayerId): void {
@@ -140,11 +157,11 @@ function reshuffleDiscard(draft: Draft, playerId: PlayerId): void {
  * Tiles visited step by step, following each tile's `next` (through realm tracks and out of
  * them). Movement stops at the finish tile (no bounce back).
  */
-export function walkPath(board: Board, origin: TileId, steps: number): TileId[] {
+export function walkPath(board: Board, origin: TileId, steps: number, entry?: RealmEntry | null): TileId[] {
   const path: TileId[] = [];
   let tile: TileId | null = origin;
   for (let step = 0; step < steps; step++) {
-    tile = getTile(board, tile).next;
+    tile = nextTile(board, tile, entry);
     if (tile === null) break;
     path.push(tile);
   }
@@ -152,11 +169,11 @@ export function walkPath(board: Board, origin: TileId, steps: number): TileId[] 
 }
 
 /** Tiles passed when knocked back `steps` tiles, following each tile's `previous`. */
-export function pushPath(board: Board, origin: TileId, steps: number): TileId[] {
+export function pushPath(board: Board, origin: TileId, steps: number, entry?: RealmEntry | null): TileId[] {
   const path: TileId[] = [];
   let tile: TileId | null = origin;
   for (let step = 0; step < steps; step++) {
-    tile = getTile(board, tile).previous;
+    tile = previousTile(board, tile, entry);
     if (tile === null) break;
     path.push(tile);
   }
@@ -169,14 +186,22 @@ export function pushPath(board: Board, origin: TileId, steps: number): TileId[] 
  */
 export function handOverCards(draft: Draft, from: PlayerId, to: PlayerId, cards: readonly CardInstance[]): void {
   if (cards.length === 0) return;
-  const room = Math.max(0, HAND_LIMIT - playerIn(draft, to).hand.length);
+  const room = draft.overflow.some((overflow) => overflow.playerId === to)
+    ? 0
+    : Math.max(0, HAND_LIMIT - playerIn(draft, to).hand.length);
   const kept = cards.slice(0, room);
-  const discarded = cards.slice(room);
   const taken = new Set(cards.map((card) => card.uid));
-  updatePlayer(draft, from, (player) => ({ hand: player.hand.filter((held) => !taken.has(held.uid)) }));
-  updatePlayer(draft, to, (player) => ({
-    hand: [...player.hand, ...kept],
-    discard: throwOnPile(player.discard, discarded),
+  updatePlayer(draft, from, (player) => ({
+    hand: player.hand.filter((held) => !taken.has(held.uid)),
   }));
-  draft.events.push({ type: "cardsStolen", playerId: to, from, cards: [...cards], discarded });
+  updatePlayer(draft, to, (player) => ({ hand: [...player.hand, ...kept] }));
+  draft.events.push({
+    type: "cardsStolen",
+    playerId: to,
+    from,
+    cards: [...kept],
+    discarded: [],
+  });
+  // What doesn't fit waits for its new owner to make room, one card at a time.
+  for (const card of cards.slice(room)) giveCard(draft, to, card);
 }

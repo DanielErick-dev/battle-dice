@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 import { playerColor } from "../../characters";
 import { ABILITY_TEXT } from "../abilityText";
 import { BlessingBadges } from "./BlessingBadges";
+import { EnergyOrbs, useShownEnergy } from "../cards/EnergyMeter";
+import { inHeaven } from "@/game/domain/blessings";
 
 interface PlayersPanelProps {
   players: readonly Player[];
@@ -56,12 +58,13 @@ export function PlayersPanel({ players, activePlayerId, board }: PlayersPanelPro
                 </span>
                 {player.skipTurns > 0 && (
                   <span className="rounded-full bg-slate-200/15 px-1.5 text-[9px] font-bold text-slate-200 uppercase">
-                    Perde a vez
+                    Perde a vez{player.skipTurns > 1 && ` ×${player.skipTurns}`}
                   </span>
                 )}
                 {player.reversedRolls > 0 && (
                   <span className="rounded-full bg-amber-500/20 px-1.5 text-[9px] font-bold text-amber-300 uppercase">
                     Tempo invertido
+                    {player.reversedRolls > 1 && ` ×${player.reversedRolls}`}
                   </span>
                 )}
                 {track ? (
@@ -75,14 +78,7 @@ export function PlayersPanel({ players, activePlayerId, board }: PlayersPanelPro
                 )}
               </div>
               <div className="mt-1 flex items-center gap-2.5 pl-3.5">
-                <span className="flex items-center gap-0.5" title={`Energia: ${player.energy} de ${MAX_ENERGY}`}>
-                  {Array.from({ length: MAX_ENERGY }, (_, i) => (
-                    <span
-                      key={i}
-                      className={cn("size-1.5 rounded-full", i < player.energy ? "energy-orb" : "bg-white/15")}
-                    />
-                  ))}
-                </span>
+                <MiniEnergy energy={player.energy} />
                 <span
                   className="flex items-center gap-0.5 text-[10px] font-semibold text-zinc-400"
                   title="Cartas na mão"
@@ -116,7 +112,7 @@ export function PlayersPanel({ players, activePlayerId, board }: PlayersPanelPro
               </div>
               {player.blessings.length > 0 && (
                 <div className="mt-1 pl-3.5">
-                  <BlessingBadges player={player} compact />
+                  <BlessingBadges player={player} waiting={inHeaven(board, player.position)} compact />
                 </div>
               )}
               <div className="mt-1 h-0.5 overflow-hidden rounded-full bg-white/10">
@@ -130,5 +126,15 @@ export function PlayersPanel({ players, activePlayerId, board }: PlayersPanelPro
         })}
       </ul>
     </section>
+  );
+}
+
+/** A player's energy in miniature, filling up one orb at a time like the hand's EnergyMeter. */
+function MiniEnergy({ energy }: { energy: number }) {
+  const shown = useShownEnergy(energy);
+  return (
+    <span title={`Energia: ${energy} de ${MAX_ENERGY}`}>
+      <EnergyOrbs shown={shown} className="gap-0.5" orbClassName="size-1.5" />
+    </span>
   );
 }

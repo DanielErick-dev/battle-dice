@@ -16,6 +16,7 @@ export const CARD_PALETTE: Readonly<Record<CardId, { from: string; to: string }>
   oracleEye: { from: "#6d28d9", to: "#0f0a2e" },
   ancestralAwakening: { from: "#f59e0b", to: "#451a03" },
   fateSwap: { from: "#0d9488", to: "#1e1b4b" },
+  abyssCall: { from: "#7f1d1d", to: "#09090b" },
   celestialLight: { from: "#fef9c3", to: "#ca8a04" },
   heavenlyAegis: { from: "#e0f2fe", to: "#0369a1" },
   ascension: { from: "#fae8ff", to: "#7e22ce" },
@@ -267,6 +268,44 @@ const ART: Record<CardId, ReactNode> = {
       <polygon points="70,22 61,20 67,13" fill="#f0fdfa" />
       <path d="M70 48 Q50 64 30 48" fill="none" stroke="#f0fdfa" strokeWidth="3" strokeLinecap="round" />
       <polygon points="30,48 39,50 33,57" fill="#f0fdfa" />
+    </g>
+  ),
+  // A charred hand reaching out of a burning pit, dragging a small figure down by the ankle.
+  abyssCall: (
+    <g>
+      <ellipse cx="50" cy="58" rx="34" ry="8" fill="#0a0506" stroke="#ef4444" strokeWidth="1.5" />
+      <ellipse cx="50" cy="58" rx="24" ry="4.5" fill="#dc2626" opacity="0.55" />
+      {[28, 40, 60, 72].map((x, i) => (
+        <path
+          key={x}
+          d={`M${x} 58 q${i % 2 ? 4 : -4} -9 0 -16 q${i % 2 ? -3 : 3} 6 0 16`}
+          fill="#f97316"
+          opacity="0.8"
+        />
+      ))}
+      <path
+        d="M44 60 L45 40 L41 30 M45 40 L48 26 M46 38 L53 27 M47 40 L58 31 M47 44 L60 42"
+        fill="none"
+        stroke="#1c0a0a"
+        strokeWidth="4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M44 60 L45 40 L41 30 M45 40 L48 26 M46 38 L53 27 M47 40 L58 31 M47 44 L60 42"
+        fill="none"
+        stroke="#ef4444"
+        strokeWidth="0.8"
+        strokeLinecap="round"
+      />
+      <circle cx="66" cy="16" r="4.5" fill="#e4e4e7" />
+      <path
+        d="M66 21 L62 32 M64 25 L57 22 M64 25 L72 21 M62 32 L58 30 M62 32 L60 40"
+        stroke="#e4e4e7"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        fill="none"
+      />
     </g>
   ),
   // A sun of white light pouring rays down over a full orb of energy.

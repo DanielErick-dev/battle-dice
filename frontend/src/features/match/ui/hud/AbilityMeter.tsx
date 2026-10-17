@@ -31,14 +31,14 @@ export function AbilityMeter({ player, inUse = false, onActivate, canActivate = 
   const text = ABILITY_TEXT[player.ability];
   const ready = isAbilityReady(player);
   const reactive = isReactive(player.ability);
-  const blocker = abilityBlocker(player, null);
+  const blocker = abilityBlocker(player);
   const waitReason = blocker ? WAIT_REASONS[blocker] : undefined;
 
   return (
     <div
       className={cn(
         "flex items-center gap-2 rounded-lg px-2 py-1",
-        (ready || inUse || player.levitating > 0) && "bg-violet-500/20 ring-1 ring-violet-300/50",
+        (ready || inUse || player.levitating > 0 || player.untamed > 0) && "bg-violet-500/20 ring-1 ring-violet-300/50",
       )}
       title={`${text.name}: ${text.description}`}
     >
@@ -55,7 +55,12 @@ export function AbilityMeter({ player, inUse = false, onActivate, canActivate = 
         <span className="text-[9px] font-black tracking-widest text-violet-200 uppercase">
           Flutuando · {player.levitating} {player.levitating === 1 ? "turno" : "turnos"}
         </span>
-      ) : inUse ? (
+      ) : player.untamed > 0 ? (
+        <span className="text-[9px] font-black tracking-widest text-violet-200 uppercase">
+          Indomável · {player.untamed} {player.untamed === 1 ? "turno" : "turnos"}
+        </span>
+      ) : inUse && !ready ? (
+        // Charged again in the same turn (Ascension), it can be used again: the button takes over.
         <span className="text-[9px] font-black tracking-widest text-violet-200 uppercase">Em uso</span>
       ) : ready && onActivate && !reactive ? (
         <button

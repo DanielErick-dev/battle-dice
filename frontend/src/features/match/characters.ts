@@ -1,5 +1,7 @@
 import type { AbilityId } from "@/game/domain/abilities";
 import type { PlayerId } from "@/game/domain/types";
+import type { ChairId } from "./scene/character/RestChair";
+import type { WingsId } from "./scene/character/Wings";
 
 /**
  * Animation clips of a character model, built by scripts/characters/build-characters.mjs.
@@ -7,8 +9,13 @@ import type { PlayerId } from "@/game/domain/types";
  * picked, then showcase loops to present them (idle stands in without it); cast plays once as
  * they use their ability; float loops while they levitate (idle stands in without it); land plays
  * dash plays once as they throw themselves into a lightning dash, land as they touch down out of it.
+ * shove plays once as the Berserker shoves someone he trampled; knocked as anyone is sent flying
+ * (every model borrows it from one, see SHARED_CLIPS in the build manifest); rest loops, seated on a
+ * chair, while they've lost turns (shared the same way); hop plays once as the Crystal Fairy stops on
+ * her own snow, before it carries her on.
  */
-export type CharacterClip = "idle" | "run" | "cast" | "intro" | "showcase" | "float" | "dash" | "land";
+export type CharacterClip =
+  "idle" | "run" | "cast" | "intro" | "showcase" | "float" | "dash" | "land" | "shove" | "knocked" | "rest" | "hop";
 
 /** Seconds each clip lasts, for the clips a model has. */
 export type ClipLengths = Partial<Record<CharacterClip, number>>;
@@ -32,12 +39,28 @@ export interface CharacterDefinition {
   shieldColor?: string;
   /** A prop made in code, held in the right hand in the moves that use it (see HeldVial). */
   handProp?: "vial";
+  /** Holds the frost wand (see FrostWand) through the intro and while using the ability, instead of leaping. */
+  wand?: boolean;
+  /** Seconds into their hop clip when the feet leave the ground (a burst of snow round them). */
+  hopTakeoffSeconds?: number;
+  /** Her intro: the hand that holds the wand up, and when snow and fairy dust pour off it (seconds). */
+  introWand?: { hand: "LeftHand" | "RightHand"; from: number; to: number };
+  /** Wears wings on the back (see Wings): the models are made without them. */
+  wings?: WingsId;
+  /** Seraphiel's wings once he has fallen (with fallenModel). */
+  fallenWings?: WingsId;
+  /** Seraphiel's chair once he has fallen. */
+  fallenChair?: ChairId;
+  /** Their own chair to sit on while they've lost turns (see RestChair); a plain wooden one without. */
+  chair?: ChairId;
   /** Seconds into their cast clip when the hand prop is taken out (it's thrown at castImpactSeconds). */
   castPropSeconds?: number;
   /** Seconds into the intro when the held vial is tipped over and poured out, bursting into smoke. */
   introPourSeconds?: number;
   /** Hovers on the menu stage (floating instead of a showcase) with a staff in hand, as when levitating. */
   levitates?: boolean;
+  /** Their menu intro is a descent out of heaven in a column of light, landing on the pedestal (see HeavenDescent). */
+  descends?: boolean;
   /** Playing cards circle them through the intro and gather into their raised hand (see JesterCards). */
   introCards?: IntroCardBeats;
   /** A bow of light is drawn and an arrow loosed into the sky through the intro (see ArcherIntro). */
@@ -46,8 +69,13 @@ export interface CharacterDefinition {
   introSeals?: IntroSealBeats;
   /** Bones and skulls rise from the ground round them through the intro (see BoneRise). */
   introBones?: IntroBoneBeats;
-  /** The ground they stand on in the menu, in place of the rune pedestal (see Graveyard, Scriptorium). */
-  stage?: "graveyard" | "scriptorium";
+  /** Frost gathers on their fist and the floor freezes over where it slams down in the intro (see FrostSlam). */
+  introFrost?: IntroFrostBeats;
+  /**
+   * The ground they stand on in the menu, in place of the rune pedestal (see Graveyard, Scriptorium,
+   * FrozenWastes, Sanctuary).
+   */
+  stage?: "graveyard" | "scriptorium" | "tundra" | "sanctuary";
   /**
    * Lightning trails their hands and feet through the intro and their lightning dash, and crackles
    * in their hands while it waits for the roll (see LimbLightning).
@@ -61,6 +89,20 @@ export interface CharacterDefinition {
   castsStill?: boolean;
   /** Seconds into their land clip when the feet touch the ground: the shockwave goes off. */
   landImpactSeconds?: number;
+  /** Seconds into their shove clip when the hands hit (a trample's blow, see Untamed). */
+  shoveImpactSeconds?: number;
+  /**
+   * Their ability takes hold as an aura of their own (at castImpactSeconds into the cast) in place
+   * of the generic burst, and stays while it lasts (see FrostAura).
+   */
+  castAura?: "frost";
+  /** Their armour (Spectral Armour and the like) shows as a look of their own instead of the shield bubble. */
+  armourLook?: "susanoo";
+  /**
+   * Seraphiel's form after the Fall (see seraph.ts), with the same clips; until it's made, his own
+   * model is drawn charred instead.
+   */
+  fallenModel?: string;
 }
 
 /** Beats of an intro the cards follow (see CharacterDefinition.introCards). */
@@ -87,6 +129,14 @@ export interface IntroBoneBeats {
   peakSeconds: number;
   /** Seconds into the intro when the arms come down: the skulls burst into soul fire. */
   releaseSeconds: number;
+}
+
+/** Beats of an intro the frost follows (see CharacterDefinition.introFrost). */
+export interface IntroFrostBeats {
+  /** Seconds into the intro when the fist starts rising: frost gathers round it. */
+  raiseSeconds: number;
+  /** Seconds into the intro when the fist hits the floor: it freezes over and ice bursts out. */
+  impactSeconds: number;
 }
 
 /** Beats of an intro the sigil and scrolls follow (see CharacterDefinition.introSeals). */
@@ -237,6 +287,7 @@ export const CHARACTERS = {
     ability: "ocularAwakening",
     playable: true,
     shieldColor: "#ff4d2e",
+    armourLook: "susanoo",
   },
   crystalFairy: {
     name: "Fada Cristalina",
@@ -247,9 +298,16 @@ export const CHARACTERS = {
     ability: "fairyBloom",
     playable: true,
     shieldColor: "#22d3ee",
+    wand: true,
+    // Her intro: she raises her left hand from 0.4 s and gazes at it, lowering it again by 2.7 s.
+    introWand: { hand: "LeftHand", from: 0.6, to: 2.7 },
+    // Her hop on her own snow: a crouch, off the ground at 1.1 s, highest at 1.4 s, down at 1.8 s.
+    hopTakeoffSeconds: 1.1,
+    wings: "fairy",
+    chair: "frostThrone",
   },
   // The eight below came from Meshy with idle and run only: names and abilities are placeholders
-  // until their kits (intro, cast, effects) are made.
+  // until their kits (intro, cast, effects) are made. Bjorn's is under way: Untamed and his trample.
   windGuardian: {
     name: "Zéfiro",
     epithet: "O vento sempre a favor",
@@ -277,15 +335,24 @@ export const CHARACTERS = {
     ability: "studySession",
     playable: true,
     shieldColor: "#f9a8d4",
+    chair: "infernalThrone",
   },
   frostfangBerserker: {
     name: "Bjorn Presa-Gélida",
-    epithet: "Um uivo que congela o sangue",
+    epithet: "Quem fica no caminho, voa",
     color: "#60a5fa",
     model: model("frostfangBerserker"),
-    ability: "glacialHowl",
+    ability: "untamed",
+    chair: "wolfThrone",
     playable: true,
     shieldColor: "#60a5fa",
+    // His intro: the left fist goes up from 0.3 s and slams the ground at 1 s.
+    introFrost: { raiseSeconds: 0.3, impactSeconds: 1 },
+    // His cast: the fists come up onto his chest by 0.8 s. His shove: the hands hit at 0.25 s.
+    castImpactSeconds: 0.8,
+    shoveImpactSeconds: 0.25,
+    castAura: "frost",
+    stage: "tundra",
   },
   goldenGuardian: {
     name: "Auric",
@@ -301,9 +368,16 @@ export const CHARACTERS = {
     epithet: "Asas que abençoam o caminho",
     color: "#fef3c7",
     model: model("seraphGuardian"),
+    fallenModel: model("fallenSeraph"),
     ability: "seraphBlessing",
     playable: true,
     shieldColor: "#fde68a",
+    wings: "seraph",
+    fallenWings: "fallen",
+    chair: "celestialThrone",
+    fallenChair: "ashenThrone",
+    descends: true,
+    stage: "sanctuary",
   },
   clockworkSentinel: {
     name: "Cronos",

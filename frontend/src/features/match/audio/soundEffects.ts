@@ -1,7 +1,9 @@
+import type { AbilityId } from "@/game/domain/abilities";
 import type { CardId } from "@/game/domain/cards";
 import type { RealmKind } from "@/game/domain/types";
 import type { AudioEngine } from "./audioEngine";
 import { Synth } from "./synth";
+import { ABILITY_VOICES } from "./voices";
 
 /** Sounds the match can play. Kept as an interface so tests and a future asset-based player can swap in. */
 export interface MatchSounds {
@@ -39,6 +41,14 @@ export interface MatchSounds {
    * later, a hail of arrows thudding into the ground.
    */
   arrowVolley: (landsIn: number) => void;
+  /** The character's shout as they use their ability, when they have one (see ABILITY_VOICES). */
+  abilityVoice: (ability: AbilityId) => void;
+  /** A body slammed out of the way: a heavy thud and the whoosh of them flying off (a trample). */
+  shove: () => void;
+  /** Hell's Drag: the ground tearing open under someone and the pull downwards. */
+  hellGrasp: () => void;
+  /** Seraphiel's Fall: heaven's chord torn down into a burning drone. */
+  fall: () => void;
   win: () => void;
 }
 
@@ -200,6 +210,81 @@ export class SynthSounds implements MatchSounds {
       const chordAt = at + notes.length * 0.11;
       notes.forEach((frequency) => synth.tone(chordAt, 0.9, frequency, frequency, "triangle", 0.14));
     });
+
+  abilityVoice = (ability: AbilityId): void => {
+    const line = ABILITY_VOICES[ability];
+    if (!line) return;
+    // Until the recording is in, the Berserker roars all the same.
+    void this.engine.playSample(line.src, "voice", line.delay).then((played) => {
+      if (!played && ability === "untamed") this.roar(line.delay);
+    });
+  };
+
+  /** Hell's Drag: a rumble from below and the ground tearing open, then a deep pull downwards. */
+  hellGrasp = (): void =>
+    this.play((synth, at) => {
+      synth.tone(at, 1.4, 45, 30, "sawtooth", 0.3, {
+        lowpass: 320,
+        attack: 0.3,
+      });
+      synth.noiseSweep(at, 0.9, 200, 1600, 0.4, 0.5);
+      synth.noiseBurst(at + 0.7, 0.25, 500, 0.5);
+      synth.tone(at + 1.5, 1.1, 160, 35, "sawtooth", 0.28, { lowpass: 700 });
+      synth.noiseSweep(at + 1.5, 1.1, 2200, 150, 0.4, 0.8);
+    });
+
+  /** The Fall: a bright chord torn down into a low, burning drone. */
+  fall = (): void =>
+    this.play((synth, at) => {
+      [523.25, 659.25, 783.99].forEach((frequency) => synth.tone(at, 1.2, frequency, frequency / 4, "triangle", 0.1));
+      synth.tone(at + 0.4, 2, 55, 36, "sawtooth", 0.3, {
+        lowpass: 420,
+        attack: 0.4,
+      });
+      synth.noiseSweep(at + 0.3, 1.8, 3000, 200, 0.35, 0.6);
+    });
+
+  shove = (): void =>
+    this.play((synth, at) => {
+      synth.tone(at, 0.28, 130, 42, "sine", 0.9);
+      // The body of the blow up where small speakers carry it, and the crack of the hit.
+      synth.tone(at, 0.2, 260, 90, "triangle", 0.45);
+      synth.noiseBurst(at, 0.12, 1400, 0.7);
+      synth.tone(at, 0.12, 320, 90, "square", 0.12, { lowpass: 1600 });
+      synth.noiseSweep(at + 0.05, 0.7, 2400, 380, 0.3);
+    });
+
+  /**
+   * A beast's roar, low and rasping: detuned saws growling down over a breathy rasp, with the
+   * growl doubled an octave up and a quick flutter so small speakers, which drop the lows, carry it.
+   */
+  private roar(delay: number): void {
+    this.play((synth, now) => {
+      const at = now + delay;
+      synth.tone(at, 1.5, 120, 68, "sawtooth", 0.3, {
+        lowpass: 900,
+        attack: 0.12,
+      });
+      synth.tone(at, 1.5, 122, 70, "sawtooth", 0.22, {
+        lowpass: 700,
+        attack: 0.12,
+        detune: 28,
+      });
+      synth.tone(at, 1.3, 60, 40, "square", 0.1, { lowpass: 300, attack: 0.1 });
+      synth.tone(at, 1.4, 260, 150, "sawtooth", 0.22, {
+        lowpass: 2200,
+        attack: 0.1,
+      });
+      synth.tone(at, 1.4, 264, 152, "sawtooth", 0.16, {
+        lowpass: 1800,
+        attack: 0.1,
+        detune: -35,
+      });
+      // The throat's flutter: short rasps in a quick run over the growl.
+      for (let i = 0; i < 9; i++) synth.noiseBurst(at + 0.1 + i * 0.13, 0.09, 900 + (i % 3) * 250, 0.18);
+      synth.noiseSweep(at, 1.5, 280, 1600, 0.45, 0.7);
+    });
+  }
 
   private play(schedule: (synth: Synth, at: number) => void): void {
     const context = this.engine.running;

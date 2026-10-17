@@ -22,6 +22,14 @@ const ACCENTS = {
     idle: "bg-emerald-700/70",
     button: "bg-emerald-500 hover:bg-emerald-400",
   },
+  amber: {
+    title: "text-amber-200",
+    ring: "ring-amber-200",
+    focus: "focus-visible:outline-amber-300",
+    chosen: "bg-amber-400",
+    idle: "bg-amber-700/70",
+    button: "bg-amber-500 hover:bg-amber-400",
+  },
   sky: {
     title: "text-sky-300",
     ring: "ring-sky-300",
@@ -108,7 +116,7 @@ export function CardChoicePicker({
                     full && "opacity-40",
                   )}
                 >
-                  <CardView cardId={card.cardId} />
+                  <CardView cardId={card.cardId} fused={card.fused} />
                   <span
                     className={cn(
                       "mt-2 block rounded-lg py-1.5 text-center text-[11px] font-black tracking-wider text-white uppercase transition",

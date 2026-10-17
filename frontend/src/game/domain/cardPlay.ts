@@ -15,14 +15,24 @@ import {
 import { abilityCycle, cardsPerTurn, isAbilityReady } from "./abilities";
 import { unpinPassed } from "./arrowRain";
 import { GameRuleError, type GameErrorCode } from "./commands";
-import { mainTileOf, opponentsInReach } from "./board";
+import { mainTileOf, opponentsInSpace } from "./board";
+import { aimWard } from "./players";
 import { drawCard, playerIn, pushPath, updatePlayer, walkPath, type Draft } from "./draft";
 import { throwOnPile } from "./deck";
 import { DICE_SIDES } from "./dice";
 import { resolveLanding } from "./landing";
 import { crossSpecters } from "./specters";
-import { glideOverSnow } from "./fairy";
-import type { Board, CardInstance, Player, PlayerId, TileId } from "./types";
+import { dragIntoHell, dragTargets } from "./seraph";
+import { walkTrampling } from "./berserker";
+import {
+  FUSED_AEGIS_TURNS,
+  FUSED_BLAST_PUSH,
+  FUSED_LUCKY_BONUS,
+  FUSED_SCROLL_DRAWS,
+  FUSED_SHIELD_ARMOUR,
+  FUSED_WIND_STEP_TILES,
+} from "./fusion";
+import type { Board, CardInstance, Player, PlayerId, RealmEntry, TileId } from "./types";
 
 export interface CardChoice {
   targetId?: PlayerId;
@@ -39,12 +49,14 @@ export function cardBlocker(board: Board, player: Player, cardId: CardId): GameE
   if (player.energy < cardCost(cardId)) return "NOT_ENOUGH_ENERGY";
   if (cardId === "arcaneShield" && player.shielded) return "ALREADY_SHIELDED";
   const { dice } = CARD_CATALOG[cardId];
-  if ((dice === "throw" && player.diceBoost !== null) || (dice === "bonus" && player.diceBonus !== null)) {
-    return "DICE_BOOST_ACTIVE";
+  // Bonuses add up (combos); only the way the dice are thrown can't be changed twice.
+  if (dice === "throw" && player.diceBoost !== null) return "DICE_BOOST_ACTIVE";
+  if (cardId === "mysticGate" && nextPortalAhead(board, player.position, player.realmEntry) === null) {
+    return "NO_PORTAL_AHEAD";
   }
-  if (cardId === "mysticGate" && nextPortalAhead(board, player.position) === null) return "NO_PORTAL_AHEAD";
   if (cardId === "celestialLight" && player.energy >= MAX_ENERGY) return "ENERGY_FULL";
   if (cardId === "ascension" && (player.ability === null || isAbilityReady(player))) return "ABILITY_ALREADY_READY";
+  if (cardId === "abyssCall" && !board.tracks.some((track) => track.realm === "infernal")) return "NO_HELL";
   return null;
 }
 
@@ -63,9 +75,9 @@ export function playCard(draft: Draft, playerId: PlayerId, cardUid: string, choi
   if (blocker) throw new GameRuleError(blocker);
 
   const definition = CARD_CATALOG[card.cardId];
-  const targetId = definition.targetsOpponent ? validTarget(draft, playerId, choice.targetId) : null;
+  const targetId = definition.targetsOpponent ? validTarget(draft, playerId, card.cardId, choice.targetId) : null;
   const value = definition.needsValue ? validValue(choice.value) : null;
-  const portal = card.cardId === "mysticGate" ? nextPortalAhead(board, player.position) : null;
+  const portal = card.cardId === "mysticGate" ? nextPortalAhead(board, player.position, player.realmEntry) : null;
 
   updatePlayer(draft, playerId, (current) => ({
     energy: current.energy - cardCost(card.cardId),
@@ -73,6 +85,18 @@ export function playCard(draft: Draft, playerId: PlayerId, cardUid: string, choi
     discard: throwOnPile(current.discard, [card]),
   }));
   draft.events.push({ type: "cardPlayed", playerId, card, targetId, value });
+  // Thrown at a protected opponent, the card is spent for nothing.
+  const ward = targetId === null ? null : aimWard(playerIn(draft, targetId));
+  if (targetId !== null && ward) {
+    draft.events.push({
+      type: "cardBlocked",
+      playerId,
+      targetId,
+      cardId: card.cardId,
+      ward,
+    });
+    return;
+  }
   applyEffect(draft, playerId, card, { targetId, value, portal });
 }
 
@@ -87,38 +111,72 @@ function applyEffect(
 
   switch (card.cardId) {
     case "windStep": {
-      const path = walkPath(board, position, WIND_STEP_TILES);
-      draft.events.push({ type: "playerMoved", playerId, path });
+      // Under Cronos's reversed time the wind blows them back the way they came, like their rolls.
+      const { reversedRolls, realmEntry } = playerIn(draft, playerId);
+      const windTiles = card.fused ? FUSED_WIND_STEP_TILES : WIND_STEP_TILES;
+      if (reversedRolls > 0) {
+        const path = pushPath(board, position, windTiles, realmEntry);
+        draft.events.push({ type: "playerMoved", playerId, path });
+        crossSpecters(draft, playerId, path);
+        resolveLanding(draft, playerId, path.at(-1) ?? position);
+        unpinPassed(draft, path);
+        break;
+      }
+      const path = walkPath(board, position, windTiles, realmEntry);
+      walkTrampling(draft, playerId, path);
       crossSpecters(draft, playerId, path);
-      const glide = glideOverSnow(draft, playerId, path);
-      crossSpecters(draft, playerId, glide);
-      resolveLanding(draft, playerId, glide.at(-1) ?? path.at(-1) ?? position);
-      unpinPassed(draft, [...path, ...glide]);
+      resolveLanding(draft, playerId, path.at(-1) ?? position);
+      unpinPassed(draft, path);
       break;
     }
+    case "abyssCall":
+      if (targetId !== null) dragIntoHell(draft, playerId, targetId);
+      break;
     case "healingHerb":
       updatePlayer(draft, playerId, (player) => ({
-        energy: Math.min(MAX_ENERGY, player.energy + HEALING_HERB_ENERGY),
+        // Fused, it fills the energy right up.
+        energy: card.fused ? MAX_ENERGY : Math.min(MAX_ENERGY, player.energy + HEALING_HERB_ENERGY),
         skipTurns: 0,
+        snowbound: null,
+        chained: 0,
       }));
       break;
     case "arcaneShield":
       updatePlayer(draft, playerId, () => ({ shielded: true }));
+      // Fused, Spectral Armour comes with the shield.
+      if (card.fused) {
+        updatePlayer(draft, playerId, (player) => ({
+          spectralArmour: Math.max(player.spectralArmour, FUSED_SHIELD_ARMOUR),
+        }));
+        draft.events.push({
+          type: "armourRaised",
+          playerId,
+          turns: FUSED_SHIELD_ARMOUR,
+        });
+      }
       break;
     case "ancientScroll":
-      for (let draw = 0; draw < ANCIENT_SCROLL_DRAWS; draw++) drawCard(draft, playerId);
+      for (let draw = 0; draw < (card.fused ? FUSED_SCROLL_DRAWS : ANCIENT_SCROLL_DRAWS); draw++) {
+        drawCard(draft, playerId);
+      }
       break;
     case "luckyCharm":
-      updatePlayer(draft, playerId, () => ({
-        diceBonus: { amount: LUCKY_CHARM_BONUS, rolls: 1 },
+      updatePlayer(draft, playerId, (player) => ({
+        diceBonuses: [
+          ...player.diceBonuses,
+          {
+            amount: card.fused ? FUSED_LUCKY_BONUS : LUCKY_CHARM_BONUS,
+            rolls: 1,
+          },
+        ],
       }));
       break;
     case "oracleEye":
       updatePlayer(draft, playerId, () => ({ diceBoost: { kind: "best" } }));
       break;
     case "ancestralAwakening":
-      updatePlayer(draft, playerId, () => ({
-        diceBonus: { amount: AWAKENING_BONUS, rolls: AWAKENING_ROLLS },
+      updatePlayer(draft, playerId, (player) => ({
+        diceBonuses: [...player.diceBonuses, { amount: AWAKENING_BONUS, rolls: AWAKENING_ROLLS }],
       }));
       break;
     case "berserkFury":
@@ -141,8 +199,8 @@ function applyEffect(
       break;
     case "arcaneBlast": {
       if (targetId === null) break;
-      const from = playerIn(draft, targetId).position;
-      const path = pushPath(board, from, ARCANE_BLAST_PUSH);
+      const { position: from, realmEntry } = playerIn(draft, targetId);
+      const path = pushPath(board, from, card.fused ? FUSED_BLAST_PUSH : ARCANE_BLAST_PUSH, realmEntry);
       draft.events.push({
         type: "playerPushed",
         playerId: targetId,
@@ -166,18 +224,31 @@ function applyEffect(
     }
     case "celestialLight":
       updatePlayer(draft, playerId, () => ({ energy: MAX_ENERGY }));
+      // Fused (Divine Dawn): the ability ready too, and free of lost turns and snow.
+      if (card.fused) {
+        updatePlayer(draft, playerId, () => ({
+          skipTurns: 0,
+          snowbound: null,
+        }));
+        readyAbility(draft, playerId);
+      }
       break;
-    case "heavenlyAegis":
-      updatePlayer(draft, playerId, () => ({ spectralArmour: AEGIS_TURNS }));
-      draft.events.push({ type: "armourRaised", playerId, turns: AEGIS_TURNS });
-      break;
-    case "ascension": {
-      const { ability } = playerIn(draft, playerId);
-      if (ability === null) break;
-      updatePlayer(draft, playerId, () => ({ abilityCharge: abilityCycle(ability) }));
-      draft.events.push({ type: "abilityReady", playerId, ability });
+    case "heavenlyAegis": {
+      // Fused (Celestial Sanctuary): twice as long, with the Arcane Shield.
+      const turns = card.fused ? FUSED_AEGIS_TURNS : AEGIS_TURNS;
+      updatePlayer(draft, playerId, () => ({
+        spectralArmour: turns,
+        divineAegis: turns,
+        ...(card.fused && { shielded: true }),
+      }));
+      draft.events.push({ type: "armourRaised", playerId, turns });
       break;
     }
+    case "ascension":
+      readyAbility(draft, playerId);
+      // Fused (Apotheosis): another turn once this one is over.
+      if (card.fused) draft.extraTurn = true;
+      break;
     case "blindingFlash":
       if (targetId === null) break;
       draft.events.push({
@@ -192,9 +263,22 @@ function applyEffect(
   }
 }
 
-/** An opponent the player can aim at (see opponentsInReach). */
-function validTarget(draft: Draft, playerId: PlayerId, targetId: PlayerId | undefined): PlayerId {
-  const target = opponentsInReach(draft.state.board, draft.players, playerId).find((player) => player.id === targetId);
+/** An opponent the player can aim at: anyone in the same place, protected or not (see opponentsInSpace). */
+/**
+ * The opponents a card can be aimed at: anyone in the same place (a protected one turns it away);
+ * the Call of the Abyss only reaches those out on the main path (see dragTargets).
+ */
+export function cardTargets(board: Board, players: readonly Player[], playerId: PlayerId, cardId: CardId): Player[] {
+  const inSpace = opponentsInSpace(board, players, playerId);
+  if (cardId !== "abyssCall") return inSpace;
+  const draggable = new Set(dragTargets(board, players, playerId).map((player) => player.id));
+  return inSpace.filter((player) => draggable.has(player.id));
+}
+
+function validTarget(draft: Draft, playerId: PlayerId, cardId: CardId, targetId: PlayerId | undefined): PlayerId {
+  const target = cardTargets(draft.state.board, draft.players, playerId, cardId).find(
+    (player) => player.id === targetId,
+  );
   if (!target) throw new GameRuleError("INVALID_TARGET");
   return target.id;
 }
@@ -206,11 +290,24 @@ function validValue(value: number | undefined): number {
   return value;
 }
 
-/** First portal on the main path strictly ahead of `position` (from a track: ahead of its portal), or null. */
-export function nextPortalAhead(board: Board, position: TileId): TileId | null {
-  const from = mainTileOf(board, position);
+/**
+ * First portal on the main path strictly ahead of `position` (from a track: ahead of the portal the
+ * player came in by, `entry`), or null.
+ */
+export function nextPortalAhead(board: Board, position: TileId, entry?: RealmEntry | null): TileId | null {
+  const from = mainTileOf(board, position, entry);
   const portal = board.tiles.find(
     (tile) => tile.id > from && tile.id <= board.finishTile && tile.effect.kind === "portal",
   );
   return portal?.id ?? null;
+}
+
+/** The player's ability charged right up, ready to use (Ascension, the Divine Dawn). */
+function readyAbility(draft: Draft, playerId: PlayerId): void {
+  const { ability } = playerIn(draft, playerId);
+  if (ability === null) return;
+  updatePlayer(draft, playerId, () => ({
+    abilityCharge: abilityCycle(ability),
+  }));
+  draft.events.push({ type: "abilityReady", playerId, ability });
 }

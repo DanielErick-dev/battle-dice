@@ -1,26 +1,30 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { cardBlocker } from "@/game/domain/cardPlay";
-import { CARD_CATALOG, cardCost, HAND_LIMIT } from "@/game/domain/cards";
+import { cardBlocker, cardTargets } from "@/game/domain/cardPlay";
+import { CARD_CATALOG, cardCost, HAND_LIMIT, type CardId } from "@/game/domain/cards";
 import { DICE_SIDES } from "@/game/domain/dice";
+import { FUSION_COPIES, fusibleInHand } from "@/game/domain/fusion";
 import type { Board, CardInstance, Player } from "@/game/domain/types";
 import { cn } from "@/lib/utils";
 import { CardBack } from "./CardBack";
 import { CardView } from "./CardView";
-import { CARD_TEXT } from "./cardText";
+import { CARD_TEXT, cardText } from "./cardText";
 import { EnergyMeter } from "./EnergyMeter";
 
 interface CardHandProps {
   board: Board;
   player: Player;
-  opponents: readonly Player[];
+  /** Everyone in the match: who each card can be aimed at comes from them (see cardTargets). */
+  players: readonly Player[];
   /** It's this player's moment to act and they still have a card to play this turn. */
   canPlay: boolean;
   /** Cards the player may still play this turn (two on a Double Cast turn). */
   cardsLeft: number;
   lastDrawnUid: string | null;
   onPlay: (cardUid: string, choice: { targetId?: string; value?: number }) => void;
+  /** Fuses three plain copies of a card in hand into one (see fusion.ts); null when it isn't their moment. */
+  onFuse: ((cardId: CardId) => void) | null;
   /** Extra player status shown under the energy (the character's ability). */
   status?: ReactNode;
 }
@@ -33,13 +37,15 @@ interface CardHandProps {
 export function CardHand({
   board,
   player,
-  opponents,
+  players,
   canPlay,
   cardsLeft,
   lastDrawnUid,
   onPlay,
+  onFuse,
   status,
 }: CardHandProps) {
+  const fusible = onFuse ? fusibleInHand(player.hand) : [];
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
 
   const blockedReason = (card: CardInstance): string | null => {
@@ -60,10 +66,16 @@ export function CardHand({
         return "Sua energia já está no máximo";
       case "ABILITY_ALREADY_READY":
         return "Sua habilidade já está pronta";
+      case "NO_HELL":
+        return "Não há inferno neste tabuleiro";
     }
-    if (CARD_CATALOG[card.cardId].targetsOpponent && opponents.length === 0) return "Sem oponentes";
+    if (CARD_CATALOG[card.cardId].targetsOpponent && targetsFor(card).length === 0) {
+      return card.cardId === "abyssCall" ? "Ninguém fora do céu ou do inferno ao seu alcance" : "Sem oponentes";
+    }
     return null;
   };
+
+  const targetsFor = (card: CardInstance) => cardTargets(board, players, player.id, card.cardId);
 
   const play = (card: CardInstance, choice: { targetId?: string; value?: number } = {}) => {
     setSelectedUid(null);
@@ -107,6 +119,19 @@ export function CardHand({
         </p>
       )}
 
+      {/* Three of a kind: they can fuse into one far stronger card, free and on top of the turn's card. */}
+      {fusible.map((cardId) => (
+        <button
+          key={cardId}
+          type="button"
+          onClick={() => onFuse?.(cardId)}
+          title={`${FUSION_COPIES} ${CARD_TEXT[cardId].name} viram 1 ${cardText(cardId, true).name}: ${cardText(cardId, true).description}`}
+          className="animate-in fade-in slide-in-from-right-4 rounded-xl bg-gradient-to-r from-amber-500 via-orange-600 to-fuchsia-600 px-3 py-2 text-[11px] font-black tracking-wider text-white uppercase shadow-[0_0_16px_rgba(249,115,22,0.6)] transition hover:brightness-110 active:scale-95"
+        >
+          Fundir {FUSION_COPIES}× {CARD_TEXT[cardId].name} → {cardText(cardId, true).name}
+        </button>
+      ))}
+
       <ul className="flex flex-col items-end">
         {player.hand.map((card, index) => {
           const reason = blockedReason(card);
@@ -135,10 +160,14 @@ export function CardHand({
                   type="button"
                   onClick={() => click(card)}
                   aria-pressed={isSelected}
-                  aria-label={isSelected ? `Usar ${CARD_TEXT[card.cardId].name}` : CARD_TEXT[card.cardId].name}
+                  aria-label={
+                    isSelected
+                      ? `Usar ${cardText(card.cardId, card.fused).name}`
+                      : cardText(card.cardId, card.fused).name
+                  }
                   className="relative block w-full rounded-xl text-left focus-visible:outline-2 focus-visible:outline-orange-400"
                 >
-                  <CardView cardId={card.cardId} dimmed={reason !== null} selected={isSelected} />
+                  <CardView cardId={card.cardId} fused={card.fused} dimmed={reason !== null} selected={isSelected} />
                   {/* Brought back by Resurrection: a ghostly teal glow, and a warning it won't come back again. */}
                   {card.risen && (
                     <span
@@ -156,7 +185,7 @@ export function CardHand({
                 <CardAction
                   card={card}
                   reason={reason}
-                  opponents={opponents}
+                  opponents={targetsFor(card)}
                   onPlay={(choice) => play(card, choice)}
                   onClose={() => setSelectedUid(null)}
                 />

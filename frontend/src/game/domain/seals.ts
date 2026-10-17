@@ -12,25 +12,31 @@ import { cardCost, MAX_ENERGY } from "./cards";
 import { GameRuleError } from "./commands";
 import { drawCard, handOverCards, playerIn, pushPath, updatePlayer, walkPath, type Draft } from "./draft";
 import { unpinPassed } from "./arrowRain";
-import type { Board, CardInstance, PlayerId, Seal, SealKind, TileId } from "./types";
+import { isUntouchable } from "./players";
+import type { Board, CardInstance, PlayerId, Seal, SealKind, TileEffect, TileId } from "./types";
 
 /** The seals written by one use of Forbidden Seals, in the order their tiles are picked. */
 export const SEAL_KINDS: readonly SealKind[] = ["tithe", "ruin", "silence", "bloodPact"];
 
 /**
  * Tiles a seal can be written on from `position`: plain tiles of the main path (no effect, not
- * the start or finish, not a realm track) up to SEAL_RANGE tiles ahead or behind, other than the
- * player's own and those already taken (`taken`: seals, apparitions). Nearest first.
+ * the start or finish, not a realm track) up to SEAL_RANGE tiles ahead or behind, the player's own
+ * included, other than those already taken (`taken`: seals, apparitions). Nearest first.
  */
 export function sealableTiles(board: Board, position: TileId, taken: readonly TileId[]): TileId[] {
-  const near = [...walkPath(board, position, SEAL_RANGE), ...pushPath(board, position, SEAL_RANGE)];
+  const near = [position, ...walkPath(board, position, SEAL_RANGE), ...pushPath(board, position, SEAL_RANGE)];
   return near
-    .filter((tile, index) => near.indexOf(tile) === index && tile !== position && !taken.includes(tile))
+    .filter((tile, index) => near.indexOf(tile) === index && !taken.includes(tile))
     .filter((tile) => {
       const { role, effect } = getTile(board, tile);
-      return role === "regular" && effect.kind === "none";
+      return role === "regular" && (effect.kind === "none" || isBoon(effect));
     })
     .sort((a, b) => Math.abs(a - position) - Math.abs(b - position) || a - b);
+}
+
+/** An energy or charge tile: it only gives, so it counts as a plain tile for writing on. */
+function isBoon(effect: TileEffect): boolean {
+  return effect.kind === "blessing" && (effect.blessing === "energy" || effect.blessing === "charge");
 }
 
 /** Tiles already holding a seal, anyone's: no seal is written over another. */
@@ -71,7 +77,7 @@ export function breakSeal(draft: Draft, playerId: PlayerId, tile: TileId): boole
   const alone = draft.players.length === 1;
   if (seal.owner === playerId && !alone) return false;
   // Spectral Armour turns the seal away; it stays, waiting for someone else.
-  if (!alone && playerIn(draft, playerId).spectralArmour > 0) {
+  if (!alone && isUntouchable(playerIn(draft, playerId))) {
     draft.events.push({ type: "armourHeld", playerId, tile });
     return false;
   }

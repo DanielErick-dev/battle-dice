@@ -1,4 +1,5 @@
 import {
+  type AbilityPower,
   CARD_GAMBLE_DRAWS,
   CARD_GAMBLE_EPICS,
   CARD_GAMBLE_JACKPOT,
@@ -8,52 +9,104 @@ import {
 } from "./abilities";
 import { CARD_CATALOG, HAND_LIMIT, RARITY_LEVEL, rarityLevel } from "./cards";
 import { throwOnPile } from "./deck";
-import { opponentsInReach } from "./board";
+import { opponentsInReach, opponentsInSpace, sameSpace } from "./board";
 import type { DiceRoller } from "./dice";
 import { drawCard, handOverCards, playerIn, updatePlayer, type Draft } from "./draft";
 import { GameRuleError } from "./commands";
-import type { CardInstance, PlayerId } from "./types";
+import { aimWard } from "./players";
+import type { Board, CardInstance, Player, PlayerId } from "./types";
 
 /**
  * Card Gamble: the player bets against an opponent (`targetId`, picked before the roll; one at
  * random when not given) and rolls a die of fortune. Up to CARD_GAMBLE_LOSES_UP_TO it goes wrong,
  * a random card of theirs goes to that opponent; above, they steal CARD_GAMBLE_STOLEN random cards
- * from them. Nobody picks the cards: they come out at random.
+ * from them. Nobody picks the cards: they come out at random. A win against an empty hand brings nothing.
+ * The bet can be laid against any opponent in the same place, armoured or not, and with none there to
+ * win from, against anyone in the match: a win against one out of reach (armoured, Untamed, in
+ * another realm) is turned away (abilityBlocked), and a loss still throws a card away. With no
+ * opponent to win from the player may throw the die for cards instead (`power` "fortune"): they draw
+ * as many as it shows.
  * Alone on the board, a loss throws the card away and a win draws CARD_GAMBLE_DRAWS cards.
  * The jackpot (CARD_GAMBLE_JACKPOT) beats any win: the stolen cards are epics first (from an
  * opponent holding some, when anyone does), topped up with random ones; alone on the board,
  * CARD_GAMBLE_EPICS random epic cards appear in the player's hand instead.
  */
-export function playCardGamble(draft: Draft, playerId: PlayerId, rollDie: DiceRoller, targetId?: PlayerId): void {
-  const opponents = opponentsInReach(draft.state.board, draft.players, playerId);
-  if (targetId !== undefined && !opponents.some((opponent) => opponent.id === targetId)) {
+export function playCardGamble(
+  draft: Draft,
+  playerId: PlayerId,
+  rollDie: DiceRoller,
+  targetId?: PlayerId,
+  power?: AbilityPower,
+): void {
+  const { board } = draft.state;
+  const reachable = opponentsInReach(board, draft.players, playerId);
+  const targets = gambleTargets(board, draft.players, playerId);
+  if (power === "fortune" && reachable.length > 0) throw new GameRuleError("INVALID_TARGET");
+  if (targetId !== undefined && !targets.some((opponent) => opponent.id === targetId)) {
     throw new GameRuleError("INVALID_TARGET");
   }
 
   const value = rollDie();
+  if (power === "fortune") {
+    draft.events.push({
+      type: "gambleRolled",
+      playerId,
+      value,
+      won: true,
+      fortune: true,
+    });
+    for (let draw = 0; draw < value; draw++) drawCard(draft, playerId);
+    return;
+  }
   const won = value > CARD_GAMBLE_LOSES_UP_TO;
   const jackpot = value >= CARD_GAMBLE_JACKPOT;
   draft.events.push({ type: "gambleRolled", playerId, value, won });
 
-  // With nobody to bet against, as if alone.
-  if (opponents.length === 0) {
+  if (draft.players.length === 1) {
     if (jackpot) conjureEpics(draft, playerId);
     else if (won) for (let draw = 0; draw < CARD_GAMBLE_DRAWS; draw++) drawCard(draft, playerId);
     else discardRandom(draft, playerId);
     return;
   }
 
+  // Bet against someone out of reach: nobody on the other side to win from, and a loss still costs a card.
+  const chosen = targets.find((opponent) => opponent.id === targetId);
+  const shielded = chosen && !reachable.some((opponent) => opponent.id === chosen.id) ? chosen : undefined;
+  if (shielded || reachable.length === 0) {
+    if (!won) discardRandom(draft, playerId);
+    else if (shielded) {
+      const ward = sameSpace(board, shielded.position, playerIn(draft, playerId).position)
+        ? (aimWard(shielded) ?? "away")
+        : "away";
+      draft.events.push({
+        type: "abilityBlocked",
+        playerId,
+        targetId: shielded.id,
+        ability: "cardGamble",
+        ward,
+      });
+    }
+    return;
+  }
+
   if (won) {
-    const holding = opponents.filter((opponent) => opponent.hand.length > 0);
+    const holding = reachable.filter((opponent) => opponent.hand.length > 0);
     const withEpics = holding.filter((opponent) => opponent.hand.some(isEpic));
-    const victim =
-      opponents.find((opponent) => opponent.id === targetId) ??
-      pick(draft, jackpot && withEpics.length > 0 ? withEpics : holding);
+    const victim = chosen ?? pick(draft, jackpot && withEpics.length > 0 ? withEpics : holding);
     if (victim) moveCards(draft, victim.id, playerId, CARD_GAMBLE_STOLEN, jackpot);
     return;
   }
-  const taker = opponents.find((opponent) => opponent.id === targetId) ?? pick(draft, opponents);
+  const taker = chosen ?? pick(draft, reachable);
   if (taker) moveCards(draft, playerId, taker.id, CARD_GAMBLE_LOST);
+}
+
+/**
+ * Whom Card Gamble can bet against: the opponents in the same place, armoured or not; with none
+ * of them to win from, every opponent in the match.
+ */
+export function gambleTargets(board: Board, players: readonly Player[], playerId: PlayerId): Player[] {
+  if (opponentsInReach(board, players, playerId).length > 0) return opponentsInSpace(board, players, playerId);
+  return players.filter((player) => player.id !== playerId);
 }
 
 /**

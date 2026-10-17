@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { abilityCycle } from "./abilities";
-import type { BoardDefinition } from "./board";
+import { createBoard, type BoardDefinition } from "./board";
 import { AEGIS_TURNS, MAX_ENERGY, standardDeck } from "./cards";
-import { BLESSING_TURNS, SPRING_ENERGY, WINGS_BONUS } from "./blessings";
+import { BLESSING_TURNS, inHeaven, SPRING_ENERGY, WINGS_BONUS } from "./blessings";
 import type { GameCommand } from "./commands";
 import { sequenceDice } from "./dice";
 import { applyCommand, createGame } from "./engine";
@@ -22,8 +22,12 @@ const BOARD: BoardDefinition = {
     22: { kind: "card", cardId: "ascension" },
     30: { kind: "trap", to: 25 },
     32: { kind: "curse", curse: "drain" },
+    // Heaven's track: its tiles come after the main path's.
+    50: { kind: "portal", to: 55, realm: "celestial" },
   },
 };
+/** A tile in heaven: the celestial track's first. */
+const HEAVEN = 61;
 
 const game = () =>
   createGame(BOARD, [{ id: "p1", name: "Aria", ability: "studySession" }], { random: seededRandom(7) });
@@ -40,7 +44,12 @@ const blessed = (kind: TimedBlessing, patch: Partial<Player> = {}) =>
 describe("heaven's timed blessings", () => {
   it("land on whoever stops on their tile, for BLESSING_TURNS rounds", () => {
     const { state, events } = roll(withPlayer(game(), { position: 9 }), 1);
-    expect(state.players[0].blessings).toEqual([{ kind: "wings", turnsLeft: BLESSING_TURNS, fresh: false }]);
+    // (Wherever it landed in heaven may have laid another blessing on top.)
+    expect(state.players[0].blessings).toContainEqual({
+      kind: "wings",
+      turnsLeft: BLESSING_TURNS,
+      fresh: false,
+    });
     expect(events).toContainEqual({
       type: "blessingReceived",
       playerId: "p1",
@@ -73,7 +82,7 @@ describe("heaven's timed blessings", () => {
       ward: "halo",
       hidden: false,
     });
-    expect(roll(blessed("halo", { position: 31, energy: 4 }), 1).state.players[0].energy).toBe(5);
+    expect(roll(blessed("halo", { position: 31, energy: 4 }), 1).state.players[0].energy).toBe(4);
   });
 
   it("Inspiration charges the ability twice as fast", () => {
@@ -82,8 +91,12 @@ describe("heaven's timed blessings", () => {
   });
 
   it(`the Spring of Light gives ${SPRING_ENERGY} energy as each turn starts`, () => {
-    const start = blessed("spring", { position: 40, energy: 2, energyCharge: 0 });
-    expect(roll(start, 1).state.players[0].energy).toBe(2 + SPRING_ENERGY + 1); // + their turn's energy
+    const start = blessed("spring", {
+      position: 40,
+      energy: 2,
+      energyCharge: 0,
+    });
+    expect(roll(start, 1).state.players[0].energy).toBe(2 + SPRING_ENERGY);
   });
 });
 
@@ -114,5 +127,18 @@ describe("divine cards", () => {
 
   it("Ascension readies the ability at once", () => {
     expect(playing("ascension", { abilityCharge: 0 }).abilityCharge).toBe(abilityCycle("studySession"));
+  });
+
+  it("wait in heaven, neither working nor wearing off, and start once the player is out", () => {
+    const { state } = roll(blessed("wings", { position: HEAVEN }), 3);
+    expect(state.players[0].position).toBe(HEAVEN + 3);
+    // (Wherever it landed in heaven may have laid another blessing on top.)
+    expect(state.players[0].blessings).toContainEqual({
+      kind: "wings",
+      turnsLeft: BLESSING_TURNS,
+      fresh: false,
+    });
+    expect(inHeaven(createBoard(BOARD), HEAVEN)).toBe(true);
+    expect(inHeaven(createBoard(BOARD), 40)).toBe(false);
   });
 });

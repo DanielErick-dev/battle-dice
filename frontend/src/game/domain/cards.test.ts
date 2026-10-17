@@ -9,11 +9,13 @@ import {
   MAX_ENERGY,
   STARTING_HAND,
   standardDeck,
+  TURNS_PER_ENERGY,
   type CardId,
 } from "./cards";
 import { GameRuleError, type GameCommand, type GameErrorCode } from "./commands";
 import { sequenceDice } from "./dice";
 import { applyCommand, createGame } from "./engine";
+import { FUSED_WIND_STEP_TILES } from "./fusion";
 import { seededRandom } from "./random";
 import type { CardInstance, GameState, Player } from "./types";
 
@@ -82,7 +84,7 @@ describe("dealing", () => {
 
   it("builds a fixed, balanced standard deck", () => {
     expect(standardDeck({ withOpponents: false })).toHaveLength(20);
-    expect(standardDeck({ withOpponents: true })).toHaveLength(25);
+    expect(standardDeck({ withOpponents: true })).toHaveLength(26);
   });
 
   it("leaves opponent-targeting cards out of solo decks", () => {
@@ -93,13 +95,20 @@ describe("dealing", () => {
 });
 
 describe("energy", () => {
-  it("grows by one every turn of the player's", () => {
+  it(`grows by one every ${TURNS_PER_ENERGY} turns of the player's`, () => {
     let state = game([DUO[0]]);
+    const start = player(state, "p1").energy;
     state = roll(state, "p1", 1).state;
-    expect(player(state, "p1")).toMatchObject({ energy: 2, energyCharge: 0 });
+    expect(player(state, "p1")).toMatchObject({
+      energy: start,
+      energyCharge: 1,
+    });
 
     state = roll(state, "p1", 1).state;
-    expect(player(state, "p1")).toMatchObject({ energy: 3, energyCharge: 0 });
+    expect(player(state, "p1")).toMatchObject({
+      energy: start + 1,
+      energyCharge: 0,
+    });
   });
 
   it("never goes past the maximum", () => {
@@ -250,18 +259,43 @@ describe("playing cards", () => {
     expectRuleError(() => play(shielded, "p1", "test:arcaneShield"), "ALREADY_SHIELDED");
   });
 
-  it("a dice card can't stack on a waiting modifier of the same kind", () => {
-    const thrown = withPlayer(holding("oracleEye"), "p1", { diceBoost: { kind: "double" } });
+  it("a throw card can't stack on another throw still waiting", () => {
+    const thrown = withPlayer(holding("oracleEye"), "p1", {
+      diceBoost: { kind: "double" },
+    });
     expectRuleError(() => play(thrown, "p1", "test:oracleEye"), "DICE_BOOST_ACTIVE");
-    const bonused = withPlayer(holding("luckyCharm"), "p1", { diceBonus: { amount: 3, rolls: 2 } });
-    expectRuleError(() => play(bonused, "p1", "test:luckyCharm"), "DICE_BOOST_ACTIVE");
+  });
+
+  it("Lucky Charm combos with Ancestral Awakening still waiting: the bonuses add up", () => {
+    const awakened = play(holding("ancestralAwakening"), "p1", "test:ancestralAwakening").state;
+    const first = roll(roll(awakened, "p1", 1).state, "p2", 1).state;
+    const charmed = play(withPlayer(first, "p1", { hand: [card("luckyCharm")], energy: 5 }), "p1", "test:luckyCharm");
+    const { state, events } = roll(charmed.state, "p1", 1);
+    expect(events[0]).toMatchObject({ value: 6, bonus: 5 });
+    expect(player(state, "p1").diceBonuses).toEqual([]);
+  });
+
+  it("stacked bonuses each count down their own rolls", () => {
+    const stacked = withPlayer(holding("luckyCharm"), "p1", {
+      diceBonuses: [{ amount: 3, rolls: 2 }],
+    });
+    const charmed = play(stacked, "p1", "test:luckyCharm").state;
+    const { state, events } = roll(charmed, "p1", 1);
+    expect(events[0]).toMatchObject({ value: 6, bonus: 5 });
+    expect(player(state, "p1").diceBonuses).toEqual([{ amount: 3, rolls: 1 }]);
   });
 
   it("Berserk Fury combos with Ancestral Awakening's bonus still waiting", () => {
-    const awakened = withPlayer(holding("berserkFury"), "p1", { diceBonus: { amount: 3, rolls: 1 }, energy: 5 });
+    const awakened = withPlayer(holding("berserkFury"), "p1", {
+      diceBonuses: [{ amount: 3, rolls: 1 }],
+      energy: 5,
+    });
     const { state, events } = roll(play(awakened, "p1", "test:berserkFury").state, "p1", 2, 4);
     expect(events[0]).toMatchObject({ value: 9, dice: [2, 4], bonus: 3 });
-    expect(player(state, "p1")).toMatchObject({ diceBoost: null, diceBonus: null });
+    expect(player(state, "p1")).toMatchObject({
+      diceBoost: null,
+      diceBonuses: [],
+    });
   });
 
   it("Ancient Scroll draws two cards", () => {
@@ -306,7 +340,7 @@ describe("playing cards", () => {
       dice: [3],
       bonus: 2,
     });
-    expect(player(state, "p1")).toMatchObject({ position: 6, diceBonus: null });
+    expect(player(state, "p1")).toMatchObject({ position: 6, diceBonuses: [] });
   });
 
   it("Oracle Eye throws two dice and keeps the higher one", () => {
@@ -326,11 +360,11 @@ describe("playing cards", () => {
     const awakened = play(holding("ancestralAwakening"), "p1", "test:ancestralAwakening").state;
     const first = roll(awakened, "p1", 1);
     expect(first.events[0]).toMatchObject({ value: 4, bonus: 3 });
-    expect(player(first.state, "p1").diceBonus).toEqual({ amount: 3, rolls: 1 });
+    expect(player(first.state, "p1").diceBonuses).toEqual([{ amount: 3, rolls: 1 }]);
 
     const second = roll(roll(first.state, "p2", 1).state, "p1", 1);
     expect(second.events[0]).toMatchObject({ value: 4, bonus: 3 });
-    expect(player(second.state, "p1").diceBonus).toBeNull();
+    expect(player(second.state, "p1").diceBonuses).toEqual([]);
   });
 
   it("Berserk Fury rolls two dice and adds them", () => {
@@ -374,7 +408,7 @@ describe("playing cards", () => {
     expect(cardBlocker(pastPortals.board, player(pastPortals, "p1"), "mysticGate")).toBe("NO_PORTAL_AHEAD");
   });
 
-  it("Arcane Blast pushes an opponent back three tiles", () => {
+  it("Arcane Blast pushes an opponent back seven tiles", () => {
     const state = withPlayer(holding("arcaneBlast"), "p2", { position: 9 });
     expectRuleError(() => play(state, "p1", "test:arcaneBlast", { targetId: "p1" }), "INVALID_TARGET");
 
@@ -385,9 +419,9 @@ describe("playing cards", () => {
       type: "playerPushed",
       playerId: "p2",
       by: "p1",
-      path: [8, 7, 6],
+      path: [8, 7, 6, 5, 4, 3, 2],
     });
-    expect(player(next, "p2").position).toBe(6);
+    expect(player(next, "p2").position).toBe(2);
   });
 
   it("Fate Swap trades places with an opponent", () => {
@@ -397,6 +431,21 @@ describe("playing cards", () => {
     expect(player(next, "p1").position).toBe(17);
     expect(player(next, "p2").position).toBe(4);
     expect(player(next, "p1").energy).toBe(0);
+  });
+
+  it("a card aimed at a protected opponent is played and spent, but turned away", () => {
+    for (const ward of [{ untamed: 2 }, { spectralArmour: 2 }, { divineAegis: 2 }]) {
+      const state = withPlayer(holding("arcaneBlast"), "p2", {
+        position: 9,
+        ...ward,
+      });
+      const { state: next, events } = play(state, "p1", "test:arcaneBlast", {
+        targetId: "p2",
+      });
+      expect(player(next, "p2").position).toBe(9);
+      expect(player(next, "p1").hand.some((card) => card.uid === "test:arcaneBlast")).toBe(false);
+      expect(events).toContainEqual(expect.objectContaining({ type: "cardBlocked", targetId: "p2" }));
+    }
   });
 
   it("Blinding Flash costs an opponent their next turn", () => {
@@ -470,5 +519,86 @@ describe("cursed traps", () => {
     const { state, events } = roll(cursed("drain", { energy: 3, shielded: true }), "p1", 1);
     expect(events.some((event) => event.type === "trapCursed")).toBe(false);
     expect(player(state, "p1")).toMatchObject({ energy: 3, position: 12 });
+  });
+});
+
+describe("card fusion", () => {
+  const triple = (cardId: CardId) => [card(cardId, "a"), card(cardId, "b"), card(cardId, "c")];
+  const fuse = (state: GameState, cardId: CardId) =>
+    applyCommand(
+      state,
+      { type: "fuseCards", playerId: "p1", cardId },
+      { rollDice: sequenceDice([1]), random: seededRandom(3) },
+    );
+
+  it("turns three plain copies into one fused card, free and without using the turn's card", () => {
+    const start = withPlayer(game(), "p1", {
+      hand: [...triple("windStep"), card("healingHerb")],
+      energy: 3,
+    });
+    const { state } = fuse(start, "windStep");
+    expect(player(state, "p1").hand).toEqual([
+      card("healingHerb"),
+      { uid: "a:fused", cardId: "windStep", fused: true },
+    ]);
+    expect(player(state, "p1").energy).toBe(3);
+    expect(state.cardsPlayedThisTurn).toBe(0);
+  });
+
+  it("needs three plain copies of a card that fuses", () => {
+    expectRuleError(
+      () => fuse(withPlayer(game(), "p1", { hand: triple("windStep").slice(0, 2) }), "windStep"),
+      "CANNOT_FUSE",
+    );
+    expectRuleError(() => fuse(withPlayer(game(), "p1", { hand: triple("fateRune") }), "fateRune"), "CANNOT_FUSE");
+  });
+
+  it("heaven's relics fuse too: the Apotheosis readies the ability and grants another turn", () => {
+    const hero = createGame(BOARD, [{ id: "p1", name: "Aria", ability: "studySession" }, DUO[1]], {
+      random: seededRandom(7),
+    });
+    const start = withPlayer(hero, "p1", {
+      hand: triple("ascension"),
+      energy: 5,
+      abilityCharge: 0,
+    });
+    const { state } = play(fuse(start, "ascension").state, "p1", "a:fused");
+    expect(player(state, "p1").abilityCharge).toBeGreaterThan(0);
+    expect(state.bonusTurn).toBe(true);
+  });
+
+  it("Celestial Light costs no energy", () => {
+    expect(cardCost("celestialLight")).toBe(0);
+  });
+
+  it("a fused Wind Step carries the player much further", () => {
+    const start = withPlayer(game(), "p1", {
+      position: 13,
+      hand: triple("windStep"),
+      energy: 3,
+    });
+    const fused = fuse(start, "windStep").state;
+    const { state } = play(fused, "p1", "a:fused");
+    expect(player(state, "p1").position).toBe(13 + FUSED_WIND_STEP_TILES);
+  });
+});
+
+describe("Kage Rubra's Susanoo", () => {
+  const kage = (patch: Partial<Player>) =>
+    withPlayer(
+      createGame(BOARD, [{ id: "p1", name: "Kage", ability: "ocularAwakening" }, DUO[1]], { random: seededRandom(7) }),
+      "p1",
+      { position: 11, ...patch },
+    );
+
+  it("keeps the board's traps off her", () => {
+    expect(player(roll(kage({ spectralArmour: 2 }), "p1", 1).state, "p1").position).toBe(12);
+    expect(player(roll(kage({}), "p1", 1).state, "p1").position).toBe(8);
+  });
+
+  it("can't stop a hidden trap's spike from below", () => {
+    const hidden = { ...kage({ spectralArmour: 2 }), hiddenTraps: [12] };
+    const { events } = roll(hidden, "p1", 1);
+    expect(events.some((event) => event.type === "trapBlocked")).toBe(false);
   });
 });

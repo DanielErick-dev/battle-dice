@@ -39,7 +39,7 @@ export function DiscardPicker({ hand, drawn, onDiscard }: DiscardPickerProps) {
                 aria-label={`Descartar ${CARD_TEXT[card.cardId].name}`}
                 className="group block w-full rounded-xl transition hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-red-400"
               >
-                <CardView cardId={card.cardId} />
+                <CardView cardId={card.cardId} fused={card.fused} />
                 <span className="mt-2 block rounded-lg bg-red-600/80 py-1.5 text-center text-[11px] font-black tracking-wider text-white uppercase opacity-70 transition group-hover:opacity-100">
                   Descartar
                 </span>

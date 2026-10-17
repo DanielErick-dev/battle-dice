@@ -1,7 +1,10 @@
 import type { AbilityId } from "./abilities";
+import type { CardId } from "./cards";
+import type { AimWard } from "./players";
 import type {
   Blessing,
   CardInstance,
+  Crown,
   PlayerId,
   RealmKind,
   SealKind,
@@ -50,6 +53,8 @@ export type GameEvent =
       blessing: Blessing;
       tile: TileId;
       energyGained: number;
+      /** A "charge" blessing gave the ability its turn of charge (not when it was full already). */
+      charged?: boolean;
     }
   | { type: "trapTriggered"; playerId: PlayerId; from: TileId; to: TileId }
   /** Followed by a playerMoved with the tiles walked. */
@@ -65,7 +70,12 @@ export type GameEvent =
   | { type: "extraTurnGranted"; playerId: PlayerId; tile: TileId }
   | { type: "skipTurnGained"; playerId: PlayerId; tile: TileId }
   | { type: "turnSkipped"; playerId: PlayerId }
-  /** A trap or curse on `tile` didn't touch the player; `hidden` for a hidden trap, which then moves. */
+  /** A lost turn in `owner`'s snow drained `energy` (0 when they had none) from the player into the fairy. */
+  | { type: "snowDrained"; playerId: PlayerId; owner: PlayerId; energy: number }
+  /**
+   * A trap, a curse or (Untamed) a lost-turn tile on `tile` didn't touch the player; `hidden` for a
+   * hidden trap, which then moves.
+   */
   | {
       type: "trapBlocked";
       playerId: PlayerId;
@@ -87,8 +97,17 @@ export type GameEvent =
       pinned: readonly TileId[];
       hidden: readonly TileId[];
     }
-  /** Card Gamble's die of fortune: `won` above CARD_GAMBLE_LOSES_UP_TO. */
-  | { type: "gambleRolled"; playerId: PlayerId; value: number; won: boolean }
+  /**
+   * Card Gamble's die of fortune: `won` above CARD_GAMBLE_LOSES_UP_TO; `fortune` when thrown for
+   * cards (as many drawn as it shows) instead of against an opponent.
+   */
+  | {
+      type: "gambleRolled";
+      playerId: PlayerId;
+      value: number;
+      won: boolean;
+      fortune?: boolean;
+    }
   /**
    * Random cards went from `from`'s hand to `playerId`'s (Card Gamble); `discarded` are those
    * among them that found the hand full and went to the discard pile instead.
@@ -153,6 +172,10 @@ export type GameEvent =
       frozen: number;
       charged: boolean;
     }
+  /** No harm was left ahead of `playerId` to snow: their Eternal Winter begins (see fairy.ts). */
+  | { type: "winterBegan"; playerId: PlayerId }
+  /** A round went by under `owner`'s Eternal Winter: the main path froze from `from` to `to`. */
+  | { type: "winterSpread"; owner: PlayerId; from: TileId; to: TileId }
   /** Eternal Flames set `tiles` on black fire. */
   | { type: "flamesLit"; playerId: PlayerId; tiles: readonly TileId[] }
   /**
@@ -178,18 +201,100 @@ export type GameEvent =
   | { type: "abilityReady"; playerId: PlayerId; ability: AbilityId }
   /** The player spent their ability. */
   | { type: "abilityUsed"; playerId: PlayerId; ability: AbilityId }
-  /** Cleansing Tide washed every spell off `tiles`. */
-  | { type: "boardCleansed"; playerId: PlayerId; tiles: readonly TileId[] }
+  /**
+   * `playerId`'s ability, aimed at `targetId`, was turned away and spent for nothing: by `ward`
+   * (see aimWard), or "away" when the target is somewhere it can't reach (another realm).
+   */
+  | {
+      type: "abilityBlocked";
+      playerId: PlayerId;
+      targetId: PlayerId;
+      ability: AbilityId;
+      ward: AimWard | "away";
+    }
+  /** `playerId`'s card, aimed at `targetId`, was turned away by `ward` (see aimWard): played and spent for nothing. */
+  | {
+      type: "cardBlocked";
+      playerId: PlayerId;
+      targetId: PlayerId;
+      cardId: CardId;
+      ward: AimWard;
+    }
+  /** Seraphiel set foot in hell on `tile`: he is the Fallen Angel now, for good (see seraph.ts). */
+  | { type: "seraphFell"; playerId: PlayerId; tile: TileId }
+  /** Seraphiel's crown came to his head: seraphic out of heaven (the Fall's infernal one comes with seraphFell). */
+  | { type: "crownGained"; playerId: PlayerId; crown: Crown }
+  /** The Fallen Angel stopped on a celestial portal: heaven stays shut, and its chains hold him `rounds` rounds. */
+  | { type: "heavenBarred"; playerId: PlayerId; tile: TileId; rounds: number }
+  /** Seraphiel stopped on a heaven tile and picks what he receives (see PendingGrace). */
+  | {
+      type: "graceOffered";
+      playerId: PlayerId;
+      tile: TileId;
+      offer: "blessing" | "relic";
+    }
+  /** Hell's Drag: `targetId` was pulled down from `from` onto hell's first tile `to`. */
+  | {
+      type: "hellDragged";
+      playerId: PlayerId;
+      targetId: PlayerId;
+      from: TileId;
+      to: TileId;
+    }
+  /** Cleansing Tide rolled over `reach` (the player's tile first) and washed every spell off `tiles`. */
+  | {
+      type: "boardCleansed";
+      playerId: PlayerId;
+      reach: readonly TileId[];
+      tiles: readonly TileId[];
+    }
   /** Time Warp bent `targetId`'s time: halted (their next `rounds` turns lost) or reversed (their next `rounds` rolls walk back). */
-  | { type: "timeBent"; playerId: PlayerId; targetId: PlayerId; power: "halt" | "reverse"; rounds: number }
-  /** Glacial Howl froze `targets`: each loses their next turn. */
-  | { type: "opponentsFrozen"; playerId: PlayerId; targets: readonly PlayerId[] }
+  | {
+      type: "timeBent";
+      playerId: PlayerId;
+      targetId: PlayerId;
+      power: "halt" | "reverse";
+      rounds: number;
+    }
+  /** Untamed: nothing harms the player for `turns` of their turns. */
+  | { type: "untamedUnleashed"; playerId: PlayerId; turns: number }
+  /**
+   * The Berserker `by` walked through (or stopped on) `playerId` on `tile` and knocked them back
+   * along `path`. Comes between the playerMoved of the walk up to `tile` and that of the rest.
+   */
+  | {
+      type: "playerTrampled";
+      playerId: PlayerId;
+      by: PlayerId;
+      tile: TileId;
+      path: readonly TileId[];
+      /** They were sitting out lost turns on their chair (see isSeated): they get up to be shoved. */
+      seated: boolean;
+    }
   /** A trap or curse is about to strike: the player chooses whether to ward it off with their ability. */
   | { type: "wardOffered"; playerId: PlayerId; tile: TileId; threat: Threat }
+  /**
+   * `by`'s Susanoo threw the player off `tile` to `to`: back, as they tried to stop on her tile, or
+   * `ahead`, as she stopped on theirs.
+   */
+  | { type: "susanooRepelled"; playerId: PlayerId; by: PlayerId; tile: TileId; to: TileId; ahead: boolean }
   | { type: "cardDrawn"; playerId: PlayerId; card: CardInstance }
   /** Transmutation turned the hand card `from` into `to`, in the same place in the hand. */
   /** `from` and `sacrificed` left the hand, `to` took `from`'s place. */
-  | { type: "cardTransmuted"; playerId: PlayerId; from: CardInstance; sacrificed: CardInstance; to: CardInstance }
+  | {
+      type: "cardTransmuted";
+      playerId: PlayerId;
+      from: CardInstance;
+      sacrificed: CardInstance;
+      to: CardInstance;
+    }
+  /** Three copies (`used`) left the hand, fused into `card`. */
+  | {
+      type: "cardsFused";
+      playerId: PlayerId;
+      used: readonly string[];
+      card: CardInstance;
+    }
   /** The deck ran out: the discard pile was shuffled into a new deck. */
   | { type: "deckReshuffled"; playerId: PlayerId; size: number }
   /** Hand was full: the player must pick a card to throw away (the drawn one included). */

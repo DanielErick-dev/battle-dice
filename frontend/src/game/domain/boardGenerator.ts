@@ -3,7 +3,8 @@ import { seededRandom } from "./random";
 import type { RealmKind, TileEffect, TileId, TrapCurse } from "./types";
 
 /** What the generator spreads along the path; "energy" is a blessing of energy, as in heaven. */
-export type GeneratedEffect = "portal" | "trap" | "advance" | "extraTurn" | "skipTurn" | "card" | "energy";
+/** "charge" is a blessing of a turn of ability charge. */
+export type GeneratedEffect = "portal" | "trap" | "advance" | "extraTurn" | "skipTurn" | "card" | "energy" | "charge";
 
 export interface BoardRecipe {
   size: number;
@@ -68,8 +69,8 @@ export function generateBoard({
         if (destination === undefined) continue;
         reserved.add(destination);
         effects[tile] = { kind, to: destination };
-      } else if (kind === "energy") {
-        effects[tile] = { kind: "blessing", blessing: "energy" };
+      } else if (kind === "energy" || kind === "charge") {
+        effects[tile] = { kind: "blessing", blessing: kind };
       } else {
         effects[tile] = { kind };
       }

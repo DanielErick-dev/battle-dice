@@ -16,6 +16,8 @@ export interface PlaybackTimings {
   castMs: number;
   /** A drawn card leaving the deck and flipping face up in the middle of the screen. */
   drawRevealMs: number;
+  /** Three cards flying together and the fused one revealed (see FusionOverlay). */
+  fusionMs: number;
   /** A drawn card sliding into the hand. */
   drawMs: number;
   /** A card changing into another in the middle of the screen (Transmutation). */
@@ -38,6 +40,34 @@ export interface PlaybackTimings {
   arrowVolleyMs: number;
   /** Arrow Rain: the arrows hit, before the opponents are knocked back. */
   arrowImpactMs: number;
+  /** Cleansing Tide: the wave rises and rolls over the tiles ahead, before the spells there are gone. */
+  tideMs: number;
+  /** Untamed: the Berserker beats his chest and roars before play goes on. */
+  untamedCastMs: number;
+  /** The Crystal Fairy hops on her own snow (crouch, jump, landing) before it carries her on. */
+  snowHopMs: number;
+  /** Time bent on an opponent: the camera goes over to them and stays (halted, they sit down on their chair). */
+  timeBentMs: number;
+  /** A trample on someone seated on their chair: they get up before the Berserker shoves. */
+  trampleRiseMs: number;
+  /** A trample: the Berserker steps ahead of the one he ran into, turns on them and shoves, up to the blow. */
+  trampleShoveMs: number;
+  /** A trample: the one shoved flies back to where the knock-back leaves them. */
+  trampleFlightMs: number;
+  /** A trample: they've landed and the Berserker turns back to run on. */
+  trampleRecoverMs: number;
+  /** The Fall: Seraphiel's light turns to fire before play goes on. */
+  fallMs: number;
+  /** Hell's Drag: a red glow wells up around the Fallen Angel as he reaches out. */
+  dragCastMs: number;
+  /** Hell's Drag: the ground cracks under the victim and the hand rises and closes on them. */
+  dragGrabMs: number;
+  /** Hell's Drag: the hand sinks back with the victim, before they appear in hell. */
+  dragSinkMs: number;
+  /** Fairy Bloom: she raises her wand and points it ahead before the snow flies. */
+  frostAimMs: number;
+  /** Fairy Bloom: the snow streams from her wand to one tile, and lands. */
+  frostStreamMs: number;
   /** A turn's outcome stays in view this long before play (and the camera) moves on to the next player. */
   turnHandoffMs: number;
 }
@@ -53,6 +83,7 @@ export const DEFAULT_TIMINGS: PlaybackTimings = {
   noticeMs: 1300,
   castMs: 1100,
   drawRevealMs: 1500,
+  fusionMs: 2600,
   drawMs: 700,
   transmuteMs: 3600,
   transmuteThrowMs: 3400,
@@ -65,5 +96,19 @@ export const DEFAULT_TIMINGS: PlaybackTimings = {
   arrowAimMs: 700,
   arrowVolleyMs: 1500,
   arrowImpactMs: 450,
+  tideMs: 2300,
+  untamedCastMs: 2200,
+  timeBentMs: 2800,
+  snowHopMs: 2100,
+  trampleRiseMs: 1200,
+  trampleShoveMs: 750,
+  trampleFlightMs: 1000,
+  trampleRecoverMs: 400,
   turnHandoffMs: 700,
+  fallMs: 2600,
+  dragCastMs: 1400,
+  dragGrabMs: 1500,
+  dragSinkMs: 1100,
+  frostAimMs: 1500,
+  frostStreamMs: 2300,
 };
