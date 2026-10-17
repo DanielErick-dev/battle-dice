@@ -1,16 +1,5 @@
 #!/usr/bin/env node
-/**
- * Builds the web-ready props (static models: skulls, hands, arrows…) from Meshy AI exports.
- *
- * A Meshy "Text to 3D" export carries hundreds of thousands of vertices and 4K textures, while a
- * prop fills a sliver of the screen and may appear a dozen times at once. This keeps a few
- * thousand vertices and one small WebP colour texture, and compresses the rest with meshopt.
- * Output: public/models/props/<id>.glb (tens of KB each).
- *
- *   node scripts/props/build-props.mjs --source /path/to/battle-dice-personagens
- *
- * Each prop lives in its character's source folder, under `props/` (see PROPS below).
- */
+// Shrinks static Meshy models (props) for the web. Usage: docs/assets.md.
 import { mkdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -26,25 +15,25 @@ const TEXTURE_SIZE = 512;
 
 /** Prop id → its export (relative to the source folder), how many vertices it keeps and its texture size (TEXTURE_SIZE by default). */
 const PROPS = {
-  skull: { file: "necromante/props/skull.glb", vertices: 6_000 },
-  skeletalHand: { file: "necromante/props/hand.glb", vertices: 4_000 },
-  skeleton: { file: "necromante/props/skeleton.glb", vertices: 8_000 },
+  skull: { file: "boneShaman/props/skull.glb", vertices: 6_000 },
+  skeletalHand: { file: "boneShaman/props/hand.glb", vertices: 4_000 },
+  skeleton: { file: "boneShaman/props/skeleton.glb", vertices: 8_000 },
   // Many at once in an Arrow Rain: kept light.
-  elvenArrow: { file: "arqueira-elfica/props/arrow.glb", vertices: 3_000 },
-  frostWand: { file: "fada-cristalina/props/wand.glb", vertices: 6_000 },
+  elvenArrow: { file: "elvenArcher/props/arrow.glb", vertices: 3_000 },
+  frostWand: { file: "crystalFairy/props/wand.glb", vertices: 6_000 },
   // Her wings, flapped in code on her back (Meshy can't rig a winged figure): see FairyWings.
-  fairyWings: { file: "fada-cristalina/props/wings.glb", vertices: 8_000, texture: 1024 },
-  seraphWings: { file: "seraphiel-serafim-guardiao/props/wings.glb", vertices: 8_000, texture: 1024 },
-  fallenWings: { file: "seraphiel-caido/props/wings.glb", vertices: 8_000, texture: 1024 },
-  blackFlame: { file: "kunoichi-do-purgatorio/props/flame.glb", vertices: 9_000 },
+  fairyWings: { file: "crystalFairy/props/wings.glb", vertices: 8_000, texture: 1024 },
+  seraphWings: { file: "seraphGuardian/props/wings.glb", vertices: 8_000, texture: 1024 },
+  fallenWings: { file: "fallenSeraph/props/wings.glb", vertices: 8_000, texture: 1024 },
+  blackFlame: { file: "purgatoryKunoichi/props/flame.glb", vertices: 9_000 },
   // Chairs the characters sit on while they've lost turns (see RestChair).
-  frostThrone: { file: "fada-cristalina/props/chair.glb", vertices: 9_000 },
-  infernalThrone: { file: "akane-estudante-rubra/props/chair.glb", vertices: 9_000 },
-  wolfThrone: { file: "bjorn-presa-gelida/props/chair.glb", vertices: 9_000 },
-  celestialThrone: { file: "seraphiel-serafim-guardiao/props/chair.glb", vertices: 9_000 },
-  ashenThrone: { file: "seraphiel-caido/props/chair.glb", vertices: 9_000 },
+  frostThrone: { file: "crystalFairy/props/chair.glb", vertices: 9_000 },
+  infernalThrone: { file: "crimsonStudent/props/chair.glb", vertices: 9_000 },
+  wolfThrone: { file: "frostfangBerserker/props/chair.glb", vertices: 9_000 },
+  celestialThrone: { file: "seraphGuardian/props/chair.glb", vertices: 9_000 },
+  ashenThrone: { file: "fallenSeraph/props/chair.glb", vertices: 9_000 },
   // Kage Rubra's Susanoo towers over the tile: more detail than the small props.
-  susanoo: { file: "kunoichi-do-purgatorio/props/susanoo.glb", vertices: 16_000, texture: 1024 },
+  susanoo: { file: "purgatoryKunoichi/props/susanoo.glb", vertices: 16_000, texture: 1024 },
 };
 
 const { values } = parseArgs({ options: { source: { type: "string" }, only: { type: "string" } } });

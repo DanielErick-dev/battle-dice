@@ -12,17 +12,17 @@ frontend/src/
 ├── features/                ← APRESENTAÇÃO (React)
 │   ├── match/               ← a partida
 │   │   ├── model/           ← traduz eventos em animação (playback) e monta a MatchView
-│   │   ├── hooks/           ← useMatch, áudio
+│   │   ├── hooks/           ← ligam o store e o áudio ao React (useMatch, useGameAudio, useMatchAudio)
 │   │   ├── ui/              ← HUD, cartas, banners, menus de escolha (HTML/CSS)
 │   │   │   └── abilities/   ← registro: o que "Usar" faz em cada habilidade que pergunta algo
 │   │   ├── scene/           ← mundo 3D (React Three Fiber): tabuleiro, personagens, efeitos
-│   │   ├── audio/           ← motor de som e efeitos sonoros
+│   │   ├── audio/           ← som sintetizado: efeitos, música, ambiente, falas
 │   │   └── characters.ts    ← ficha visual de cada personagem (modelo, clipes, cores, efeitos)
 │   ├── menu/                ← seleção de personagem com as intros
 │   ├── settings/            ← configurações
-│   └── lab/                 ← /laboratorio, playground de efeitos (só dev)
+│   └── lab/                 ← /laboratorio: testar efeitos visuais num personagem (só dev, fora do jogo)
 ├── app/                     ← rotas do Next.js (/, /jogar, /partida, /configuracoes, /laboratorio)
-├── components/ui/           ← componentes genéricos (botões etc.)
+├── components/ui/           ← peças visuais genéricas (button, card, badge) no estilo shadcn/ui
 └── lib/                     ← utilitários
 ```
 
@@ -75,19 +75,7 @@ A aleatoriedade entra por `GameDependencies` (injeção de dependência), então
 
 ## Assets 3D
 
-```
-battle-dice-personagens/<pasta-do-personagem>/   ← downloads do Meshy (fora do repo)
-  ├── modelo, idle, run, intro, cast…  (.glb)
-  └── props/                            (espadas, cadeiras, asas)
-        │
-        ▼  scripts/characters/build-characters.mjs   (manifest.mjs lista os clipes)
-        ▼  scripts/props/build-props.mjs             (mapa PROPS: id → arquivo + orçamento de vértices)
-        │
-frontend/public/models/characters/<id>.glb   ← um GLB por personagem com todos os clipes
-frontend/public/models/props/<id>.glb        ← props comprimidos (~150–230 KB)
-```
-
-O manifest aceita recortes (`clip@0.05-0.55`), sequências (`queda + levantar`), velocidade (`*1.4`) e reverso (`:reverse`).
+Padrão de nomes, pastas e como gerar os GLBs: [assets.md](assets.md).
 
 ## Testes e verificações
 

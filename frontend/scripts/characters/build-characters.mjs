@@ -1,17 +1,5 @@
 #!/usr/bin/env node
-/**
- * Builds the web-ready character models from Meshy AI exports.
- *
- * Meshy exports one GLB per animation, each repeating the whole mesh and 4K textures
- * (13–18 MB apiece). This keeps the mesh and textures once, gathers the clips we play into
- * one file under stable names, and shrinks it: simplified mesh, 1024px WebP textures and
- * meshopt compression. Output: public/models/characters/<id>.glb (a few MB each).
- *
- *   node scripts/characters/build-characters.mjs --source /path/to/battle-dice-personagens
- *
- * The source folder holds one subfolder per character (its `folder` in the manifest) with
- * that character's Meshy exports and reference images; they aren't kept in the repo.
- */
+// Merges each character's Meshy exports into one compressed GLB. Usage: docs/arquitetura.md (Assets 3D).
 import { access, mkdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -70,7 +58,7 @@ for (const [id, model] of Object.entries(CHARACTER_MODELS)) {
  * hips go, scaled to this body, so a fall reaches the floor.
  */
 async function buildCharacter(model, output) {
-  const { folder, fallbacks = {}, sequences = {} } = model;
+  const { id: folder, fallbacks = {}, sequences = {} } = model;
   const ownExport = (clip) => exportOf(model, clip);
   const basePath = await firstExisting(REQUIRED_CLIPS.map(ownExport));
   if (!basePath) throw new Error(`No export of ${folder} itself to take the mesh from`);
@@ -83,7 +71,7 @@ async function buildCharacter(model, output) {
     if (await exists(ownExport(name))) addAnimation(document, name, await exportChannels(ownExport(name)));
     else if (fallbacks[name]) {
       const lender = CHARACTER_MODELS[fallbacks[name]];
-      console.warn(`  (no ${folder}/${name}.glb: borrowed from ${lender.folder})`);
+      console.warn(`  (no ${folder}/${name}.glb: borrowed from ${lender.id})`);
       addAnimation(document, name, borrowed(await exportChannels(exportOf(lender, name)), { hipsScale: null }));
     } else throw new Error(`Missing ${ownExport(name)}`);
   }
@@ -93,7 +81,7 @@ async function buildCharacter(model, output) {
     else if (lender && (lender === model || !(await exists(ownExport(name))))) {
       const channels = await clipChannels(lender, name);
       if (!channels) {
-        console.warn(`  (no ${lender.folder}/${name}.glb: shared "${name}" clip left out)`);
+        console.warn(`  (no ${lender.id}/${name}.glb: shared "${name}" clip left out)`);
         continue;
       }
       const lenderRest = restHipsHeight(await io.read(exportOf(lender, REQUIRED_CLIPS[0])));
@@ -126,7 +114,7 @@ async function buildCharacter(model, output) {
 
 /** Where a character's export of `clip` is in the source folder. */
 function exportOf(model, clip) {
-  return path.join(values.source, model.folder, `${clip}.glb`);
+  return path.join(values.source, model.id, `${clip}.glb`);
 }
 
 /** A character's clip as its manifest makes it (a sequence, or its export), or null without one. */
@@ -151,7 +139,7 @@ async function sequenceChannels(model, name) {
     const [, file, from, to, speed, mode] = part.match(
       /^([^@:*]+)(?:@([\d.]+)(?:-([\d.]+))?)?(?:\*([\d.]+))?(?::(\w+))?$/,
     );
-    const clip = await io.read(exportOf(model, file));
+    const clip = await io.read(path.join(values.source, model.id, "parts", `${file}.glb`));
     let channels = channelsOf(clip.getRoot().listAnimations()[0]);
     if (mode === "grounded") channels = grounded(channels, clip);
     if (to) channels = trimEnd(channels, Number(to));

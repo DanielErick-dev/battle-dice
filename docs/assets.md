@@ -1,0 +1,82 @@
+# Assets 3D: padrão de nomes e pipeline
+
+## Onde ficam
+
+| Pasta | O que é | No git? |
+|---|---|---|
+| `Downloads/battle-dice-personagens/` | Arquivos brutos do Meshy (pesados, ~3 GB) | Não |
+| `frontend/public/models/characters/` | Um GLB por personagem, com todos os clipes, comprimido (~1,5 MB) | Sim |
+| `frontend/public/models/props/` | Objetos estáticos comprimidos (~200–500 KB) | Sim |
+
+## Padrão da pasta de origem
+
+**O nome da pasta é o id do personagem no código** (o mesmo de `characters.ts` e do GLB final).
+
+```
+battle-dice-personagens/
+└── voidKnight/
+    ├── idle.glb  run.glb        ← obrigatórios
+    ├── intro.glb cast.glb …     ← clipes opcionais, nome = nome do clipe no jogo
+    ├── parts/                   ← pedaços usados em sequências (fall.glb, stand-up.glb)
+    ├── props/                   ← objetos estáticos (chair.glb, wings.glb, sword.glb)
+    └── reference/               ← imagens de referência (concept.jpeg)
+```
+
+Regras:
+- Arquivos em **inglês, minúsculas, com hífen**: `stand-up.glb`, `arms-up.glb`.
+- Clipes que o jogo conhece: `idle`, `run`, `intro`, `showcase`, `cast`, `float`, `dash`, `land`, `shove`, `knocked`, `rest`, `hop`.
+- O que não é usado é apagado. Não deixamos pastas `extras/` ou `antigo/`.
+
+## Ids dos personagens
+
+| Id | Nome no jogo |
+|---|---|
+| `voidKnight` | Cavaleiro do Vazio |
+| `crimsonEnchantress` | Encantadora Carmesim |
+| `crimsonWitch` | Bruxa Carmesim |
+| `emeraldAlchemist` | Alquimista Esmeralda |
+| `wanderingSage` | Monge Ancião |
+| `elvenArcher` | Arqueira Élfica |
+| `cardJester` | Coringa Carmesim |
+| `boneShaman` | Necromante |
+| `fleshScribe` | Escriba da Carne |
+| `shadowWarden` | Guardião das Sombras |
+| `purgatoryKunoichi` | Kage Rubra |
+| `crystalFairy` | Fada Cristalina |
+| `windGuardian` | Zéfiro |
+| `tideMaiden` | Nerissa |
+| `crimsonStudent` | Akane |
+| `frostfangBerserker` | Bjorn Presa-Gélida |
+| `goldenGuardian` | Auric |
+| `seraphGuardian` | Seraphiel |
+| `fallenSeraph` | Seraphiel caído (forma, não personagem) |
+| `clockworkSentinel` | Cronos |
+| `sentinelMech` | Unidade Alva |
+
+## Gerando os arquivos do jogo
+
+Dentro de `frontend/`:
+
+```bash
+S=/mnt/c/Users/danzz/Downloads/battle-dice-personagens
+node scripts/characters/build-characters.mjs --source $S [--only voidKnight]
+node scripts/props/build-props.mjs --source $S [--only frostThrone]
+```
+
+- **Personagens:** `scripts/characters/manifest.mjs` lista os personagens e as sequências.
+- **Props:** o mapa `PROPS` em `scripts/props/build-props.mjs` diz o arquivo de origem e quantos vértices manter.
+
+### Sequências (no manifest)
+
+Montam um clipe a partir de pedaços em `parts/`, tocados em sequência:
+
+| Sintaxe | Significado |
+|---|---|
+| `fall` | toca `parts/fall.glb` inteiro |
+| `lunge@0.4` | começa em 0,4 s |
+| `write@0-3.85` | só de 0 a 3,85 s |
+| `stand-up*1.4` | 1,4× mais rápido |
+| `:reverse` | de trás para frente |
+| `:grounded` | mantém o corpo no chão |
+
+Exemplo: `knocked: ["fall@0-1.3:grounded", "stand-up@1.5-6.4*1.4:grounded"]`.

@@ -1,7 +1,8 @@
 # Battle Dice
 
 3D board game (Next.js + React Three Fiber) in `frontend/`. Planned FastAPI backend in `backend/`.
-Talk to the user in Portuguese; code, comments and commits in English.
+Talk to the user in Portuguese. Code, comments and commits in English; READMEs and docs/ in Portuguese.
+Comments: one line, only the non-obvious why, never restate the code. Longer explanations go in the module README.
 
 Read `docs/arquitetura.md` first. The refactor in progress is in `docs/plano-refatoracao.md`, and idea backlog in `docs/ideias.md`.
 
