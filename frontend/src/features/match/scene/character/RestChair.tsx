@@ -49,10 +49,33 @@ const CHAIRS = {
   // Seraphiel's throne of gold and light on its dais, and the ashen one he sits on once fallen.
   celestialThrone: { prop: "celestialThrone", height: SEAT_TOP / 0.3, z: 0.05, turn: 0 },
   ashenThrone: { prop: "ashenThrone", height: SEAT_TOP / 0.335, z: 0.05, turn: 0 },
+  // Cronos's brass throne of gears: its seat sits further forward, so it's pulled back.
+  clockworkThrone: { prop: "clockworkThrone", height: SEAT_TOP / 0.35, z: -0.14, turn: 0 },
+  // Unidade Alva's cybernetic throne.
+  cyberThrone: { prop: "cyberThrone", height: SEAT_TOP / 0.32, z: -0.03, turn: 0 },
+  // Kage Rubra's throne of obsidian and red fire: a low seat, a little forward.
+  obsidianThrone: { prop: "obsidianThrone", height: SEAT_TOP / 0.26, z: -0.06, turn: 0 },
+  // The Elven Archer's throne of living wood.
+  elderwoodThrone: { prop: "elderwoodThrone", height: SEAT_TOP / 0.33, z: 0.05, turn: 0 },
+  // Nerissa's throne of coral and tide.
+  tideThrone: { prop: "tideThrone", height: SEAT_TOP / 0.365, z: 0.05, turn: 0 },
+  // The Ancient Monk's storm-forged throne of stone and metal.
+  stormThrone: { prop: "stormThrone", height: SEAT_TOP / 0.33, z: 0.08, turn: 0 },
+  // The Crimson Witch's red throne: a deep one, its seat well behind the middle, so it's pushed forward.
+  crimsonThrone: { prop: "crimsonThrone", height: SEAT_TOP / 0.35, z: 0.33, turn: 0 },
+  // The Card Jester's black and red throne.
+  jesterThrone: { prop: "jesterThrone", height: SEAT_TOP / 0.345, z: 0.08, turn: 0 },
+  // The Crimson Enchantress's throne.
+  enchantressThrone: { prop: "enchantressThrone", height: SEAT_TOP / 0.33, z: 0.1, turn: 0 },
+  // The Emerald Alchemist's throne of glass and brass (1.2 MB: Meshy's UV islands stop the simplifier).
+  alchemistThrone: { prop: "alchemistThrone", height: SEAT_TOP / 0.38, z: 0.05, turn: 0 },
 } as const satisfies Record<string, ChairModel>;
 export type ChairId = keyof typeof CHAIRS;
 
-preloadProps(Object.values(CHAIRS).map(({ prop }) => prop));
+/** Starts fetching the given chairs' models (only the roster's, so a match doesn't download them all). */
+export function preloadChairs(chairs: readonly ChairId[]): void {
+  preloadProps(chairs.map((chair) => CHAIRS[chair].prop));
+}
 
 /**
  * The chair that grows in under the figure while `seated` is on, and shrinks away after: their own

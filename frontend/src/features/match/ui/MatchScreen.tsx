@@ -32,6 +32,7 @@ import type { BoardPicking } from "../scene/BoardScene";
 import type { CameraFraming } from "../scene/CameraRig";
 import type { TileId } from "@/game/domain/types";
 import { preloadCharacterModel } from "../scene/character/CharacterModel";
+import { preloadChairs, type ChairId } from "../scene/character/RestChair";
 import { CardHand } from "./cards/CardHand";
 import { CastOverlay } from "./cards/CastOverlay";
 import { DiscardPicker } from "./cards/DiscardPicker";
@@ -81,6 +82,7 @@ export function MatchScreen({ boardId, characters, chargedAbilities }: MatchScre
   const audio = useGameAudio();
   // Start fetching the models while the arena's code is still loading.
   useEffect(() => roster.flatMap(({ character }) => modelsOf(character)).forEach(preloadCharacterModel), [roster]);
+  useEffect(() => preloadChairs(roster.flatMap(({ character }) => chairsOf(character))), [roster]);
 
   return <Match preset={preset} roster={roster} chargedAbilities={chargedAbilities} audio={audio} />;
 }
@@ -400,6 +402,12 @@ function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
       <LoadingCurtain ready={ready} />
     </main>
   );
+}
+
+/** The chairs a character may sit on: their own, and their fallen form's. */
+function chairsOf(character: CharacterId): ChairId[] {
+  const { chair, fallenChair }: CharacterDefinition = CHARACTERS[character];
+  return [chair, fallenChair].filter((id) => id !== undefined);
 }
 
 /** The models a character may show in the match: their own, and their fallen form's (Seraphiel). */

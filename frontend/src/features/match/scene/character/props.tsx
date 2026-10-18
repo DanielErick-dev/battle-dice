@@ -20,6 +20,16 @@ export const PROPS = {
   wolfThrone: "/models/props/wolfThrone.glb",
   celestialThrone: "/models/props/celestialThrone.glb",
   ashenThrone: "/models/props/ashenThrone.glb",
+  clockworkThrone: "/models/props/clockworkThrone.glb",
+  cyberThrone: "/models/props/cyberThrone.glb",
+  obsidianThrone: "/models/props/obsidianThrone.glb",
+  elderwoodThrone: "/models/props/elderwoodThrone.glb",
+  tideThrone: "/models/props/tideThrone.glb",
+  stormThrone: "/models/props/stormThrone.glb",
+  crimsonThrone: "/models/props/crimsonThrone.glb",
+  jesterThrone: "/models/props/jesterThrone.glb",
+  enchantressThrone: "/models/props/enchantressThrone.glb",
+  alchemistThrone: "/models/props/alchemistThrone.glb",
   susanoo: "/models/props/susanoo.glb",
 } as const;
 export type PropId = keyof typeof PROPS;

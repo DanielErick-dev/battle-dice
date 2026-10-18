@@ -170,6 +170,7 @@ export const CHARACTERS = {
     epithet: "Feiticeira de sangue",
     color: "#f43f5e",
     model: model("crimsonEnchantress"),
+    chair: "enchantressThrone",
     ability: "doubleCast",
     playable: true,
   },
@@ -178,6 +179,7 @@ export const CHARACTERS = {
     epithet: "Senhora dos feitiços de sangue",
     color: "#ef4444",
     model: model("crimsonWitch"),
+    chair: "crimsonThrone",
     ability: "levitation",
     playable: true,
     levitates: true,
@@ -188,6 +190,7 @@ export const CHARACTERS = {
     epithet: "Mestra das transmutações",
     color: "#10b981",
     model: model("emeraldAlchemist"),
+    chair: "alchemistThrone",
     ability: "transmutation",
     playable: true,
     shieldColor: "#10b981",
@@ -204,6 +207,7 @@ export const CHARACTERS = {
     epithet: "A calma antes da tempestade",
     color: "#facc15",
     model: model("wanderingSage"),
+    chair: "stormThrone",
     ability: "dormantFury",
     playable: true,
     shieldColor: "#facc15",
@@ -224,6 +228,7 @@ export const CHARACTERS = {
     // Leaf green, lighter and yellower than the Alchemist's emerald.
     color: "#84cc16",
     model: model("elvenArcher"),
+    chair: "elderwoodThrone",
     ability: "arrowRain",
     playable: true,
     shieldColor: "#84cc16",
@@ -236,6 +241,7 @@ export const CHARACTERS = {
     // Deep crimson, darker than the Witch's red.
     color: "#dc143c",
     model: model("cardJester"),
+    chair: "jesterThrone",
     ability: "cardGamble",
     playable: true,
     shieldColor: "#dc143c",
@@ -284,6 +290,7 @@ export const CHARACTERS = {
     // Scarlet flame, apart from the crimsons and pinks of the other reds.
     color: "#ff4d2e",
     model: model("purgatoryKunoichi"),
+    chair: "obsidianThrone",
     ability: "ocularAwakening",
     playable: true,
     shieldColor: "#ff4d2e",
@@ -323,6 +330,7 @@ export const CHARACTERS = {
     epithet: "Os olhos vendados, o escudo nunca erra",
     color: "#2563eb",
     model: model("tideMaiden"),
+    chair: "tideThrone",
     ability: "sacredBulwark",
     playable: true,
     shieldColor: "#2563eb",
@@ -387,6 +395,7 @@ export const CHARACTERS = {
     ability: "timeWarp",
     playable: true,
     shieldColor: "#d97706",
+    chair: "clockworkThrone",
   },
   sentinelMech: {
     name: "Unidade Alva",
@@ -396,6 +405,7 @@ export const CHARACTERS = {
     ability: "plasmaCannon",
     playable: true,
     shieldColor: "#e2e8f0",
+    chair: "cyberThrone",
   },
 } as const satisfies Record<string, CharacterDefinition>;
 

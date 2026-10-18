@@ -13,7 +13,7 @@ import sharp from "sharp";
 const OUTPUT_DIR = path.resolve(fileURLToPath(import.meta.url), "../../../public/models/props");
 const TEXTURE_SIZE = 512;
 
-/** Prop id → its export (relative to the source folder), how many vertices it keeps and its texture size (TEXTURE_SIZE by default). */
+// Prop id → source file, vertex budget and texture size (default TEXTURE_SIZE).
 const PROPS = {
   skull: { file: "boneShaman/props/skull.glb", vertices: 6_000 },
   skeletalHand: { file: "boneShaman/props/hand.glb", vertices: 4_000 },
@@ -32,6 +32,16 @@ const PROPS = {
   wolfThrone: { file: "frostfangBerserker/props/chair.glb", vertices: 9_000 },
   celestialThrone: { file: "seraphGuardian/props/chair.glb", vertices: 9_000 },
   ashenThrone: { file: "fallenSeraph/props/chair.glb", vertices: 9_000 },
+  clockworkThrone: { file: "clockworkSentinel/props/chair.glb", vertices: 9_000 },
+  cyberThrone: { file: "sentinelMech/props/chair.glb", vertices: 9_000 },
+  obsidianThrone: { file: "purgatoryKunoichi/props/chair.glb", vertices: 9_000 },
+  elderwoodThrone: { file: "elvenArcher/props/chair.glb", vertices: 9_000 },
+  tideThrone: { file: "tideMaiden/props/chair.glb", vertices: 9_000 },
+  stormThrone: { file: "wanderingSage/props/chair.glb", vertices: 9_000 },
+  crimsonThrone: { file: "crimsonWitch/props/chair.glb", vertices: 9_000 },
+  jesterThrone: { file: "cardJester/props/chair.glb", vertices: 9_000 },
+  enchantressThrone: { file: "crimsonEnchantress/props/chair.glb", vertices: 9_000 },
+  alchemistThrone: { file: "emeraldAlchemist/props/chair.glb", vertices: 9_000 },
   // Kage Rubra's Susanoo towers over the tile: more detail than the small props.
   susanoo: { file: "purgatoryKunoichi/props/susanoo.glb", vertices: 16_000, texture: 1024 },
 };
