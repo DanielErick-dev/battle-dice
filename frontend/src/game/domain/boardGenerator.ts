@@ -1,35 +1,29 @@
 import type { BoardDefinition, TrapZoneDefinition } from "./board";
-import { seededRandom } from "./random";
+import { seededRandom, shuffle } from "./random";
 import type { RealmKind, TileEffect, TileId, TrapCurse } from "./types";
 
-/** What the generator spreads along the path; "energy" is a blessing of energy, as in heaven. */
-/** "charge" is a blessing of a turn of ability charge. */
+/** "energy" and "charge" become blessing tiles. */
 export type GeneratedEffect = "portal" | "trap" | "advance" | "extraTurn" | "skipTurn" | "card" | "energy" | "charge";
 
 export interface BoardRecipe {
   size: number;
-  /** Same seed, same board: every player (and a future server) gets identical tiles. */
+  /** Same seed, same board for every player and a future server. */
   seed: number;
-  /** How many of each effect per 100 tiles (none of a kind left out). */
+  /** Per 100 tiles. */
   density: Readonly<Partial<Record<GeneratedEffect, number>>>;
-  /** Stretches of plain tiles hiding traps, spread evenly along the path. */
   trapZones?: { count: number; length: number; traps: number };
-  /** No portal before this tile, so everyone has to play through the opening. */
+  /** Everyone has to play through the opening. */
   portalsFrom?: number;
 }
 
-/** How far each jump reaches, in tiles: [min, max]. Traps go back, the others forward. */
+/** [min, max] tiles; traps go back, the others forward. */
 const REACH: Readonly<Record<"portal" | "trap" | "advance", readonly [number, number]>> = {
   portal: [8, 20],
   trap: [5, 18],
   advance: [2, 5],
 };
 
-/**
- * Lays out a board from a recipe. Effects are spread evenly (one per stretch of the path, in
- * shuffled order) and follow the hand-made boards' rules: start and finish stay plain, and
- * every jump lands on a plain tile that never becomes an effect itself, so nothing chains.
- */
+/** One effect per stretch, in shuffled order; every jump lands on a tile kept plain, so nothing chains. */
 export function generateBoard({
   size,
   seed,
@@ -40,7 +34,7 @@ export function generateBoard({
   const random = seededRandom(seed);
   const effects: Record<TileId, TileEffect> = {};
   const trapZones = zoneRecipe ? spreadTrapZones(size, zoneRecipe) : [];
-  /** Start, finish, jump destinations and trap zones: must stay plain. */
+  // Start, finish, jump destinations and trap zones must stay plain.
   const reserved = new Set<TileId>([1, size, ...trapZones.flatMap(({ from, to }) => range(from, to))]);
   const isFree = (tile: TileId) => tile > 1 && tile < size && !reserved.has(tile) && !(tile in effects);
 
@@ -81,10 +75,7 @@ export function generateBoard({
   return { size, effects: openRealms(curseTraps(effects, seed)), trapZones };
 }
 
-/**
- * `kinds` with no portal among the first `opening` (one per stretch of the path): each portal there
- * swaps places with the first other effect after the opening.
- */
+/** Each portal among the first `opening` stretches swaps with the next non-portal after them. */
 function portalsLater(kinds: readonly GeneratedEffect[], opening: number): GeneratedEffect[] {
   const result = [...kinds];
   let swap = opening;
@@ -98,7 +89,7 @@ function portalsLater(kinds: readonly GeneratedEffect[], opening: number): Gener
   return result;
 }
 
-/** Zones centred at even intervals along the path (for 3: at a quarter, half and three quarters). */
+/** Centred at even intervals (for 3: a quarter, half and three quarters). */
 function spreadTrapZones(
   size: number,
   { count, length, traps }: NonNullable<BoardRecipe["trapZones"]>,
@@ -119,21 +110,12 @@ function openRealms(effects: Record<TileId, TileEffect>): Record<TileId, TileEff
   return {
     ...effects,
     ...Object.fromEntries(
-      portals.map((tile, index) => [
-        tile,
-        {
-          ...effects[tile],
-          realm: realms[index % realms.length],
-        } as TileEffect,
-      ]),
+      portals.map((tile, index) => [tile, { ...effects[tile], realm: realms[index % realms.length] } as TileEffect]),
     ),
   };
 }
 
-/**
- * Gives traps their curses: a third take a card, a third drain energy, a third only send the
- * player back. Uses its own random stream so the tile layout doesn't change with it.
- */
+/** A third take a card, a third drain, a third none; its own random stream keeps the layout stable. */
 function curseTraps(effects: Record<TileId, TileEffect>, seed: number): Record<TileId, TileEffect> {
   const random = seededRandom(seed ^ 0x5eed);
   const curses: readonly (TrapCurse | null)[] = ["discard", "drain", null];
@@ -148,13 +130,4 @@ function curseTraps(effects: Record<TileId, TileEffect>, seed: number): Record<T
 
 function range(from: number, to: number): number[] {
   return Array.from({ length: Math.max(0, to - from + 1) }, (_, i) => from + i);
-}
-
-function shuffle<T>(items: T[], random: () => number): T[] {
-  const result = [...items];
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
 }

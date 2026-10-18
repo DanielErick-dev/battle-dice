@@ -7,15 +7,10 @@ import { sealableTiles } from "./seals";
 import { isUntouchable } from "./players";
 import type { Board, PendingPlunder, PlayerId, SpecterKind, TileId } from "./types";
 
-/** The apparitions summoned by one use of Spectral Apparitions, in the order their tiles are picked. */
+/** In the order their tiles are picked. */
 export const SPECTER_KINDS: readonly SpecterKind[] = ["plunder", "hunger"];
 
-/**
- * Tiles an apparition can appear on from `position`: plain main-path tiles within SPECTER_RANGE
- * (as for seals, see sealableTiles), other than those already taken (`taken`: every seal and every
- * apparition). In heaven, the Warden haunts heaven instead: any tile of their track within range
- * (they all hold a blessing or a relic). Nearest first.
- */
+/** As for seals (see sealableTiles); in heaven, any tile of its track within range. Nearest first. */
 export function hauntableTiles(board: Board, position: TileId, taken: readonly TileId[]): TileId[] {
   const near = (tile: TileId) => Math.abs(tile - position) <= SPECTER_RANGE;
   const track = trackOf(board, position);
@@ -28,16 +23,12 @@ export function hauntableTiles(board: Board, position: TileId, taken: readonly T
   return sealableTiles(board, position, taken).filter(near);
 }
 
-/** What keeps an apparition off a tile: every seal and every apparition, the Warden's own too. */
+/** The Warden's own seals and apparitions too. */
 export function takenForSpecters(seals: readonly { tile: TileId }[], specters: readonly { tile: TileId }[]): TileId[] {
   return [...seals.map((seal) => seal.tile), ...specters.map((specter) => specter.tile)];
 }
 
-/**
- * Spectral Apparitions: one apparition of each kind on the tiles picked (`tiles[i]` for
- * SPECTER_KINDS[i]). Those summoned before stay, so they pile up until they strike or the Warden
- * is walked through.
- */
+/** Earlier apparitions stay, piling up until they strike or the Warden is walked through. */
 export function summonSpecters(draft: Draft, playerId: PlayerId, tiles: readonly TileId[]): void {
   const allowed = hauntableTiles(
     draft.state.board,
@@ -58,12 +49,7 @@ export function summonSpecters(draft: Draft, playerId: PlayerId, tiles: readonly
   draft.events.push({ type: "spectersSummoned", playerId, tiles: [...tiles] });
 }
 
-/**
- * The player walked `path` (the tiles stepped on, the last one included): every apparition on it
- * strikes them, in the order they're reached, unless they first walk through the Warden it belongs
- * to, which dispels all of that Warden's apparitions. Someone's own apparitions do nothing to them
- * while they have opponents; alone on the board, walking through them rewards their owner.
- */
+/** Walking through a Warden first dispels all their apparitions; alone, one's own apparitions reward. */
 export function crossSpecters(draft: Draft, playerId: PlayerId, path: readonly TileId[]): void {
   const alone = draft.players.length === 1;
   for (const tile of path) {
@@ -122,7 +108,7 @@ function strike(draft: Draft, playerId: PlayerId, owner: PlayerId, kind: Specter
   draft.events.push({ type: "specterStruck", playerId, owner, tile, kind, energyTaken, energyGained, chargeGained });
 }
 
-/** Alone on the board: Plunder draws PLUNDER_CARDS cards, Hunger fills the energy bar. */
+/** Plunder draws, Hunger fills the energy bar. */
 function rewardOwner(draft: Draft, owner: PlayerId, kind: SpecterKind, tile: TileId): void {
   const energyGained = kind === "hunger" ? MAX_ENERGY - playerIn(draft, owner).energy : 0;
   updatePlayer(draft, owner, (player) => ({ energy: player.energy + energyGained }));
@@ -139,10 +125,7 @@ function rewardOwner(draft: Draft, owner: PlayerId, kind: SpecterKind, tile: Til
   if (kind === "plunder") for (let draw = 0; draw < PLUNDER_CARDS; draw++) drawCard(draft, owner);
 }
 
-/**
- * The Warden's pick for a waiting plunder: PLUNDER_CARDS distinct cards from the victim's hand
- * (all of them if they hold fewer), into the Warden's.
- */
+/** Exactly PLUNDER_CARDS distinct cards, or the whole hand if smaller. */
 export function takePlunder(draft: Draft, pending: PendingPlunder, cardUids: readonly string[]): void {
   const hand = playerIn(draft, pending.victim).hand;
   const cards = cardUids.map((uid) => hand.find((card) => card.uid === uid));

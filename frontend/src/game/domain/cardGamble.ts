@@ -7,30 +7,16 @@ import {
   CARD_GAMBLE_LOST,
   CARD_GAMBLE_STOLEN,
 } from "./abilities";
-import { CARD_CATALOG, HAND_LIMIT, RARITY_LEVEL, rarityLevel } from "./cards";
+import { CARD_CATALOG, RARITY_LEVEL, rarityLevel } from "./cards";
 import { throwOnPile } from "./deck";
 import { opponentsInReach, opponentsInSpace, sameSpace } from "./board";
 import type { DiceRoller } from "./dice";
-import { drawCard, handOverCards, playerIn, updatePlayer, type Draft } from "./draft";
+import { conjureCard, drawCard, handOverCards, playerIn, updatePlayer, type Draft } from "./draft";
 import { GameRuleError } from "./commands";
 import { aimWard } from "./players";
 import type { Board, CardInstance, Player, PlayerId } from "./types";
 
-/**
- * Card Gamble: the player bets against an opponent (`targetId`, picked before the roll; one at
- * random when not given) and rolls a die of fortune. Up to CARD_GAMBLE_LOSES_UP_TO it goes wrong,
- * a random card of theirs goes to that opponent; above, they steal CARD_GAMBLE_STOLEN random cards
- * from them. Nobody picks the cards: they come out at random. A win against an empty hand brings nothing.
- * The bet can be laid against any opponent in the same place, armoured or not, and with none there to
- * win from, against anyone in the match: a win against one out of reach (armoured, Untamed, in
- * another realm) is turned away (abilityBlocked), and a loss still throws a card away. With no
- * opponent to win from the player may throw the die for cards instead (`power` "fortune"): they draw
- * as many as it shows.
- * Alone on the board, a loss throws the card away and a win draws CARD_GAMBLE_DRAWS cards.
- * The jackpot (CARD_GAMBLE_JACKPOT) beats any win: the stolen cards are epics first (from an
- * opponent holding some, when anyone does), topped up with random ones; alone on the board,
- * CARD_GAMBLE_EPICS random epic cards appear in the player's hand instead.
- */
+/** Cards always move at random; a win against someone out of reach is blocked, but a loss still costs a card. */
 export function playCardGamble(
   draft: Draft,
   playerId: PlayerId,
@@ -48,13 +34,7 @@ export function playCardGamble(
 
   const value = rollDie();
   if (power === "fortune") {
-    draft.events.push({
-      type: "gambleRolled",
-      playerId,
-      value,
-      won: true,
-      fortune: true,
-    });
+    draft.events.push({ type: "gambleRolled", playerId, value, won: true, fortune: true });
     for (let draw = 0; draw < value; draw++) drawCard(draft, playerId);
     return;
   }
@@ -78,13 +58,7 @@ export function playCardGamble(
       const ward = sameSpace(board, shielded.position, playerIn(draft, playerId).position)
         ? (aimWard(shielded) ?? "away")
         : "away";
-      draft.events.push({
-        type: "abilityBlocked",
-        playerId,
-        targetId: shielded.id,
-        ability: "cardGamble",
-        ward,
-      });
+      draft.events.push({ type: "abilityBlocked", playerId, targetId: shielded.id, ability: "cardGamble", ward });
     }
     return;
   }
@@ -100,19 +74,13 @@ export function playCardGamble(
   if (taker) moveCards(draft, playerId, taker.id, CARD_GAMBLE_LOST);
 }
 
-/**
- * Whom Card Gamble can bet against: the opponents in the same place, armoured or not; with none
- * of them to win from, every opponent in the match.
- */
+/** Opponents in the same place, armoured or not; with none to win from, every opponent. */
 export function gambleTargets(board: Board, players: readonly Player[], playerId: PlayerId): Player[] {
   if (opponentsInReach(board, players, playerId).length > 0) return opponentsInSpace(board, players, playerId);
   return players.filter((player) => player.id !== playerId);
 }
 
-/**
- * `count` random cards (fewer if there aren't as many) leave `from`'s hand for `to`'s (see
- * handOverCards). `epicsFirst` takes epics while there are any, then random others.
- */
+/** Fewer if the hand is smaller; `epicsFirst` takes epics while there are any. */
 function moveCards(draft: Draft, from: PlayerId, to: PlayerId, count: number, epicsFirst = false): void {
   const hand = playerIn(draft, from).hand;
   const piles = epicsFirst ? [hand.filter(isEpic), hand.filter((card) => !isEpic(card))] : [[...hand]];
@@ -130,10 +98,7 @@ function isEpic(card: CardInstance): boolean {
   return rarityLevel(card.cardId) >= RARITY_LEVEL.epic;
 }
 
-/**
- * CARD_GAMBLE_EPICS new random epic cards for a player alone on the board (so none aimed at an
- * opponent). They join the deck from then on; what finds the hand full is discarded.
- */
+/** Alone on the board, so no opponent-targeting epics; they join the deck for good. */
 function conjureEpics(draft: Draft, playerId: PlayerId): void {
   const pool = Object.values(CARD_CATALOG).filter(
     (definition) => definition.rarity === "epic" && !definition.relic && !definition.targetsOpponent,
@@ -143,14 +108,7 @@ function conjureEpics(draft: Draft, playerId: PlayerId): void {
       uid: `${playerId}:jackpot${draft.state.turn}:${index}`,
       cardId: pool[Math.floor(draft.random() * pool.length)].id,
     };
-    const { hand } = playerIn(draft, playerId);
-    if (hand.length < HAND_LIMIT) {
-      updatePlayer(draft, playerId, (player) => ({ hand: [...player.hand, card] }));
-      draft.events.push({ type: "cardDrawn", playerId, card });
-    } else {
-      updatePlayer(draft, playerId, (player) => ({ discard: throwOnPile(player.discard, [card]) }));
-      draft.events.push({ type: "cardDiscarded", playerId, card, hand });
-    }
+    conjureCard(draft, playerId, card);
   }
 }
 

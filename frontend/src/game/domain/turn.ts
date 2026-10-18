@@ -5,24 +5,11 @@ import type { Draft } from "./draft";
 import { drainSnow, spreadWinter } from "./fairy";
 import { burnDown } from "./kunoichi";
 
-/**
- * Ends the current turn: the same player goes again after an extra turn, otherwise play
- * passes on, skipping (and consuming) lost turns. Every TURNS_PER_ENERGY turns a player
- * starts (extra turns included), they gain 1 energy; every turn charges their ability until it's ready,
- * the player whose turn ends is a turn closer to landing from a Levitation (and to the end of their
- * Spectral Armour, of being Untamed and of their black fire: one of their turns is a whole round), and the one whose
- * turn starts a turn closer to the end of a silence. Heaven's blessings wear off a round at a time
- * as their owner's turns end; while they last, the Spring of Light adds energy and Inspiration a
- * second turn of charge as the turn starts. While the player is still in heaven they wait, neither
- * working nor wearing off.
- * Returns the index of the player whose turn it is now.
- */
+/** Returns the next player's index. Timed effects wear off as their owner's turn ends; charge and energy come as one starts. */
 export function endTurn(draft: Draft, extraTurn: boolean): number {
   const { currentPlayerIndex } = draft.state;
   let index = currentPlayerIndex;
-  // A Levitation counts down on its owner's turns: the one ending is spent.
   const ending = draft.players[currentPlayerIndex];
-  // So do Spectral Armour, Untamed and black fire.
   draft.players[currentPlayerIndex] = {
     ...ending,
     levitating: Math.max(0, ending.levitating - 1),
@@ -66,18 +53,11 @@ export function endTurn(draft: Draft, extraTurn: boolean): number {
     ? chargeAbility(once.player)
     : { player: once.player, becameReady: false };
   // A held charge (Time Warp) lets one more turn go by.
-  const player = {
-    ...twice.player,
-    chargeHeld: Math.max(0, twice.player.chargeHeld - 1),
-  };
+  const player = { ...twice.player, chargeHeld: Math.max(0, twice.player.chargeHeld - 1) };
   const becameReady = once.becameReady || twice.becameReady;
   draft.players[index] = player;
   draft.events.push({ type: "turnChanged", playerId: next.id });
   if (becameReady && player.ability)
-    draft.events.push({
-      type: "abilityReady",
-      playerId: next.id,
-      ability: player.ability,
-    });
+    draft.events.push({ type: "abilityReady", playerId: next.id, ability: player.ability });
   return index;
 }

@@ -39,11 +39,7 @@ export interface CardChoice {
   value?: number;
 }
 
-/**
- * Why `player` can't play this card right now because of their own state (energy, an effect
- * already up, no portal left ahead), or null. The turn rules (cards per turn…) are checked on
- * play; the UI asks this to grey cards out with the same reasons the engine enforces.
- */
+/** Blockers from the player's own state, shared with the UI; turn rules (cards per turn) are checked on play. */
 export function cardBlocker(board: Board, player: Player, cardId: CardId): GameErrorCode | null {
   if (player.silencedTurns > 0) return "SILENCED";
   if (player.energy < cardCost(cardId)) return "NOT_ENOUGH_ENERGY";
@@ -60,10 +56,7 @@ export function cardBlocker(board: Board, player: Player, cardId: CardId): GameE
   return null;
 }
 
-/**
- * Validates and pays for a card (energy, one per turn), then applies its effect to the draft.
- * Movement cards resolve the tile they end on, like a roll would.
- */
+/** Movement cards resolve the tile they end on, like a roll would. */
 export function playCard(draft: Draft, playerId: PlayerId, cardUid: string, choice: CardChoice): void {
   const { board, cardsPlayedThisTurn, abilityInUse } = draft.state;
   const player = playerIn(draft, playerId);
@@ -88,13 +81,7 @@ export function playCard(draft: Draft, playerId: PlayerId, cardUid: string, choi
   // Thrown at a protected opponent, the card is spent for nothing.
   const ward = targetId === null ? null : aimWard(playerIn(draft, targetId));
   if (targetId !== null && ward) {
-    draft.events.push({
-      type: "cardBlocked",
-      playerId,
-      targetId,
-      cardId: card.cardId,
-      ward,
-    });
+    draft.events.push({ type: "cardBlocked", playerId, targetId, cardId: card.cardId, ward });
     return;
   }
   applyEffect(draft, playerId, card, { targetId, value, portal });
@@ -114,16 +101,12 @@ function applyEffect(
       // Under Cronos's reversed time the wind blows them back the way they came, like their rolls.
       const { reversedRolls, realmEntry } = playerIn(draft, playerId);
       const windTiles = card.fused ? FUSED_WIND_STEP_TILES : WIND_STEP_TILES;
-      if (reversedRolls > 0) {
-        const path = pushPath(board, position, windTiles, realmEntry);
-        draft.events.push({ type: "playerMoved", playerId, path });
-        crossSpecters(draft, playerId, path);
-        resolveLanding(draft, playerId, path.at(-1) ?? position);
-        unpinPassed(draft, path);
-        break;
-      }
-      const path = walkPath(board, position, windTiles, realmEntry);
-      walkTrampling(draft, playerId, path);
+      const reversed = reversedRolls > 0;
+      const path = reversed
+        ? pushPath(board, position, windTiles, realmEntry)
+        : walkPath(board, position, windTiles, realmEntry);
+      if (reversed) draft.events.push({ type: "playerMoved", playerId, path });
+      else walkTrampling(draft, playerId, path);
       crossSpecters(draft, playerId, path);
       resolveLanding(draft, playerId, path.at(-1) ?? position);
       unpinPassed(draft, path);
@@ -148,11 +131,7 @@ function applyEffect(
         updatePlayer(draft, playerId, (player) => ({
           spectralArmour: Math.max(player.spectralArmour, FUSED_SHIELD_ARMOUR),
         }));
-        draft.events.push({
-          type: "armourRaised",
-          playerId,
-          turns: FUSED_SHIELD_ARMOUR,
-        });
+        draft.events.push({ type: "armourRaised", playerId, turns: FUSED_SHIELD_ARMOUR });
       }
       break;
     case "ancientScroll":
@@ -263,11 +242,7 @@ function applyEffect(
   }
 }
 
-/** An opponent the player can aim at: anyone in the same place, protected or not (see opponentsInSpace). */
-/**
- * The opponents a card can be aimed at: anyone in the same place (a protected one turns it away);
- * the Call of the Abyss only reaches those out on the main path (see dragTargets).
- */
+/** Anyone in the same place, protected or not; the Call of the Abyss only reaches the main path (see dragTargets). */
 export function cardTargets(board: Board, players: readonly Player[], playerId: PlayerId, cardId: CardId): Player[] {
   const inSpace = opponentsInSpace(board, players, playerId);
   if (cardId !== "abyssCall") return inSpace;
@@ -290,10 +265,7 @@ function validValue(value: number | undefined): number {
   return value;
 }
 
-/**
- * First portal on the main path strictly ahead of `position` (from a track: ahead of the portal the
- * player came in by, `entry`), or null.
- */
+/** First main-path portal strictly ahead (from a track: ahead of the portal of `entry`). */
 export function nextPortalAhead(board: Board, position: TileId, entry?: RealmEntry | null): TileId | null {
   const from = mainTileOf(board, position, entry);
   const portal = board.tiles.find(
@@ -302,7 +274,7 @@ export function nextPortalAhead(board: Board, position: TileId, entry?: RealmEnt
   return portal?.id ?? null;
 }
 
-/** The player's ability charged right up, ready to use (Ascension, the Divine Dawn). */
+/** Ascension and the Divine Dawn. */
 function readyAbility(draft: Draft, playerId: PlayerId): void {
   const { ability } = playerIn(draft, playerId);
   if (ability === null) return;

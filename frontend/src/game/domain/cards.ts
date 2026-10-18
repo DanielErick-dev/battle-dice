@@ -17,10 +17,6 @@ export type CardId =
   | "heavenlyAegis"
   | "ascension";
 
-/**
- * Five levels of rarity, from common (one star) to legendary (five stars): see RARITY_LEVEL. The
- * Alchemist's Transmutation adds up the levels of the cards she sacrifices.
- */
 export type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary";
 
 export const RARITY_LEVEL: Readonly<Record<Rarity, number>> = {
@@ -30,7 +26,7 @@ export const RARITY_LEVEL: Readonly<Record<Rarity, number>> = {
   epic: 4,
   legendary: 5,
 };
-export const MAX_RARITY_LEVEL = 5;
+export const MAX_RARITY_LEVEL = RARITY_LEVEL.legendary;
 
 export interface CardDefinition {
   id: CardId;
@@ -41,13 +37,9 @@ export interface CardDefinition {
   targetsOpponent: boolean;
   /** Needs a die value (1–6) chosen when played. */
   needsValue: boolean;
-  /**
-   * Changes the next roll(s): "throw" changes how the dice are thrown (two dice, the best one, a
-   * chosen value), "bonus" adds tiles to it. One of each may wait for the roll together (a combo),
-   * never two of the same kind.
-   */
+  /** One "throw" and one "bonus" may wait for the roll together (a combo), never two of a kind. */
   dice: "throw" | "bonus" | null;
-  /** Energy it costs when that isn't its rarity's (see RARITY_COST). */
+  /** Overrides RARITY_COST. */
   cost?: number;
 }
 
@@ -83,15 +75,14 @@ export const CARD_CATALOG: Readonly<Record<CardId, CardDefinition>> = {
   // Swapping places can win a race outright: it takes a full bar of energy.
   fateSwap: card("fateSwap", "legendary", { targetsOpponent: true, cost: 10 }),
   // Heaven's gifts are cheap to play: the hard part is reaching them.
-  // An angel's gift: filling the energy costs none of it.
   celestialLight: card("celestialLight", "legendary", { relic: true, cost: 0 }),
   heavenlyAegis: card("heavenlyAegis", "legendary", { relic: true, cost: 2 }),
   ascension: card("ascension", "legendary", { relic: true, cost: 2 }),
 };
 
-/** The relics lying on the celestial tracks' tiles, one kind per tile. */
+/** One kind per celestial tile. */
 export const DIVINE_CARDS: readonly CardId[] = ["celestialLight", "heavenlyAegis", "ascension"];
-/** Own turns Heavenly Aegis keeps off what other players aim at the player, the one it's played in included. */
+/** Own turns, counting the one it's played in. */
 export const AEGIS_TURNS = 3;
 
 export const RARITY_COST: Readonly<Record<Rarity, number>> = {
@@ -104,7 +95,7 @@ export const RARITY_COST: Readonly<Record<Rarity, number>> = {
 
 export const MAX_ENERGY = 10;
 export const STARTING_ENERGY = 1;
-/** A player gains 1 energy every this many of their own turns. */
+/** Own turns per energy gained. */
 export const TURNS_PER_ENERGY = 2;
 export const HAND_LIMIT = 8;
 export const STARTING_HAND = 6;
@@ -116,7 +107,7 @@ export const LUCKY_CHARM_BONUS = 2;
 export const AWAKENING_BONUS = 3;
 export const AWAKENING_ROLLS = 2;
 
-/** Copies of each card in the standard deck, by rarity (relics are never in it). */
+/** Copies per card in the standard deck (relics are never in it). */
 export const COPIES_BY_RARITY: Readonly<Record<Rarity, number>> = {
   common: 3,
   uncommon: 2,
@@ -125,15 +116,11 @@ export const COPIES_BY_RARITY: Readonly<Record<Rarity, number>> = {
   legendary: 1,
 };
 
-/** A card's rarity as a level, 1 (common) to MAX_RARITY_LEVEL (legendary). */
 export function rarityLevel(cardId: CardId): number {
   return RARITY_LEVEL[CARD_CATALOG[cardId].rarity];
 }
 
-/**
- * The cards of a rarity level, relics included; no opponent-targeting card when there's nobody to
- * aim it at.
- */
+/** Relics included; opponent-targeting cards only `withOpponents`. */
 export function cardsOfLevel(level: number, { withOpponents }: { withOpponents: boolean }): CardId[] {
   return Object.values(CARD_CATALOG)
     .filter((definition) => RARITY_LEVEL[definition.rarity] === level && (withOpponents || !definition.targetsOpponent))
@@ -145,11 +132,7 @@ export function cardCost(cardId: CardId): number {
   return definition.cost ?? RARITY_COST[definition.rarity];
 }
 
-/**
- * The deck everyone plays with until collections exist: 20 cards solo, 26 with opponents.
- * Later, a player's own deck (built in the organiser from cards won on the roulette, daily
- * cards…) replaces it.
- */
+/** Everyone's deck until collections exist: 20 cards solo, 26 with opponents. */
 export function standardDeck({ withOpponents }: { withOpponents: boolean }): CardId[] {
   return Object.values(CARD_CATALOG)
     .filter((definition) => !definition.relic && (withOpponents || !definition.targetsOpponent))

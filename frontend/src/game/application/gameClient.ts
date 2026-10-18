@@ -9,11 +9,7 @@ export interface GameUpdate {
 
 export type GameUpdateListener = (update: GameUpdate) => void;
 
-/**
- * Port between the UI and whoever is authoritative over the game.
- * Today: LocalGameClient (in-memory). Later: a WebSocket client talking to the
- * FastAPI room server, with the exact same contract.
- */
+/** Port to whoever is authoritative: LocalGameClient today, a WebSocket room client later, same contract. */
 export interface GameClient {
   getState(): GameState;
   send(command: GameCommand): Promise<void>;

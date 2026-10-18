@@ -14,11 +14,7 @@ import { playerIn, pushPath, updatePlayer, walkPath, type Draft } from "./draft"
 import { groundSpellsSpare, inSusanoo, isUntouchable } from "./players";
 import type { Board, PlayerId, TileId } from "./types";
 
-/**
- * Tiles Eternal Flames can set alight: any tile of the main path, however far (not the start or
- * finish, nor a realm track), the player's own included, other than those already burning
- * (`burning`). Nearest first.
- */
+/** Any regular main-path tile not already burning, however far; nearest first. */
 export function flammableTiles(board: Board, position: TileId, burning: readonly TileId[]): TileId[] {
   return board.tiles
     .filter(({ id, role, track }) => role === "regular" && !track && !burning.includes(id))
@@ -26,7 +22,7 @@ export function flammableTiles(board: Board, position: TileId, burning: readonly
     .sort((a, b) => Math.abs(a - position) - Math.abs(b - position) || a - b);
 }
 
-/** Eternal Flames: FLAME_TILES tiles the player picked (fewer if they like) burn for FLAME_TURNS rounds. */
+/** Up to FLAME_TILES picked tiles. */
 export function lightFlames(draft: Draft, playerId: PlayerId, tiles: readonly TileId[]): void {
   const allowed = flammableTiles(
     draft.state.board,
@@ -50,20 +46,12 @@ export function lightFlames(draft: Draft, playerId: PlayerId, tiles: readonly Ti
   draft.events.push({ type: "flamesLit", playerId, tiles: [...tiles] });
 }
 
-/** Spectral Armour: for ARMOUR_TURNS of their turns, nothing other players aim at the player gets through. */
 export function raiseArmour(draft: Draft, playerId: PlayerId): void {
   updatePlayer(draft, playerId, () => ({ spectralArmour: ARMOUR_TURNS }));
   draft.events.push({ type: "armourRaised", playerId, turns: ARMOUR_TURNS });
 }
 
-/**
- * The player stopped on `tile`: black fire there that isn't theirs scorches them, taking
- * FLAME_ENERGY energy and throwing them FLAME_PUSH tiles back, and the fire's owner gains a turn
- * of ability charge. Walking through doesn't burn.
- * Spectral Armour (or being Untamed) turns it away, though not Kage Rubra's Susanoo (see inSusanoo), and the
- * Crimson Witch walks through fire unharmed (see
- * groundSpellsSpare). The player's own fire doesn't burn them.
- */
+/** Only stopping on fire burns, never walking through it; the owner's own fire spares them. */
 export function scorch(draft: Draft, playerId: PlayerId, tile: TileId): void {
   const flame = draft.blackFlames.find((candidate) => candidate.owner !== playerId && candidate.tile === tile);
   if (!flame || groundSpellsSpare(playerIn(draft, playerId))) return;
@@ -102,10 +90,7 @@ export function scorch(draft: Draft, playerId: PlayerId, tile: TileId): void {
   if (hits >= FLAME_HITS) draft.events.push({ type: "flamesFaded", owner: flame.owner, tiles: [flame.tile] });
 }
 
-/**
- * One of `owner`'s turns is over, so a whole round has gone by for their fires: they burn lower,
- * and those out of rounds go out.
- */
+/** One of `owner`'s turns is a whole round for their fires. */
 export function burnDown(draft: Draft, owner: PlayerId): void {
   const lowered = draft.blackFlames.map((flame) =>
     flame.owner === owner ? { ...flame, turnsLeft: flame.turnsLeft - 1 } : flame,
@@ -115,11 +100,7 @@ export function burnDown(draft: Draft, owner: PlayerId): void {
   if (out.length > 0) draft.events.push({ type: "flamesFaded", owner, tiles: out });
 }
 
-/**
- * Stopping on Kage Rubra's tile while her Susanoo stands there: it won't let them, and they're thrown
- * back SUSANOO_PUSH tiles (where nothing on the tile happens to them). False when no Susanoo is
- * there, or there's nowhere behind to throw them.
- */
+/** Nothing on the tile they're thrown to happens to them; false when there's nowhere behind. */
 export function repelledBySusanoo(draft: Draft, playerId: PlayerId, landed: TileId): boolean {
   const guardian = draft.players.find(
     (player) => player.id !== playerId && player.position === landed && inSusanoo(player),
@@ -133,11 +114,7 @@ export function repelledBySusanoo(draft: Draft, playerId: PlayerId, landed: Tile
   return true;
 }
 
-/**
- * Kage Rubra stopping, inside her Susanoo, on a tile where others stand: it sweeps them off it,
- * SUSANOO_PUSH tiles ahead (where nothing on the tile happens to them; never onto the finish).
- * Those Untamed or armoured hold their ground.
- */
+/** Sweeps others ahead off the tile she stops on, never onto the finish; untouchable ones hold their ground. */
 export function sweptBySusanoo(draft: Draft, playerId: PlayerId, landed: TileId): void {
   if (!inSusanoo(playerIn(draft, playerId))) return;
   const { board } = draft.state;

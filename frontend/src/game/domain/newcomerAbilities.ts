@@ -11,16 +11,13 @@ import { standardDeck } from "./cards";
 import { GameRuleError } from "./commands";
 import { getTile, opponentsInReach, opponentsInSpace } from "./board";
 import { giveCard, playerIn, pushPath, updatePlayer, type Draft } from "./draft";
-import { grantBlessing } from "./blessings";
+import { grantBlessing, TIMED_BLESSINGS } from "./blessings";
 import { relocateHiddenTrap } from "./hiddenTraps";
 import { aimWard } from "./players";
-import type { Board, Player, PlayerId, TileId, TimedBlessing } from "./types";
+import type { Board, Player, PlayerId, TileId } from "./types";
 
-/** Heaven's blessings the Seraph Guardian may call down, one at random. */
-const SERAPH_BLESSINGS: readonly TimedBlessing[] = ["wings", "halo", "inspiration", "spring"];
-
-/** The player's tile and the TIDE_RANGE tiles ahead of it (following `next`): what Cleansing Tide sweeps. */
-export function tideReach(board: Board, from: TileId): TileId[] {
+/** The player's tile plus the TIDE_RANGE tiles ahead. */
+function tideReach(board: Board, from: TileId): TileId[] {
   const tiles = [from];
   let tile = getTile(board, from).next;
   while (tile !== null && tiles.length <= TIDE_RANGE) {
@@ -30,11 +27,7 @@ export function tideReach(board: Board, from: TileId): TileId[] {
   return tiles;
 }
 
-/**
- * Cleansing Tide: a wave rolls ahead of the player over TIDE_RANGE tiles and sweeps them clean of
- * every spell lying there, whoever cast it: black fire, the fairy's snow, apparitions, seals and
- * the arrows pinning traps down (a freed hidden trap moves elsewhere in its zone, as when walked past).
- */
+/** Sweeps every spell, whoever cast it; a freed hidden trap moves, as when walked past. */
 export function cleansingTide(draft: Draft, playerId: PlayerId): void {
   const path = tideReach(draft.state.board, playerIn(draft, playerId).position);
   const reach = new Set(path);
@@ -57,24 +50,15 @@ export function cleansingTide(draft: Draft, playerId: PlayerId): void {
   draft.specters = draft.specters.filter((specter) => !swept(specter.tile));
   draft.seals = draft.seals.filter((seal) => !swept(seal.tile));
   draft.pinnedTraps = draft.pinnedTraps.filter((tile) => !swept(tile));
-  draft.events.push({
-    type: "boardCleansed",
-    playerId,
-    reach: path,
-    tiles: [...new Set(tiles)],
-  });
+  draft.events.push({ type: "boardCleansed", playerId, reach: path, tiles: [...new Set(tiles)] });
 }
 
-/** Sacred Bulwark: the Arcane Shield goes up, and Spectral Armour for ARMOUR_TURNS of their turns. */
 export function sacredBulwark(draft: Draft, playerId: PlayerId): void {
   updatePlayer(draft, playerId, () => ({ shielded: true, spectralArmour: ARMOUR_TURNS }));
   draft.events.push({ type: "armourRaised", playerId, turns: ARMOUR_TURNS });
 }
 
-/**
- * Seraph's Blessing: heaven's gift, at random: as often one of its timed blessings, landing on the
- * player, as a card, any card of the deck (the rarer, the less likely), going into their hand.
- */
+/** A random timed blessing or deck card (the rarer, the less likely). */
 export function seraphBlessing(draft: Draft, playerId: PlayerId): void {
   if (draft.random() < SERAPH_CARD_CHANCE) {
     const pool = standardDeck({ withOpponents: draft.players.length > 1 });
@@ -84,7 +68,7 @@ export function seraphBlessing(draft: Draft, playerId: PlayerId): void {
     });
     return;
   }
-  const blessing = SERAPH_BLESSINGS[Math.floor(draft.random() * SERAPH_BLESSINGS.length)];
+  const blessing = TIMED_BLESSINGS[Math.floor(draft.random() * TIMED_BLESSINGS.length)];
   grantBlessing(draft, playerId, blessing);
   draft.events.push({
     type: "blessingReceived",
@@ -95,22 +79,12 @@ export function seraphBlessing(draft: Draft, playerId: PlayerId): void {
   });
 }
 
-/**
- * The opponents Time Warp can be aimed at: those in the same place (the main path, or the same
- * realm: from heaven, Cronos can't reach the board). Armoured ones are listed too: aimed at, they
- * turn it away (see timeWarp).
- */
+/** From heaven Cronos can't reach the board; armoured ones are listed and turn it away. */
 export function timeTargets(board: Board, players: readonly Player[], playerId: PlayerId): Player[] {
   return opponentsInSpace(board, players, playerId);
 }
 
-/**
- * Time Warp: the player bends the chosen opponent's time. Halted, they lose TIME_ROUNDS more turns;
- * reversed, TIME_ROUNDS more of their rolls walk them backwards. Either way the player's charge waits
- * for TIME_ROUNDS of their own turns. An opponent Untamed, under armour (a Susanoo too) or heaven's
- * Aegis turns it away: it's spent for nothing. With nobody to aim at (alone, or nobody in the same
- * place) the gears turn back for the player instead: they play again once this turn is over.
- */
+/** Stacks with what the target already had; with nobody to aim at, the player gets an extra turn instead. */
 export function timeWarp(draft: Draft, playerId: PlayerId, power?: AbilityPower, targetId?: PlayerId): void {
   const targets = timeTargets(draft.state.board, draft.players, playerId);
   if (targets.length === 0) {
@@ -122,13 +96,7 @@ export function timeWarp(draft: Draft, playerId: PlayerId, power?: AbilityPower,
   if (!target || (power !== "halt" && power !== "reverse")) throw new GameRuleError("INVALID_TARGET");
   const ward = aimWard(target);
   if (ward) {
-    draft.events.push({
-      type: "abilityBlocked",
-      playerId,
-      targetId: target.id,
-      ability: "timeWarp",
-      ward,
-    });
+    draft.events.push({ type: "abilityBlocked", playerId, targetId: target.id, ability: "timeWarp", ward });
     return;
   }
   updatePlayer(draft, target.id, (player) =>
@@ -138,19 +106,10 @@ export function timeWarp(draft: Draft, playerId: PlayerId, power?: AbilityPower,
   );
   // The gears only start winding again once the bent rounds have gone by.
   updatePlayer(draft, playerId, () => ({ chargeHeld: TIME_ROUNDS }));
-  draft.events.push({
-    type: "timeBent",
-    playerId,
-    targetId: target.id,
-    power,
-    rounds: TIME_ROUNDS,
-  });
+  draft.events.push({ type: "timeBent", playerId, targetId: target.id, power, rounds: TIME_ROUNDS });
 }
 
-/**
- * Plasma Cannon: the next PLASMA_TRAPS traps ahead (hidden ones too; not curses) are blasted away
- * for good, and the opponent in reach furthest ahead is knocked back PLASMA_PUSH tiles.
- */
+/** Also knocks back the opponent in reach furthest ahead. */
 export function plasmaCannon(draft: Draft, playerId: PlayerId): void {
   const { board } = draft.state;
   blastTrapsAhead(draft, playerId, PLASMA_TRAPS);
@@ -158,18 +117,11 @@ export function plasmaCannon(draft: Draft, playerId: PlayerId): void {
   const [leader] = opponentsInReach(board, draft.players, playerId).sort((a, b) => b.position - a.position);
   if (!leader) return;
   const path = pushPath(board, leader.position, PLASMA_PUSH, leader.realmEntry);
-  draft.events.push({
-    type: "playerPushed",
-    playerId: leader.id,
-    by: playerId,
-    path,
-  });
-  updatePlayer(draft, leader.id, () => ({
-    position: path.at(-1) ?? leader.position,
-  }));
+  draft.events.push({ type: "playerPushed", playerId: leader.id, by: playerId, path });
+  updatePlayer(draft, leader.id, () => ({ position: path.at(-1) ?? leader.position }));
 }
 
-/** The next `count` traps ahead of the player (hidden ones too; not curses) are gone for good. */
+/** Hidden ones too, but not curses. */
 export function blastTrapsAhead(draft: Draft, playerId: PlayerId, count: number): void {
   const { board } = draft.state;
   const blasted: TileId[] = [];

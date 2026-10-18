@@ -15,15 +15,9 @@ import type {
   TrapWard,
 } from "./types";
 
-/**
- * Everything that happened while resolving a command, in order.
- * The UI replays these to animate; a future server broadcasts them to the room.
- */
+/** What happened while resolving a command, in order: the UI animates them, a server will broadcast them. */
 export type GameEvent =
-  /**
-   * `dice` holds each die thrown (two under Berserk Fury / Oracle Eye); `value` is how far the
-   * player walks: their sum, or the higher one when `best`, plus any card `bonus`.
-   */
+  /** `value` is how far the player walks: the dice summed (or the higher when `best`), plus `bonus`. */
   | {
       type: "diceRolled";
       playerId: PlayerId;
@@ -31,15 +25,15 @@ export type GameEvent =
       dice: readonly number[];
       best?: boolean;
       bonus?: number;
-      /** The total was multiplied by this (Dormant Fury), after the bonus. */
+      /** Dormant Fury's, applied after the bonus. */
       multiplier?: number;
-      /** Walked backwards (Cronos's reversed time). */
+      /** Time Warp's reverse. */
       reversed?: boolean;
     }
   /** `dash`: crossed in a flash of lightning (a Dormant Fury roll) rather than run. */
   | { type: "playerMoved"; playerId: PlayerId; path: readonly TileId[]; dash?: boolean }
   | { type: "portalEntered"; playerId: PlayerId; from: TileId; to: TileId }
-  /** A realm portal opened: the player is carried from the portal to the track's first tile. */
+  /** Carried from the portal onto the track's first tile. */
   | {
       type: "realmEntered";
       playerId: PlayerId;
@@ -53,13 +47,13 @@ export type GameEvent =
       blessing: Blessing;
       tile: TileId;
       energyGained: number;
-      /** A "charge" blessing gave the ability its turn of charge (not when it was full already). */
+      /** False when the ability was already full. */
       charged?: boolean;
     }
   | { type: "trapTriggered"; playerId: PlayerId; from: TileId; to: TileId }
   /** Followed by a playerMoved with the tiles walked. */
   | { type: "advanceTriggered"; playerId: PlayerId; from: TileId; to: TileId }
-  /** A cursed trap took a card (`card`, null with an empty hand) or energy (`energyLost`, 0 when there was none). */
+  /** `card` is null with an empty hand. */
   | {
       type: "trapCursed";
       playerId: PlayerId;
@@ -70,12 +64,9 @@ export type GameEvent =
   | { type: "extraTurnGranted"; playerId: PlayerId; tile: TileId }
   | { type: "skipTurnGained"; playerId: PlayerId; tile: TileId }
   | { type: "turnSkipped"; playerId: PlayerId }
-  /** A lost turn in `owner`'s snow drained `energy` (0 when they had none) from the player into the fairy. */
+  /** A lost turn in `owner`'s snow drained `energy` from the player into the fairy. */
   | { type: "snowDrained"; playerId: PlayerId; owner: PlayerId; energy: number }
-  /**
-   * A trap, a curse or (Untamed) a lost-turn tile on `tile` didn't touch the player; `hidden` for a
-   * hidden trap, which then moves.
-   */
+  /** A trap, curse or (Untamed) lost-turn tile missed the player; a `hidden` trap then moves. */
   | {
       type: "trapBlocked";
       playerId: PlayerId;
@@ -83,13 +74,9 @@ export type GameEvent =
       ward: TrapWard;
       hidden: boolean;
     }
-  /** The Trap Ward smashed the trap on `tile`: it does nothing for the rest of the game. */
+  /** The Trap Ward smashed the trap on `tile` for good. */
   | { type: "trapDestroyed"; playerId: PlayerId; tile: TileId; hidden: boolean }
-  /**
-   * Arrow Rain: the volley falls on `targets`, the opponents' tiles (each then comes as a
-   * playerPushed) or, alone on the board, the traps ahead it pins down (`pinned`, the same tiles;
-   * `hidden` ones among them show themselves).
-   */
+  /** Arrow Rain on opponents' tiles (each then pushed) or on the traps ahead it pins (`pinned`, `hidden` revealed). */
   | {
       type: "arrowsLoosed";
       playerId: PlayerId;
@@ -97,10 +84,7 @@ export type GameEvent =
       pinned: readonly TileId[];
       hidden: readonly TileId[];
     }
-  /**
-   * Card Gamble's die of fortune: `won` above CARD_GAMBLE_LOSES_UP_TO; `fortune` when thrown for
-   * cards (as many drawn as it shows) instead of against an opponent.
-   */
+  /** `fortune`: thrown for that many cards instead of against an opponent. */
   | {
       type: "gambleRolled";
       playerId: PlayerId;
@@ -108,10 +92,7 @@ export type GameEvent =
       won: boolean;
       fortune?: boolean;
     }
-  /**
-   * Random cards went from `from`'s hand to `playerId`'s (Card Gamble); `discarded` are those
-   * among them that found the hand full and went to the discard pile instead.
-   */
+  /** Random cards from `from`'s hand to `playerId`'s; `discarded` found the hand full. */
   | {
       type: "cardsStolen";
       playerId: PlayerId;
@@ -119,13 +100,9 @@ export type GameEvent =
       cards: readonly CardInstance[];
       discarded: readonly CardInstance[];
     }
-  /** Spectral Apparitions: the player's apparitions appear on `tiles` (SPECTER_KINDS order). */
+  /** `tiles` in SPECTER_KINDS order. */
   | { type: "spectersSummoned"; playerId: PlayerId; tiles: readonly TileId[] }
-  /**
-   * `playerId` walked through `owner`'s apparition on `tile` (or, alone, its owner did, to be
-   * rewarded). Hunger moved `energyTaken` into the owner's `energyGained`, the rest charging
-   * their ability by `chargeGained`; Plunder follows with plunderOffered (cardDrawn alone).
-   */
+  /** Hunger moves `energyTaken` to the owner (the rest charging them); Plunder follows with plunderOffered. */
   | {
       type: "specterStruck";
       playerId: PlayerId;
@@ -136,18 +113,12 @@ export type GameEvent =
       energyGained: number;
       chargeGained: number;
     }
-  /** `playerId` walked through the Warden `owner` themselves: their apparitions on `tiles` fade. */
+  /** Walking through the Warden themselves fades their apparitions. */
   | { type: "spectersDispelled"; playerId: PlayerId; owner: PlayerId; tiles: readonly TileId[] }
-  /** The Plunder specter caught `victim`: `owner` is to pick the cards it takes. */
   | { type: "plunderOffered"; owner: PlayerId; victim: PlayerId }
-  /** Forbidden Seals: seals written on `tiles` (which seal is where stays the writer's secret). */
+  /** Which seal is where stays the writer's secret. */
   | { type: "sealsWritten"; playerId: PlayerId; tiles: readonly TileId[] }
-  /**
-   * `playerId` broke `owner`'s seal on `tile` and suffers it (or, alone, its owner is rewarded): the
-   * Pact moves energy (`energyLost` by the one who stepped on it, `energyGained` by its owner); the
-   * Tithe's card and the Ruin's knock-back follow as cardsStolen and playerPushed (cardDrawn and
-   * playerMoved alone).
-   */
+  /** The Pact moves energy here; the Tithe and Ruin follow as cardsStolen and playerPushed. */
   | {
       type: "sealBroken";
       playerId: PlayerId;
@@ -157,13 +128,9 @@ export type GameEvent =
       energyLost: number;
       energyGained: number;
     }
-  /** Fairy Bloom enchanted `tiles` for good (a hidden trap among them is gone too). */
+  /** A hidden trap among `tiles` is gone too. */
   | { type: "tilesEnchanted"; playerId: PlayerId; tiles: readonly TileId[] }
-  /**
-   * `playerId` stopped on (or, its owner, walked over) `owner`'s enchanted `tile`: its owner is
-   * carried ahead (a playerMoved follows), an opponent is stuck in the snow for `frozen` rounds;
-   * `charged` says whether the owner's ability gained a turn of charge.
-   */
+  /** The owner is carried ahead (a playerMoved follows); an opponent is snowed in for `frozen` rounds. */
   | {
       type: "enchantmentStirred";
       playerId: PlayerId;
@@ -172,39 +139,26 @@ export type GameEvent =
       frozen: number;
       charged: boolean;
     }
-  /** No harm was left ahead of `playerId` to snow: their Eternal Winter begins (see fairy.ts). */
+  /** No harm was left ahead to snow (see fairy.ts). */
   | { type: "winterBegan"; playerId: PlayerId }
-  /** A round went by under `owner`'s Eternal Winter: the main path froze from `from` to `to`. */
   | { type: "winterSpread"; owner: PlayerId; from: TileId; to: TileId }
-  /** Eternal Flames set `tiles` on black fire. */
   | { type: "flamesLit"; playerId: PlayerId; tiles: readonly TileId[] }
-  /**
-   * `playerId` stopped on `owner`'s black fire on `tile`: they lose energy, and a playerPushed
-   * follows; `charged` says whether the owner's ability gained a turn of charge.
-   */
+  /** A playerPushed follows. */
   | { type: "flamesScorched"; playerId: PlayerId; owner: PlayerId; tile: TileId; energyLost: number; charged: boolean }
-  /** `owner`'s black fire on `tiles` went out. */
   | { type: "flamesFaded"; owner: PlayerId; tiles: readonly TileId[] }
-  /** Spectral Armour rose round the player for `turns` of their turns. */
   | { type: "armourRaised"; playerId: PlayerId; turns: number }
-  /** Something aimed at `playerId` (a seal, an apparition, black fire) was turned away by their Spectral Armour. */
+  /** Spectral Armour turned away a seal, apparition or black fire. */
   | { type: "armourHeld"; playerId: PlayerId; tile: TileId }
-  /** Resurrection brought `cards` back from the player's discard pile to their hand. */
   | { type: "cardsResurrected"; playerId: PlayerId; cards: readonly CardInstance[] }
-  /** A walk passed over a pinned trap, which works again (a hidden one moves elsewhere, unseen). */
+  /** A walk freed a pinned trap (a hidden one moves elsewhere, unseen). */
   | { type: "trapUnpinned"; tile: TileId }
-  /** A hidden trap sprang on `tile`, knocking the player back to `to`; it then moves elsewhere in its zone. */
+  /** It then moves elsewhere in its zone. */
   | { type: "hiddenTrapSprung"; playerId: PlayerId; tile: TileId; to: TileId }
-  /** A levitating player floated over `tile`, whose effect didn't touch them (hidden traps stay unseen). */
+  /** Hidden traps stay unseen. */
   | { type: "levitatedOver"; playerId: PlayerId; tile: TileId }
-  /** The player's ability finished charging as their turn started. */
   | { type: "abilityReady"; playerId: PlayerId; ability: AbilityId }
-  /** The player spent their ability. */
   | { type: "abilityUsed"; playerId: PlayerId; ability: AbilityId }
-  /**
-   * `playerId`'s ability, aimed at `targetId`, was turned away and spent for nothing: by `ward`
-   * (see aimWard), or "away" when the target is somewhere it can't reach (another realm).
-   */
+  /** Spent for nothing; "away" when the target is out of reach (another realm). */
   | {
       type: "abilityBlocked";
       playerId: PlayerId;
@@ -212,7 +166,7 @@ export type GameEvent =
       ability: AbilityId;
       ward: AimWard | "away";
     }
-  /** `playerId`'s card, aimed at `targetId`, was turned away by `ward` (see aimWard): played and spent for nothing. */
+  /** Played and spent for nothing. */
   | {
       type: "cardBlocked";
       playerId: PlayerId;
@@ -220,20 +174,18 @@ export type GameEvent =
       cardId: CardId;
       ward: AimWard;
     }
-  /** Seraphiel set foot in hell on `tile`: he is the Fallen Angel now, for good (see seraph.ts). */
+  /** Seraphiel is the Fallen Angel for good (see seraph.ts). */
   | { type: "seraphFell"; playerId: PlayerId; tile: TileId }
-  /** Seraphiel's crown came to his head: seraphic out of heaven (the Fall's infernal one comes with seraphFell). */
+  /** Only the seraphic one; the infernal crown comes with seraphFell. */
   | { type: "crownGained"; playerId: PlayerId; crown: Crown }
-  /** The Fallen Angel stopped on a celestial portal: heaven stays shut, and its chains hold him `rounds` rounds. */
+  /** The Fallen Angel on a celestial portal: heaven stays shut and chains him for `rounds`. */
   | { type: "heavenBarred"; playerId: PlayerId; tile: TileId; rounds: number }
-  /** Seraphiel stopped on a heaven tile and picks what he receives (see PendingGrace). */
   | {
       type: "graceOffered";
       playerId: PlayerId;
       tile: TileId;
       offer: "blessing" | "relic";
     }
-  /** Hell's Drag: `targetId` was pulled down from `from` onto hell's first tile `to`. */
   | {
       type: "hellDragged";
       playerId: PlayerId;
@@ -241,14 +193,14 @@ export type GameEvent =
       from: TileId;
       to: TileId;
     }
-  /** Cleansing Tide rolled over `reach` (the player's tile first) and washed every spell off `tiles`. */
+  /** `reach` starts at the player's tile; `tiles` are those that lost a spell. */
   | {
       type: "boardCleansed";
       playerId: PlayerId;
       reach: readonly TileId[];
       tiles: readonly TileId[];
     }
-  /** Time Warp bent `targetId`'s time: halted (their next `rounds` turns lost) or reversed (their next `rounds` rolls walk back). */
+  /** Halt loses the target's next `rounds` turns; reverse walks their next `rounds` rolls back. */
   | {
       type: "timeBent";
       playerId: PlayerId;
@@ -256,31 +208,22 @@ export type GameEvent =
       power: "halt" | "reverse";
       rounds: number;
     }
-  /** Untamed: nothing harms the player for `turns` of their turns. */
   | { type: "untamedUnleashed"; playerId: PlayerId; turns: number }
-  /**
-   * The Berserker `by` walked through (or stopped on) `playerId` on `tile` and knocked them back
-   * along `path`. Comes between the playerMoved of the walk up to `tile` and that of the rest.
-   */
+  /** Comes between the playerMoved up to `tile` and the one for the rest of the walk. */
   | {
       type: "playerTrampled";
       playerId: PlayerId;
       by: PlayerId;
       tile: TileId;
       path: readonly TileId[];
-      /** They were sitting out lost turns on their chair (see isSeated): they get up to be shoved. */
+      /** Sitting out lost turns (see isSeated): they get up to be shoved. */
       seated: boolean;
     }
-  /** A trap or curse is about to strike: the player chooses whether to ward it off with their ability. */
   | { type: "wardOffered"; playerId: PlayerId; tile: TileId; threat: Threat }
-  /**
-   * `by`'s Susanoo threw the player off `tile` to `to`: back, as they tried to stop on her tile, or
-   * `ahead`, as she stopped on theirs.
-   */
+  /** Thrown back for stopping on her tile, or `ahead` when she stopped on theirs. */
   | { type: "susanooRepelled"; playerId: PlayerId; by: PlayerId; tile: TileId; to: TileId; ahead: boolean }
   | { type: "cardDrawn"; playerId: PlayerId; card: CardInstance }
-  /** Transmutation turned the hand card `from` into `to`, in the same place in the hand. */
-  /** `from` and `sacrificed` left the hand, `to` took `from`'s place. */
+  /** `from` and `sacrificed` left the hand; `to` took `from`'s place. */
   | {
       type: "cardTransmuted";
       playerId: PlayerId;
@@ -288,16 +231,14 @@ export type GameEvent =
       sacrificed: CardInstance;
       to: CardInstance;
     }
-  /** Three copies (`used`) left the hand, fused into `card`. */
   | {
       type: "cardsFused";
       playerId: PlayerId;
       used: readonly string[];
       card: CardInstance;
     }
-  /** The deck ran out: the discard pile was shuffled into a new deck. */
   | { type: "deckReshuffled"; playerId: PlayerId; size: number }
-  /** Hand was full: the player must pick a card to throw away (the drawn one included). */
+  /** The drawn card is among those the player can throw away. */
   | { type: "discardRequired"; playerId: PlayerId; card: CardInstance }
   | {
       type: "cardDiscarded";
@@ -312,7 +253,7 @@ export type GameEvent =
       targetId: PlayerId | null;
       value: number | null;
     }
-  /** Knocked back tile by tile (Arcane Blast). */
+  /** Knocked back tile by tile. */
   | {
       type: "playerPushed";
       playerId: PlayerId;
