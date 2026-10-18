@@ -1,5 +1,6 @@
 import type { ComponentType, RefObject } from "react";
 import { FrozenWastes } from "./FrozenWastes";
+import { GearWorks } from "./GearWorks";
 import { Graveyard } from "./Graveyard";
 import { MoonlitShore } from "./MoonlitShore";
 import { Sanctuary } from "./Sanctuary";
@@ -31,6 +32,7 @@ export const SCENERY = {
   shore: { component: MoonlitShore },
   // Under the sea the gold is lit by a teal wash; the bubbles stand in for the motes.
   sunkenTemple: { component: SunkenTemple, light: "#3cc6c0", weather: true },
+  gearworks: { component: GearWorks },
 } as const satisfies Record<string, Scenery>;
 
 export type SceneryId = keyof typeof SCENERY;

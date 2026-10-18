@@ -397,6 +397,7 @@ export const CHARACTERS = {
     playable: true,
     shieldColor: "#d97706",
     chair: "clockworkThrone",
+    stage: "gearworks",
   },
   sentinelMech: {
     name: "Unidade Alva",
