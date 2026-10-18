@@ -74,7 +74,7 @@ export interface RollView {
 // Every animation below carries an `id` that changes with each one, so the scene and audio replay it once.
 
 /** Dormant Fury's lightning dash; kept after arrival so the bolt can fade. */
-export interface DashView {
+interface DashView {
   id: number;
   playerId: PlayerId;
   /** The start tile, then every tile crossed. */
@@ -92,7 +92,7 @@ export interface CardDrawView {
 }
 
 /** A Cleansing Tide wave rolling over `path` (the player's tile first). */
-export interface TideView {
+interface TideView {
   id: number;
   playerId: PlayerId;
   path: readonly TileId[];
@@ -100,7 +100,7 @@ export interface TideView {
   rolling: boolean;
 }
 
-export interface VolleyView {
+interface VolleyView {
   id: number;
   playerId: PlayerId;
   from: TileId;
@@ -111,7 +111,7 @@ export interface VolleyView {
  * The Berserker steps ahead of `victim`, shoves (`shove`), they fly back (`flying`), then he turns to
  * run on (`over`, until he moves again).
  */
-export interface TrampleView {
+interface TrampleView {
   id: number;
   by: PlayerId;
   victim: PlayerId;
@@ -132,7 +132,7 @@ export interface DragView {
 }
 
 /** Snow streaming from the Crystal Fairy's wand to a tile she's enchanting. */
-export interface FrostStreamView {
+interface FrostStreamView {
   id: number;
   playerId: PlayerId;
   tile: TileId;
@@ -156,7 +156,7 @@ export interface CardCastView {
 }
 
 /** Three copies fusing into one in the middle of the screen. */
-export interface CardFusionView {
+interface CardFusionView {
   id: number;
   playerId: PlayerId;
   card: CardInstance;
@@ -181,7 +181,7 @@ export interface MatchFx {
   frostStream: FrostStreamView | null;
 }
 
-export const NO_FX: MatchFx = {
+const NO_FX: MatchFx = {
   cast: null,
   drawing: null,
   fusing: null,
@@ -237,14 +237,14 @@ export interface TileEffectView {
 }
 
 /** A Shadow Warden's apparition; only its owner is shown its `kind`, others see the Warden himself. */
-export interface SpecterView {
+interface SpecterView {
   tile: TileId;
   owner: PlayerId;
   kind: SpecterKind;
 }
 
 /** A closed scroll for everyone; only its owner is shown its `kind`. */
-export interface SealView {
+interface SealView {
   tile: TileId;
   owner: PlayerId;
   kind: SealKind;

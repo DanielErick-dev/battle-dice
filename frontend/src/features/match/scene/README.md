@@ -5,7 +5,7 @@ A cena só **lê** a `MatchView` (o que deve aparecer agora) e desenha. Ela nunc
 
 ## Entrada
 
-- `BoardScene.tsx`: o `<Canvas>`. Monta o ambiente, o tabuleiro, os bonecos e os efeitos.
+- `BoardScene.tsx`: o `<Canvas>`. Monta o ambiente, o tabuleiro, os bonecos e percorre o registro de efeitos.
 - `CameraRig.tsx`: a câmera, com os três enquadramentos (perto, médio, tabuleiro) e o "olhar em volta".
 - `PostEffects.tsx`: o pós-processamento (bloom, o brilho em volta das luzes).
 
@@ -17,7 +17,11 @@ A cena só **lê** a `MatchView` (o que deve aparecer agora) e desenha. Ela nunc
 | `realm/` | Os corredores do céu e do inferno: paredes, portais, partículas |
 | `character/` | Tudo de personagem: modelo animado (`CharacterModel`), asas, cadeiras, e os efeitos de cada habilidade e intro |
 | `vfx/` | Efeitos feitos com a biblioteca wawa-vfx (partículas de cura) |
-| `PlayerToken.tsx` | Um jogador no tabuleiro: o modelo, os clipes que tocam e as auras |
+| `effects/` | **O registro de efeitos**: quem monta cada efeito e quando (veja abaixo) |
+| `PlayerToken.tsx` | Um jogador no tabuleiro: o movimento, o clipe que toca e os efeitos do registro em volta dele |
+| `tokenSignals.ts` | Lê a `MatchView` e diz o que cada boneco está fazendo (correndo, sendo empurrado, usando a habilidade…) |
+| `tokenPlacement.ts` | Onde cada boneco fica e para onde olha |
+| `cameraFocus.ts` | O que a câmera acompanha e onde o dado cai |
 | `TileMesh.tsx`, `tileTheme.ts`, `useTileFaceTexture.ts` | As casas: forma, cor por tipo e texto pintado na face |
 | `DiceThrow.tsx` | O dado 3D rolando |
 
@@ -27,4 +31,30 @@ A cena só **lê** a `MatchView` (o que deve aparecer agora) e desenha. Ela nunc
 - **Shaders (GLSL):** depois de mexer num shader, conferir o console do navegador para ver se compilou. Uma vez, uma palavra reservada (`half`) deixou o oceano preto.
 - **Escala nunca zero:** um objeto com escala 0 gera NaN e o bloom espalha uma tela preta. Use no mínimo 0.005.
 
-Esta pasta é a próxima da fila de refatoração (etapa 4): os efeitos de cada personagem vão sair do `PlayerToken`/`BoardScene` para um registro, como fizemos em `ui/abilities/`.
+## O registro de efeitos (`effects/`)
+
+Cada efeito visual é um componentezinho que decide **se** aparece e **com quais props**, e chama o componente de verdade (que mora em `character/`, por exemplo).
+Eles ficam num arquivo por dono, com os mesmos nomes do domínio: `berserker.tsx`, `fairy.tsx`, `seraph.tsx`, `kunoichi.tsx`, `cards.tsx`, `tiles.tsx`…
+
+O `effects/index.ts` junta tudo em listas, por lugar:
+
+| Lista | Onde aparece | Recebe |
+|---|---|---|
+| `TOKEN_EFFECTS.aura` | em volta do boneco, na escala dele, subindo junto quando levita | `token` |
+| `TOKEN_EFFECTS.ground` | nos pés do boneco | `token` |
+| `TOKEN_EFFECTS.body` | no corpo, girando junto com ele | `token` |
+| `TOKEN_EFFECTS.figure` | presos nos ossos do modelo (asas, varinha, frasco) | `token` e `figure` |
+| `BOARD_EFFECTS` | no tabuleiro, antes dos bonecos | `fx` |
+| `OVERLAY_EFFECTS` | no tabuleiro, depois dos bonecos | `fx` |
+
+- `token` (`TokenFx`): o jogador, a ficha do personagem, a cor, os sinais do `tokenSignals` e as refs que o `PlayerToken` atualiza a cada quadro (`live.seated`, `live.wandOut`…).
+- `fx` (`BoardFx`): a `MatchView`, o tabuleiro, o layout, quem está olhando e `shown(casa)` (se a trilha daquela casa está visível).
+- **A ordem das listas é a ordem de montagem.** Ela foi copiada do JSX antigo, então mantenha-a ao mexer.
+
+### Adicionando um efeito
+
+1. Escreva o componente do efeito em `character/` (se for novo).
+2. No arquivo do dono em `effects/`, exporte a regra: `export function MeuEfeito({ token }) { return token.x && <Efeito /> }`.
+3. Adicione uma linha na lista certa do `effects/index.ts`.
+
+O `PlayerToken` e a `BoardScene` não mudam.
