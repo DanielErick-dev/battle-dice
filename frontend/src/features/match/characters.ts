@@ -193,6 +193,7 @@ export const CHARACTERS = {
     playable: true,
     shieldColor: "#10b981",
     handProp: "vial",
+    stage: "alchemyLab",
     // Her cast: the vial comes off her belt at 0.9 s, is wound up behind her shoulder and
     // leaves her hand at 2.3 s, when the hand swings forward fastest.
     castPropSeconds: 0.9,
