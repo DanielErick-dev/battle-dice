@@ -171,6 +171,7 @@ export const CHARACTERS = {
     model: model("crimsonEnchantress"),
     ability: "doubleCast",
     playable: true,
+    stage: "bloodRoseGarden",
   },
   crimsonWitch: {
     name: "Bruxa Carmesim",
