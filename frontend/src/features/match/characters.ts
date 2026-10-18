@@ -312,6 +312,7 @@ export const CHARACTERS = {
     hopTakeoffSeconds: 1.1,
     wings: "fairy",
     chair: "frostThrone",
+    stage: "grove",
   },
   // The eight below came from Meshy with idle and run only: names and abilities are placeholders
   // until their kits (intro, cast, effects) are made. Bjorn's is under way: Untamed and his trample.
