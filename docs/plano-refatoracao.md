@@ -16,7 +16,7 @@ O problema é de **crescimento**. Com 20 personagens, alguns arquivos viraram "c
 | `features/match/scene/BoardScene.tsx` | 615 | 42 imports; monta tudo de todos os personagens |
 | `features/match/model/matchView.ts` | 409 | `MatchView` com 38 campos, muitos de um único personagem (`trample`, `tide`, `drag`…) |
 | `features/match/characters.ts` | 460 | ficha visual de 20 personagens num arquivo só |
-| `game/domain/engine.ts` | 600 | roteador de comandos crescendo |
+| ~~`game/domain/engine.ts`~~ | 600 → 44 | ~~roteador de comandos crescendo~~ ✅ etapa 6 |
 
 **Princípio que vamos aplicar:** *aberto para extensão, fechado para modificação*. Adicionar o personagem 21 deveria significar **criar arquivos novos**, não editar 7 arquivos centrais.
 
@@ -53,8 +53,12 @@ O problema é de **crescimento**. Com 20 personagens, alguns arquivos viraram "c
 ### 5. Uma ficha por personagem
 - `features/match/characters/<id>.ts` reunindo modelo, clipes, cores, efeitos e intro; `characters/index.ts` monta o elenco.
 
-### 6. Revisar o `engine.ts`
-- Mesmo padrão da etapa 1: um handler por comando.
+### 6. Revisar o `engine.ts` ✅
+- Mesmo padrão da etapa 1: `domain/handlers/` com um arquivo por tema (`turnCommands`, `cardCommands`, `abilityCommands`), `shared.ts` (`assertCanAct`, `settle`), `setup.ts` (montar a partida) e `index.ts` com o mapa tipado `CommandHandlers<GameCommand["type"]>`.
+- A fila de `if (ability === …)` do `activateAbility` virou o registro `ABILITY_EFFECTS`: habilidade → função.
+- `createGame` e `restart` agora usam o mesmo `openingState`, em vez de repetir os 20 campos do estado inicial.
+- `engine.ts` continua exportando `createGame`, `currentPlayer` e `applyCommand` com as mesmas assinaturas: ninguém fora do domínio mudou.
+- **Por quê:** o engine era o último roteador central. Comando novo = handler no arquivo do tema; habilidade nova = uma linha em `ABILITY_EFFECTS`. `engine.ts`: 600 → 44 linhas; os 281 testes passaram sem alteração.
 
 ### Depois da refatoração
 - Deploy na Vercel.
@@ -67,3 +71,4 @@ O problema é de **crescimento**. Com 20 personagens, alguns arquivos viraram "c
 | 17/10 | 0 | Commits divididos (assets, kits, lab). Docs criadas. |
 | 17/10 | 1 | `playback.ts` (1275 linhas, 63 casos) → `model/playback/` com 12 arquivos temáticos. |
 | 17/10 | 2 | Seletores das habilidades → registro `ui/abilities/` (9 habilidades). `MatchScreen` 657 → 409 linhas. |
+| 17/10 | 6 | `engine.ts` (600 linhas) → `domain/handlers/` com mapa tipado por comando e registro `ABILITY_EFFECTS`. Passada de limpeza nos comentários de `game/`. |
