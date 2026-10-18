@@ -21,8 +21,8 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { useNoiseTexture, type NoiseLook } from "./noiseTexture";
-import { ABOVE_FLOOR, taperedTube, usePaintedTexture, type Painter } from "./sceneryKit";
+import { ABOVE_FLOOR, taperedTube } from "./sceneryKit";
+import { useCanvasTexture, useNoiseTexture, type NoiseLook, type Painter } from "./textures";
 
 const PAVING_RADIUS = 1;
 /** Thick end first. The trunk rises at the back left; the boughs reach over the figure's head. */
@@ -90,10 +90,10 @@ const NOTEBOOK_SIZE: [number, number] = [0.14, 0.19];
 
 /** Akane's stage: a stone courtyard at dusk under a cherry tree shedding petals, notebooks and a stone lantern. */
 export function SakuraCourtyard() {
-  const paving = usePaintedTexture(paintPaving, 29, 512, 0.3);
+  const paving = useCanvasTexture({ size: 512, draw: paintPaving, seed: 29, fadeFrom: 0.3 });
   const bark = useNoiseTexture(BARK);
   const stone = useNoiseTexture(STONE);
-  const page = usePaintedTexture(paintNotebookPage, 7, 128);
+  const page = useCanvasTexture({ size: 128, draw: paintNotebookPage, seed: 7 });
   const disc = useSoftDisc();
   const materials = useMemo(
     () => ({

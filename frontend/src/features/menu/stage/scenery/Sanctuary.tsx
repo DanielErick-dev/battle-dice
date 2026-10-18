@@ -16,7 +16,7 @@ import { useFeatherTexture } from "@/features/match/scene/character/HeavenDescen
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { useRuneTexture } from "@/features/match/scene/character/runeCircle";
 import { seededRandom } from "@/game/domain/random";
-import { useNoiseTexture, type NoiseLook } from "./noiseTexture";
+import { useNoiseTexture, type NoiseLook } from "./textures";
 
 const DAIS_RADIUS = 0.6;
 const DAIS_STEP = 0.06;

@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { ExtrudeGeometry, MeshStandardMaterial, Shape, type Group } from "three";
 import { Prop, usePropMesh } from "@/features/match/scene/character/props";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
-import { useNoiseTexture, type NoiseLook } from "./noiseTexture";
+import { useNoiseTexture, type NoiseLook } from "./textures";
 
 const EARTH_RADIUS = 0.95;
 const HEADSTONES = [

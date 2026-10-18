@@ -11,14 +11,13 @@ import {
   MeshStandardMaterial,
   Object3D,
   SpriteMaterial,
-  SRGBColorSpace,
   type Group,
   type InstancedMesh,
   type Sprite,
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { usePaintedTexture, type Painter } from "./sceneryKit";
+import { paintTexture, useCanvasTexture, useCanvasTextures, type CanvasLook, type Painter } from "./textures";
 
 const FLOOR_RADIUS = 1;
 const CARD: [number, number] = [0.12, 0.17];
@@ -76,9 +75,9 @@ const BULB = new Color("#ffd27a").multiplyScalar(2);
 
 /** The Crimson Jester's stage: a harlequin floor, strewn and floating cards, chips, dice and chasing marquee bulbs. */
 export function CardTable() {
-  const floor = usePaintedTexture(paintHarlequin, 17, 512, 0.3);
-  const cards = useCardTextures();
-  const pips = useDieFaces();
+  const floor = useCanvasTexture({ size: 512, draw: paintHarlequin, seed: 17, fadeFrom: 0.3 });
+  const cards = useCanvasTextures(CARD_LOOKS);
+  const pips = useCanvasTextures(DIE_LOOKS);
   const disc = useSoftDisc();
   const materials = useMemo(
     () => ({
@@ -247,62 +246,33 @@ function ChipStacks({ colour, stacks }: { colour: string; stacks: { x: number; z
 /** A chip's rim (white edge spots) or its face (a ring of white dashes round an inlay). */
 function useChipTexture(colour: string, part: "side" | "face"): CanvasTexture {
   const texture = useMemo(() => {
-    const canvas = document.createElement("canvas");
-    canvas.width = part === "side" ? 256 : 128;
-    canvas.height = part === "side" ? 16 : 128;
-    const context = canvas.getContext("2d")!;
-    context.fillStyle = colour;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    const stripe = colour === "#e9e4da" ? "#b3122e" : "#f4efe6";
-    context.fillStyle = stripe;
-    if (part === "side") {
-      for (let spot = 0; spot < 8; spot++) context.fillRect(spot * 32 + 8, 0, 14, 16);
-    } else {
-      context.strokeStyle = stripe;
-      context.lineWidth = 12;
-      for (let dash = 0; dash < 8; dash++) {
-        const angle = (dash / 8) * Math.PI * 2;
+    const [width, height] = part === "side" ? [256, 16] : [128, 128];
+    const draw: Painter = (context) => {
+      context.fillStyle = colour;
+      context.fillRect(0, 0, width, height);
+      const stripe = colour === "#e9e4da" ? "#b3122e" : "#f4efe6";
+      context.fillStyle = stripe;
+      if (part === "side") {
+        for (let spot = 0; spot < 8; spot++) context.fillRect(spot * 32 + 8, 0, 14, 16);
+      } else {
+        context.strokeStyle = stripe;
+        context.lineWidth = 12;
+        for (let dash = 0; dash < 8; dash++) {
+          const angle = (dash / 8) * Math.PI * 2;
+          context.beginPath();
+          context.arc(64, 64, 52, angle, angle + 0.35);
+          context.stroke();
+        }
+        context.lineWidth = 2;
         context.beginPath();
-        context.arc(64, 64, 52, angle, angle + 0.35);
+        context.arc(64, 64, 34, 0, Math.PI * 2);
         context.stroke();
       }
-      context.lineWidth = 2;
-      context.beginPath();
-      context.arc(64, 64, 34, 0, Math.PI * 2);
-      context.stroke();
-    }
-    const result = new CanvasTexture(canvas);
-    result.colorSpace = SRGBColorSpace;
-    return result;
+    };
+    return paintTexture({ size: width, height, draw });
   }, [colour, part]);
   useEffect(() => () => texture.dispose(), [texture]);
   return texture;
-}
-
-/** One texture per FACES entry, then the back. */
-function useCardTextures(): CanvasTexture[] {
-  const textures = useMemo(
-    () =>
-      [
-        ...FACES.map(
-          ({ rank, suit }) =>
-            () =>
-              drawFace(rank, suit),
-        ),
-        drawBack,
-      ].map((draw) => {
-        const canvas = document.createElement("canvas");
-        canvas.width = 128;
-        canvas.height = 180;
-        draw(canvas.getContext("2d")!);
-        const result = new CanvasTexture(canvas);
-        result.colorSpace = SRGBColorSpace;
-        return result;
-      }),
-    [],
-  );
-  useEffect(() => () => textures.forEach((texture) => texture.dispose()), [textures]);
-  return textures;
 }
 
 function drawFace(rank: string, suit: Suit | "joker") {
@@ -358,6 +328,13 @@ function drawBack(context: CanvasRenderingContext2D) {
   context.fillStyle = "#c9a043";
   drawSuit(context, "diamonds", 64, 90, 18);
 }
+
+/** One texture per FACES entry, then the back. */
+const CARD_LOOKS: CanvasLook[] = [...FACES.map(({ rank, suit }) => drawFace(rank, suit)), drawBack].map((draw) => ({
+  size: 128,
+  height: 180,
+  draw,
+}));
 
 /** A suit centred on (x, y), `size` its half-height, in the current fill. */
 function drawSuit(context: CanvasRenderingContext2D, suit: Suit, x: number, y: number, size: number) {
@@ -417,32 +394,6 @@ function drawStar(context: CanvasRenderingContext2D, x: number, y: number, radiu
   context.fill();
 }
 
-/** Ivory faces with 1 to 6 pips, in BoxGeometry's face order so opposite faces add up to 7. */
-function useDieFaces(): CanvasTexture[] {
-  const textures = useMemo(
-    () =>
-      [1, 6, 2, 5, 3, 4].map((pips) => {
-        const canvas = document.createElement("canvas");
-        canvas.width = canvas.height = 64;
-        const context = canvas.getContext("2d")!;
-        context.fillStyle = "#f2ead8";
-        context.fillRect(0, 0, 64, 64);
-        context.fillStyle = pips === 1 ? "#c0142f" : "#1a1416";
-        for (const [px, py] of PIP_LAYOUT[pips]) {
-          context.beginPath();
-          context.arc(32 + px * 18, 32 + py * 18, pips === 1 ? 9 : 6, 0, Math.PI * 2);
-          context.fill();
-        }
-        const result = new CanvasTexture(canvas);
-        result.colorSpace = SRGBColorSpace;
-        return result;
-      }),
-    [],
-  );
-  useEffect(() => () => textures.forEach((texture) => texture.dispose()), [textures]);
-  return textures;
-}
-
 const PIP_LAYOUT: Record<number, [number, number][]> = {
   1: [[0, 0]],
   2: [
@@ -476,6 +427,21 @@ const PIP_LAYOUT: Record<number, [number, number][]> = {
     [1, 1],
   ],
 };
+
+/** Ivory faces with 1 to 6 pips, in BoxGeometry's face order so opposite faces add up to 7. */
+const DIE_LOOKS: CanvasLook[] = [1, 6, 2, 5, 3, 4].map((pips) => ({
+  size: 64,
+  draw: (context) => {
+    context.fillStyle = "#f2ead8";
+    context.fillRect(0, 0, 64, 64);
+    context.fillStyle = pips === 1 ? "#c0142f" : "#1a1416";
+    for (const [px, py] of PIP_LAYOUT[pips]) {
+      context.beginPath();
+      context.arc(32 + px * 18, 32 + py * 18, pips === 1 ? 9 : 6, 0, Math.PI * 2);
+      context.fill();
+    }
+  },
+}));
 
 /** Crimson and black diamonds edged in gold, scuffed, fading out towards the rim. */
 const paintHarlequin: Painter = (context, size, random) => {

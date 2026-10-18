@@ -5,7 +5,6 @@ import { useEffect, useMemo, useRef } from "react";
 import {
   AdditiveBlending,
   BufferGeometry,
-  CanvasTexture,
   Color,
   DodecahedronGeometry,
   DoubleSide,
@@ -26,8 +25,8 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { fadedGroundTexture, paintCanvas, scatterAround } from "./ground";
-import { useNoiseTexture, type NoiseLook } from "./noiseTexture";
+import { scatterAround } from "./sceneryKit";
+import { useCanvasTexture, useNoiseTexture, type NoiseLook, type Painter } from "./textures";
 
 const GROUND_RADIUS = 1;
 /** The low parapet closing the terrace behind him: blocks along the back arc (angles in radians, -π/2 straight back). */
@@ -55,7 +54,7 @@ const BOLT = new Color("#fff6c8").multiplyScalar(2);
  * censer smoking, a bronze bell in its frame, prayer flags, and lightning flickering in the sky. Origin on the floor.
  */
 export function StormTemple() {
-  const floor = useTerraceSlabs();
+  const floor = useCanvasTexture({ size: 512, draw: paintTerraceSlabs, seed: 139, fadeFrom: 0.5 });
   const stone = useNoiseTexture(STONE);
   const materials = useMemo(
     () => ({
@@ -485,52 +484,44 @@ function boltGeometry(seed: number, x: number, drift: number): BufferGeometry {
 }
 
 /** Big square slabs worn smooth in the middle, mossy joints and cracks, fading out towards the rim. */
-function useTerraceSlabs(): CanvasTexture {
-  const texture = useMemo(() => {
-    const size = 512;
-    const { canvas, context } = paintCanvas(size);
-    const random = seededRandom(139);
-    context.fillStyle = "#3f4a32";
-    context.fillRect(0, 0, size, size);
-    const slab = 92;
-    for (let row = -1; row * slab < size; row++) {
-      const offset = row % 2 ? slab / 2 : 0;
-      for (let column = -1; column * slab < size + slab; column++) {
-        const shade = 112 + random() * 34;
-        context.fillStyle = `rgb(${shade + 6},${shade},${shade - 10})`;
-        context.fillRect(column * slab + offset + 3, row * slab + 3, slab - 6, slab - 6);
-      }
+const paintTerraceSlabs: Painter = (context, size, random) => {
+  context.fillStyle = "#3f4a32";
+  context.fillRect(0, 0, size, size);
+  const slab = 92;
+  for (let row = -1; row * slab < size; row++) {
+    const offset = row % 2 ? slab / 2 : 0;
+    for (let column = -1; column * slab < size + slab; column++) {
+      const shade = 112 + random() * 34;
+      context.fillStyle = `rgb(${shade + 6},${shade},${shade - 10})`;
+      context.fillRect(column * slab + offset + 3, row * slab + 3, slab - 6, slab - 6);
     }
-    for (let crack = 0; crack < 18; crack++) {
-      let x = random() * size;
-      let y = random() * size;
-      let angle = random() * Math.PI * 2;
-      context.strokeStyle = "rgba(40,38,32,0.55)";
-      context.lineWidth = 1 + random();
-      context.beginPath();
-      context.moveTo(x, y);
-      for (let step = 0; step < 4; step++) {
-        angle += (random() - 0.5) * 1.2;
-        x += Math.cos(angle) * 14;
-        y += Math.sin(angle) * 14;
-        context.lineTo(x, y);
-      }
-      context.stroke();
+  }
+  for (let crack = 0; crack < 18; crack++) {
+    let x = random() * size;
+    let y = random() * size;
+    let angle = random() * Math.PI * 2;
+    context.strokeStyle = "rgba(40,38,32,0.55)";
+    context.lineWidth = 1 + random();
+    context.beginPath();
+    context.moveTo(x, y);
+    for (let step = 0; step < 4; step++) {
+      angle += (random() - 0.5) * 1.2;
+      x += Math.cos(angle) * 14;
+      y += Math.sin(angle) * 14;
+      context.lineTo(x, y);
     }
-    for (let fleck = 0; fleck < 3600; fleck++) {
-      context.fillStyle = random() < 0.5 ? "rgba(50,46,40,0.3)" : "rgba(200,192,176,0.25)";
-      context.fillRect(random() * size, random() * size, 1 + random() * 2, 1 + random() * 2);
-    }
-    // Paler where generations of feet have trained on it.
-    const worn = context.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size * 0.3);
-    worn.addColorStop(0, "rgba(214,206,186,0.35)");
-    worn.addColorStop(1, "rgba(214,206,186,0)");
-    context.fillStyle = worn;
-    context.fillRect(0, 0, size, size);
-    return fadedGroundTexture(canvas, 0.5);
-  }, []);
-  useEffect(() => () => texture.dispose(), [texture]);
-  return texture;
-}
+    context.stroke();
+  }
+  for (let fleck = 0; fleck < 3600; fleck++) {
+    context.fillStyle = random() < 0.5 ? "rgba(50,46,40,0.3)" : "rgba(200,192,176,0.25)";
+    context.fillRect(random() * size, random() * size, 1 + random() * 2, 1 + random() * 2);
+  }
+  // Paler where generations of feet have trained on it.
+  const worn = context.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size * 0.3);
+  worn.addColorStop(0, "rgba(214,206,186,0.35)");
+  worn.addColorStop(1, "rgba(214,206,186,0)");
+  context.fillStyle = worn;
+  context.fillRect(0, 0, size, size);
+};
 
 const STONE: NoiseLook = { base: [124, 118, 104], dark: [70, 66, 58], light: [168, 162, 146], fadeOut: false };

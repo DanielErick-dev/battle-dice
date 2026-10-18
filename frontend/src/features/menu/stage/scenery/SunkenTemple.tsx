@@ -21,8 +21,7 @@ import {
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom, type RandomSource } from "@/game/domain/random";
-import { useCanvasTexture, type CanvasLook } from "./canvasTexture";
-import { useNoiseTexture, type NoiseLook } from "./noiseTexture";
+import { useCanvasTexture, useNoiseTexture, type CanvasLook, type NoiseLook } from "./textures";
 
 const FLOOR_RADIUS = 1;
 /** Branching coral: `size` scales the whole tree. */

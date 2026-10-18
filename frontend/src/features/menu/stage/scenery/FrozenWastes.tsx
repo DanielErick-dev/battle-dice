@@ -13,7 +13,7 @@ import {
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { iceShard } from "@/features/match/scene/character/ice";
 import { seededRandom } from "@/game/domain/random";
-import { useNoiseTexture, type NoiseLook } from "./noiseTexture";
+import { useNoiseTexture, type NoiseLook } from "./textures";
 
 const SNOW_RADIUS = 1;
 /** `height` is the tallest shard's. Uneven on purpose: one big mass, smaller outcrops elsewhere. */

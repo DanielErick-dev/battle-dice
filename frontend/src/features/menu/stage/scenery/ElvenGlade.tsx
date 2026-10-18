@@ -6,15 +6,12 @@ import {
   AdditiveBlending,
   BufferAttribute,
   BufferGeometry,
-  CanvasTexture,
   CatmullRomCurve3,
   Color,
   DoubleSide,
   MeshStandardMaterial,
   PlaneGeometry,
-  RepeatWrapping,
   SpriteMaterial,
-  SRGBColorSpace,
   TubeGeometry,
   Vector3,
   type Group,
@@ -22,8 +19,8 @@ import {
 import { Prop, usePropMesh } from "@/features/match/scene/character/props";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { fadedGroundTexture, grassTuft, paintCanvas, scatterAround } from "./ground";
-import { useNoiseTexture, type NoiseLook } from "./noiseTexture";
+import { grassTuft, scatterAround } from "./sceneryKit";
+import { useCanvasTexture, useNoiseTexture, type NoiseLook, type Painter } from "./textures";
 
 const GROUND_RADIUS = 1;
 const LOG = { x: -0.2, z: -0.78, turn: 0.2, length: 0.9, radius: 0.085 };
@@ -93,11 +90,11 @@ const FIREFLY = new Color("#e4ff7a").multiplyScalar(1.8);
  * glowing mushrooms, a practice target and arrows in the ground, fireflies drifting. Origin on the floor.
  */
 export function ElvenGlade() {
-  const moss = useMossFloor();
+  const moss = useCanvasTexture({ size: 512, draw: paintMossFloor, seed: 37, fadeFrom: 0.45 });
   const bark = useNoiseTexture(BARK);
   const lichen = useNoiseTexture(LICHEN);
   const straw = useNoiseTexture(STRAW);
-  const face = useTargetFace();
+  const face = useCanvasTexture({ size: 256, draw: paintTargetFace, seed: 73, tile: true });
   const disc = useSoftDisc();
   const arrow = usePropMesh("elvenArrow");
   const materials = useMemo(
@@ -270,7 +267,7 @@ function Target({
 }
 
 function Ferns() {
-  const texture = useFrondTexture();
+  const texture = useCanvasTexture({ size: 128, height: 384, draw: paintFrond, seed: 61 });
   const geometry = useMemo(() => {
     const result = new PlaneGeometry(0.1, 0.34, 1, 8);
     result.translate(0, 0.17, 0);
@@ -429,125 +426,97 @@ function Fireflies() {
 }
 
 /** Moss in mottled greens, bare earth showing through, blades of grass and a few fallen leaves. */
-function useMossFloor(): CanvasTexture {
-  const texture = useMemo(() => {
-    const size = 512;
-    const { canvas, context } = paintCanvas(size);
-    const random = seededRandom(37);
-    context.fillStyle = "#26361a";
-    context.fillRect(0, 0, size, size);
-    const blot = (x: number, y: number, radius: number, colour: string) => {
-      const gradient = context.createRadialGradient(x, y, 0, x, y, radius);
-      gradient.addColorStop(0, colour);
-      gradient.addColorStop(1, "rgba(0,0,0,0)");
-      context.fillStyle = gradient;
-      context.fillRect(x - radius, y - radius, radius * 2, radius * 2);
-    };
-    for (let index = 0; index < 40; index++)
-      blot(random() * size, random() * size, 14 + random() * 30, "rgba(58,40,24,0.7)");
-    for (let index = 0; index < 220; index++) {
-      const green = random() < 0.5 ? "rgba(84,124,40,0.55)" : "rgba(40,70,26,0.6)";
-      blot(random() * size, random() * size, 8 + random() * 26, green);
-    }
-    context.lineCap = "round";
-    for (let index = 0; index < 4200; index++) {
-      const x = random() * size;
-      const y = random() * size;
-      const angle = random() * Math.PI * 2;
-      const length = 2 + random() * 6;
-      const light = random();
-      context.strokeStyle =
-        light < 0.4 ? "rgba(140,190,70,0.45)" : light < 0.8 ? "rgba(60,96,32,0.5)" : "rgba(18,28,12,0.5)";
-      context.lineWidth = 0.8 + random();
-      context.beginPath();
-      context.moveTo(x, y);
-      context.lineTo(x + Math.cos(angle) * length, y + Math.sin(angle) * length);
-      context.stroke();
-    }
-    for (let index = 0; index < 90; index++) {
+const paintMossFloor: Painter = (context, size, random) => {
+  context.fillStyle = "#26361a";
+  context.fillRect(0, 0, size, size);
+  const blot = (x: number, y: number, radius: number, colour: string) => {
+    const gradient = context.createRadialGradient(x, y, 0, x, y, radius);
+    gradient.addColorStop(0, colour);
+    gradient.addColorStop(1, "rgba(0,0,0,0)");
+    context.fillStyle = gradient;
+    context.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+  };
+  for (let index = 0; index < 40; index++)
+    blot(random() * size, random() * size, 14 + random() * 30, "rgba(58,40,24,0.7)");
+  for (let index = 0; index < 220; index++) {
+    const green = random() < 0.5 ? "rgba(84,124,40,0.55)" : "rgba(40,70,26,0.6)";
+    blot(random() * size, random() * size, 8 + random() * 26, green);
+  }
+  context.lineCap = "round";
+  for (let index = 0; index < 4200; index++) {
+    const x = random() * size;
+    const y = random() * size;
+    const angle = random() * Math.PI * 2;
+    const length = 2 + random() * 6;
+    const light = random();
+    context.strokeStyle =
+      light < 0.4 ? "rgba(140,190,70,0.45)" : light < 0.8 ? "rgba(60,96,32,0.5)" : "rgba(18,28,12,0.5)";
+    context.lineWidth = 0.8 + random();
+    context.beginPath();
+    context.moveTo(x, y);
+    context.lineTo(x + Math.cos(angle) * length, y + Math.sin(angle) * length);
+    context.stroke();
+  }
+  for (let index = 0; index < 90; index++) {
+    context.save();
+    context.translate(random() * size, random() * size);
+    context.rotate(random() * Math.PI);
+    context.fillStyle = ["rgba(176,140,48,0.75)", "rgba(140,92,36,0.7)", "rgba(156,170,60,0.7)"][index % 3];
+    context.beginPath();
+    context.ellipse(0, 0, 4 + random() * 3, 2 + random() * 1.5, 0, 0, Math.PI * 2);
+    context.fill();
+    context.restore();
+  }
+};
+
+/** A fern frond on transparent: a stalk with paired leaflets shrinking towards the tip. */
+const paintFrond: Painter = (context, size, random) => {
+  const width = 128;
+  const height = 384;
+  context.strokeStyle = "#3d5a1c";
+  context.lineWidth = 3;
+  context.beginPath();
+  context.moveTo(width / 2, height);
+  context.lineTo(width / 2, 6);
+  context.stroke();
+  for (let y = height - 20; y > 10; y -= 14) {
+    const along = 1 - y / height;
+    const reach = (width / 2 - 6) * Math.sin(Math.PI * Math.min(1, 0.25 + along * 0.85)) * (1 - along * 0.55);
+    for (const side of [-1, 1]) {
+      const shade = 90 + random() * 50;
+      context.fillStyle = `rgb(${shade * 0.45},${shade},${shade * 0.3})`;
       context.save();
-      context.translate(random() * size, random() * size);
-      context.rotate(random() * Math.PI);
-      context.fillStyle = ["rgba(176,140,48,0.75)", "rgba(140,92,36,0.7)", "rgba(156,170,60,0.7)"][index % 3];
+      context.translate(width / 2, y);
+      context.rotate(side * -0.35);
       context.beginPath();
-      context.ellipse(0, 0, 4 + random() * 3, 2 + random() * 1.5, 0, 0, Math.PI * 2);
+      context.ellipse((side * reach) / 2, 0, reach / 2, 5.5, 0, 0, Math.PI * 2);
       context.fill();
       context.restore();
     }
-    return fadedGroundTexture(canvas, 0.45);
-  }, []);
-  useEffect(() => () => texture.dispose(), [texture]);
-  return texture;
-}
-
-/** A fern frond on transparent: a stalk with paired leaflets shrinking towards the tip. */
-function useFrondTexture(): CanvasTexture {
-  const texture = useMemo(() => {
-    const width = 128;
-    const height = 384;
-    const { canvas, context } = paintCanvas(width, height);
-    const random = seededRandom(61);
-    context.strokeStyle = "#3d5a1c";
-    context.lineWidth = 3;
-    context.beginPath();
-    context.moveTo(width / 2, height);
-    context.lineTo(width / 2, 6);
-    context.stroke();
-    for (let y = height - 20; y > 10; y -= 14) {
-      const along = 1 - y / height;
-      const reach = (width / 2 - 6) * Math.sin(Math.PI * Math.min(1, 0.25 + along * 0.85)) * (1 - along * 0.55);
-      for (const side of [-1, 1]) {
-        const shade = 90 + random() * 50;
-        context.fillStyle = `rgb(${shade * 0.45},${shade},${shade * 0.3})`;
-        context.save();
-        context.translate(width / 2, y);
-        context.rotate(side * -0.35);
-        context.beginPath();
-        context.ellipse((side * reach) / 2, 0, reach / 2, 5.5, 0, 0, Math.PI * 2);
-        context.fill();
-        context.restore();
-      }
-    }
-    const result = new CanvasTexture(canvas);
-    result.colorSpace = SRGBColorSpace;
-    return result;
-  }, []);
-  useEffect(() => () => texture.dispose(), [texture]);
-  return texture;
-}
+  }
+};
 
 /** The face of the butt: painted rings over straw, weathered. */
-function useTargetFace(): CanvasTexture {
-  const texture = useMemo(() => {
-    const size = 256;
-    const { canvas, context } = paintCanvas(size);
-    const random = seededRandom(73);
-    const rings = ["#d8cba4", "#3b5a2a", "#d8cba4", "#7a2a1c", "#d8b04a"];
-    rings.forEach((colour, index) => {
-      context.fillStyle = colour;
-      context.beginPath();
-      context.arc(size / 2, size / 2, (size / 2) * (1 - index / rings.length), 0, Math.PI * 2);
-      context.fill();
-    });
-    // Straw poking through the paint.
-    for (let index = 0; index < 900; index++) {
-      context.strokeStyle = random() < 0.5 ? "rgba(120,96,48,0.35)" : "rgba(230,210,150,0.3)";
-      const x = random() * size;
-      const y = random() * size;
-      const angle = random() * Math.PI;
-      context.beginPath();
-      context.moveTo(x, y);
-      context.lineTo(x + Math.cos(angle) * 6, y + Math.sin(angle) * 6);
-      context.stroke();
-    }
-    const result = new CanvasTexture(canvas);
-    result.colorSpace = SRGBColorSpace;
-    result.wrapS = result.wrapT = RepeatWrapping;
-    return result;
-  }, []);
-  useEffect(() => () => texture.dispose(), [texture]);
-  return texture;
-}
+const paintTargetFace: Painter = (context, size, random) => {
+  const rings = ["#d8cba4", "#3b5a2a", "#d8cba4", "#7a2a1c", "#d8b04a"];
+  rings.forEach((colour, index) => {
+    context.fillStyle = colour;
+    context.beginPath();
+    context.arc(size / 2, size / 2, (size / 2) * (1 - index / rings.length), 0, Math.PI * 2);
+    context.fill();
+  });
+  // Straw poking through the paint.
+  for (let index = 0; index < 900; index++) {
+    context.strokeStyle = random() < 0.5 ? "rgba(120,96,48,0.35)" : "rgba(230,210,150,0.3)";
+    const x = random() * size;
+    const y = random() * size;
+    const angle = random() * Math.PI;
+    context.beginPath();
+    context.moveTo(x, y);
+    context.lineTo(x + Math.cos(angle) * 6, y + Math.sin(angle) * 6);
+    context.stroke();
+  }
+};
 
 const BARK: NoiseLook = { base: [62, 46, 32], dark: [30, 22, 16], light: [96, 78, 56], fadeOut: false };
 const LICHEN: NoiseLook = { base: [70, 104, 38], dark: [36, 58, 22], light: [124, 160, 66], fadeOut: false };

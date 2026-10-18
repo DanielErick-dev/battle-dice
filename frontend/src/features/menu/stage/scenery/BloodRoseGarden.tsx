@@ -28,8 +28,7 @@ import {
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { useCanvasTexture } from "./canvasTexture";
-import { useNoiseTexture, type NoiseLook } from "./noiseTexture";
+import { useCanvasTexture, useNoiseTexture, type NoiseLook } from "./textures";
 
 const SOIL_RADIUS = 1;
 const CIRCLE_RADIUS = 0.8;

@@ -6,7 +6,6 @@ import {
   AdditiveBlending,
   BufferAttribute,
   BufferGeometry,
-  CanvasTexture,
   Color,
   CylinderGeometry,
   DoubleSide,
@@ -22,7 +21,8 @@ import {
 import { iceShard } from "@/features/match/scene/character/ice";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { fadedGroundTexture, grassTuft, paintCanvas, scatterAround } from "./ground";
+import { grassTuft, scatterAround } from "./sceneryKit";
+import { useCanvasTexture, type Painter } from "./textures";
 
 const GROUND_RADIUS = 1;
 /** `height` is the tallest shard's; `violet` clusters take the fairy-light lilac instead of cyan. */
@@ -55,7 +55,7 @@ const SPARKLE_HEIGHT = 2;
  * lilac crystals, a fairy ring of shining flowers, hovering crystal motes and sparkles. Origin on the floor.
  */
 export function CrystalGrove() {
-  const ground = useFrostMossFloor();
+  const ground = useCanvasTexture({ size: 512, draw: paintFrostMoss, seed: 79, fadeFrom: 0.45 });
   const disc = useSoftDisc();
   const materials = useMemo(
     () => ({
@@ -196,7 +196,7 @@ export function CrystalGrove() {
 
 /** Glowing flowers in three draws: stems, petal heads, and a glow over each that breathes in turn. */
 function Flowers() {
-  const petals = usePetalTexture();
+  const petals = useCanvasTexture({ size: 128, draw: paintPetals, linear: true });
   const disc = useSoftDisc();
   const parts = useMemo(() => {
     const random = seededRandom(89);
@@ -321,7 +321,7 @@ function FrostTufts() {
 
 /** Four-pointed glints rising slowly round her in a lazy spiral, twinkling (additive, so dark ones vanish). */
 function Sparkles() {
-  const star = useStarTexture();
+  const star = useCanvasTexture({ size: 64, draw: paintStar, linear: true });
   const { geometry, sparks } = useMemo(() => {
     const random = seededRandom(101);
     const sparks = Array.from({ length: SPARKLES }, () => ({
@@ -376,93 +376,71 @@ function Sparkles() {
 }
 
 /** Soft snow over moss: pale blue-white with teal moss and lilac shadows showing through, and frost glints. */
-function useFrostMossFloor(): CanvasTexture {
-  const texture = useMemo(() => {
-    const size = 512;
-    const { canvas, context } = paintCanvas(size);
-    const random = seededRandom(79);
-    context.fillStyle = "#cfe7ef";
-    context.fillRect(0, 0, size, size);
-    const blot = (x: number, y: number, radius: number, colour: string) => {
-      const gradient = context.createRadialGradient(x, y, 0, x, y, radius);
-      gradient.addColorStop(0, colour);
-      gradient.addColorStop(1, "rgba(0,0,0,0)");
-      context.fillStyle = gradient;
-      context.fillRect(x - radius, y - radius, radius * 2, radius * 2);
-    };
-    for (let index = 0; index < 120; index++) {
-      blot(random() * size, random() * size, 10 + random() * 30, "rgba(62,150,140,0.4)");
-    }
-    for (let index = 0; index < 60; index++) {
-      blot(random() * size, random() * size, 16 + random() * 34, "rgba(150,130,220,0.22)");
-    }
-    for (let index = 0; index < 160; index++) {
-      blot(random() * size, random() * size, 12 + random() * 26, "rgba(246,252,255,0.7)");
-    }
-    for (let index = 0; index < 1400; index++) {
-      context.fillStyle = random() < 0.7 ? "rgba(255,255,255,0.9)" : "rgba(160,240,255,0.8)";
-      context.fillRect(random() * size, random() * size, 1 + random(), 1 + random());
-    }
-    return fadedGroundTexture(canvas, 0.45);
-  }, []);
-  useEffect(() => () => texture.dispose(), [texture]);
-  return texture;
-}
+const paintFrostMoss: Painter = (context, size, random) => {
+  context.fillStyle = "#cfe7ef";
+  context.fillRect(0, 0, size, size);
+  const blot = (x: number, y: number, radius: number, colour: string) => {
+    const gradient = context.createRadialGradient(x, y, 0, x, y, radius);
+    gradient.addColorStop(0, colour);
+    gradient.addColorStop(1, "rgba(0,0,0,0)");
+    context.fillStyle = gradient;
+    context.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+  };
+  for (let index = 0; index < 120; index++) {
+    blot(random() * size, random() * size, 10 + random() * 30, "rgba(62,150,140,0.4)");
+  }
+  for (let index = 0; index < 60; index++) {
+    blot(random() * size, random() * size, 16 + random() * 34, "rgba(150,130,220,0.22)");
+  }
+  for (let index = 0; index < 160; index++) {
+    blot(random() * size, random() * size, 12 + random() * 26, "rgba(246,252,255,0.7)");
+  }
+  for (let index = 0; index < 1400; index++) {
+    context.fillStyle = random() < 0.7 ? "rgba(255,255,255,0.9)" : "rgba(160,240,255,0.8)";
+    context.fillRect(random() * size, random() * size, 1 + random(), 1 + random());
+  }
+};
 
 /** Five rounded petals, white at the heart and shading off at the tips (tinted per flower). */
-function usePetalTexture(): CanvasTexture {
-  const texture = useMemo(() => {
-    const size = 128;
-    const { canvas, context } = paintCanvas(size);
-    const centre = size / 2;
-    for (let petal = 0; petal < 5; petal++) {
-      context.save();
-      context.translate(centre, centre);
-      context.rotate((petal / 5) * Math.PI * 2);
-      const gradient = context.createLinearGradient(0, 0, 0, -centre);
-      gradient.addColorStop(0, "rgba(255,255,255,1)");
-      gradient.addColorStop(1, "rgba(255,255,255,0.35)");
-      context.fillStyle = gradient;
-      context.beginPath();
-      context.ellipse(0, -centre * 0.48, centre * 0.27, centre * 0.46, 0, 0, Math.PI * 2);
-      context.fill();
-      context.restore();
-    }
-    context.fillStyle = "rgba(255,250,210,1)";
+const paintPetals: Painter = (context, size) => {
+  const centre = size / 2;
+  for (let petal = 0; petal < 5; petal++) {
+    context.save();
+    context.translate(centre, centre);
+    context.rotate((petal / 5) * Math.PI * 2);
+    const gradient = context.createLinearGradient(0, 0, 0, -centre);
+    gradient.addColorStop(0, "rgba(255,255,255,1)");
+    gradient.addColorStop(1, "rgba(255,255,255,0.35)");
+    context.fillStyle = gradient;
     context.beginPath();
-    context.arc(centre, centre, size * 0.08, 0, Math.PI * 2);
+    context.ellipse(0, -centre * 0.48, centre * 0.27, centre * 0.46, 0, 0, Math.PI * 2);
     context.fill();
-    return new CanvasTexture(canvas);
-  }, []);
-  useEffect(() => () => texture.dispose(), [texture]);
-  return texture;
-}
+    context.restore();
+  }
+  context.fillStyle = "rgba(255,250,210,1)";
+  context.beginPath();
+  context.arc(centre, centre, size * 0.08, 0, Math.PI * 2);
+  context.fill();
+};
 
 /** A soft glint with four long rays, white on transparent. */
-function useStarTexture(): CanvasTexture {
-  const texture = useMemo(() => {
-    const size = 64;
-    const { canvas, context } = paintCanvas(size);
-    const centre = size / 2;
-    const core = context.createRadialGradient(centre, centre, 0, centre, centre, centre * 0.45);
-    core.addColorStop(0, "rgba(255,255,255,1)");
-    core.addColorStop(1, "rgba(255,255,255,0)");
-    context.fillStyle = core;
-    context.fillRect(0, 0, size, size);
-    context.fillStyle = "rgba(255,255,255,0.85)";
-    for (const turn of [0, Math.PI / 2]) {
-      context.save();
-      context.translate(centre, centre);
-      context.rotate(turn);
-      context.beginPath();
-      context.moveTo(-centre, 0);
-      context.quadraticCurveTo(0, -2, centre, 0);
-      context.quadraticCurveTo(0, 2, -centre, 0);
-      context.fill();
-      context.restore();
-    }
-    return new CanvasTexture(canvas);
-  }, []);
-  useEffect(() => () => texture.dispose(), [texture]);
-  return texture;
-}
+const paintStar: Painter = (context, size) => {
+  const centre = size / 2;
+  const core = context.createRadialGradient(centre, centre, 0, centre, centre, centre * 0.45);
+  core.addColorStop(0, "rgba(255,255,255,1)");
+  core.addColorStop(1, "rgba(255,255,255,0)");
+  context.fillStyle = core;
+  context.fillRect(0, 0, size, size);
+  context.fillStyle = "rgba(255,255,255,0.85)";
+  for (const turn of [0, Math.PI / 2]) {
+    context.save();
+    context.translate(centre, centre);
+    context.rotate(turn);
+    context.beginPath();
+    context.moveTo(-centre, 0);
+    context.quadraticCurveTo(0, -2, centre, 0);
+    context.quadraticCurveTo(0, 2, -centre, 0);
+    context.fill();
+    context.restore();
+  }
+};

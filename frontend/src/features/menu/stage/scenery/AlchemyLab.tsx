@@ -18,7 +18,8 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { taperedTube, usePaintedTexture, type Painter } from "./sceneryKit";
+import { taperedTube } from "./sceneryKit";
+import { useCanvasTexture, type Painter } from "./textures";
 
 const FLOOR_RADIUS = 1;
 const CIRCLE_SIZE = 1.3;
@@ -59,8 +60,8 @@ const FLAME = new Color("#7dffb0").multiplyScalar(2);
 
 /** The Emerald Alchemist's stage: tiled floor, a chalk circle, a bench of bubbling flasks and a brass still. */
 export function AlchemyLab() {
-  const tiles = usePaintedTexture(paintTiles, 13, 512, 0.3);
-  const chalk = usePaintedTexture(paintChalkCircle, 3, 512);
+  const tiles = useCanvasTexture({ size: 512, draw: paintTiles, seed: 13, fadeFrom: 0.3 });
+  const chalk = useCanvasTexture({ size: 512, draw: paintChalkCircle, seed: 3 });
   const disc = useSoftDisc();
   const materials = useMemo(
     () => ({

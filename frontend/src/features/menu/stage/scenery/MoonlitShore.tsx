@@ -17,8 +17,7 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { useCanvasTexture, type CanvasLook } from "./canvasTexture";
-import { useNoiseTexture, type NoiseLook } from "./noiseTexture";
+import { useCanvasTexture, useNoiseTexture, type CanvasLook, type NoiseLook } from "./textures";
 
 const GROUND_RADIUS = 1;
 /** Smooth stones on the sand: `size` is the long side; flattened as the tide leaves them. */

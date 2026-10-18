@@ -13,8 +13,8 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { roughen, useCanvasTexture } from "./canvasTexture";
-import { useNoiseTexture, type NoiseLook } from "./noiseTexture";
+import { roughen } from "./sceneryKit";
+import { useCanvasTexture, useNoiseTexture, type NoiseLook } from "./textures";
 
 const FLOOR_RADIUS = 1;
 const GHOST = new Color("#9be3ff").multiplyScalar(1.6);

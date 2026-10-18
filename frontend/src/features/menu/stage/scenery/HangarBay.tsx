@@ -15,7 +15,7 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { useCanvasTexture, type CanvasLook } from "./canvasTexture";
+import { useCanvasTexture, type CanvasLook } from "./textures";
 
 const FLOOR_RADIUS = 1;
 /** Across-corners radius of a floor hex, in canvas pixels. */

@@ -16,8 +16,7 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { useCanvasTexture, type CanvasLook } from "./canvasTexture";
-import { useNoiseTexture, type NoiseLook } from "./noiseTexture";
+import { useCanvasTexture, useNoiseTexture, type CanvasLook, type NoiseLook } from "./textures";
 
 /** Tooth size shared by every gear, so any two of them mesh: radius = teeth × MODULE. */
 const MODULE = 0.018;

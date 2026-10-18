@@ -13,7 +13,7 @@ import {
 } from "three";
 import { drawParchment, pageStrokes } from "@/features/match/scene/character/parchment";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
-import { seededRandom } from "@/game/domain/random";
+import { useCanvasTexture, type Painter } from "./textures";
 
 const FLOOR_RADIUS = 1.0;
 const CANDLES = [
@@ -46,7 +46,7 @@ const HALO = new Color("#ff9a3d");
 
 /** The Flesh Scribe's stage instead of the rune pedestal (origin on the floor); flames are sprites, not lights. */
 export function Scriptorium() {
-  const floor = useFlagstones();
+  const floor = useCanvasTexture({ size: 512, draw: paintFlagstones, seed: 19, fadeFrom: 0.5 });
   const pages = useStrewnPages();
   const disc = useSoftDisc();
   const materials = useMemo(
@@ -160,43 +160,25 @@ function Book({ leather, paper, level }: { leather: string; paper: MeshStandardM
 }
 
 /** Staggered slabs with dark joints and flecks, fading out towards the rim. */
-function useFlagstones(): CanvasTexture {
-  const texture = useMemo(() => {
-    const size = 512;
-    const canvas = document.createElement("canvas");
-    canvas.width = canvas.height = size;
-    const context = canvas.getContext("2d")!;
-    const random = seededRandom(19);
-    context.fillStyle = "#16120f";
-    context.fillRect(0, 0, size, size);
-    const row = 74;
-    for (let y = 0; y < size; y += row) {
-      const offset = (y / row) % 2 ? row * 0.6 : 0;
-      for (let x = -offset; x < size;) {
-        const width = row * (0.9 + random() * 0.9);
-        const shade = 38 + random() * 22;
-        context.fillStyle = `rgb(${shade + 4},${shade},${shade - 4})`;
-        context.fillRect(x + 3, y + 3, width - 6, row - 6);
-        x += width;
-      }
+const paintFlagstones: Painter = (context, size, random) => {
+  context.fillStyle = "#16120f";
+  context.fillRect(0, 0, size, size);
+  const row = 74;
+  for (let y = 0; y < size; y += row) {
+    const offset = (y / row) % 2 ? row * 0.6 : 0;
+    for (let x = -offset; x < size;) {
+      const width = row * (0.9 + random() * 0.9);
+      const shade = 38 + random() * 22;
+      context.fillStyle = `rgb(${shade + 4},${shade},${shade - 4})`;
+      context.fillRect(x + 3, y + 3, width - 6, row - 6);
+      x += width;
     }
-    for (let fleck = 0; fleck < 3200; fleck++) {
-      context.fillStyle = random() < 0.5 ? "rgba(10,8,6,0.35)" : "rgba(90,84,74,0.25)";
-      context.fillRect(random() * size, random() * size, 1 + random() * 2, 1 + random() * 2);
-    }
-    const fade = context.createRadialGradient(size / 2, size / 2, size * 0.25, size / 2, size / 2, size / 2);
-    fade.addColorStop(0, "rgba(0,0,0,1)");
-    fade.addColorStop(1, "rgba(0,0,0,0)");
-    context.globalCompositeOperation = "destination-in";
-    context.fillStyle = fade;
-    context.fillRect(0, 0, size, size);
-    const result = new CanvasTexture(canvas);
-    result.colorSpace = SRGBColorSpace;
-    return result;
-  }, []);
-  useEffect(() => () => texture.dispose(), [texture]);
-  return texture;
-}
+  }
+  for (let fleck = 0; fleck < 3200; fleck++) {
+    context.fillStyle = random() < 0.5 ? "rgba(10,8,6,0.35)" : "rgba(90,84,74,0.25)";
+    context.fillRect(random() * size, random() * size, 1 + random() * 2, 1 + random() * 2);
+  }
+};
 
 function useStrewnPages(): CanvasTexture[] {
   const pages = useMemo(

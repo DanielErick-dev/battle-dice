@@ -19,7 +19,7 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { useCanvasTexture } from "./canvasTexture";
+import { useCanvasTexture } from "./textures";
 
 const FLOOR_RADIUS = 1;
 const FLAME = new Color("#ff6a3a").multiplyScalar(2);

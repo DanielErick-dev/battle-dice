@@ -18,8 +18,8 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { useNoiseTexture, type NoiseLook } from "./noiseTexture";
-import { ABOVE_FLOOR, taperedTube, usePaintedTexture, type Painter } from "./sceneryKit";
+import { ABOVE_FLOOR, taperedTube } from "./sceneryKit";
+import { useCanvasTexture, useNoiseTexture, type NoiseLook, type Painter } from "./textures";
 
 const GROUND_RADIUS = 1;
 /** Thick end first: they come out of the earth past the rim, arch and dive back in (cut at the floor). */
@@ -110,10 +110,10 @@ const FLAME = new Color("#ff9a3a").multiplyScalar(2.2);
 
 /** The Crimson Witch's stage: a forest clearing, roots, glowing toadstools, a ring of stones and a blood-red brew. */
 export function WitchHollow() {
-  const soil = usePaintedTexture(paintForestFloor, 31, 512, 0.3);
+  const soil = useCanvasTexture({ size: 512, draw: paintForestFloor, seed: 31, fadeFrom: 0.3 });
   const bark = useNoiseTexture(BARK);
   const stone = useNoiseTexture(STONE);
-  const caps = usePaintedTexture(paintToadstoolCap, 5, 128);
+  const caps = useCanvasTexture({ size: 128, draw: paintToadstoolCap, seed: 5 });
   const disc = useSoftDisc();
   const materials = useMemo(
     () => ({

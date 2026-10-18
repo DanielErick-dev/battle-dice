@@ -4,7 +4,6 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import {
   AdditiveBlending,
-  CanvasTexture,
   Color,
   DodecahedronGeometry,
   DoubleSide,
@@ -20,8 +19,8 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { fadedGroundTexture, grassTuft, paintCanvas, scatterAround } from "./ground";
-import { useNoiseTexture, type NoiseLook } from "./noiseTexture";
+import { grassTuft, scatterAround } from "./sceneryKit";
+import { useCanvasTexture, useNoiseTexture, type NoiseLook, type Painter } from "./textures";
 
 const GROUND_RADIUS = 1;
 /** Crags of the summit behind him (`height` above the ground, sunk a little), and loose boulders. */
@@ -52,7 +51,7 @@ const HALF_WIDTH = 0.8;
  * the four elements circling him, leaves caught in a rising spiral and wind streaks. Origin on the floor.
  */
 export function WindPeak() {
-  const ground = useSummitFloor();
+  const ground = useCanvasTexture({ size: 512, draw: paintSummitFloor, seed: 107, fadeFrom: 0.45 });
   const stone = useNoiseTexture(STONE);
   const materials = useMemo(
     () => ({
@@ -296,7 +295,7 @@ function Elements() {
 
 /** Leaves carried up round him in a widening funnel, tumbling: one instanced draw. */
 function LeafSpiral() {
-  const texture = useLeafTexture();
+  const texture = useCanvasTexture({ size: 64, height: 40, draw: paintLeaf, linear: true });
   const { mesh, leaves } = useMemo(() => {
     const random = seededRandom(113);
     const geometry = new PlaneGeometry(0.05, 0.03);
@@ -440,80 +439,66 @@ function LowClouds() {
 }
 
 /** Bare summit rock with cracks, grit and patches of hardy grass, fading out towards the rim. */
-function useSummitFloor(): CanvasTexture {
-  const texture = useMemo(() => {
-    const size = 512;
-    const { canvas, context } = paintCanvas(size);
-    const random = seededRandom(107);
-    context.fillStyle = "#5a5a52";
-    context.fillRect(0, 0, size, size);
-    const blot = (x: number, y: number, radius: number, colour: string) => {
-      const gradient = context.createRadialGradient(x, y, 0, x, y, radius);
-      gradient.addColorStop(0, colour);
-      gradient.addColorStop(1, "rgba(0,0,0,0)");
-      context.fillStyle = gradient;
-      context.fillRect(x - radius, y - radius, radius * 2, radius * 2);
-    };
-    for (let index = 0; index < 90; index++) {
-      blot(
-        random() * size,
-        random() * size,
-        20 + random() * 40,
-        random() < 0.5 ? "rgba(40,40,36,0.5)" : "rgba(120,118,106,0.45)",
-      );
+const paintSummitFloor: Painter = (context, size, random) => {
+  context.fillStyle = "#5a5a52";
+  context.fillRect(0, 0, size, size);
+  const blot = (x: number, y: number, radius: number, colour: string) => {
+    const gradient = context.createRadialGradient(x, y, 0, x, y, radius);
+    gradient.addColorStop(0, colour);
+    gradient.addColorStop(1, "rgba(0,0,0,0)");
+    context.fillStyle = gradient;
+    context.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+  };
+  for (let index = 0; index < 90; index++) {
+    blot(
+      random() * size,
+      random() * size,
+      20 + random() * 40,
+      random() < 0.5 ? "rgba(40,40,36,0.5)" : "rgba(120,118,106,0.45)",
+    );
+  }
+  for (let index = 0; index < 70; index++) {
+    blot(random() * size, random() * size, 10 + random() * 26, "rgba(96,122,56,0.6)");
+  }
+  context.lineCap = "round";
+  for (let crack = 0; crack < 26; crack++) {
+    let x = random() * size;
+    let y = random() * size;
+    let angle = random() * Math.PI * 2;
+    context.strokeStyle = "rgba(24,24,20,0.6)";
+    context.lineWidth = 1 + random() * 1.5;
+    context.beginPath();
+    context.moveTo(x, y);
+    for (let step = 0; step < 5; step++) {
+      angle += (random() - 0.5) * 1.1;
+      x += Math.cos(angle) * 12;
+      y += Math.sin(angle) * 12;
+      context.lineTo(x, y);
     }
-    for (let index = 0; index < 70; index++) {
-      blot(random() * size, random() * size, 10 + random() * 26, "rgba(96,122,56,0.6)");
-    }
-    context.lineCap = "round";
-    for (let crack = 0; crack < 26; crack++) {
-      let x = random() * size;
-      let y = random() * size;
-      let angle = random() * Math.PI * 2;
-      context.strokeStyle = "rgba(24,24,20,0.6)";
-      context.lineWidth = 1 + random() * 1.5;
-      context.beginPath();
-      context.moveTo(x, y);
-      for (let step = 0; step < 5; step++) {
-        angle += (random() - 0.5) * 1.1;
-        x += Math.cos(angle) * 12;
-        y += Math.sin(angle) * 12;
-        context.lineTo(x, y);
-      }
-      context.stroke();
-    }
-    for (let index = 0; index < 3200; index++) {
-      context.fillStyle = random() < 0.5 ? "rgba(30,30,26,0.4)" : "rgba(150,148,136,0.35)";
-      context.fillRect(random() * size, random() * size, 1 + random() * 2, 1 + random() * 2);
-    }
-    return fadedGroundTexture(canvas, 0.45);
-  }, []);
-  useEffect(() => () => texture.dispose(), [texture]);
-  return texture;
-}
+    context.stroke();
+  }
+  for (let index = 0; index < 3200; index++) {
+    context.fillStyle = random() < 0.5 ? "rgba(30,30,26,0.4)" : "rgba(150,148,136,0.35)";
+    context.fillRect(random() * size, random() * size, 1 + random() * 2, 1 + random() * 2);
+  }
+};
 
 /** A pointed leaf, white with a darker midrib, tinted per instance. */
-function useLeafTexture(): CanvasTexture {
-  const texture = useMemo(() => {
-    const width = 64;
-    const height = 40;
-    const { canvas, context } = paintCanvas(width, height);
-    context.fillStyle = "#ffffff";
-    context.beginPath();
-    context.moveTo(2, height / 2);
-    context.quadraticCurveTo(width * 0.45, -height * 0.15, width - 2, height / 2);
-    context.quadraticCurveTo(width * 0.45, height * 1.15, 2, height / 2);
-    context.fill();
-    context.strokeStyle = "rgba(90,110,80,0.9)";
-    context.lineWidth = 1.5;
-    context.beginPath();
-    context.moveTo(2, height / 2);
-    context.lineTo(width - 6, height / 2);
-    context.stroke();
-    return new CanvasTexture(canvas);
-  }, []);
-  useEffect(() => () => texture.dispose(), [texture]);
-  return texture;
-}
+const paintLeaf: Painter = (context) => {
+  const width = 64;
+  const height = 40;
+  context.fillStyle = "#ffffff";
+  context.beginPath();
+  context.moveTo(2, height / 2);
+  context.quadraticCurveTo(width * 0.45, -height * 0.15, width - 2, height / 2);
+  context.quadraticCurveTo(width * 0.45, height * 1.15, 2, height / 2);
+  context.fill();
+  context.strokeStyle = "rgba(90,110,80,0.9)";
+  context.lineWidth = 1.5;
+  context.beginPath();
+  context.moveTo(2, height / 2);
+  context.lineTo(width - 6, height / 2);
+  context.stroke();
+};
 
 const STONE: NoiseLook = { base: [92, 90, 82], dark: [48, 48, 42], light: [140, 138, 126], fadeOut: false };
