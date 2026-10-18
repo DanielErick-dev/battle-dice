@@ -183,6 +183,7 @@ export const CHARACTERS = {
     playable: true,
     levitates: true,
     shieldColor: "#ef4444",
+    stage: "witchHollow",
   },
   emeraldAlchemist: {
     name: "Alquimista Esmeralda",
@@ -194,6 +195,7 @@ export const CHARACTERS = {
     playable: true,
     shieldColor: "#10b981",
     handProp: "vial",
+    stage: "alchemyLab",
     // Her cast: the vial comes off her belt at 0.9 s, is wound up behind her shoulder and
     // leaves her hand at 2.3 s, when the hand swings forward fastest.
     castPropSeconds: 0.9,
@@ -246,6 +248,7 @@ export const CHARACTERS = {
     ability: "cardGamble",
     playable: true,
     shieldColor: "#dc143c",
+    stage: "cardTable",
     // Her intro: a crouch, a pirouette from 1.5 s, then a pose with a hand held up from about 2.7 s.
     introCards: { spinSeconds: 1.5, revealSeconds: 2.7 },
   },
@@ -351,6 +354,7 @@ export const CHARACTERS = {
     playable: true,
     shieldColor: "#f9a8d4",
     chair: "infernalThrone",
+    stage: "sakuraCourtyard",
   },
   frostfangBerserker: {
     name: "Bjorn Presa-Gélida",

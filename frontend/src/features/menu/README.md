@@ -25,7 +25,7 @@ O menu principal, a tela de montar a partida (modo, jogadores, personagens) e as
 | `seraphEntrance.ts` | Os tempos da entrada do Seraphiel: batidas de asa e rajadas de vento (tem teste) |
 | `WindGusts.tsx` | Penas e brilhos que saem das pontas das asas a cada batida |
 | `layout.ts` | Altura do personagem e onde fica o chão |
-| `scenery/` | Os cenários próprios de cada personagem no lugar do pedestal (tabela abaixo). O `index.ts` é o registro (`SCENERY`): cenário novo = um arquivo + uma linha lá + `stage` na ficha do personagem. Cada entrada também diz se o palco fica escuro (`dim`), a cor da luz (`light`) e se tem clima próprio (`weather`, que desliga as partículas). `noiseTexture.ts` desenha as texturas granuladas (terra, neve, pedra, mármore); `canvasTexture.ts` transforma um desenho de canvas em textura (com o esmaecer até a borda) e amassa rochas (`roughen`) |
+| `scenery/` | Os cenários próprios de cada personagem no lugar do pedestal (tabela abaixo). O `index.ts` é o registro (`SCENERY`): cenário novo = um arquivo + uma linha lá + `stage` na ficha do personagem. Cada entrada também diz se o palco fica escuro (`dim`), a cor da luz (`light`) e se tem clima próprio (`weather`, que desliga as partículas). `noiseTexture.ts` desenha as texturas granuladas (terra, neve, pedra, mármore); `canvasTexture.ts` transforma um desenho de canvas em textura (com o esmaecer até a borda) e amassa rochas (`roughen`); `ground.ts` tem tufos de grama e espalha objetos em volta sem tapar os pés; `sceneryKit.ts` tem tubos afunilados (raízes, troncos) e o plano que corta o que fica abaixo do chão |
 
 ### Cenários (`stage/scenery/`)
 
@@ -43,6 +43,10 @@ O menu principal, a tela de montar a partida (modo, jogadores, personagens) e as
 | `SunkenTemple` | Auric | Templo dourado submerso, corais, cáusticas e bolhas |
 | `GearWorks` | Cronos | Engrenagens engatadas girando no chão, anel de algarismos cujos ponteiros às vezes voltam |
 | `HangarBay` | Unidade Alva | Plataforma de lançamento hexagonal com varredura nas juntas e mira holográfica |
+| `WitchHollow` | Bruxa Carmesim | Chão de floresta escura, raízes retorcidas, cogumelos vermelhos, anel de pedras e caldeirão borbulhando sobre o fogo |
+| `AlchemyLab` | Alquimista Esmeralda | Piso de ardósia, círculo de transmutação brilhando, bancada com frascos verdes borbulhando e alambique de latão |
+| `CardTable` | Coringa Carmesim | Piso arlequim carmesim e preto, cartas espalhadas e flutuando, fichas, dados e lâmpadas de circo piscando |
+| `SakuraCourtyard` | Akane | Pátio de pedra, cerejeira com pétalas caindo, cadernos abertos e lanterna de pedra |
 | `ElvenGlade` | Arqueira Élfica | Chão de musgo, raízes e tronco caído, samambaias, cogumelos brilhando, alvo de palha com flechas e vaga-lumes |
 | `CrystalGrove` | Fada Cristalina | Neve sobre musgo, cristais que brilham por dentro (ciano e lilás), anel de flores luminosas e brilhos subindo |
 | `WindPeak` | Zéfiro | Topo de montanha com grama dobrando ao vento, os quatro elementos orbitando, folhas em espiral e nuvens abaixo |

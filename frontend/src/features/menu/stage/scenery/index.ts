@@ -1,6 +1,8 @@
 import type { ComponentType, RefObject } from "react";
+import { AlchemyLab } from "./AlchemyLab";
 import { BloodRoseGarden } from "./BloodRoseGarden";
 import { BurningShrine } from "./BurningShrine";
+import { CardTable } from "./CardTable";
 import { CrystalGrove } from "./CrystalGrove";
 import { ElvenGlade } from "./ElvenGlade";
 import { FrozenWastes } from "./FrozenWastes";
@@ -9,12 +11,14 @@ import { Graveyard } from "./Graveyard";
 import { HangarBay } from "./HangarBay";
 import { MistRuins } from "./MistRuins";
 import { MoonlitShore } from "./MoonlitShore";
+import { SakuraCourtyard } from "./SakuraCourtyard";
 import { Sanctuary } from "./Sanctuary";
 import { Scriptorium } from "./Scriptorium";
 import { StormTemple } from "./StormTemple";
 import { SunkenTemple } from "./SunkenTemple";
 import { VoidRift } from "./VoidRift";
 import { WindPeak } from "./WindPeak";
+import { WitchHollow } from "./WitchHollow";
 
 export interface SceneryProps {
   /** How hard the wind blows through the stage (0 to 1): Seraphiel's wingbeats. */
@@ -51,6 +55,11 @@ export const SCENERY = {
   grove: { component: CrystalGrove, weather: true },
   peak: { component: WindPeak, weather: true },
   temple: { component: StormTemple },
+  witchHollow: { component: WitchHollow },
+  alchemyLab: { component: AlchemyLab },
+  cardTable: { component: CardTable },
+  // Its own falling petals take the place of the rising motes.
+  sakuraCourtyard: { component: SakuraCourtyard, weather: true },
 } as const satisfies Record<string, Scenery>;
 
 export type SceneryId = keyof typeof SCENERY;
