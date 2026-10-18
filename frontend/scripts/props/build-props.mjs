@@ -40,7 +40,7 @@ const PROPS = {
   stormThrone: { file: "wanderingSage/props/chair.glb", vertices: 9_000 },
   crimsonThrone: { file: "crimsonWitch/props/chair.glb", vertices: 9_000 },
   jesterThrone: { file: "cardJester/props/chair.glb", vertices: 9_000 },
-  enchantressThrone: { file: "crimsonEnchantress/props/chair.glb", vertices: 9_000 },
+  scribeThrone: { file: "fleshScribe/props/chair.glb", vertices: 9_000 },
   alchemistThrone: { file: "emeraldAlchemist/props/chair.glb", vertices: 9_000 },
   necromancerThrone: { file: "boneShaman/props/chair.glb", vertices: 9_000 },
   // Kage Rubra's Susanoo towers over the tile: more detail than the small props.

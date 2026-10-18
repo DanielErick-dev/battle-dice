@@ -28,8 +28,9 @@ export const PROPS = {
   stormThrone: "/models/props/stormThrone.glb",
   crimsonThrone: "/models/props/crimsonThrone.glb",
   jesterThrone: "/models/props/jesterThrone.glb",
-  enchantressThrone: "/models/props/enchantressThrone.glb",
+  scribeThrone: "/models/props/scribeThrone.glb",
   alchemistThrone: "/models/props/alchemistThrone.glb",
+  necromancerThrone: "/models/props/necromancerThrone.glb",
   susanoo: "/models/props/susanoo.glb",
 } as const;
 export type PropId = keyof typeof PROPS;

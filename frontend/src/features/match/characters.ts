@@ -170,7 +170,6 @@ export const CHARACTERS = {
     epithet: "Feiticeira de sangue",
     color: "#f43f5e",
     model: model("crimsonEnchantress"),
-    chair: "enchantressThrone",
     ability: "doubleCast",
     playable: true,
   },
@@ -254,6 +253,7 @@ export const CHARACTERS = {
     // Ghostly teal, the glow of spirits called back.
     color: "#2dd4bf",
     model: model("boneShaman"),
+    chair: "necromancerThrone",
     ability: "resurrection",
     playable: true,
     shieldColor: "#2dd4bf",
@@ -267,6 +267,7 @@ export const CHARACTERS = {
     // Fuchsia, the glow of his runes; apart from the reds and the Void Knight's violet.
     color: "#d946ef",
     model: model("fleshScribe"),
+    chair: "scribeThrone",
     ability: "forbiddenSeals",
     playable: true,
     shieldColor: "#d946ef",

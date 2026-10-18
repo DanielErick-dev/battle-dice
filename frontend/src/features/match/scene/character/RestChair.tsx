@@ -65,10 +65,12 @@ const CHAIRS = {
   crimsonThrone: { prop: "crimsonThrone", height: SEAT_TOP / 0.35, z: 0.33, turn: 0 },
   // The Card Jester's black and red throne.
   jesterThrone: { prop: "jesterThrone", height: SEAT_TOP / 0.345, z: 0.08, turn: 0 },
-  // The Crimson Enchantress's throne.
-  enchantressThrone: { prop: "enchantressThrone", height: SEAT_TOP / 0.33, z: 0.1, turn: 0 },
+  // The Flesh Scribe's crimson throne wrapped in bandages and blood-rune scrolls.
+  scribeThrone: { prop: "scribeThrone", height: SEAT_TOP / 0.33, z: 0.1, turn: 0 },
   // The Emerald Alchemist's throne of glass and brass (1.2 MB: Meshy's UV islands stop the simplifier).
   alchemistThrone: { prop: "alchemistThrone", height: SEAT_TOP / 0.38, z: 0.05, turn: 0 },
+  // The Necromancer's throne of black bone.
+  necromancerThrone: { prop: "necromancerThrone", height: SEAT_TOP / 0.32, z: 0.1, turn: 0 },
 } as const satisfies Record<string, ChairModel>;
 export type ChairId = keyof typeof CHAIRS;
 
