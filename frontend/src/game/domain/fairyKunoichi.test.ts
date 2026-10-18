@@ -12,70 +12,51 @@ import {
   abilityCycle,
   type AbilityId,
 } from "./abilities";
-import type { BoardDefinition } from "./board";
-import { GameRuleError, type GameCommand } from "./commands";
-import { sequenceDice } from "./dice";
-import { applyCommand, createGame } from "./engine";
-import { seededRandom } from "./random";
+import { GameRuleError } from "./commands";
+import {
+  HARM_AHEAD_BOARD,
+  activate as activateFor,
+  type ActivateOptions,
+  card,
+  eventsOfType,
+  hasEvent,
+  newGame,
+  onTurnOf,
+  play,
+  playerOf,
+  readyAbility,
+  roll,
+  withPlayer,
+} from "./testing";
 import type { GameState, Player } from "./types";
 
-/** Harm at 12 (a trap), 15 (a curse) and 20 (a trap), an extra turn at 30; everything else plain. */
-const BOARD: BoardDefinition = {
-  size: 60,
-  effects: {
-    12: { kind: "trap", to: 8 },
-    15: { kind: "curse", curse: "drain" },
-    20: { kind: "trap", to: 16 },
-    30: { kind: "extraTurn" },
-  },
-};
-
-const duel = (ability: AbilityId) =>
-  createGame(
-    BOARD,
-    [
-      { id: "hero", name: "Hero", ability },
-      { id: "rival", name: "Rival", ability: "studySession" },
-    ],
-    { random: seededRandom(7) },
-  );
-function patch(state: GameState, id: string, changes: Partial<Player>): GameState {
-  return { ...state, players: state.players.map((player) => (player.id === id ? { ...player, ...changes } : player)) };
-}
-const send = (state: GameState, command: GameCommand, dice: number[] = [1]) =>
-  applyCommand(state, command, { rollDice: sequenceDice(dice), random: seededRandom(3) });
-const player = (state: GameState, id: string) => state.players.find((candidate) => candidate.id === id)!;
-const ready = (state: GameState, ability: AbilityId) => patch(state, "hero", { abilityCharge: abilityCycle(ability) });
-const activate = (state: GameState, extra: Partial<Extract<GameCommand, { type: "activateAbility" }>> = {}) =>
-  send(state, { type: "activateAbility", playerId: "hero", ...extra });
+const duel = (ability: AbilityId) => newGame(HARM_AHEAD_BOARD, { hero: ability, rival: "studySession" });
+const ready = (state: GameState) => readyAbility(state, "hero");
+const activate = (state: GameState, options: ActivateOptions = {}) => activateFor(state, "hero", options);
 /** The rival's turn, standing on `from`, rolling `die`. */
 const rivalRolls = (state: GameState, from: number, die: number) =>
-  send(
-    { ...patch(state, "rival", { position: from }), currentPlayerIndex: 1 },
-    { type: "rollDice", playerId: "rival" },
-    [die],
-  );
+  roll(onTurnOf(withPlayer(state, "rival", { position: from }), "rival"), "rival", die);
 
 describe("Fairy Bloom", () => {
-  const bloomed = () => activate(ready(patch(duel("fairyBloom"), "hero", { position: 10 }), "fairyBloom")).state;
+  const bloomed = () => activate(ready(withPlayer(duel("fairyBloom"), "hero", { position: 10 }))).state;
 
   it("an opponent stuck in the snow feeds the fairy a point of energy each round, gripped less each time", () => {
-    const start = patch(patch(bloomed(), "rival", { energy: 5 }), "hero", {
+    const start = withPlayer(withPlayer(bloomed(), "rival", { energy: 5 }), "hero", {
       energy: 2,
     });
     let state = rivalRolls(start, 9, 3).state;
-    expect(player(state, "rival").snowbound).toEqual({
+    expect(playerOf(state, "rival").snowbound).toEqual({
       owner: "hero",
       rounds: ENCHANT_FREEZE,
     });
-    state = send(state, { type: "rollDice", playerId: "hero" }).state;
-    expect(player(state, "rival")).toMatchObject({
+    state = roll(state, "hero").state;
+    expect(playerOf(state, "rival")).toMatchObject({
       energy: 4,
       snowbound: { owner: "hero", rounds: 1 },
     });
-    expect(player(state, "hero").energy).toBeGreaterThanOrEqual(3);
-    state = send(state, { type: "rollDice", playerId: "hero" }).state;
-    expect(player(state, "rival")).toMatchObject({
+    expect(playerOf(state, "hero").energy).toBeGreaterThanOrEqual(3);
+    state = roll(state, "hero").state;
+    expect(playerOf(state, "rival")).toMatchObject({
       energy: 3,
       snowbound: null,
       skipTurns: 0,
@@ -92,22 +73,19 @@ describe("Fairy Bloom", () => {
   });
 
   it("an opponent stopping on one is stuck in the snow, and the fairy gains charge; the trap doesn't strike", () => {
-    const start = patch(patch(bloomed(), "rival", { energy: 5 }), "hero", { abilityCharge: 0 });
+    const start = withPlayer(withPlayer(bloomed(), "rival", { energy: 5 }), "hero", { abilityCharge: 0 });
     const { state, events } = rivalRolls(start, 9, 3);
-    expect(player(state, "rival")).toMatchObject({ position: 12, energy: 5, skipTurns: ENCHANT_FREEZE });
-    expect(events.some((event) => event.type === "trapTriggered")).toBe(false);
-    expect(player(state, "hero").abilityCharge).toBeGreaterThanOrEqual(1);
+    expect(playerOf(state, "rival")).toMatchObject({ position: 12, energy: 5, skipTurns: ENCHANT_FREEZE });
+    expect(hasEvent(events, "trapTriggered")).toBe(false);
+    expect(playerOf(state, "hero").abilityCharge).toBeGreaterThanOrEqual(1);
   });
 
   it("the fairy walking over her own snow isn't carried: only stopping on it counts", () => {
     // Snow at 12, 15 and 20: from 10 a 4 crosses 12 and stops on 14, and stays there.
-    const start = {
-      ...patch(bloomed(), "hero", { position: 10, abilityCharge: 0 }),
-      currentPlayerIndex: 0,
-    };
-    const { state, events } = send(start, { type: "rollDice", playerId: "hero" }, [4]);
-    expect(player(state, "hero").position).toBe(14);
-    expect(events.some((event) => event.type === "enchantmentStirred")).toBe(false);
+    const start = onTurnOf(withPlayer(bloomed(), "hero", { position: 10, abilityCharge: 0 }), "hero");
+    const { state, events } = roll(start, "hero", 4);
+    expect(playerOf(state, "hero").position).toBe(14);
+    expect(hasEvent(events, "enchantmentStirred")).toBe(false);
   });
 
   it("the fairy stopping on her own is carried ahead, and on again only when that stops on more snow", () => {
@@ -116,29 +94,22 @@ describe("Fairy Bloom", () => {
       ...bloomed(),
       enchantedTiles: [12, 17, 22].map((tile) => ({ tile, owner: "hero" })),
     };
-    const start = {
-      ...patch(snowy, "hero", { position: 9, abilityCharge: 0 }),
-      currentPlayerIndex: 0,
-    };
-    const { state, events } = send(start, { type: "rollDice", playerId: "hero" }, [3]);
-    expect(player(state, "hero").position).toBe(27);
-    expect(events.filter((event) => event.type === "enchantmentStirred")).toHaveLength(3);
+    const start = onTurnOf(withPlayer(snowy, "hero", { position: 9, abilityCharge: 0 }), "hero");
+    const { state, events } = roll(start, "hero", 3);
+    expect(playerOf(state, "hero").position).toBe(27);
+    expect(eventsOfType(events, "enchantmentStirred")).toHaveLength(3);
     // Carried onto the trap at 20 (snow only at 12 and 15): nothing happens there.
     const trapped = {
       ...bloomed(),
       enchantedTiles: [{ tile: 15, owner: "hero" }],
     };
-    const onTrap = send(
-      { ...patch(trapped, "hero", { position: 13 }), currentPlayerIndex: 0 },
-      { type: "rollDice", playerId: "hero" },
-      [2],
-    );
-    expect(player(onTrap.state, "hero").position).toBe(20);
+    const onTrap = roll(onTurnOf(withPlayer(trapped, "hero", { position: 13 }), "hero"), "hero", 2);
+    expect(playerOf(onTrap.state, "hero").position).toBe(20);
   });
 });
 
 describe("Ocular Awakening", () => {
-  const kunoichi = () => ready(patch(duel("ocularAwakening"), "hero", { position: 20 }), "ocularAwakening");
+  const kunoichi = () => ready(withPlayer(duel("ocularAwakening"), "hero", { position: 20 }));
 
   it("burns the fairy's snow away for good: fire beats frost", () => {
     const snowy = {
@@ -152,32 +123,30 @@ describe("Ocular Awakening", () => {
     const lit = activate(kunoichi(), { power: "flames", flameTiles: [24, 26] }).state;
     expect(lit.blackFlames.map((flame) => flame.tile)).toEqual([24, 26]);
     expect(lit.blackFlames[0].turnsLeft).toBe(FLAME_TURNS);
-    const through = rivalRolls(patch(lit, "rival", { energy: 5 }), 22, 3).state;
-    expect(player(through, "rival")).toMatchObject({ energy: 5, position: 25 });
-    const { state } = rivalRolls(patch(lit, "rival", { energy: 5 }), 22, 2);
-    expect(player(state, "rival").energy).toBe(5 - FLAME_ENERGY);
-    expect(player(state, "rival").position).toBe(24 - FLAME_PUSH);
+    const through = rivalRolls(withPlayer(lit, "rival", { energy: 5 }), 22, 3).state;
+    expect(playerOf(through, "rival")).toMatchObject({ energy: 5, position: 25 });
+    const { state } = rivalRolls(withPlayer(lit, "rival", { energy: 5 }), 22, 2);
+    expect(playerOf(state, "rival").energy).toBe(5 - FLAME_ENERGY);
+    expect(playerOf(state, "rival").position).toBe(24 - FLAME_PUSH);
   });
 
   it("every scorch charges her ability by a turn", () => {
-    const lit = patch(activate(kunoichi(), { power: "flames", flameTiles: [24] }).state, "hero", { abilityCharge: 0 });
+    const lit = withPlayer(activate(kunoichi(), { power: "flames", flameTiles: [24] }).state, "hero", {
+      abilityCharge: 0,
+    });
     const { events } = rivalRolls(lit, 22, 2);
     expect(events).toContainEqual(expect.objectContaining({ type: "flamesScorched", charged: true }));
   });
 
   it("black fire smothers the tile: whatever it held does nothing while it burns", () => {
     const lit = activate(kunoichi(), { power: "flames", flameTiles: [30] }).state;
-    const { state, events } = rivalRolls(patch(lit, "rival", { energy: 5 }), 28, 2);
-    expect(events.some((event) => event.type === "extraTurnGranted")).toBe(false);
-    expect(player(state, "rival").position).toBe(30 - FLAME_PUSH);
+    const { state, events } = rivalRolls(withPlayer(lit, "rival", { energy: 5 }), 28, 2);
+    expect(hasEvent(events, "extraTurnGranted")).toBe(false);
+    expect(playerOf(state, "rival").position).toBe(30 - FLAME_PUSH);
     // The Kunoichi on her own fire: nothing at all, not even the tile's extra turn.
-    const own = send(
-      { ...patch(lit, "hero", { position: 28 }), currentPlayerIndex: 0 },
-      { type: "rollDice", playerId: "hero" },
-      [2],
-    );
-    expect(player(own.state, "hero").position).toBe(30);
-    expect(own.events.some((event) => event.type === "extraTurnGranted")).toBe(false);
+    const own = roll(onTurnOf(withPlayer(lit, "hero", { position: 28 }), "hero"), "hero", 2);
+    expect(playerOf(own.state, "hero").position).toBe(30);
+    expect(hasEvent(own.events, "extraTurnGranted")).toBe(false);
   });
 
   it("can set her own tile alight", () => {
@@ -185,11 +154,11 @@ describe("Ocular Awakening", () => {
   });
 
   it("the Crimson Witch stands in black fire and on the fairy's frost unharmed", () => {
-    const witch = (state: GameState) => patch(state, "rival", { ability: "levitation", energy: 5 });
+    const witch = (state: GameState) => withPlayer(state, "rival", { ability: "levitation", energy: 5 });
     const lit = activate(kunoichi(), { power: "flames", flameTiles: [24] }).state;
-    expect(player(rivalRolls(witch(lit), 22, 2).state, "rival")).toMatchObject({ energy: 5, position: 24 });
-    const bloomed = activate(ready(patch(duel("fairyBloom"), "hero", { position: 10 }), "fairyBloom")).state;
-    expect(player(rivalRolls(witch(bloomed), 9, 3).state, "rival")).toMatchObject({ energy: 5, position: 12 });
+    expect(playerOf(rivalRolls(witch(lit), 22, 2).state, "rival")).toMatchObject({ energy: 5, position: 24 });
+    const bloomed = activate(ready(withPlayer(duel("fairyBloom"), "hero", { position: 10 }))).state;
+    expect(playerOf(rivalRolls(witch(bloomed), 9, 3).state, "rival")).toMatchObject({ energy: 5, position: 12 });
   });
 
   it(`a fire goes out after scorching ${FLAME_HITS} times`, () => {
@@ -208,20 +177,16 @@ describe("Ocular Awakening", () => {
 
   it("Spectral Armour turns away what others aim at her, but not the board's traps", () => {
     const armoured = activate(kunoichi(), { power: "armour" }).state;
-    expect(player(armoured, "hero").spectralArmour).toBe(ARMOUR_TURNS);
-    const rivalTurn = {
-      ...patch(armoured, "rival", { position: 20, hand: [{ uid: "b", cardId: "arcaneBlast" }], energy: 5 }),
-      currentPlayerIndex: 1,
-    };
-    const { state, events } = send(rivalTurn, {
-      type: "playCard",
-      playerId: "rival",
-      cardUid: "b",
-      targetId: "hero",
-    });
+    expect(playerOf(armoured, "hero").spectralArmour).toBe(ARMOUR_TURNS);
+    const rivalTurn = onTurnOf(
+      withPlayer(armoured, "rival", { position: 20, hand: [card("arcaneBlast", "b")], energy: 5 }),
+      "rival",
+    );
+    const { state, events } = play(rivalTurn, "rival", "b", { targetId: "hero" });
     expect(events).toContainEqual(expect.objectContaining({ type: "cardBlocked", ward: "susanoo" }));
-    expect(player(state, "hero").position).toBe(player(armoured, "hero").position);
+    expect(playerOf(state, "hero").position).toBe(playerOf(armoured, "hero").position);
   });
+
   it(`Inside her Susanoo no one stops on her tile: they're thrown back ${SUSANOO_PUSH}`, () => {
     const armoured = activate(kunoichi(), { power: "armour" }).state;
     const { state, events } = rivalRolls(armoured, 17, 3);
@@ -233,16 +198,16 @@ describe("Ocular Awakening", () => {
       to: 20 - SUSANOO_PUSH,
       ahead: false,
     });
-    expect(player(state, "rival").position).toBe(20 - SUSANOO_PUSH);
+    expect(playerOf(state, "rival").position).toBe(20 - SUSANOO_PUSH);
     // Walking past her is fine, and without her armour her tile is anyone's.
-    expect(player(rivalRolls(armoured, 17, 4).state, "rival").position).toBe(21);
-    const bare = patch(armoured, "hero", { spectralArmour: 0 });
-    expect(rivalRolls(bare, 17, 3).events.some((event) => event.type === "susanooRepelled")).toBe(false);
+    expect(playerOf(rivalRolls(armoured, 17, 4).state, "rival").position).toBe(21);
+    const bare = withPlayer(armoured, "hero", { spectralArmour: 0 });
+    expect(hasEvent(rivalRolls(bare, 17, 3).events, "susanooRepelled")).toBe(false);
   });
 
   it(`Inside her Susanoo she sweeps those on the tile she stops on ${SUSANOO_PUSH} ahead`, () => {
-    const armoured = patch(activate(kunoichi(), { power: "armour" }).state, "rival", { position: 23 });
-    const { state, events } = send(armoured, { type: "rollDice", playerId: "hero" }, [3]);
+    const armoured = withPlayer(activate(kunoichi(), { power: "armour" }).state, "rival", { position: 23 });
+    const { state, events } = roll(armoured, "hero", 3);
     expect(events).toContainEqual(
       expect.objectContaining({
         type: "susanooRepelled",
@@ -252,13 +217,29 @@ describe("Ocular Awakening", () => {
         ahead: true,
       }),
     );
-    expect(player(state, "rival").position).toBe(23 + SUSANOO_PUSH);
-    expect(player(state, "hero").position).toBe(23);
+    expect(playerOf(state, "rival").position).toBe(23 + SUSANOO_PUSH);
+    expect(playerOf(state, "hero").position).toBe(23);
+  });
+});
+
+describe("Kage Rubra's Susanoo", () => {
+  /** One step before the trap at 12, with `patch`. */
+  const kage = (patch: Partial<Player>) => withPlayer(duel("ocularAwakening"), "hero", { position: 11, ...patch });
+
+  it("keeps the board's traps off her", () => {
+    expect(playerOf(roll(kage({ spectralArmour: 2 }), "hero", 1).state, "hero").position).toBe(12);
+    expect(playerOf(roll(kage({}), "hero", 1).state, "hero").position).toBe(8);
+  });
+
+  it("can't stop a hidden trap's spike from below", () => {
+    const hidden = { ...kage({ spectralArmour: 2 }), hiddenTraps: [12] };
+    const { events } = roll(hidden, "hero", 1);
+    expect(hasEvent(events, "trapBlocked")).toBe(false);
   });
 });
 
 describe("Eternal Winter", () => {
-  const bloomed = () => activate(ready(patch(duel("fairyBloom"), "hero", { position: 10 }), "fairyBloom"));
+  const bloomed = () => activate(ready(withPlayer(duel("fairyBloom"), "hero", { position: 10 })));
   const winter = (state: GameState, frontier: number) => ({
     ...state,
     winter: { owner: "hero", frontier },
@@ -276,21 +257,17 @@ describe("Eternal Winter", () => {
   it("waits while there's still harm ahead to snow", () => {
     // A hidden trap further on is still left once her three tiles are snowed.
     const hidden = {
-      ...patch(duel("fairyBloom"), "hero", { position: 10 }),
+      ...withPlayer(duel("fairyBloom"), "hero", { position: 10 }),
       hiddenTraps: [40],
     };
-    const { state } = activate(ready(hidden, "fairyBloom"));
+    const { state } = activate(ready(hidden));
     expect(state.winter).toBeNull();
   });
 
   it("freezes WINTER_TILES more tiles every round", () => {
-    const afterHero = send(bloomed().state, { type: "rollDice", playerId: "hero" }, [1]).state;
+    const afterHero = roll(bloomed().state, "hero", 1).state;
     expect(afterHero.winter?.frontier).toBe(afterHero.board.startTile);
-    const { state, events } = send(
-      patch(afterHero, "rival", { position: 40 }),
-      { type: "rollDice", playerId: "rival" },
-      [1],
-    );
+    const { state, events } = roll(withPlayer(afterHero, "rival", { position: 40 }), "rival", 1);
     const start = state.board.startTile;
     expect(state.winter?.frontier).toBe(start + WINTER_TILES);
     expect(events).toContainEqual({
@@ -304,11 +281,11 @@ describe("Eternal Winter", () => {
   it("an opponent stopping on the ice is stuck in it; the fairy walks it freely", () => {
     const frozen = winter(duel("fairyBloom"), 40);
     const rival = rivalRolls(frozen, 3, 2).state;
-    expect(player(rival, "rival")).toMatchObject({
+    expect(playerOf(rival, "rival")).toMatchObject({
       skipTurns: ENCHANT_FREEZE,
       snowbound: { owner: "hero" },
     });
-    const hero = send(patch(frozen, "hero", { position: 3 }), { type: "rollDice", playerId: "hero" }, [2]).state;
-    expect(player(hero, "hero")).toMatchObject({ position: 5, skipTurns: 0 });
+    const hero = roll(withPlayer(frozen, "hero", { position: 3 }), "hero", 2).state;
+    expect(playerOf(hero, "hero")).toMatchObject({ position: 5, skipTurns: 0 });
   });
 });

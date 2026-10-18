@@ -58,5 +58,5 @@ Nos testes passamos um dado "viciado" e conferimos o resultado exato. No servido
 1. Se o jogador precisa pedir algo novo, crie o comando em `commands.ts`.
 2. Para cada coisa nova que acontece, crie o evento em `events.ts`. A tela anima a partir dele.
 3. Escreva a regra num arquivo próprio e chame-a de um handler em `handlers/` ou do `landing.ts`. Habilidade nova ativada = uma linha em `ABILITY_EFFECTS`.
-4. Escreva o teste junto (`minhaRegra.test.ts`).
+4. Escreva o teste junto (`minhaRegra.test.ts`). Monte a partida com os helpers de `testing/` (`newGame`, `withPlayer`, `roll`, `activate`, `play`, tabuleiros prontos em `boards.ts`) em vez de repetir a preparação.
 5. Do lado da tela, adicione um handler em `features/match/model/playback/` para o evento novo. O TypeScript avisa se faltar.

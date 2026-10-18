@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { createBoard, type BoardDefinition } from "./board";
-import { sequenceDice } from "./dice";
-import { applyCommand, createGame } from "./engine";
 import { HIDDEN_TRAP_PUSH, placeHiddenTraps, relocateHiddenTrap } from "./hiddenTraps";
 import { seededRandom } from "./random";
-import type { GameState, Player } from "./types";
+import { hasEvent, newGame, roll, withPlayer } from "./testing";
+import type { Player, TileId } from "./types";
 
 const BOARD: BoardDefinition = {
   size: 40,
@@ -12,18 +11,11 @@ const BOARD: BoardDefinition = {
   trapZones: [{ from: 10, to: 19, traps: 2 }],
 };
 
-const game = () => createGame(BOARD, [{ id: "p1", name: "Aria" }], { random: seededRandom(7) });
-
-function with1(state: GameState, patch: Partial<Player>, hiddenTraps = state.hiddenTraps): GameState {
-  return {
-    ...state,
-    hiddenTraps,
-    players: state.players.map((player) => ({ ...player, ...patch })),
-  };
-}
-
-const roll = (state: GameState, ...dice: number[]) =>
-  applyCommand(state, { type: "rollDice", playerId: "p1" }, { rollDice: sequenceDice(dice), random: seededRandom(3) });
+/** Aria at the start, with `patch` and the hidden traps on `hiddenTraps`. */
+const game = (patch: Partial<Player>, hiddenTraps: TileId[]) => ({
+  ...withPlayer(newGame(BOARD, { p1: null }), "p1", patch),
+  hiddenTraps,
+});
 
 describe("hidden traps", () => {
   const board = createBoard(BOARD);
@@ -45,7 +37,7 @@ describe("hidden traps", () => {
   });
 
   it("throw the player back and move away when landed on", () => {
-    const { state, events } = roll(with1(game(), { position: 9 }, [12, 16]), 3);
+    const { state, events } = roll(game({ position: 9 }, [12, 16]), "p1", 3);
     expect(events).toContainEqual({
       type: "hiddenTrapSprung",
       playerId: "p1",
@@ -58,7 +50,7 @@ describe("hidden traps", () => {
   });
 
   it("are blocked by the Arcane Shield, and still move", () => {
-    const { state, events } = roll(with1(game(), { position: 9, shielded: true }, [12, 16]), 3);
+    const { state, events } = roll(game({ position: 9, shielded: true }, [12, 16]), "p1", 3);
     expect(events).toContainEqual({
       type: "trapBlocked",
       playerId: "p1",
@@ -71,8 +63,8 @@ describe("hidden traps", () => {
   });
 
   it("stay put when only walked over", () => {
-    const { state, events } = roll(with1(game(), { position: 9 }, [12, 16]), 4);
-    expect(events.some((event) => event.type === "hiddenTrapSprung")).toBe(false);
+    const { state, events } = roll(game({ position: 9 }, [12, 16]), "p1", 4);
+    expect(hasEvent(events, "hiddenTrapSprung")).toBe(false);
     expect(state.hiddenTraps).toEqual([12, 16]);
   });
 });

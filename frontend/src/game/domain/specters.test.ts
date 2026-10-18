@@ -2,62 +2,44 @@ import { describe, expect, it } from "vitest";
 import { abilityCycle, PLUNDER_CARDS } from "./abilities";
 import type { BoardDefinition } from "./board";
 import { MAX_ENERGY } from "./cards";
-import { GameRuleError, type GameCommand, type GameErrorCode } from "./commands";
-import { sequenceDice } from "./dice";
-import { applyCommand, createGame } from "./engine";
-import { seededRandom } from "./random";
-import type { CardInstance, GameState, Player, Specter } from "./types";
+import {
+  card,
+  expectRuleError,
+  hasEvent,
+  newGame,
+  onTurnOf,
+  playerOf,
+  roll,
+  send,
+  withPlayer,
+  withPlayers,
+} from "./testing";
+import type { GameState, Player, Specter } from "./types";
 
 const BOARD: BoardDefinition = { size: 60, effects: { 12: { kind: "trap", to: 8 } } };
 
-const duel = () =>
-  createGame(
-    BOARD,
-    [
-      { id: "warden", name: "Guardião", ability: "spectralApparitions" },
-      { id: "rival", name: "Rival" },
-    ],
-    { random: seededRandom(7) },
-  );
-const solo = () =>
-  createGame(BOARD, [{ id: "warden", name: "Guardião", ability: "spectralApparitions" }], { random: seededRandom(7) });
-
-function patch(state: GameState, id: string, changes: Partial<Player>): GameState {
-  return { ...state, players: state.players.map((player) => (player.id === id ? { ...player, ...changes } : player)) };
-}
-const send = (state: GameState, command: GameCommand, dice: number[] = [1]) =>
-  applyCommand(state, command, { rollDice: sequenceDice(dice), random: seededRandom(3) });
-const player = (state: GameState, id: string) => state.players.find((candidate) => candidate.id === id)!;
+const duel = () => newGame(BOARD, { warden: "spectralApparitions", rival: null });
+const solo = () => newGame(BOARD, { warden: "spectralApparitions" });
 const specter = (tile: number, kind: Specter["kind"], owner = "warden"): Specter => ({ tile, kind, owner });
-const card = (uid: string, cardId: CardInstance["cardId"]): CardInstance => ({ uid, cardId });
 /** The rival's turn, standing on `from`, with the warden on `wardenAt` and `specters` on the board. */
-const rivalWalks = (from: number, specters: Specter[], dice: number, wardenAt = 2, changes: Partial<Player> = {}) =>
-  send(
+const rivalWalks = (from: number, specters: Specter[], die: number, wardenAt = 2, changes: Partial<Player> = {}) =>
+  roll(
     {
-      ...patch(patch(duel(), "rival", { position: from, ...changes }), "warden", { position: wardenAt }),
-      currentPlayerIndex: 1,
+      ...onTurnOf(
+        withPlayers(duel(), { rival: { position: from, ...changes }, warden: { position: wardenAt } }),
+        "rival",
+      ),
       specters,
     },
-    { type: "rollDice", playerId: "rival" },
-    [dice],
+    "rival",
+    die,
   );
-
-function expectRuleError(action: () => unknown, code: GameErrorCode) {
-  try {
-    action();
-  } catch (error) {
-    expect(error).toBeInstanceOf(GameRuleError);
-    expect((error as GameRuleError).code).toBe(code);
-    return;
-  }
-  throw new Error(`Expected ${code}`);
-}
 
 describe("Spectral Apparitions", () => {
   const summon = (state: GameState, specterTiles: number[]) =>
     send(state, { type: "activateAbility", playerId: "warden", specterTiles });
   const ready = (state: GameState) =>
-    patch(state, "warden", { position: 20, abilityCharge: abilityCycle("spectralApparitions") });
+    withPlayer(state, "warden", { position: 20, abilityCharge: abilityCycle("spectralApparitions") });
 
   it("summons the Plunder and Hunger apparitions on the picked tiles, keeping the ones summoned before", () => {
     const { state, events } = summon({ ...ready(duel()), specters: [specter(30, "hunger")] }, [24, 17]);
@@ -80,17 +62,17 @@ describe("Spectral Apparitions", () => {
   });
 
   it("Plunder: whoever walks through it waits while the warden picks two of their cards", () => {
-    const hand = [card("a", "windStep"), card("b", "fateRune"), card("c", "healingHerb")];
+    const hand = [card("windStep", "a"), card("fateRune", "b"), card("healingHerb", "c")];
     const { state, events } = rivalWalks(20, [specter(22, "plunder")], 4, 2, { hand });
     expect(events).toContainEqual(expect.objectContaining({ type: "specterStruck", kind: "plunder", tile: 22 }));
     expect(state.pendingPlunder).toMatchObject({ owner: "warden", victim: "rival" });
     expect(state.specters).toEqual([]);
-    expectRuleError(() => send(state, { type: "rollDice", playerId: "rival" }), "PLUNDER_PENDING");
+    expectRuleError(() => roll(state, "rival"), "PLUNDER_PENDING");
     expectRuleError(() => send(state, { type: "plunderCards", playerId: "warden", cardUids: ["a"] }), "UNKNOWN_CARD");
 
     const picked = send(state, { type: "plunderCards", playerId: "warden", cardUids: ["b", "c"] }).state;
-    expect(player(picked, "rival").hand).toEqual([card("a", "windStep")]);
-    expect(player(picked, "warden").hand).toEqual(expect.arrayContaining([hand[1], hand[2]]));
+    expect(playerOf(picked, "rival").hand).toEqual([card("windStep", "a")]);
+    expect(playerOf(picked, "warden").hand).toEqual(expect.arrayContaining([hand[1], hand[2]]));
     expect(picked.pendingPlunder).toBeNull();
     // The rival's roll ended their turn once the plunder was settled.
     expect(picked.players[picked.currentPlayerIndex].id).toBe("warden");
@@ -99,9 +81,9 @@ describe("Spectral Apparitions", () => {
 
   it("Hunger: all their energy goes to the warden; what doesn't fit charges the ability", () => {
     const start = rivalWalks(20, [specter(21, "hunger")], 1, 2, { energy: 4 });
-    expect(player(start.state, "rival").energy).toBe(0);
-    const before = player(duel(), "warden");
-    expect(player(start.state, "warden").energy).toBe(Math.min(MAX_ENERGY, before.energy + 4));
+    expect(playerOf(start.state, "rival").energy).toBe(0);
+    const before = playerOf(duel(), "warden");
+    expect(playerOf(start.state, "warden").energy).toBe(Math.min(MAX_ENERGY, before.energy + 4));
     const overflow = before.energy + 4 - MAX_ENERGY;
     expect(start.events).toContainEqual(
       expect.objectContaining({
@@ -117,23 +99,23 @@ describe("Spectral Apparitions", () => {
     const { state, events } = rivalWalks(20, [specter(24, "plunder"), specter(25, "hunger")], 6, 22);
     expect(state.specters).toEqual([]);
     expect(events).toContainEqual({ type: "spectersDispelled", playerId: "rival", owner: "warden", tiles: [24, 25] });
-    expect(events.some((event) => event.type === "specterStruck")).toBe(false);
+    expect(hasEvent(events, "specterStruck")).toBe(false);
   });
 
   it("does nothing to the warden while there are opponents", () => {
-    const start = { ...patch(duel(), "warden", { position: 20 }), specters: [specter(21, "hunger")] };
-    const { state } = send(start, { type: "rollDice", playerId: "warden" }, [1]);
+    const start = { ...withPlayer(duel(), "warden", { position: 20 }), specters: [specter(21, "hunger")] };
+    const { state } = roll(start, "warden", 1);
     expect(state.specters).toEqual([specter(21, "hunger")]);
   });
 
   it("alone, walking through them rewards the warden", () => {
     const walk = (kind: Specter["kind"], changes: Partial<Player> = {}) =>
-      send(
-        { ...patch(solo(), "warden", { position: 20, ...changes }), specters: [specter(21, kind)] },
-        { type: "rollDice", playerId: "warden" },
-        [2],
+      roll(
+        { ...withPlayer(solo(), "warden", { position: 20, ...changes }), specters: [specter(21, kind)] },
+        "warden",
+        2,
       ).state;
-    expect(player(walk("plunder", { hand: [] }), "warden").hand).toHaveLength(PLUNDER_CARDS);
-    expect(player(walk("hunger", { energy: 0 }), "warden").energy).toBe(MAX_ENERGY);
+    expect(playerOf(walk("plunder", { hand: [] }), "warden").hand).toHaveLength(PLUNDER_CARDS);
+    expect(playerOf(walk("hunger", { energy: 0 }), "warden").energy).toBe(MAX_ENERGY);
   });
 });

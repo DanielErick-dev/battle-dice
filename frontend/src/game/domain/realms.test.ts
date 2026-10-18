@@ -1,13 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { ARROW_RAIN_PUSH } from "./abilities";
 import { createBoard, getTile, sameSpace, type BoardDefinition } from "./board";
-import { sequenceDice } from "./dice";
-import { GameRuleError } from "./commands";
-import { applyCommand, createGame } from "./engine";
-import { seededRandom } from "./random";
-import { TRACK_LENGTH } from "./realms";
 import { DIVINE_CARDS } from "./cards";
-import type { GameState, Player, TileEffect } from "./types";
+import { GameRuleError } from "./commands";
+import { TRACK_LENGTH } from "./realms";
+import { activate, card, hasEvent, newGame, roll, withPlayer, withPlayers } from "./testing";
+import type { GameState, TileEffect } from "./types";
 
 const BOARD: BoardDefinition = {
   size: 30,
@@ -17,17 +15,7 @@ const BOARD: BoardDefinition = {
   },
 };
 
-const game = () => createGame(BOARD, [{ id: "p1", name: "Aria" }], { random: seededRandom(7) });
-
-function withPlayer(state: GameState, patch: Partial<Player>): GameState {
-  return {
-    ...state,
-    players: state.players.map((player) => ({ ...player, ...patch })),
-  };
-}
-
-const roll = (state: GameState, ...dice: number[]) =>
-  applyCommand(state, { type: "rollDice", playerId: "p1" }, { rollDice: sequenceDice(dice), random: seededRandom(3) });
+const game = () => newGame(BOARD, { p1: null });
 
 /** Tile effects that only hurt, and those that only help. */
 const HARMFUL: ReadonlySet<TileEffect["kind"]> = new Set(["curse", "trap", "skipTurn"]);
@@ -69,15 +57,13 @@ describe("realm tracks", () => {
     const last = shared.tracks[0].tiles.at(-1)!;
 
     // In by the second portal: onto the same first tile, and out at that portal's exit.
-    const start = createGame(twoGates, [{ id: "p1", name: "Aria" }], {
-      random: seededRandom(7),
-    });
-    const inHell = roll(withPlayer(start, { position: 24 }), 1).state;
+    const start = newGame(twoGates, { p1: null });
+    const inHell = roll(withPlayer(start, "p1", { position: 24 }), "p1", 1).state;
     expect(inHell.players[0]).toMatchObject({
       position: first,
       realmEntry: { portal: 25, exit: 33 },
     });
-    const out = roll(withPlayer(inHell, { position: last - 1 }), 2).state;
+    const out = roll(withPlayer(inHell, "p1", { position: last - 1 }), "p1", 2).state;
     expect(out.players[0].position).toBe(33);
   });
 
@@ -121,7 +107,7 @@ describe("realm tracks", () => {
   });
 
   it("carry the player from the portal onto the track's first tile", () => {
-    const { state, events } = roll(game(), 4);
+    const { state, events } = roll(game(), "p1", 4);
     expect(events).toContainEqual({
       type: "realmEntered",
       playerId: "p1",
@@ -133,8 +119,8 @@ describe("realm tracks", () => {
   });
 
   it("walk along the track and out at the exit", () => {
-    const onTrack = withPlayer(game(), { position: lastInfernal - 1 });
-    const { state, events } = roll(onTrack, 3);
+    const onTrack = withPlayer(game(), "p1", { position: lastInfernal - 1 });
+    const { state, events } = roll(onTrack, "p1", 3);
     expect(events).toContainEqual({
       type: "playerMoved",
       playerId: "p1",
@@ -145,29 +131,29 @@ describe("realm tracks", () => {
 
   it("bless on celestial tiles", () => {
     const blessing = celestial.tiles.slice(1).find((id) => getTile(board, id).effect.kind === "blessing")!;
-    const before = withPlayer(game(), {
+    const before = withPlayer(game(), "p1", {
       position: getTile(board, blessing).previous!,
       energy: 1,
     });
-    const { events } = roll(before, 1);
-    expect(events.some((event) => event.type === "blessingReceived")).toBe(true);
+    const { events } = roll(before, "p1", 1);
+    expect(hasEvent(events, "blessingReceived")).toBe(true);
   });
 
   it("curse on infernal tiles", () => {
     // Past the first tile, whose previous is the portal.
     const curse = infernal.tiles.slice(1).find((id) => getTile(board, id).effect.kind === "curse")!;
-    const before = withPlayer(game(), {
+    const before = withPlayer(game(), "p1", {
       position: getTile(board, curse).previous!,
       energy: 3,
     });
-    const { events } = roll(before, 1);
-    expect(events.some((event) => event.type === "trapCursed")).toBe(true);
+    const { events } = roll(before, "p1", 1);
+    expect(hasEvent(events, "trapCursed")).toBe(true);
   });
 
   it("throw the player back along the infernal track", () => {
     const setback = infernal.tiles.slice(1).find((id) => getTile(board, id).effect.kind === "trap")!;
     const effect = getTile(board, setback).effect as Extract<TileEffect, { kind: "trap" }>;
-    const { state } = roll(withPlayer(game(), { position: getTile(board, setback).previous! }), 1);
+    const { state } = roll(withPlayer(game(), "p1", { position: getTile(board, setback).previous! }), "p1", 1);
     expect(state.players[0].position).toBe(effect.to);
   });
 });
@@ -175,30 +161,11 @@ describe("realm tracks", () => {
 describe("a realm track is cut off from the board", () => {
   const board = createBoard(BOARD);
   const inside = board.tracks[0].tiles[3];
-  const duel = (archerAt: number, rivalAt: number, ability: "arrowRain" | "cardGamble" = "arrowRain") => {
-    const state = createGame(
-      BOARD,
-      [
-        { id: "p1", name: "Aria", ability },
-        { id: "p2", name: "Bran" },
-      ],
-      { random: seededRandom(7) },
-    );
-    return {
-      ...state,
-      players: state.players.map((player) =>
-        player.id === "p1"
-          ? { ...player, position: archerAt, abilityCharge: 5 }
-          : { ...player, position: rivalAt, hand: [{ uid: "r", cardId: "windStep" as const }] },
-      ),
-    };
-  };
-  const activate = (state: GameState, dice: number[] = [1]) =>
-    applyCommand(
-      state,
-      { type: "activateAbility", playerId: "p1" },
-      { rollDice: sequenceDice(dice), random: seededRandom(3) },
-    );
+  const duel = (archerAt: number, rivalAt: number, ability: "arrowRain" | "cardGamble" = "arrowRain") =>
+    withPlayers(newGame(BOARD, { p1: ability, p2: null }), {
+      p1: { position: archerAt, abilityCharge: 5 },
+      p2: { position: rivalAt, hand: [card("windStep", "r")] },
+    });
 
   it("knows which tiles share a place", () => {
     expect(sameSpace(board, 3, 20)).toBe(true);
@@ -208,29 +175,19 @@ describe("a realm track is cut off from the board", () => {
   });
 
   it("Arrow Rain from the board can't be aimed at a player inside a realm, nor the other way round", () => {
-    const aim = (state: GameState) =>
-      applyCommand(
-        state,
-        { type: "activateAbility", playerId: "p1", volley: "opponents" },
-        { rollDice: sequenceDice([1]), random: seededRandom(3) },
-      );
+    const aim = (state: GameState) => activate(state, "p1", { volley: "opponents" });
     expect(() => aim(duel(20, inside))).toThrow(GameRuleError);
     expect(() => aim(duel(inside, 20))).toThrow(GameRuleError);
     expect(aim(duel(25, 20)).state.players[1].position).toBe(20 - ARROW_RAIN_PUSH);
   });
 
   it("Card Gamble can't steal from a player in another place", () => {
-    const { state } = activate(duel(20, inside, "cardGamble"), [6]);
+    const { state } = activate(duel(20, inside, "cardGamble"), "p1", {}, [6]);
     expect(state.players[1].hand).toHaveLength(1);
   });
 
   it("Card Gamble may still bet against someone out of reach: a win is turned away, a loss costs a card", () => {
-    const bet = (dice: number[]) =>
-      applyCommand(
-        duel(20, inside, "cardGamble"),
-        { type: "activateAbility", playerId: "p1", targetId: "p2" },
-        { rollDice: sequenceDice(dice), random: seededRandom(3) },
-      );
+    const bet = (dice: number[]) => activate(duel(20, inside, "cardGamble"), "p1", { targetId: "p2" }, dice);
     const won = bet([5]);
     expect(won.events).toContainEqual(expect.objectContaining({ type: "abilityBlocked", ward: "away" }));
     expect(won.state.players[1].hand).toHaveLength(1);
@@ -242,12 +199,7 @@ describe("a realm track is cut off from the board", () => {
 
   it("with nobody in reach, Card Gamble's lucky throw draws as many cards as the die shows", () => {
     const start = duel(20, inside, "cardGamble");
-    const lucky = (state: GameState) =>
-      applyCommand(
-        state,
-        { type: "activateAbility", playerId: "p1", power: "fortune" },
-        { rollDice: sequenceDice([2]), random: seededRandom(3) },
-      );
+    const lucky = (state: GameState) => activate(state, "p1", { power: "fortune" }, [2]);
     const hand = start.players[0].hand.length;
     expect(lucky(start).state.players[0].hand).toHaveLength(hand + 2);
     expect(() => lucky(duel(20, 25, "cardGamble"))).toThrow(GameRuleError);
