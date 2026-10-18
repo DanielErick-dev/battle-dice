@@ -159,6 +159,7 @@ export const CHARACTERS = {
     model: model("voidKnight"),
     ability: "trapWard",
     playable: true,
+    stage: "voidRift",
     energyBlades: true,
     // Both blades hit the ground as he drops to one knee.
     castImpactSeconds: 0.95,
@@ -170,6 +171,7 @@ export const CHARACTERS = {
     model: model("crimsonEnchantress"),
     ability: "doubleCast",
     playable: true,
+    stage: "bloodRoseGarden",
   },
   crimsonWitch: {
     name: "Bruxa Carmesim",
@@ -281,6 +283,7 @@ export const CHARACTERS = {
     model: model("shadowWarden"),
     ability: "spectralApparitions",
     playable: true,
+    stage: "mistRuins",
     shieldColor: "#7dd3fc",
   },
   purgatoryKunoichi: {
@@ -292,6 +295,7 @@ export const CHARACTERS = {
     chair: "obsidianThrone",
     ability: "ocularAwakening",
     playable: true,
+    stage: "burningShrine",
     shieldColor: "#ff4d2e",
     armourLook: "susanoo",
   },

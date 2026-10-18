@@ -1,8 +1,12 @@
 import type { ComponentType, RefObject } from "react";
+import { BloodRoseGarden } from "./BloodRoseGarden";
+import { BurningShrine } from "./BurningShrine";
 import { FrozenWastes } from "./FrozenWastes";
 import { Graveyard } from "./Graveyard";
+import { MistRuins } from "./MistRuins";
 import { Sanctuary } from "./Sanctuary";
 import { Scriptorium } from "./Scriptorium";
+import { VoidRift } from "./VoidRift";
 
 export interface SceneryProps {
   /** How hard the wind blows through the stage (0 to 1): Seraphiel's wingbeats. */
@@ -26,6 +30,10 @@ export const SCENERY = {
   scriptorium: { component: Scriptorium },
   tundra: { component: FrozenWastes, weather: true },
   sanctuary: { component: Sanctuary },
+  voidRift: { component: VoidRift, dim: true },
+  mistRuins: { component: MistRuins, dim: true },
+  burningShrine: { component: BurningShrine, weather: true },
+  bloodRoseGarden: { component: BloodRoseGarden, weather: true },
 } as const satisfies Record<string, Scenery>;
 
 export type SceneryId = keyof typeof SCENERY;
