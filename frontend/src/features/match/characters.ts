@@ -294,6 +294,7 @@ export const CHARACTERS = {
     chair: "obsidianThrone",
     ability: "ocularAwakening",
     playable: true,
+    stage: "burningShrine",
     shieldColor: "#ff4d2e",
     armourLook: "susanoo",
   },

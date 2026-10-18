@@ -1,4 +1,5 @@
 import type { ComponentType, RefObject } from "react";
+import { BurningShrine } from "./BurningShrine";
 import { FrozenWastes } from "./FrozenWastes";
 import { Graveyard } from "./Graveyard";
 import { MistRuins } from "./MistRuins";
@@ -30,6 +31,7 @@ export const SCENERY = {
   sanctuary: { component: Sanctuary },
   voidRift: { component: VoidRift, dim: true },
   mistRuins: { component: MistRuins, dim: true },
+  burningShrine: { component: BurningShrine, weather: true },
 } as const satisfies Record<string, Scenery>;
 
 export type SceneryId = keyof typeof SCENERY;
