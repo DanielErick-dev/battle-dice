@@ -345,6 +345,7 @@ export const CHARACTERS = {
     playable: true,
     shieldColor: "#f9a8d4",
     chair: "infernalThrone",
+    stage: "sakuraCourtyard",
   },
   frostfangBerserker: {
     name: "Bjorn Presa-Gélida",

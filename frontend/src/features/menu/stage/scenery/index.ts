@@ -3,6 +3,7 @@ import { AlchemyLab } from "./AlchemyLab";
 import { CardTable } from "./CardTable";
 import { FrozenWastes } from "./FrozenWastes";
 import { Graveyard } from "./Graveyard";
+import { SakuraCourtyard } from "./SakuraCourtyard";
 import { Sanctuary } from "./Sanctuary";
 import { Scriptorium } from "./Scriptorium";
 import { WitchHollow } from "./WitchHollow";
@@ -32,6 +33,8 @@ export const SCENERY = {
   witchHollow: { component: WitchHollow },
   alchemyLab: { component: AlchemyLab },
   cardTable: { component: CardTable },
+  // Its own falling petals take the place of the rising motes.
+  sakuraCourtyard: { component: SakuraCourtyard, weather: true },
 } as const satisfies Record<string, Scenery>;
 
 export type SceneryId = keyof typeof SCENERY;
