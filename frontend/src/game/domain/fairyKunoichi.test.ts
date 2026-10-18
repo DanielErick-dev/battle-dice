@@ -175,7 +175,7 @@ describe("Ocular Awakening", () => {
     expect(() => activate(kunoichi(), { power: "flames", flameTiles: [21, 22, 23] })).toThrow(GameRuleError);
   });
 
-  it("Spectral Armour turns away what others aim at her, but not the board's traps", () => {
+  it("Her Susanoo turns away what others aim at her", () => {
     const armoured = activate(kunoichi(), { power: "armour" }).state;
     expect(playerOf(armoured, "hero").spectralArmour).toBe(ARMOUR_TURNS);
     const rivalTurn = onTurnOf(
