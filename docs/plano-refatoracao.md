@@ -60,6 +60,12 @@ O problema é de **crescimento**. Com 20 personagens, alguns arquivos viraram "c
 - `engine.ts` continua exportando `createGame`, `currentPlayer` e `applyCommand` com as mesmas assinaturas: ninguém fora do domínio mudou.
 - **Por quê:** o engine era o último roteador central. Comando novo = handler no arquivo do tema; habilidade nova = uma linha em `ABILITY_EFFECTS`. `engine.ts`: 600 → 44 linhas; os 281 testes passaram sem alteração.
 
+### 7. Testes do domínio por tema ✅
+- Os "sacos de gatos" `engine.test.ts`, `abilities.test.ts` e `cards.test.ts` foram quebrados: cada arquivo de teste fica ao lado do módulo que testa (`deck`, `turn`, `cardPlay`, `fusion`, `landing`, `arrowRain`, `cardGamble`, `trapWard`, `transmutation`, `resurrection`…). `cards.test.ts` deixou de existir.
+- Nova pasta `domain/testing/`: `newGame` (partida a partir de um mapa `id → habilidade`), `withPlayer`/`withPlayers`, `playerOf`, `onTurnOf`, `readyAbility`, `send`/`roll`/`activate`/`play`/`discard` com dado viciado, `card`/`cards`/`copies`, `hasEvent`/`eventsOfType`, `expectRuleError` e tabuleiros prontos em `boards.ts`.
+- Os outros testes (`berserker`, `blessings`, `fairyKunoichi`, `hiddenTraps`, `newcomerAbilities`, `realms`, `seals`, `seraph`, `specters`) trocaram as suas cópias de `patch`/`send`/`player`/`expectRuleError` pelos helpers. O Susanoo da Kage foi para `fairyKunoichi.test.ts`; dois testes repetidos em `newcomerAbilities` ficaram só em `abilities.test.ts`.
+- **Por quê:** teste novo = abrir o arquivo do tema e usar os helpers, sem copiar 40 linhas de preparação. Nenhum teste foi perdido: 281 antes e 281 depois, com as mesmas asserções.
+
 ### Depois da refatoração
 - Deploy na Vercel.
 - Contrato do multiplayer: documentar `GameCommand`/`GameEvent` como o protocolo do WebSocket (base para o backend FastAPI).
@@ -72,3 +78,4 @@ O problema é de **crescimento**. Com 20 personagens, alguns arquivos viraram "c
 | 17/10 | 1 | `playback.ts` (1275 linhas, 63 casos) → `model/playback/` com 12 arquivos temáticos. |
 | 17/10 | 2 | Seletores das habilidades → registro `ui/abilities/` (9 habilidades). `MatchScreen` 657 → 409 linhas. |
 | 17/10 | 6 | `engine.ts` (600 linhas) → `domain/handlers/` com mapa tipado por comando e registro `ABILITY_EFFECTS`. Passada de limpeza nos comentários de `game/`. |
+| 18/10 | 7 | Testes de `domain/` → um arquivo por tema, com helpers em `domain/testing/`. `cards.test.ts` (604 linhas) dividido; 281 testes mantidos. |
