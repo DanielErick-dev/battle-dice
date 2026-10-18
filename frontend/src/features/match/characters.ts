@@ -282,6 +282,7 @@ export const CHARACTERS = {
     model: model("shadowWarden"),
     ability: "spectralApparitions",
     playable: true,
+    stage: "mistRuins",
     shieldColor: "#7dd3fc",
   },
   purgatoryKunoichi: {
