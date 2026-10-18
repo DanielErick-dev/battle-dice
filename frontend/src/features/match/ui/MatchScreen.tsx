@@ -342,10 +342,10 @@ function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
         </footer>
       </div>
 
-      <CastOverlay cast={view.cast} />
-      <DrawOverlay drawing={view.drawing} />
-      <FusionOverlay fusing={view.fusing} />
-      <TransmuteOverlay transmuting={view.transmuting} />
+      <CastOverlay cast={view.fx.cast} />
+      <DrawOverlay drawing={view.fx.drawing} />
+      <FusionOverlay fusing={view.fx.fusing} />
+      <TransmuteOverlay transmuting={view.fx.transmuting} />
       {choosing && abilityCtx && canActivateAbility(view) && AbilityPicker && <AbilityPicker ctx={abilityCtx} />}
       {placement && (
         <TilePicking

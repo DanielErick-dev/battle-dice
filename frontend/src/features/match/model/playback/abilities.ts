@@ -1,7 +1,7 @@
 /** Ability charge and use, wards and armour, and the abilities small enough to share a file. */
 import { abilityCycle, isReactive, LEVITATION_TURNS } from "@/game/domain/abilities";
 import type { PlaybackTimings } from "../../config";
-import { withPlayer } from "../matchView";
+import { nextFxId, withFx, withPlayer } from "../matchView";
 import { abilityUsedMs, abilityEffect, playerTileEffect } from "./helpers";
 import type { EventOf, PlaybackStep, StepHandlers } from "./types";
 
@@ -72,26 +72,20 @@ export const abilitiesSteps: StepHandlers<
     // The wave rolls over the tiles ahead, then what it washed away is gone.
     return [
       {
-        apply: (view) => ({
-          ...view,
-          tide: {
-            id: (view.tide?.id ?? 0) + 1,
-            playerId: event.playerId,
-            path: event.reach,
-            rolling: true,
-          },
-        }),
+        apply: (view) =>
+          withFx(view, {
+            tide: { id: nextFxId(view.fx.tide), playerId: event.playerId, path: event.reach, rolling: true },
+          }),
         durationMs: timings.tideMs,
       },
       {
         apply: (view) => ({
-          ...view,
+          ...withFx(view, { tide: view.fx.tide && { ...view.fx.tide, rolling: false } }),
           blackFlames: view.blackFlames.filter((flame) => !event.tiles.includes(flame.tile)),
           enchantedTiles: view.enchantedTiles.filter((enchanted) => !event.tiles.includes(enchanted.tile)),
           specters: view.specters.filter((specter) => !event.tiles.includes(specter.tile)),
           seals: view.seals.filter((seal) => !event.tiles.includes(seal.tile)),
           pinnedTraps: view.pinnedTraps.filter((tile) => !event.tiles.includes(tile)),
-          tide: view.tide && { ...view.tide, rolling: false },
           effect: {
             ...playerTileEffect(view, event.playerId, "cleansed"),
             count: event.tiles.length,

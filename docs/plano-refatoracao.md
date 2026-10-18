@@ -11,10 +11,10 @@ O problema é de **crescimento**. Com 20 personagens, alguns arquivos viraram "c
 | Arquivo | Linhas | Sintoma |
 |---|---|---|
 | ~~`features/match/model/playback.ts`~~ | 1275 | ~~um único `switch` com 63 casos~~ ✅ etapa 1 |
-| `features/match/scene/PlayerToken.tsx` | 718 | todos os efeitos de todos os personagens num componente |
+| ~~`features/match/scene/PlayerToken.tsx`~~ | 718 → 473 | ~~todos os efeitos de todos os personagens~~ ✅ etapa 4 |
 | ~~`features/match/ui/MatchScreen.tsx`~~ | 657 → 409 | ~~`ability === "…"` repetido~~ ✅ etapa 2 |
-| `features/match/scene/BoardScene.tsx` | 615 | 42 imports; monta tudo de todos os personagens |
-| `features/match/model/matchView.ts` | 409 | `MatchView` com 38 campos, muitos de um único personagem (`trample`, `tide`, `drag`…) |
+| ~~`features/match/scene/BoardScene.tsx`~~ | 615 → 287 | ~~42 imports~~ ✅ etapa 4 |
+| ~~`features/match/model/matchView.ts`~~ | 409 → 386 | ~~`MatchView` com 38 campos~~ ✅ etapa 3 |
 | `features/match/characters.ts` | 460 | ficha visual de 20 personagens num arquivo só |
 | ~~`game/domain/engine.ts`~~ | 600 → 44 | ~~roteador de comandos crescendo~~ ✅ etapa 6 |
 
@@ -42,13 +42,24 @@ O problema é de **crescimento**. Com 20 personagens, alguns arquivos viraram "c
 - **Por quê:** a tela da partida não conhece mais nenhuma habilidade. Personagem novo com seletor = um arquivo em `ui/abilities/` + uma linha no registro. `MatchScreen`: 657 → 409 linhas.
 - **Ligação com o backend:** o seletor produz um `AbilityChoice`, que é exatamente o payload do comando `activateAbility`, o mesmo JSON que vai pelo WebSocket. As listas de alvos vêm de funções do domínio (`gambleTargets`, `dragTargets`), que o servidor também vai rodar para validar.
 
-### 3. Agrupar os campos de efeito da `MatchView`
-- `trample`, `tide`, `drag`, `frostStream`, `volley`, `dash`… vão para um sub-objeto de efeitos em andamento.
-- A view principal fica só com o que é de todos (jogadores, dado, turno).
+### 3. Agrupar os campos de efeito da `MatchView` ✅
+- Novo sub-objeto `view.fx` (tipo `MatchFx`) com as 10 animações que estão tocando: `cast`, `drawing`, `fusing`, `transmuting`, `dash`, `volley`, `tide`, `trample`, `drag`, `frostStream`. Cada uma tem seu tipo (`DashView`, `TrampleView`…) e um `id` que muda a cada vez.
+- No topo ficou o que é de todos e dura: jogadores, vez, dado (`roll`, `lastRoll`), banner (`effect`), perguntas pendentes e o que está desenhado no tabuleiro (selos, aparições, chamas, inverno, armadilhas).
+- **Critério da divisão:** vai para o `fx` o que o `syncStep` nunca toca, ou seja, o que só existe na tela. `roll` ficou no topo porque o dado é de todos e o HUD lê junto com `lastRoll`; `lastDrawnUid` ficou porque é o destaque da mão, não uma animação.
+- Os handlers escrevem com `withFx(view, { … })` e `nextFxId(view.fx.x)`, em vez de repetir `{ ...view, x: { id: (view.x?.id ?? 0) + 1, … } }`. A revelação de carta (`cardDrawn`, `cardsResurrected`) virou um helper só, `revealThenDeal`.
+- **Por quê:** quem lê a `MatchView` vê em 30 linhas o que é estado de jogo e o que é animação. Animação nova = um tipo + um campo no `MatchFx`, sem misturar com as regras. Os testes só mudaram o caminho (`view.trample` → `view.fx.trample`).
+- **Ligação com o backend:** o `fx` nunca vai para o servidor. O que vem do backend (o `GameState`) só alimenta o topo, pelo `syncStep`; o `fx` é montado aqui no cliente a partir dos eventos. Assim o contrato do WebSocket não carrega nada de animação.
 
-### 4. Efeitos por personagem fora do `PlayerToken` e da `BoardScene`
-- Cada personagem registra os seus componentes de efeito (aura, cast, cadeira, asas) na ficha dele.
-- `PlayerToken` e `BoardScene` passam a iterar sobre o registro em vez de conhecer cada um.
+### 4. Efeitos por personagem fora do `PlayerToken` e da `BoardScene` ✅
+- Nova pasta `scene/effects/`: cada efeito tem uma "regra de montagem" (um componente pequeno que decide se aparece e com quais props), num arquivo por dono (`berserker.tsx`, `fairy.tsx`, `seraph.tsx`, `cards.tsx`…).
+- `effects/index.ts` tem o registro, em listas por lugar: `TOKEN_EFFECTS.aura | ground | body | figure` (no boneco) e `BOARD_EFFECTS` / `OVERLAY_EFFECTS` (no tabuleiro, antes e depois dos bonecos). O `PlayerToken` e a `BoardScene` só fazem `.map` nessas listas.
+- Os efeitos recebem um contexto: `TokenFx` (jogador, ficha, cor, sinais e as refs do quadro a quadro) ou `BoardFx` (view, tabuleiro, layout, quem olha).
+- O `PlayerToken` agora recebe `player`, `character` e `signals`, em vez de ~45 props soltas. O que cada boneco está fazendo saiu da `BoardScene` para `tokenSignals.ts`; onde ele fica, para `tokenPlacement.ts`; o foco da câmera e do dado, para `cameraFocus.ts`.
+- **Ficou de fora, de propósito:** o movimento e a escolha de clipe do `PlayerToken` (correr, saltar, ser arrastado, empurrar) continuam num `useFrame` só, porque um passo depende do outro. A cadeira, o anel e o nome são de todos e ficaram no `PlayerToken`. Câmera, ambiente e casas ficaram na `BoardScene`.
+- **Ordem:** as listas seguem a ordem do JSX antigo, então os mesmos componentes montam nas mesmas condições e na mesma ordem. A única mudança de posição foi o frasco da Alquimista (`VialThrow`), que agora fica antes do modelo no grupo do corpo; ele só monta depois de um lançamento, então a ordem de criação continua a mesma.
+- **Por quê:** efeito novo de personagem = um componente + uma linha no registro, sem abrir o `PlayerToken` (que tem uma máquina de estados delicada) nem a `BoardScene`. `PlayerToken` 718 → 473 linhas; `BoardScene` 615 → 287 linhas, 42 → 29 imports.
+- **Ligação com o backend:** nenhuma regra mudou de lugar: os efeitos só leem a `MatchView` (o que o servidor mandou, já animado pelo playback). No online, cada cliente desenha os mesmos efeitos a partir dos mesmos eventos.
+- A etapa 5 pode levar as flags da ficha (`wand`, `wings`, `castAura`…) para o arquivo de cada personagem junto com as regras de `effects/`.
 
 ### 5. Uma ficha por personagem
 - `features/match/characters/<id>.ts` reunindo modelo, clipes, cores, efeitos e intro; `characters/index.ts` monta o elenco.
@@ -71,4 +82,6 @@ O problema é de **crescimento**. Com 20 personagens, alguns arquivos viraram "c
 | 17/10 | 0 | Commits divididos (assets, kits, lab). Docs criadas. |
 | 17/10 | 1 | `playback.ts` (1275 linhas, 63 casos) → `model/playback/` com 12 arquivos temáticos. |
 | 17/10 | 2 | Seletores das habilidades → registro `ui/abilities/` (9 habilidades). `MatchScreen` 657 → 409 linhas. |
+| 17/10 | 3 | 10 campos de animação da `MatchView` → `view.fx` (`MatchFx`), com `withFx`/`nextFxId`. `matchView.ts` 409 → 386 linhas. |
+| 17/10 | 4 | Efeitos 3D → registro `scene/effects/` (42 regras em 16 arquivos). `PlayerToken` 718 → 473, `BoardScene` 615 → 287 linhas. |
 | 17/10 | 6 | `engine.ts` (600 linhas) → `domain/handlers/` com mapa tipado por comando e registro `ABILITY_EFFECTS`. Passada de limpeza nos comentários de `game/`. |

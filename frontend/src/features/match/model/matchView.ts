@@ -36,86 +36,71 @@ export type TileEffectKind =
   | "teleport"
   | "abilityReady"
   | "abilityUsed"
-  /** A levitating player floated over a tile's effect. */
   | "levitated"
-  /** Card Gamble's die of fortune came up. */
   | "gamble"
-  /** A forbidden seal broke under a player. */
   | "seal"
-  /** An enchanted tile stirred under a player (see enchanted). */
   | "enchanted"
-  /** A player went through black fire. */
   | "flames"
-  /** The Crystal Fairy's Eternal Winter set in (shown over her). */
+  /** Shown over the Crystal Fairy. */
   | "winter"
-  /** Spectral Armour turned something away from a player. */
   | "armour"
-  /** Cleansing Tide washed the spells off the board. */
   | "cleansed"
-  /** The Berserker trampled a player, sending them flying (shown over the one sent flying). */
+  /** Shown over the one sent flying. */
   | "trampled"
-  /** Kage Rubra's Susanoo threw back a player trying to stop on her tile (shown over the one thrown). */
+  /** Kage Rubra's Susanoo threw someone back; shown over the one thrown. */
   | "repelled"
-  /** Time Warp halted or reversed a player's time (shown over them). */
   | "timeBent"
-  /** A player walked through a Shadow Warden's apparition, or through the Warden, dispelling them. */
   | "specter"
-  /** Seraphiel set foot in hell and became the Fallen Angel. */
+  /** Seraphiel set foot in hell. */
   | "fallen"
-  /** Seraphiel's crown came to his head (see TileEffectView.crown). */
   | "crown"
-  /** The Fallen Angel stopped on a celestial portal: heaven stays shut, and its chains hold him. */
+  /** The Fallen Angel on a celestial portal: heaven stays shut and its chains hold him. */
   | "heavenBarred"
-  /** Hell's Drag pulled a player down into hell (shown over them, there). */
   | "dragged"
-  /** An ability aimed at an opponent was turned away (shown over whoever used it; see TileEffectView.blocked). */
+  /** Shown over whoever aimed it. */
   | "abilityBlocked";
 
-/** The last revealed roll: its dice, and how they became the distance walked. */
+/** The last revealed roll. */
 export interface RollView {
   dice: readonly number[];
-  /** The higher die counts (Oracle Eye) instead of their sum. */
+  /** Oracle Eye: the higher die counts instead of the sum. */
   best: boolean;
   bonus: number;
-  /** The total was multiplied by this (Dormant Fury: 3), after the bonus; 1 otherwise. */
+  /** Applied after the bonus (Dormant Fury: 3). */
   multiplier: number;
   total: number;
 }
 
-/**
- * A move crossed as a bolt of lightning (Dormant Fury): kept after the dash so its lightning can
- * fade; `id` changes with each dash.
- */
-export interface DashView {
+// Every animation below carries an `id` that changes with each one, so the scene and audio replay it once.
+
+/** Dormant Fury's lightning dash; kept after arrival so the bolt can fade. */
+interface DashView {
   id: number;
   playerId: PlayerId;
-  /** Where the dash starts, then every tile it crosses. */
+  /** The start tile, then every tile crossed. */
   path: readonly TileId[];
-  /** The player stepped out of the lightning at the end of the path. */
   arrived: boolean;
 }
 
-/** A card coming off the deck: shown face down, flipped in the middle of the screen, then dealt to the hand. */
+/** A card shown face down, flipped in the middle of the screen, then dealt to the hand. */
 export interface CardDrawView {
   id: number;
   playerId: PlayerId;
   card: CardInstance;
-  /** Taken from another player's hand (their name), rather than drawn off the deck. */
+  /** Name of the player it was taken from (Card Gamble), rather than drawn off the deck. */
   takenFrom?: string;
 }
 
-/** A hand card turning into another (Transmutation); `id` changes on every one. */
-/** A Cleansing Tide wave rolling over `path` (the player's tile first). `id` changes with every wave. */
-export interface TideView {
+/** A Cleansing Tide wave rolling over `path` (the player's tile first). */
+interface TideView {
   id: number;
   playerId: PlayerId;
   path: readonly TileId[];
-  /** Still rolling (the camera watches it), until what it washed away is gone. */
+  /** The camera watches it until what it washed away is gone. */
   rolling: boolean;
 }
 
-/** An Arrow Rain volley: shot up from `from`, falling on `targets`. `id` changes with every volley. */
-export interface VolleyView {
+interface VolleyView {
   id: number;
   playerId: PlayerId;
   from: TileId;
@@ -123,25 +108,21 @@ export interface VolleyView {
 }
 
 /**
- * The Berserker shoving `victim`, whom he trampled on `tile`: he steps ahead of them, turns on them
- * and shoves (`shove`), they fly back to their new tile (`flying`), then he turns to run on from
- * where he stood (`over`, until he moves again). `id` changes with every one.
+ * The Berserker steps ahead of `victim`, shoves (`shove`), they fly back (`flying`), then he turns to
+ * run on (`over`, until he moves again).
  */
-export interface TrampleView {
+interface TrampleView {
   id: number;
   by: PlayerId;
   victim: PlayerId;
   tile: TileId;
-  /** `rise`: the one trampled was seated, and gets up off their chair before the shove. */
+  /** `rise`: the victim was seated and gets up before the shove. */
   phase: "rise" | "shove" | "flying" | "over";
-  /** A Susanoo throwing them back (`by` stays where she is): only the flight, no shove. */
+  /** A Susanoo throwing them back: only the flight, `by` stays put. */
   susanoo?: boolean;
 }
 
-/**
- * Hell's Drag on `targetId`: the ground cracks on `from` and a hand of hell rises and closes on them
- * (`grab`), sinks back with them (`sink`), and they're in hell (`over`). `id` changes with every one.
- */
+/** Hell's Drag: a hand rises on `from` and closes on the target (`grab`), sinks with them, and they're in hell. */
 export interface DragView {
   id: number;
   playerId: PlayerId;
@@ -150,8 +131,8 @@ export interface DragView {
   phase: "grab" | "sink" | "over";
 }
 
-/** Snow streaming from the Crystal Fairy's wand to one of the tiles she's enchanting. */
-export interface FrostStreamView {
+/** Snow streaming from the Crystal Fairy's wand to a tile she's enchanting. */
+interface FrostStreamView {
   id: number;
   playerId: PlayerId;
   tile: TileId;
@@ -166,7 +147,6 @@ export interface CardTransmuteView {
   to: CardInstance;
 }
 
-/** A card being played; `id` changes on every cast so the scene and audio can react once. */
 export interface CardCastView {
   id: number;
   playerId: PlayerId;
@@ -175,49 +155,78 @@ export interface CardCastView {
   value: number | null;
 }
 
-/** A tile effect (or turn notice) being shown. For effects without travel, `from` and `to` are the same tile. */
+/** Three copies fusing into one in the middle of the screen. */
+interface CardFusionView {
+  id: number;
+  playerId: PlayerId;
+  card: CardInstance;
+}
+
+/**
+ * One-shot animations in flight, each null when none plays. Kept apart from the board state because
+ * they only exist on screen: the final sync never touches them.
+ */
+export interface MatchFx {
+  cast: CardCastView | null;
+  drawing: CardDrawView | null;
+  fusing: CardFusionView | null;
+  transmuting: CardTransmuteView | null;
+  dash: DashView | null;
+  volley: VolleyView | null;
+  tide: TideView | null;
+  /** Null once the Berserker runs on. */
+  trample: TrampleView | null;
+  drag: DragView | null;
+  /** The camera follows it to each tile. */
+  frostStream: FrostStreamView | null;
+}
+
+const NO_FX: MatchFx = {
+  cast: null,
+  drawing: null,
+  fusing: null,
+  transmuting: null,
+  dash: null,
+  volley: null,
+  tide: null,
+  trample: null,
+  drag: null,
+  frostStream: null,
+};
+
+/** A tile effect or turn notice; without travel, `from` and `to` are the same tile. */
 export interface TileEffectView {
   kind: TileEffectKind;
   playerId: PlayerId;
   from: TileId;
   to: TileId;
-  /** What a cursed trap took (trapCurse only). */
   curse?: { kind: TrapCurse; card: CardInstance | null; energyLost: number };
-  /** What Card Gamble's die came up, whether that wins, and whether it was thrown for cards (gamble only). */
+  /** `fortune`: thrown for cards. */
   gamble?: { value: number; won: boolean; fortune?: boolean };
-  /** The ability or card turned away, by what, and the opponent it was aimed at (abilityBlocked only). */
+  /** The ability or card turned away, by what, and the opponent it was aimed at. */
   blocked?: {
     ability?: AbilityId;
     cardId?: CardId;
     ward: AimWard | "away";
     targetName: string;
   };
-  /** The realm being entered (realmEnter only). */
   realm?: RealmKind;
-  /** What a celestial tile gave (blessing only). */
   blessing?: {
     kind: Blessing;
     energyGained: number;
     charged?: boolean;
     turns?: number;
   };
-  /** What kept the trap off, and whether it was a hidden one (trapBlocked only). */
   ward?: { kind: TrapWard; hidden: boolean };
-  /** The ability that got charged or was just used (abilityReady / abilityUsed only). */
   ability?: { id: AbilityId };
-  /** How many tiles Cleansing Tide washed (cleansed), or how many a trample knocked back (trampled). */
+  /** Tiles Cleansing Tide washed, tiles a trample knocked back, or Time Warp's rounds. */
   count?: number;
-  /** Which crown Seraphiel now wears (crown only). */
   crown?: Crown;
-  /** How Time Warp bent the player's time (timeBent; `count` is the rounds). */
   time?: "halt" | "reverse";
-  /** Whose enchanted tile it was and the energy it moved (enchanted only). */
   enchanted?: { owner: PlayerId; frozen: number };
-  /** Energy the black fire took (flames only). */
   flames?: { energyLost: number };
-  /** Which seal broke, whose it was and the energy it moved (seal only). */
   seal?: { kind: SealKind; owner: PlayerId; energyLost: number; energyGained: number };
-  /** Which apparition struck (null: the Warden's apparitions were dispelled) and what it took (specter only). */
+  /** `kind` null: the Warden's apparitions were dispelled. */
   specter?: {
     kind: SpecterKind | null;
     owner: PlayerId;
@@ -227,18 +236,15 @@ export interface TileEffectView {
   };
 }
 
-/**
- * A Shadow Warden's apparition on the board. Only its owner is shown its `kind`: to everyone
- * else, both look exactly like the Warden (see BoardScene's viewer).
- */
-export interface SpecterView {
+/** A Shadow Warden's apparition; only its owner is shown its `kind`, others see the Warden himself. */
+interface SpecterView {
   tile: TileId;
   owner: PlayerId;
   kind: SpecterKind;
 }
 
-/** A seal on the board: a closed scroll for everyone; only its owner is shown its `kind`. */
-export interface SealView {
+/** A closed scroll for everyone; only its owner is shown its `kind`. */
+interface SealView {
   tile: TileId;
   owner: PlayerId;
   kind: SealKind;
@@ -249,70 +255,44 @@ export interface MatchView {
   players: readonly Player[];
   activePlayerId: PlayerId;
   movingPlayerId: PlayerId | null;
-  /** Last revealed roll; null before the first. */
+  /** Null before the first roll. */
   lastRoll: RollView | null;
   isRolling: boolean;
-  /**
-   * The throw in progress or last thrown, known from the moment it starts so the 3D die can
-   * land on it. `id` changes on every throw. The HUD keeps using `lastRoll`, revealed later.
-   */
+  /** Known from the start of the throw so the 3D die lands on it; the HUD waits for `lastRoll`. */
   roll: { id: number; dice: readonly number[] } | null;
-  /** Player charged with energy (rolled a 6 or hit an advance tile) until their move ends. */
+  /** Rolled a 6 or hit an advance tile: charged until their move ends. */
   poweredPlayerId: PlayerId | null;
   effect: TileEffectView | null;
   winnerId: PlayerId | null;
-  cast: CardCastView | null;
-  /** Card being revealed after a draw. */
-  drawing: CardDrawView | null;
-  /** Three copies fusing into one, shown in the middle of the screen (see FusionOverlay). */
-  fusing: { id: number; playerId: PlayerId; card: CardInstance } | null;
-  /** The last lightning dash (Dormant Fury). */
-  dash: DashView | null;
-  /** The last Arrow Rain volley. */
-  volley: VolleyView | null;
-  /** The last Cleansing Tide wave. */
-  tide: TideView | null;
-  /** The last trample, acted out; null once the Berserker runs on. */
-  trample: TrampleView | null;
-  /** The last Hell's Drag. */
-  drag: DragView | null;
-  /** The fairy's snow on its way to a tile she's enchanting; the camera follows it there. */
-  frostStream: FrostStreamView | null;
-  /** Card being transmuted, shown in the middle of the screen as it changes. */
-  transmuting: CardTransmuteView | null;
-  /** Card drawn most recently, to highlight it in the hand. */
+  fx: MatchFx;
+  /** To highlight it in the hand. */
   lastDrawnUid: string | null;
-  /** Hand overflowed: waiting for this player to discard one of these. */
+  /** Hand overflowed: waiting for this player to discard. */
   pendingDiscard: { playerId: PlayerId; drawn: CardInstance } | null;
   cardsPlayedThisTurn: number;
-  /** Ability the active player used this turn, still in effect. */
+  /** Used this turn and still in effect. */
   abilityInUse: AbilityId | null;
-  /** A trap or curse waiting on this player's choice to spend their Trap Ward. */
+  /** Waiting on this player's choice to spend their Trap Ward. */
   pendingWard: { playerId: PlayerId; tile: TileId; threat: Threat } | null;
-  /** Seraphiel picking his gift on a heaven tile: one of its blessings, or one of its relics. */
+  /** Seraphiel picking a blessing or a relic on a heaven tile. */
   pendingGrace: {
     playerId: PlayerId;
     tile: TileId;
     offer: "blessing" | "relic";
   } | null;
-  /** Tiles whose trap the Trap Ward smashed for good: drawn as rubble. */
+  /** Smashed for good by the Trap Ward: drawn as rubble. */
   destroyedTraps: readonly TileId[];
-  /** Tiles whose threat Arrow Rain pinned down, until walked past: drawn with arrows stuck in them. */
+  /** Pinned by Arrow Rain until walked past: drawn with arrows stuck in them. */
   pinnedTraps: readonly TileId[];
-  /** Forbidden seals written on the board, not broken yet. */
   seals: readonly SealView[];
-  /** Shadow Warden apparitions on the board. */
   specters: readonly SpecterView[];
-  /** Tiles the Crystal Fairy enchanted for good. */
   enchantedTiles: readonly EnchantedTile[];
-  /** Tiles on the Purgatory Kunoichi's black fire. */
   blackFlames: readonly BlackFlame[];
-  /** The Crystal Fairy's Eternal Winter, once begun: the main path is frozen up to its frontier. */
   winter: Winter | null;
   /** A Warden picking the cards their Plunder apparition takes from `victim`. */
   pendingPlunder: { owner: PlayerId; victim: PlayerId } | null;
   isAnimating: boolean;
-  /** A refused move, shown briefly; `id` changes with every refusal so repeats show again. */
+  /** A refused move, shown briefly; the id lets a repeated refusal show again. */
   error: { id: number; message: string } | null;
 }
 
@@ -327,16 +307,7 @@ export function createInitialView(state: GameState): MatchView {
     poweredPlayerId: null,
     effect: null,
     winnerId: state.winnerId,
-    cast: null,
-    drawing: null,
-    fusing: null,
-    dash: null,
-    volley: null,
-    tide: null,
-    trample: null,
-    drag: null,
-    frostStream: null,
-    transmuting: null,
+    fx: NO_FX,
     lastDrawnUid: null,
     pendingDiscard: state.pendingDiscard,
     cardsPlayedThisTurn: state.cardsPlayedThisTurn,
@@ -356,12 +327,10 @@ export function createInitialView(state: GameState): MatchView {
   };
 }
 
-/** The seals on the board (their kinds are for their owners' eyes only, see SealView). */
 export function sealViews(state: GameState): SealView[] {
   return state.seals.map(({ tile, owner, kind }) => ({ tile, owner, kind }));
 }
 
-/** The apparitions on the board (their kinds are for their owners' eyes only, see SpecterView). */
 export function specterViews(state: GameState): SpecterView[] {
   return state.specters.map(({ tile, owner, kind }) => ({ tile, owner, kind }));
 }
@@ -381,18 +350,17 @@ export function activePlayerOf(view: MatchView): Player | undefined {
   return view.players.find((player) => player.id === view.activePlayerId);
 }
 
-/** Cards the active player may still play this turn (one, or two with Double Cast). */
+/** One, or two with Double Cast. */
 export function cardsLeftThisTurn(view: MatchView): number {
   return Math.max(0, cardsPerTurn(view.abilityInUse) - view.cardsPlayedThisTurn);
 }
 
-/** The active player may use their ability now. */
 export function canActivateAbility(view: MatchView): boolean {
   const player = activePlayerOf(view);
   return canRoll(view) && player !== undefined && abilityBlocker(player) === null;
 }
 
-/** The active player may play a card now (energy and card choice are checked per card). */
+/** Energy and card choice are checked per card. */
 export function canPlayCard(view: MatchView): boolean {
   return canRoll(view) && cardsLeftThisTurn(view) > 0;
 }
@@ -406,4 +374,13 @@ export function withPlayer(view: MatchView, playerId: PlayerId, patch: (player: 
 
 export function withPlayerAt(view: MatchView, playerId: PlayerId, position: TileId): MatchView {
   return withPlayer(view, playerId, () => ({ position }));
+}
+
+export function withFx(view: MatchView, patch: Partial<MatchFx>): MatchView {
+  return { ...view, fx: { ...view.fx, ...patch } };
+}
+
+/** The id for the next animation of a kind (see MatchFx). */
+export function nextFxId(current: { id: number } | null): number {
+  return (current?.id ?? 0) + 1;
 }

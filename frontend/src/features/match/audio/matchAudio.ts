@@ -69,21 +69,22 @@ function playTransition(previous: MatchView, next: MatchView, sounds: MatchSound
   if (next.poweredPlayerId !== null && next.poweredPlayerId !== previous.poweredPlayerId) sounds.powerUp();
 
   // Dormant Fury: a whine and thunder as the dash starts, thunder again on arrival.
-  if (next.dash && next.dash.id !== previous.dash?.id) {
+  if (next.fx.dash && next.fx.dash.id !== previous.fx.dash?.id) {
     sounds.electricRush(DEFAULT_TIMINGS.dashLaunchMs / 1000);
     sounds.thunder(DEFAULT_TIMINGS.dashLaunchMs / 1000);
   }
-  if (next.dash?.arrived && !previous.dash?.arrived) sounds.thunder();
-  if (next.drag && next.drag.id !== previous.drag?.id) sounds.hellGrasp();
-  if (next.volley && next.volley.id !== previous.volley?.id) sounds.arrowVolley(DEFAULT_TIMINGS.arrowVolleyMs / 1000);
+  if (next.fx.dash?.arrived && !previous.fx.dash?.arrived) sounds.thunder();
+  if (next.fx.drag && next.fx.drag.id !== previous.fx.drag?.id) sounds.hellGrasp();
+  if (next.fx.volley && next.fx.volley.id !== previous.fx.volley?.id)
+    sounds.arrowVolley(DEFAULT_TIMINGS.arrowVolleyMs / 1000);
   if (next.effect && next.effect !== previous.effect) EFFECT_SOUNDS[next.effect.kind](sounds, next.effect);
-  if (next.cast && next.cast.id !== previous.cast?.id) sounds.cardCast(next.cast.card.cardId);
-  if (next.drawing && next.drawing.id !== previous.drawing?.id) sounds.cardFlip();
+  if (next.fx.cast && next.fx.cast.id !== previous.fx.cast?.id) sounds.cardCast(next.fx.cast.card.cardId);
+  if (next.fx.drawing && next.fx.drawing.id !== previous.fx.drawing?.id) sounds.cardFlip();
   if (next.lastDrawnUid !== null && next.lastDrawnUid !== previous.lastDrawnUid) sounds.cardDraw();
 
   for (const player of next.players) {
     // A lightning dash is heard as thunder, not steps.
-    if (next.dash?.playerId === player.id && !next.dash.arrived) continue;
+    if (next.fx.dash?.playerId === player.id && !next.fx.dash.arrived) continue;
     const before = previous.players.find((other) => other.id === player.id);
     if (!before || before.position === player.position) continue;
 

@@ -94,7 +94,7 @@ describe("MatchStore", () => {
 
       store.playCard("b");
       const view = store.getSnapshot();
-      expect(view.cast).toMatchObject({ id: 1, playerId: "p1", card: barrier });
+      expect(view.fx.cast).toMatchObject({ id: 1, playerId: "p1", card: barrier });
       expect(view.players[0].hand).toEqual([]);
       expect(view.players[0].energy).toBe(1);
 
@@ -120,15 +120,15 @@ describe("MatchStore", () => {
       store.rollDice();
       vi.advanceTimersByTime(DEFAULT_TIMINGS.diceRollMs + DEFAULT_TIMINGS.diceRevealMs + DEFAULT_TIMINGS.stepMs);
       const revealing = store.getSnapshot();
-      expect(revealing.drawing).toMatchObject({ id: 1, playerId: "p1" });
+      expect(revealing.fx.drawing).toMatchObject({ id: 1, playerId: "p1" });
       expect(revealing.players[0].hand).toEqual([]);
       expect(revealing.players[0].deck).toHaveLength(deckSize - 1);
 
       vi.advanceTimersByTime(DEFAULT_TIMINGS.drawRevealMs);
       const dealt = store.getSnapshot();
-      expect(dealt.drawing).toBeNull();
-      expect(dealt.players[0].hand).toEqual([revealing.drawing?.card]);
-      expect(dealt.lastDrawnUid).toBe(revealing.drawing?.card.uid);
+      expect(dealt.fx.drawing).toBeNull();
+      expect(dealt.players[0].hand).toEqual([revealing.fx.drawing?.card]);
+      expect(dealt.lastDrawnUid).toBe(revealing.fx.drawing?.card.uid);
     });
 
     it("announces what a cursed trap took", () => {

@@ -1,6 +1,6 @@
 /** Crystal Fairy: snow on the traps and the Eternal Winter. */
 import { MAX_ENERGY } from "@/game/domain/cards";
-import { withPlayer, type MatchView } from "../matchView";
+import { nextFxId, withFx, withPlayer, type MatchView } from "../matchView";
 import { playerTileEffect } from "./helpers";
 import type { StepHandlers } from "./types";
 
@@ -36,14 +36,14 @@ export const fairySteps: StepHandlers<
         : { ...view, enchantedTiles: [...view.enchantedTiles, { tile: event.tiles[index], owner: event.playerId }] };
     return [
       ...event.tiles.map((tile, index) => ({
-        apply: (view: MatchView) => ({
-          ...landed(view, index - 1),
-          frostStream: { id: (view.frostStream?.id ?? 0) + 1, playerId: event.playerId, tile },
-        }),
+        apply: (view: MatchView) =>
+          withFx(landed(view, index - 1), {
+            frostStream: { id: nextFxId(view.fx.frostStream), playerId: event.playerId, tile },
+          }),
         durationMs: timings.frostStreamMs,
       })),
       {
-        apply: (view: MatchView) => ({ ...landed(view, event.tiles.length - 1), frostStream: null }),
+        apply: (view: MatchView) => withFx(landed(view, event.tiles.length - 1), { frostStream: null }),
         durationMs: timings.noticeMs,
       },
     ];

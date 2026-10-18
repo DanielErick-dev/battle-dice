@@ -1,11 +1,4 @@
-/**
- * Playback: the engine hands over the new state at once, but the screen has to tell the story in
- * order: the die spins, the figure walks tile by tile, the trap goes off. Each GameEvent becomes a
- * list of PlaybackSteps that the match store plays one after another (see docs/arquitetura.md).
- *
- * The handlers live in one file per theme, named after the domain files they mirror. HANDLERS'
- * type demands one for every GameEvent, so a new event doesn't compile until it has its steps.
- */
+/** Turns each GameEvent into the steps the store plays in order; HANDLERS' type demands one per event (see README.md). */
 import { currentPlayer } from "@/game/domain/engine";
 import type { GameEvent } from "@/game/domain/events";
 import type { GameState } from "@/game/domain/types";
@@ -47,7 +40,7 @@ export function eventToSteps(event: GameEvent, timings: PlaybackTimings): Playba
   return handler(event, timings);
 }
 
-/** Final step of every update: snaps the view onto the authoritative state. */
+/** Final step of every update: snaps the view onto the authoritative state; `fx` is left to finish playing. */
 export function syncStep(state: GameState): PlaybackStep {
   return {
     apply: (view) => ({

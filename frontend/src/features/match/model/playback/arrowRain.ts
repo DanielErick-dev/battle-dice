@@ -1,4 +1,5 @@
 /** Elven Archer: Arrow Rain's volley. */
+import { nextFxId, withFx } from "../matchView";
 import type { StepHandlers } from "./types";
 
 export const arrowRainSteps: StepHandlers<"arrowsLoosed"> = {
@@ -6,15 +7,15 @@ export const arrowRainSteps: StepHandlers<"arrowsLoosed"> = {
     // Up into the sky, down on the targets; pinned tiles keep their arrows once they hit.
     return [
       {
-        apply: (view) => ({
-          ...view,
-          volley: {
-            id: (view.volley?.id ?? 0) + 1,
-            playerId: event.playerId,
-            from: view.players.find((player) => player.id === event.playerId)?.position ?? 0,
-            targets: event.targets,
-          },
-        }),
+        apply: (view) =>
+          withFx(view, {
+            volley: {
+              id: nextFxId(view.fx.volley),
+              playerId: event.playerId,
+              from: view.players.find((player) => player.id === event.playerId)?.position ?? 0,
+              targets: event.targets,
+            },
+          }),
         durationMs: timings.arrowVolleyMs,
       },
       {

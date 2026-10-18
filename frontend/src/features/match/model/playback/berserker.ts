@@ -1,5 +1,5 @@
 /** Bjorn: Untamed and his trample. */
-import { withPlayer, withPlayerAt, type MatchView } from "../matchView";
+import { nextFxId, withFx, withPlayer, withPlayerAt, type MatchView } from "../matchView";
 import { playerTileEffect } from "./helpers";
 import type { StepHandlers } from "./types";
 
@@ -17,38 +17,33 @@ export const berserkerSteps: StepHandlers<"untamedUnleashed" | "playerTrampled">
     ];
   },
   playerTrampled: (event, timings) => {
-    // The Berserker turns on them and shoves; they fly back to where the knock-back leaves them,
-    // and he turns back to run on.
     const trample = {
       by: event.by,
       victim: event.playerId,
       tile: event.tile,
     };
-    // Caught sitting out a lost turn on their chair, they get up first.
+    // Caught sitting out a lost turn, they get up off their chair first.
     const getUp = {
-      apply: (view: MatchView) => ({
-        ...view,
-        trample: { id: (view.trample?.id ?? 0) + 1, ...trample, phase: "rise" as const },
-      }),
+      apply: (view: MatchView) =>
+        withFx(view, { trample: { id: nextFxId(view.fx.trample), ...trample, phase: "rise" } }),
       durationMs: timings.trampleRiseMs,
     };
     return [
       ...(event.seated ? [getUp] : []),
       {
-        apply: (view) => ({
-          ...view,
-          trample: {
-            id: view.trample?.phase === "rise" ? view.trample.id : (view.trample?.id ?? 0) + 1,
-            ...trample,
-            phase: "shove",
-          },
-        }),
+        apply: (view) => {
+          const current = view.fx.trample;
+          // The same trample goes on after the rise.
+          const id = current?.phase === "rise" ? current.id : nextFxId(current);
+          return withFx(view, { trample: { id, ...trample, phase: "shove" } });
+        },
         durationMs: timings.trampleShoveMs,
       },
       {
         apply: (view) => ({
-          ...withPlayerAt(view, event.playerId, event.path.at(-1) ?? event.tile),
-          trample: view.trample && { ...view.trample, phase: "flying" },
+          ...withFx(withPlayerAt(view, event.playerId, event.path.at(-1) ?? event.tile), {
+            trample: view.fx.trample && { ...view.fx.trample, phase: "flying" },
+          }),
           effect: {
             ...playerTileEffect(view, event.playerId, "trampled"),
             count: event.path.length,
@@ -57,10 +52,7 @@ export const berserkerSteps: StepHandlers<"untamedUnleashed" | "playerTrampled">
         durationMs: timings.trampleFlightMs,
       },
       {
-        apply: (view) => ({
-          ...view,
-          trample: view.trample && { ...view.trample, phase: "over" },
-        }),
+        apply: (view) => withFx(view, { trample: view.fx.trample && { ...view.fx.trample, phase: "over" } }),
         durationMs: timings.trampleRecoverMs,
       },
     ];

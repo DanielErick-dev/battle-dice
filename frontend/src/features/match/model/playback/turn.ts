@@ -1,6 +1,6 @@
 /** Dice, walking, pushes and the flow of turns. */
 import { DICE_SIDES } from "@/game/domain/dice";
-import { withPlayer, withPlayerAt, type MatchView } from "../matchView";
+import { nextFxId, withFx, withPlayer, withPlayerAt, type MatchView } from "../matchView";
 import { tileOf } from "./helpers";
 import type { StepHandlers } from "./types";
 
@@ -49,30 +49,26 @@ export const turnSteps: StepHandlers<
   playerMoved: (event, timings) => {
     // The Berserker runs on from where he shoved someone.
     const steps = event.path.map((tile) => ({
-      apply: (view: MatchView) => ({
-        ...withPlayerAt(view, event.playerId, tile),
-        trample: view.trample?.by === event.playerId ? null : view.trample,
-      }),
+      apply: (view: MatchView) =>
+        withFx(withPlayerAt(view, event.playerId, tile), {
+          trample: view.fx.trample?.by === event.playerId ? null : view.fx.trample,
+        }),
       durationMs: event.dash ? timings.dashStepMs : timings.stepMs,
     }));
     if (!event.dash) return steps;
-    // Dormant Fury: the player throws themselves forward, lightning takes them, they cross the path as a
-    // blur, then it lets go.
+    // Dormant Fury: launch and strike, a blur of tiles, then the lightning lets go.
     return [
       {
         apply: (view) => {
           const from = view.players.find((player) => player.id === event.playerId)?.position;
           const path = from === undefined ? event.path : [from, ...event.path];
-          return {
-            ...view,
-            dash: { id: (view.dash?.id ?? 0) + 1, playerId: event.playerId, path, arrived: false },
-          };
+          return withFx(view, { dash: { id: nextFxId(view.fx.dash), playerId: event.playerId, path, arrived: false } });
         },
         durationMs: timings.dashLaunchMs + timings.dashStrikeMs,
       },
       ...steps,
       {
-        apply: (view) => (view.dash ? { ...view, dash: { ...view.dash, arrived: true } } : view),
+        apply: (view) => (view.fx.dash ? withFx(view, { dash: { ...view.fx.dash, arrived: true } }) : view),
         durationMs: timings.dashArriveMs,
       },
     ];
@@ -145,13 +141,19 @@ export const turnSteps: StepHandlers<
     return [
       {
         apply: (view) => ({
-          ...view,
+          // The dash, trample and fusion are left to finish on their own.
+          ...withFx(view, {
+            cast: null,
+            drawing: null,
+            transmuting: null,
+            frostStream: null,
+            volley: null,
+            tide: null,
+            drag: null,
+          }),
           lastRoll: null,
           effect: null,
           winnerId: null,
-          cast: null,
-          drawing: null,
-          transmuting: null,
           lastDrawnUid: null,
           pendingDiscard: null,
           destroyedTraps: [],
@@ -161,10 +163,6 @@ export const turnSteps: StepHandlers<
           enchantedTiles: [],
           blackFlames: [],
           winter: null,
-          frostStream: null,
-          volley: null,
-          tide: null,
-          drag: null,
         }),
         durationMs: 0,
       },

@@ -48,8 +48,8 @@ describe("playback of rule events", () => {
       DEFAULT_TIMINGS.dashArriveMs,
     ]);
     const views = replay(initial(), { type: "playerMoved", playerId: "p1", path: [2, 3, 4], dash: true });
-    expect(views[0].dash).toMatchObject({ playerId: "p1", path: [1, 2, 3, 4], arrived: false });
-    expect(views.at(-1)?.dash?.arrived).toBe(true);
+    expect(views[0].fx.dash).toMatchObject({ playerId: "p1", path: [1, 2, 3, 4], arrived: false });
+    expect(views.at(-1)?.fx.dash?.arrived).toBe(true);
     expect(views.at(-1)?.players[0].position).toBe(4);
   });
 
@@ -62,17 +62,17 @@ describe("playback of rule events", () => {
       path: [8, 7, 6],
       seated: false,
     });
-    expect(shoving.trample).toMatchObject({
+    expect(shoving.fx.trample).toMatchObject({
       by: "wolf",
       victim: "p1",
       tile: 9,
       phase: "shove",
     });
     expect(shoving.players[0].position).toBe(1);
-    expect(flying.trample?.phase).toBe("flying");
+    expect(flying.fx.trample?.phase).toBe("flying");
     expect(flying.players[0].position).toBe(6);
     expect(flying.effect).toMatchObject({ kind: "trampled", count: 3 });
-    expect(over.trample?.phase).toBe("over");
+    expect(over.fx.trample?.phase).toBe("over");
     const [runOn] = replay(
       { ...over, players: over.players.map((p) => ({ ...p, id: "wolf" })) },
       {
@@ -81,7 +81,7 @@ describe("playback of rule events", () => {
         path: [10],
       },
     );
-    expect(runOn.trample).toBeNull();
+    expect(runOn.fx.trample).toBeNull();
   });
 
   it("gets a trampled player up off their chair before the shove", () => {
@@ -89,8 +89,8 @@ describe("playback of rule events", () => {
     const steps = eventToSteps(event, DEFAULT_TIMINGS);
     expect(steps[0].durationMs).toBe(DEFAULT_TIMINGS.trampleRiseMs);
     const [rising, shoving] = replay(initial(), event);
-    expect(rising.trample?.phase).toBe("rise");
-    expect(shoving.trample).toMatchObject({ id: rising.trample?.id, phase: "shove" });
+    expect(rising.fx.trample?.phase).toBe("rise");
+    expect(shoving.fx.trample).toMatchObject({ id: rising.fx.trample?.id, phase: "shove" });
   });
 
   it("shows what Untamed shrugs off as blocked, not as armour", () => {
@@ -138,7 +138,7 @@ describe("playback of rule events", () => {
       pinned: [5, 9],
       hidden: [9],
     });
-    expect(flying.volley).toMatchObject({ id: 1, playerId: "p1", from: 1, targets: [5, 9] });
+    expect(flying.fx.volley).toMatchObject({ id: 1, playerId: "p1", from: 1, targets: [5, 9] });
     expect(flying.pinnedTraps).toEqual([]);
     expect(landed.pinnedTraps).toEqual([5, 9]);
     const [freed] = replay(landed, { type: "trapUnpinned", tile: 5 });
@@ -156,7 +156,7 @@ describe("playback of rule events", () => {
       players: [...initial().players, { ...initial().players[0], id: "p2", hand: [card] }],
     };
     const steps = replay(table, { type: "cardsStolen", playerId: "p1", from: "p2", cards: [card], discarded: [] });
-    expect(steps[0].drawing?.card).toEqual(card);
+    expect(steps[0].fx.drawing?.card).toEqual(card);
     expect(steps[0].players[1].hand).toEqual([]);
     expect(steps[1].players[0].hand).toContainEqual(card);
   });
@@ -165,10 +165,10 @@ describe("playback of rule events", () => {
     const card = { uid: "p1:3", cardId: "healingHerb" as const };
     const table = { ...initial(), players: [{ ...initial().players[0], discard: [card] }] };
     const steps = replay(table, { type: "cardsResurrected", playerId: "p1", cards: [card] });
-    expect(steps[0].drawing?.card).toEqual(card);
+    expect(steps[0].fx.drawing?.card).toEqual(card);
     expect(steps[0].players[0].discard).toEqual([]);
     expect(steps[1].players[0].hand).toContainEqual(card);
-    expect(steps[1].drawing).toBeNull();
+    expect(steps[1].fx.drawing).toBeNull();
   });
 
   it("puts written seals on the board as scrolls, and breaks one open with its banner", () => {
@@ -231,11 +231,11 @@ describe("playback of rule events", () => {
       DEFAULT_TIMINGS.noticeMs,
     ]);
     const [first, second, over] = replay(initial(), { type: "tilesEnchanted", playerId: "p1", tiles: [9, 14] });
-    expect(first.frostStream).toMatchObject({ tile: 9 });
+    expect(first.fx.frostStream).toMatchObject({ tile: 9 });
     expect(first.enchantedTiles).toEqual([]);
-    expect(second.frostStream).toMatchObject({ tile: 14 });
+    expect(second.fx.frostStream).toMatchObject({ tile: 14 });
     expect(second.enchantedTiles.map(({ tile }) => tile)).toEqual([9]);
-    expect(over.frostStream).toBeNull();
+    expect(over.fx.frostStream).toBeNull();
     expect(over.enchantedTiles.map(({ tile }) => tile)).toEqual([9, 14]);
   });
 
