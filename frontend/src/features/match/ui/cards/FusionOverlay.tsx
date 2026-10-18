@@ -1,4 +1,4 @@
-import type { MatchView } from "../../model/matchView";
+import type { MatchFx } from "../../model/matchView";
 import { CardView } from "./CardView";
 
 /** Where each of the three copies flies in from: left, above, right. */
@@ -10,7 +10,7 @@ const COPIES = ["fusion-copy-left", "fusion-copy-top", "fusion-copy-right"] as c
  * fused card rises out of it, blazing, before it goes to the hand (keyed by fusion id so each one
  * replays). Lasts timings.fusionMs.
  */
-export function FusionOverlay({ fusing }: { fusing: MatchView["fusing"] }) {
+export function FusionOverlay({ fusing }: { fusing: MatchFx["fusing"] }) {
   if (!fusing) return null;
   const { cardId } = fusing.card;
 

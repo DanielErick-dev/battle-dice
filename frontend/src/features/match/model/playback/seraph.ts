@@ -1,5 +1,5 @@
 /** Seraphiel: the crown, the Fall and Hell's Drag. */
-import { withPlayer, type MatchView } from "../matchView";
+import { nextFxId, withFx, withPlayer, type DragView, type MatchView } from "../matchView";
 import { playerTileEffect } from "./helpers";
 import type { StepHandlers } from "./types";
 
@@ -73,8 +73,8 @@ export const seraphSteps: StepHandlers<"seraphFell" | "crownGained" | "heavenBar
     },
     hellDragged: (event, timings) => {
       // The hand rises under the victim and closes on them, sinks back with them, and they're in hell.
-      const drag = (view: MatchView, phase: "grab" | "sink" | "over") => ({
-        id: phase === "grab" ? (view.drag?.id ?? 0) + 1 : (view.drag?.id ?? 1),
+      const drag = (view: MatchView, phase: DragView["phase"]): DragView => ({
+        id: phase === "grab" ? nextFxId(view.fx.drag) : (view.fx.drag?.id ?? 1),
         playerId: event.playerId,
         targetId: event.targetId,
         from: event.from,
@@ -82,11 +82,11 @@ export const seraphSteps: StepHandlers<"seraphFell" | "crownGained" | "heavenBar
       });
       return [
         {
-          apply: (view) => ({ ...view, drag: drag(view, "grab") }),
+          apply: (view) => withFx(view, { drag: drag(view, "grab") }),
           durationMs: timings.dragGrabMs,
         },
         {
-          apply: (view) => ({ ...view, drag: drag(view, "sink") }),
+          apply: (view) => withFx(view, { drag: drag(view, "sink") }),
           durationMs: timings.dragSinkMs,
         },
         {
@@ -95,8 +95,7 @@ export const seraphSteps: StepHandlers<"seraphFell" | "crownGained" | "heavenBar
               position: event.to,
             }));
             return {
-              ...moved,
-              drag: drag(view, "over"),
+              ...withFx(moved, { drag: drag(view, "over") }),
               effect: {
                 kind: "dragged",
                 playerId: event.targetId,

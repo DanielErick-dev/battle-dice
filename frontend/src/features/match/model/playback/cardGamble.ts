@@ -1,6 +1,6 @@
 /** Card Jester: the gamble and its stolen cards. */
 import { throwOnPile } from "@/game/domain/deck";
-import { withPlayer, type MatchView } from "../matchView";
+import { nextFxId, withFx, withPlayer, type MatchView } from "../matchView";
 import type { StepHandlers } from "./types";
 
 export const cardGambleSteps: StepHandlers<"gambleRolled" | "cardsStolen"> = {
@@ -40,25 +40,30 @@ export const cardGambleSteps: StepHandlers<"gambleRolled" | "cardsStolen"> = {
       const kept = !event.discarded.some((discarded) => discarded.uid === card.uid);
       return [
         {
-          apply: (view: MatchView) => ({
-            ...withPlayer(view, event.from, (player) => ({
-              hand: player.hand.filter((held) => held.uid !== card.uid),
-            })),
-            drawing: {
-              id: (view.drawing?.id ?? 0) + 1,
-              playerId: event.playerId,
-              card,
-              takenFrom: view.players.find((player) => player.id === event.from)?.name,
-            },
-          }),
+          apply: (view: MatchView) =>
+            withFx(
+              withPlayer(view, event.from, (player) => ({
+                hand: player.hand.filter((held) => held.uid !== card.uid),
+              })),
+              {
+                drawing: {
+                  id: nextFxId(view.fx.drawing),
+                  playerId: event.playerId,
+                  card,
+                  takenFrom: view.players.find((player) => player.id === event.from)?.name,
+                },
+              },
+            ),
           durationMs: timings.drawRevealMs,
         },
         {
           apply: (view: MatchView) => ({
-            ...withPlayer(view, event.playerId, (player) =>
-              kept ? { hand: [...player.hand, card] } : { discard: throwOnPile(player.discard, [card]) },
+            ...withFx(
+              withPlayer(view, event.playerId, (player) =>
+                kept ? { hand: [...player.hand, card] } : { discard: throwOnPile(player.discard, [card]) },
+              ),
+              { drawing: null },
             ),
-            drawing: null,
             lastDrawnUid: kept ? card.uid : view.lastDrawnUid,
           }),
           durationMs: timings.drawMs,

@@ -1,8 +1,36 @@
 /** Drawing, playing, discarding and fusing cards. */
 import { cardCost } from "@/game/domain/cards";
 import { throwOnPile } from "@/game/domain/deck";
-import { withPlayer, withPlayerAt, type MatchView } from "../matchView";
-import type { StepHandlers } from "./types";
+import type { CardInstance, Player, PlayerId } from "@/game/domain/types";
+import type { PlaybackTimings } from "../../config";
+import { nextFxId, withFx, withPlayer, withPlayerAt, type MatchView } from "../matchView";
+import type { PlaybackStep, StepHandlers } from "./types";
+
+/** A card taken from the deck or the discard pile: shown in the middle of the screen, then dealt to the hand. */
+function revealThenDeal(
+  playerId: PlayerId,
+  card: CardInstance,
+  takeOut: (player: Player) => Partial<Player>,
+  timings: PlaybackTimings,
+): PlaybackStep[] {
+  return [
+    {
+      apply: (view: MatchView) =>
+        withFx(withPlayer(view, playerId, takeOut), { drawing: { id: nextFxId(view.fx.drawing), playerId, card } }),
+      durationMs: timings.drawRevealMs,
+    },
+    {
+      apply: (view: MatchView) => ({
+        ...withFx(
+          withPlayer(view, playerId, (player) => ({ hand: [...player.hand, card] })),
+          { drawing: null },
+        ),
+        lastDrawnUid: card.uid,
+      }),
+      durationMs: timings.drawMs,
+    },
+  ];
+}
 
 export const cardsSteps: StepHandlers<
   | "cardDrawn"
@@ -28,49 +56,33 @@ export const cardsSteps: StepHandlers<
     ];
   },
   cardsResurrected: (event, timings) => {
-    // Each card rises from the discard pile: shown in the middle of the screen, then into the hand.
-    return event.cards.flatMap((card) => [
-      {
-        apply: (view: MatchView) => ({
-          ...withPlayer(view, event.playerId, (player) => ({
-            discard: player.discard.filter((discarded) => discarded.uid !== card.uid),
-          })),
-          drawing: { id: (view.drawing?.id ?? 0) + 1, playerId: event.playerId, card },
-        }),
-        durationMs: timings.drawRevealMs,
-      },
-      {
-        apply: (view: MatchView) => ({
-          ...withPlayer(view, event.playerId, (player) => ({ hand: [...player.hand, card] })),
-          drawing: null,
-          lastDrawnUid: card.uid,
-        }),
-        durationMs: timings.drawMs,
-      },
-    ]);
+    return event.cards.flatMap((card) =>
+      revealThenDeal(
+        event.playerId,
+        card,
+        (player) => ({ discard: player.discard.filter((discarded) => discarded.uid !== card.uid) }),
+        timings,
+      ),
+    );
   },
-  // The three copies leave the hand, and the fused card is shown off as it joins it.
   cardsFused: (event, timings) => {
     return [
       {
-        apply: (view) => ({
-          ...withPlayer(view, event.playerId, (player) => ({
-            hand: player.hand.filter((card) => !event.used.includes(card.uid)),
-          })),
-          fusing: {
-            id: (view.fusing?.id ?? 0) + 1,
-            playerId: event.playerId,
-            card: event.card,
-          },
-        }),
+        apply: (view) =>
+          withFx(
+            withPlayer(view, event.playerId, (player) => ({
+              hand: player.hand.filter((card) => !event.used.includes(card.uid)),
+            })),
+            { fusing: { id: nextFxId(view.fx.fusing), playerId: event.playerId, card: event.card } },
+          ),
         durationMs: timings.fusionMs,
       },
       {
         apply: (view) => ({
-          ...withPlayer(view, event.playerId, (player) => ({
-            hand: [...player.hand, event.card],
-          })),
-          fusing: null,
+          ...withFx(
+            withPlayer(view, event.playerId, (player) => ({ hand: [...player.hand, event.card] })),
+            { fusing: null },
+          ),
           lastDrawnUid: event.card.uid,
         }),
         durationMs: timings.drawMs,
@@ -78,50 +90,39 @@ export const cardsSteps: StepHandlers<
     ];
   },
   cardDrawn: (event, timings) => {
-    return [
-      {
-        apply: (view) => ({
-          ...withPlayer(view, event.playerId, (player) => ({
-            deck: player.deck.filter((card) => card.uid !== event.card.uid),
-          })),
-          drawing: { id: (view.drawing?.id ?? 0) + 1, playerId: event.playerId, card: event.card },
-        }),
-        durationMs: timings.drawRevealMs,
-      },
-      {
-        apply: (view) => ({
-          ...withPlayer(view, event.playerId, (player) => ({ hand: [...player.hand, event.card] })),
-          drawing: null,
-          lastDrawnUid: event.card.uid,
-        }),
-        durationMs: timings.drawMs,
-      },
-    ];
+    return revealThenDeal(
+      event.playerId,
+      event.card,
+      (player) => ({ deck: player.deck.filter((card) => card.uid !== event.card.uid) }),
+      timings,
+    );
   },
   cardTransmuted: (event, timings) => {
-    // The old card shows, dissolves in alchemical fire into the new one, which then flies to the hand.
+    // The old card dissolves in alchemical fire into the new one, which then flies to the hand.
     return [
       {
-        apply: (view) => ({
-          ...view,
-          transmuting: {
-            id: (view.transmuting?.id ?? 0) + 1,
-            playerId: event.playerId,
-            from: event.from,
-            sacrificed: event.sacrificed,
-            to: event.to,
-          },
-        }),
+        apply: (view) =>
+          withFx(view, {
+            transmuting: {
+              id: nextFxId(view.fx.transmuting),
+              playerId: event.playerId,
+              from: event.from,
+              sacrificed: event.sacrificed,
+              to: event.to,
+            },
+          }),
         durationMs: timings.transmuteMs,
       },
       {
         apply: (view) => ({
-          ...withPlayer(view, event.playerId, (player) => ({
-            hand: player.hand
-              .filter((card) => card.uid !== event.sacrificed.uid)
-              .map((card) => (card.uid === event.from.uid ? event.to : card)),
-          })),
-          transmuting: null,
+          ...withFx(
+            withPlayer(view, event.playerId, (player) => ({
+              hand: player.hand
+                .filter((card) => card.uid !== event.sacrificed.uid)
+                .map((card) => (card.uid === event.from.uid ? event.to : card)),
+            })),
+            { transmuting: null },
+          ),
           lastDrawnUid: event.to.uid,
         }),
         durationMs: timings.drawMs,
@@ -141,16 +142,13 @@ export const cardsSteps: StepHandlers<
   discardRequired: (event, timings) => {
     return [
       {
-        apply: (view) => ({
-          ...view,
-          drawing: { id: (view.drawing?.id ?? 0) + 1, playerId: event.playerId, card: event.card },
-        }),
+        apply: (view) =>
+          withFx(view, { drawing: { id: nextFxId(view.fx.drawing), playerId: event.playerId, card: event.card } }),
         durationMs: timings.drawRevealMs,
       },
       {
         apply: (view) => ({
-          ...view,
-          drawing: null,
+          ...withFx(view, { drawing: null }),
           pendingDiscard: { playerId: event.playerId, drawn: event.card },
         }),
         durationMs: 0,
@@ -175,12 +173,14 @@ export const cardsSteps: StepHandlers<
     return [
       {
         apply: (view) => ({
-          ...withPlayer(view, event.playerId, (player) => ({
-            hand: player.hand.filter((card) => card.uid !== event.card.uid),
-            discard: throwOnPile(player.discard, [event.card]),
-            energy: player.energy - cardCost(event.card.cardId),
-          })),
-          cast: { id: (view.cast?.id ?? 0) + 1, ...event },
+          ...withFx(
+            withPlayer(view, event.playerId, (player) => ({
+              hand: player.hand.filter((card) => card.uid !== event.card.uid),
+              discard: throwOnPile(player.discard, [event.card]),
+              energy: player.energy - cardCost(event.card.cardId),
+            })),
+            { cast: { id: nextFxId(view.fx.cast), ...event } },
+          ),
           cardsPlayedThisTurn: view.cardsPlayedThisTurn + 1,
           effect: null,
         }),

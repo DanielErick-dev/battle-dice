@@ -1,6 +1,6 @@
 /** Kage Rubra: black fire and the Susanoo. */
 import { FLAME_TURNS } from "@/game/domain/abilities";
-import { withPlayer, withPlayerAt } from "../matchView";
+import { nextFxId, withFx, withPlayer, withPlayerAt } from "../matchView";
 import type { StepHandlers } from "./types";
 
 export const kunoichiSteps: StepHandlers<"susanooRepelled" | "flamesLit" | "flamesScorched" | "flamesFaded"> = {
@@ -9,21 +9,22 @@ export const kunoichiSteps: StepHandlers<"susanooRepelled" | "flamesLit" | "flam
     return [
       {
         apply: (view) => ({
-          ...withPlayerAt(view, event.playerId, event.to),
-          trample: {
-            id: (view.trample?.id ?? 0) + 1,
-            by: event.by,
-            victim: event.playerId,
-            tile: event.tile,
-            phase: "flying",
-            susanoo: true,
-          },
+          ...withFx(withPlayerAt(view, event.playerId, event.to), {
+            trample: {
+              id: nextFxId(view.fx.trample),
+              by: event.by,
+              victim: event.playerId,
+              tile: event.tile,
+              phase: "flying",
+              susanoo: true,
+            },
+          }),
           effect: { kind: "repelled", playerId: event.playerId, from: event.tile, to: event.to },
         }),
         durationMs: timings.trampleFlightMs,
       },
       {
-        apply: (view) => ({ ...view, trample: view.trample && { ...view.trample, phase: "over" } }),
+        apply: (view) => withFx(view, { trample: view.fx.trample && { ...view.fx.trample, phase: "over" } }),
         durationMs: timings.trampleRecoverMs,
       },
     ];

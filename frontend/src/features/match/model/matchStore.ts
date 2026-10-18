@@ -45,11 +45,7 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   INVALID_GRACE: "Essa dádiva não está à escolha aqui.",
 };
 
-/**
- * Presentation store: sends commands to the GameClient and replays the resulting
- * events over time so the scene can animate them. Framework-agnostic; React reads
- * it through useSyncExternalStore.
- */
+/** Sends commands to the GameClient and replays the resulting events step by step (see model/README.md). */
 export class MatchStore {
   readonly board: Board;
   private view: MatchView;
@@ -96,7 +92,6 @@ export class MatchStore {
     });
   };
 
-  /** Fuses three copies of a card in the active player's hand, any time they could act on their turn. */
   fuseCards = (cardId: CardId): void => {
     if (!canRoll(this.view)) return;
     this.dispatch({
@@ -112,12 +107,7 @@ export class MatchStore {
     this.dispatch({ type: "discardCard", playerId: pending.playerId, cardUid });
   };
 
-  /**
-   * `cardUids`: the cards an ability works on (a hand card for Transmutation, discarded ones for
-   * Resurrection); `sealTiles`: where Forbidden Seals writes each seal; `specterTiles`: where the
-   * apparitions rise; `targetId`: the opponent Card Gamble bets against; `volley`: where Arrow Rain falls; `power` and
-   * `flameTiles`: Ocular Awakening's pick.
-   */
+  /** The choice is the activateAbility command's payload (see ui/abilities). */
   activateAbility = (
     choice: {
       cardUids?: readonly string[];
@@ -133,14 +123,12 @@ export class MatchStore {
     this.dispatch({ type: "activateAbility", playerId: this.view.activePlayerId, ...choice });
   };
 
-  /** The Warden's pick of the cards their Plunder apparition takes. */
   plunderCards = (cardUids: readonly string[]): void => {
     const pending = this.view.pendingPlunder;
     if (!pending || this.view.isAnimating) return;
     this.dispatch({ type: "plunderCards", playerId: pending.owner, cardUids });
   };
 
-  /** Seraphiel's pick on a heaven tile: a blessing, or a divine card. */
   chooseGrace = (pick: { blessing?: TimedBlessing; cardId?: CardId }): void => {
     const pending = this.view.pendingGrace;
     if (!pending || this.view.isAnimating) return;

@@ -124,14 +124,14 @@ export default function BoardScene({
     () => new Set([...view.enchantedTiles, ...view.blackFlames].map(({ tile }) => tile)),
     [view.enchantedTiles, view.blackFlames],
   );
-  const dash = view.dash;
+  const dash = view.fx.dash;
   const dashPath = useMemo(() => dash?.path.map((tile) => layout.position(tile)) ?? [], [dash?.path, layout]);
-  const tide = view.tide;
+  const tide = view.fx.tide;
   const tidePath = useMemo(() => tide?.path.map((tile) => layout.position(tile)) ?? [], [tide?.path, layout]);
   /** The top of the tile Hell's Drag comes up through. */
-  const [dragX, dragY, dragZ] = view.drag ? layout.position(view.drag.from) : [0, 0, 0];
+  const [dragX, dragY, dragZ] = view.fx.drag ? layout.position(view.fx.drag.from) : [0, 0, 0];
   const dragGround: Vec3 = [dragX, dragY + TILE_HEIGHT / 2, dragZ];
-  const volley = view.volley;
+  const volley = view.fx.volley;
   const volleyTargets = useMemo(
     () => volley?.targets.map((tile) => layout.position(tile)) ?? [],
     [volley?.targets, layout],
@@ -293,16 +293,16 @@ export default function BoardScene({
             />
           )}
           {tide && <TidalWave key={`tide${tide.id}`} path={tidePath} color={playerColor(tide.playerId)} />}
-          {view.drag && (
-            <group key={`drag${view.drag.id}`} position={dragGround} scale={EFFECT_SCALE}>
+          {view.fx.drag && (
+            <group key={`drag${view.fx.drag.id}`} position={dragGround} scale={EFFECT_SCALE}>
               <HellHand groundY={dragGround[1]} />
             </group>
           )}
-          {view.frostStream && (
+          {view.fx.frostStream && (
             <FrostStream
-              key={`frost${view.frostStream.id}`}
-              from={streamStart(view, layout, wandTips.get(view.frostStream.playerId), view.frostStream.playerId)}
-              to={layout.position(view.frostStream.tile)}
+              key={`frost${view.fx.frostStream.id}`}
+              from={streamStart(view, layout, wandTips.get(view.fx.frostStream.playerId), view.fx.frostStream.playerId)}
+              to={layout.position(view.fx.frostStream.tile)}
             />
           )}
           {dash && <LightningDash key={`dash${dash.id}`} path={dashPath} color={playerColor(dash.playerId)} />}
@@ -323,10 +323,10 @@ export default function BoardScene({
                 view.effect?.kind === "fallen" && view.effect.playerId === player.id ? effectKey(view.effect) : null
               }
               dragged={
-                view.drag?.targetId === player.id && view.drag.phase !== "over"
-                  ? { id: view.drag.id, phase: view.drag.phase }
-                  : view.drag?.targetId === player.id && view.effect?.kind === "dragged"
-                    ? { id: view.drag.id, phase: "over" }
+                view.fx.drag?.targetId === player.id && view.fx.drag.phase !== "over"
+                  ? { id: view.fx.drag.id, phase: view.fx.drag.phase }
+                  : view.fx.drag?.targetId === player.id && view.effect?.kind === "dragged"
+                    ? { id: view.fx.drag.id, phase: "over" }
                     : null
               }
               energyBlades={characterFor(player.id)?.energyBlades ?? false}
@@ -346,7 +346,9 @@ export default function BoardScene({
               // Thrown back by a Susanoo, they fly the tile back.
               isTeleporting={
                 (isTeleport(view.effect) && view.effect?.playerId === player.id) ||
-                (view.trample?.susanoo === true && view.trample.victim === player.id && view.trample.phase === "flying")
+                (view.fx.trample?.susanoo === true &&
+                  view.fx.trample.victim === player.id &&
+                  view.fx.trample.phase === "flying")
               }
               isDashing={dash?.playerId === player.id && !dash.arrived}
               isFuryAwake={
@@ -361,15 +363,17 @@ export default function BoardScene({
               isLevitating={player.levitating > 0}
               // Stuck in snow or in heaven's chains, they wait standing (see isSeated).
               // Trampled, they get up off their chair to be shoved.
-              isResting={isSeated(player) && !(view.trample?.victim === player.id && view.trample.phase !== "over")}
+              isResting={
+                isSeated(player) && !(view.fx.trample?.victim === player.id && view.fx.trample.phase !== "over")
+              }
               isChained={player.chained > 0}
               isArmoured={player.spectralArmour > 0}
               isUntamed={player.untamed > 0}
               shove={
-                view.trample?.by === player.id &&
-                !view.trample.susanoo &&
-                (view.trample.phase === "shove" || view.trample.phase === "flying")
-                  ? view.trample.id
+                view.fx.trample?.by === player.id &&
+                !view.fx.trample.susanoo &&
+                (view.fx.trample.phase === "shove" || view.fx.trample.phase === "flying")
+                  ? view.fx.trample.id
                   : null
               }
               shoveImpactSeconds={characterFor(player.id)?.shoveImpactSeconds}
@@ -384,10 +388,12 @@ export default function BoardScene({
                   : null
               }
               hopTakeoffSeconds={characterFor(player.id)?.hopTakeoffSeconds}
-              knocked={view.trample?.victim === player.id && view.trample.phase === "flying" ? view.trample.id : null}
+              knocked={
+                view.fx.trample?.victim === player.id && view.fx.trample.phase === "flying" ? view.fx.trample.id : null
+              }
               diceBoost={player.diceBoost}
               diceBonuses={player.diceBonuses}
-              cast={view.cast?.playerId === player.id ? view.cast : null}
+              cast={view.fx.cast?.playerId === player.id ? view.fx.cast : null}
               abilityCast={
                 view.effect?.kind === "abilityUsed" && view.effect.playerId === player.id
                   ? effectKey(view.effect)
@@ -396,11 +402,11 @@ export default function BoardScene({
             />
           ))}
 
-          {view.cast?.card.cardId === "arcaneBlast" && view.cast.targetId && (
+          {view.fx.cast?.card.cardId === "arcaneBlast" && view.fx.cast.targetId && (
             <ArcaneBeam
-              key={`beam${view.cast.id}`}
-              from={tokenPosition(view, layout, view.cast.playerId)}
-              to={tokenPosition(view, layout, view.cast.targetId)}
+              key={`beam${view.fx.cast.id}`}
+              from={tokenPosition(view, layout, view.fx.cast.playerId)}
+              to={tokenPosition(view, layout, view.fx.cast.targetId)}
             />
           )}
 
@@ -421,7 +427,7 @@ export default function BoardScene({
             framing={cameraFraming === "board" && focusRealm !== null ? "close" : cameraFraming}
             effect={view.effect}
             celebrating={view.winnerId !== null}
-            cast={view.cast}
+            cast={view.fx.cast}
             free={freeLook}
             onFreeLook={onFreeLook}
           />
@@ -437,18 +443,18 @@ export default function BoardScene({
 /** The tile of the player the camera should watch: whoever is moving, else whoever plays next. */
 function focusTile(view: MatchView): number | null {
   // Hell's Drag is watched where the hand comes up.
-  if (view.drag && view.drag.phase !== "over") return view.drag.from;
+  if (view.fx.drag && view.fx.drag.phase !== "over") return view.fx.drag.from;
   const id = view.movingPlayerId ?? view.activePlayerId;
   return view.players.find((candidate) => candidate.id === id)?.position ?? null;
 }
 
 function focusPoint(view: MatchView, layout: BoardLayout): Vec3 {
   // The fairy's snow is followed to each tile it enchants.
-  if (view.frostStream) return layout.position(view.frostStream.tile);
+  if (view.fx.frostStream) return layout.position(view.fx.frostStream.tile);
   // Cronos bending an opponent's time: watched on them.
   if (view.effect?.kind === "timeBent") return layout.position(view.effect.from);
   // A rolling tide is watched from halfway along its reach.
-  if (view.tide?.rolling) return layout.position(view.tide.path[Math.floor(view.tide.path.length / 2)]);
+  if (view.fx.tide?.rolling) return layout.position(view.fx.tide.path[Math.floor(view.fx.tide.path.length / 2)]);
   const tile = focusTile(view);
   return tile === null ? [0, 0, 0] : layout.position(tile);
 }
@@ -581,7 +587,7 @@ const SHOVE_GAP = TILE_SIZE * 0.45;
  * tile until they're sent flying, the Berserker just ahead of them along the path until he runs on.
  */
 function trampleTarget(playerId: string, view: MatchView, board: Board, layout: BoardLayout): Vec3 | null {
-  const trample = view.trample;
+  const trample = view.fx.trample;
   if (
     !trample ||
     trample.susanoo ||
