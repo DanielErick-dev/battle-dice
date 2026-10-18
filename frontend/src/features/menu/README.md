@@ -25,7 +25,7 @@ O menu principal, a tela de montar a partida (modo, jogadores, personagens) e as
 | `seraphEntrance.ts` | Os tempos da entrada do Seraphiel: batidas de asa e rajadas de vento (tem teste) |
 | `WindGusts.tsx` | Penas e brilhos que saem das pontas das asas a cada batida |
 | `layout.ts` | Altura do personagem e onde fica o chão |
-| `scenery/` | Cenários próprios de alguns personagens no lugar do pedestal: `Graveyard` (Necromante), `FrozenWastes` (Bjorn), `Sanctuary` (Seraphiel), `Scriptorium` (Escriba). `noiseTexture.ts` desenha as texturas granuladas (terra, neve, pedra, mármore) |
+| `scenery/` | Cenários próprios dos personagens no lugar do pedestal: `Graveyard` (Necromante), `FrozenWastes` (Bjorn), `Sanctuary` (Seraphiel), `Scriptorium` (Escriba). O `index.ts` é o registro (`SCENERY`): cenário novo = um arquivo + uma linha lá + `stage` na ficha do personagem. Cada entrada também diz se o palco fica escuro (`dim`), a cor da luz (`light`) e se tem clima próprio (`weather`, que desliga as partículas). `noiseTexture.ts` desenha as texturas granuladas (terra, neve, pedra, mármore) |
 
 Os efeitos de cada intro (lâminas, cartas, ossos, gelo…) vêm de `features/match/scene/character/`, os mesmos da partida. A ficha de cada personagem (`features/match/characters.ts`) diz qual cenário e quais efeitos ele usa.
 

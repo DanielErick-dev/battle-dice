@@ -11,15 +11,10 @@ import { FLOOR_Y } from "./layout";
 import { Presentation } from "./Presentation";
 import { RisingMotes } from "./RisingMotes";
 import { RunePedestal } from "./RunePedestal";
-import { FrozenWastes } from "./scenery/FrozenWastes";
-import { Graveyard } from "./scenery/Graveyard";
-import { Sanctuary } from "./scenery/Sanctuary";
-import { Scriptorium } from "./scenery/Scriptorium";
+import { SCENERY, type Scenery } from "./scenery";
 import { StageShake } from "./StageShake";
 import { Turntable, useDragTurn } from "./Turntable";
 
-/** A graveyard is lit by a cold, sickly glimmer rather than the character's bright accent. */
-const GRAVE_LIGHT = "#6f8a6c";
 /** Share of the stage's size the canvas extends past each of its edges. */
 const CANVAS_BLEED = 0.2;
 const BLEED_FRACTION = CANVAS_BLEED / (1 + 2 * CANVAS_BLEED);
@@ -38,8 +33,9 @@ const CAMERA_FOV = (2 * Math.atan((1 + 2 * CANVAS_BLEED) * Math.tan((16 * Math.P
  */
 export function CharacterStage({ characterId, className }: { characterId: CharacterId; className?: string }) {
   const { color: accent, stage, descends }: CharacterDefinition = CHARACTERS[characterId];
-  const graveyard = stage === "graveyard";
-  const color = graveyard ? GRAVE_LIGHT : accent;
+  const scenery: Scenery | undefined = stage && SCENERY[stage];
+  const dim = scenery?.dim ?? false;
+  const color = scenery?.light ?? accent;
   const quality = usePreference(preferences.effectsQuality);
   const sounds = useStageSounds();
   // Replaying with sound works now that the page has had a click.
@@ -60,7 +56,7 @@ export function CharacterStage({ characterId, className }: { characterId: Charac
         aria-hidden
         className="absolute inset-x-[15%] bottom-[6%] h-[12%] rounded-[50%] opacity-70 blur-xl"
         style={{
-          background: `radial-gradient(ellipse, ${graveyard ? "#000" : color}, transparent 70%)`,
+          background: `radial-gradient(ellipse, ${dim ? "#000" : color}, transparent 70%)`,
         }}
       />
       {/* Drawn past the stage's box so wide moves aren't cut off; the wrapper takes the drag. */}
@@ -82,41 +78,26 @@ export function CharacterStage({ characterId, className }: { characterId: Charac
             gl.localClippingEnabled = true;
           }}
         >
-          <ambientLight intensity={graveyard ? 0.22 : 0.6} />
-          <directionalLight position={[2.5, 4, 3]} intensity={graveyard ? 1.3 : 2.2} />
+          <ambientLight intensity={dim ? 0.22 : 0.6} />
+          <directionalLight position={[2.5, 4, 3]} intensity={dim ? 1.3 : 2.2} />
           <directionalLight position={[-3, 2, -2.5]} intensity={3} color={color} />
-          <spotLight
-            position={[1.5, 3, -2.5]}
-            angle={0.5}
-            penumbra={0.8}
-            intensity={graveyard ? 5 : 12}
-            color={color}
-          />
+          <spotLight position={[1.5, 3, -2.5]} angle={0.5} penumbra={0.8} intensity={dim ? 5 : 12} color={color} />
           <Suspense fallback={null}>
             <Turntable angleRef={turn.angle} draggingRef={turn.dragging}>
               <Presentation key={`${characterId}:${encore}`} characterId={characterId} sounds={sounds} gustRef={gust} />
             </Turntable>
           </Suspense>
-          {stage ? (
+          {scenery ? (
             <group position-y={FLOOR_Y}>
               <Suspense fallback={null}>
-                {stage === "graveyard" ? (
-                  <Graveyard />
-                ) : stage === "tundra" ? (
-                  <FrozenWastes />
-                ) : stage === "sanctuary" ? (
-                  <Sanctuary gust={gust} />
-                ) : (
-                  <Scriptorium />
-                )}
+                <scenery.component gust={gust} />
               </Suspense>
             </group>
           ) : (
             <RunePedestal color={color} />
           )}
-          {/* The tundra has its own snowfall. */}
-          {stage !== "tundra" && (
-            <RisingMotes key={color} color={color} count={(quality === "high" ? 48 : 18) / (graveyard ? 2 : 1)} />
+          {!scenery?.weather && (
+            <RisingMotes key={color} color={color} count={(quality === "high" ? 48 : 18) / (dim ? 2 : 1)} />
           )}
           <StageShake gust={gust} />
           <ContactShadows position={[0, FLOOR_Y + 0.002, 0]} scale={3} blur={2.4} opacity={0.7} far={2} />

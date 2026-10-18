@@ -1,5 +1,6 @@
 import type { AbilityId } from "@/game/domain/abilities";
 import type { PlayerId } from "@/game/domain/types";
+import type { SceneryId } from "@/features/menu/stage/scenery";
 import type { ChairId } from "./scene/character/RestChair";
 import type { WingsId } from "./scene/character/Wings";
 
@@ -71,11 +72,8 @@ export interface CharacterDefinition {
   introBones?: IntroBoneBeats;
   /** Frost gathers on their fist and the floor freezes over where it slams down in the intro (see FrostSlam). */
   introFrost?: IntroFrostBeats;
-  /**
-   * The ground they stand on in the menu, in place of the rune pedestal (see Graveyard, Scriptorium,
-   * FrozenWastes, Sanctuary).
-   */
-  stage?: "graveyard" | "scriptorium" | "tundra" | "sanctuary";
+  /** The ground they stand on in the menu, in place of the rune pedestal (see menu/stage/scenery). */
+  stage?: SceneryId;
   /**
    * Lightning trails their hands and feet through the intro and their lightning dash, and crackles
    * in their hands while it waits for the roll (see LimbLightning).
