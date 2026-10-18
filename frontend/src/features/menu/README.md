@@ -43,6 +43,10 @@ O menu principal, a tela de montar a partida (modo, jogadores, personagens) e as
 | `SunkenTemple` | Auric | Templo dourado submerso, corais, cáusticas e bolhas |
 | `GearWorks` | Cronos | Engrenagens engatadas girando no chão, anel de algarismos cujos ponteiros às vezes voltam |
 | `HangarBay` | Unidade Alva | Plataforma de lançamento hexagonal com varredura nas juntas e mira holográfica |
+| `ElvenGlade` | Arqueira Élfica | Chão de musgo, raízes e tronco caído, samambaias, cogumelos brilhando, alvo de palha com flechas e vaga-lumes |
+| `CrystalGrove` | Fada Cristalina | Neve sobre musgo, cristais que brilham por dentro (ciano e lilás), anel de flores luminosas e brilhos subindo |
+| `WindPeak` | Zéfiro | Topo de montanha com grama dobrando ao vento, os quatro elementos orbitando, folhas em espiral e nuvens abaixo |
+| `StormTemple` | Monge Ancião | Terraço de mosteiro, incensário com fumaça, sino de bronze, bandeirinhas de oração e raios ao longe |
 
 Os efeitos de cada intro (lâminas, cartas, ossos, gelo…) vêm de `features/match/scene/character/`, os mesmos da partida. A ficha de cada personagem (`features/match/characters.ts`) diz qual cenário e quais efeitos ele usa.
 

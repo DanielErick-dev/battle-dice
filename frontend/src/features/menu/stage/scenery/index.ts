@@ -1,16 +1,20 @@
 import type { ComponentType, RefObject } from "react";
 import { BloodRoseGarden } from "./BloodRoseGarden";
 import { BurningShrine } from "./BurningShrine";
+import { CrystalGrove } from "./CrystalGrove";
+import { ElvenGlade } from "./ElvenGlade";
 import { FrozenWastes } from "./FrozenWastes";
 import { GearWorks } from "./GearWorks";
 import { Graveyard } from "./Graveyard";
+import { HangarBay } from "./HangarBay";
 import { MistRuins } from "./MistRuins";
+import { MoonlitShore } from "./MoonlitShore";
 import { Sanctuary } from "./Sanctuary";
 import { Scriptorium } from "./Scriptorium";
-import { VoidRift } from "./VoidRift";
-import { HangarBay } from "./HangarBay";
-import { MoonlitShore } from "./MoonlitShore";
+import { StormTemple } from "./StormTemple";
 import { SunkenTemple } from "./SunkenTemple";
+import { VoidRift } from "./VoidRift";
+import { WindPeak } from "./WindPeak";
 
 export interface SceneryProps {
   /** How hard the wind blows through the stage (0 to 1): Seraphiel's wingbeats. */
@@ -43,6 +47,10 @@ export const SCENERY = {
   sunkenTemple: { component: SunkenTemple, light: "#3cc6c0", weather: true },
   gearworks: { component: GearWorks },
   hangar: { component: HangarBay, light: "#8ecbff" },
+  glade: { component: ElvenGlade, weather: true },
+  grove: { component: CrystalGrove, weather: true },
+  peak: { component: WindPeak, weather: true },
+  temple: { component: StormTemple },
 } as const satisfies Record<string, Scenery>;
 
 export type SceneryId = keyof typeof SCENERY;

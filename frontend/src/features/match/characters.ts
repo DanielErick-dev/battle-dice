@@ -207,6 +207,7 @@ export const CHARACTERS = {
     color: "#facc15",
     model: model("wanderingSage"),
     chair: "stormThrone",
+    stage: "temple",
     ability: "dormantFury",
     playable: true,
     shieldColor: "#facc15",
@@ -233,6 +234,7 @@ export const CHARACTERS = {
     shieldColor: "#84cc16",
     // Her intro: the bow comes up from 0.6 s, drawn and held, the arrow loosed at 2.65 s.
     introArrows: { drawSeconds: 0.6, releaseSeconds: 2.65 },
+    stage: "glade",
   },
   cardJester: {
     name: "Coringa Carmesim",
@@ -315,6 +317,7 @@ export const CHARACTERS = {
     hopTakeoffSeconds: 1.1,
     wings: "fairy",
     chair: "frostThrone",
+    stage: "grove",
   },
   // The eight below came from Meshy with idle and run only: names and abilities are placeholders
   // until their kits (intro, cast, effects) are made. Bjorn's is under way: Untamed and his trample.
@@ -327,6 +330,7 @@ export const CHARACTERS = {
     ability: "tailwind",
     playable: true,
     shieldColor: "#86efac",
+    stage: "peak",
   },
   tideMaiden: {
     name: "Nerissa",
