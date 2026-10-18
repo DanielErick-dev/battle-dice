@@ -1,6 +1,7 @@
 # Documentação do Battle Dice
 
 ## Visão geral (`docs/`)
+- [Regras do jogo](regras.md): o livro de regras completo e a ficha de cada personagem
 - [Arquitetura](arquitetura.md): camadas, o fluxo de uma jogada e o pipeline de assets
 - [Decisões (ADRs)](decisoes/README.md): o porquê das escolhas grandes
 - [Plano de refatoração](plano-refatoracao.md): diagnóstico, etapas e diário
