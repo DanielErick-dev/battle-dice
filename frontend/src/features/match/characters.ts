@@ -325,6 +325,7 @@ export const CHARACTERS = {
     ability: "tailwind",
     playable: true,
     shieldColor: "#86efac",
+    stage: "peak",
   },
   tideMaiden: {
     name: "Nerissa",
