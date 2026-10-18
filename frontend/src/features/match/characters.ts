@@ -370,6 +370,7 @@ export const CHARACTERS = {
     ability: "cleansingTide",
     playable: true,
     shieldColor: "#f59e0b",
+    stage: "sunkenTemple",
   },
   seraphGuardian: {
     name: "Seraphiel",

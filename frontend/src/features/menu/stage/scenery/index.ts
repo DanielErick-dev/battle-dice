@@ -4,6 +4,7 @@ import { Graveyard } from "./Graveyard";
 import { MoonlitShore } from "./MoonlitShore";
 import { Sanctuary } from "./Sanctuary";
 import { Scriptorium } from "./Scriptorium";
+import { SunkenTemple } from "./SunkenTemple";
 
 export interface SceneryProps {
   /** How hard the wind blows through the stage (0 to 1): Seraphiel's wingbeats. */
@@ -28,6 +29,8 @@ export const SCENERY = {
   tundra: { component: FrozenWastes, weather: true },
   sanctuary: { component: Sanctuary },
   shore: { component: MoonlitShore },
+  // Under the sea the gold is lit by a teal wash; the bubbles stand in for the motes.
+  sunkenTemple: { component: SunkenTemple, light: "#3cc6c0", weather: true },
 } as const satisfies Record<string, Scenery>;
 
 export type SceneryId = keyof typeof SCENERY;
