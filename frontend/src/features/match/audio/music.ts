@@ -21,10 +21,7 @@ const ARPEGGIOS: readonly (readonly number[])[] = [
   [0, 2, 3, 5, 3, 2, 4, 2],
 ];
 
-/**
- * Background music composed on the fly: a heroic minor-key loop (pad, bass, echoing
- * arpeggio, drums, a taiko hit every four bars). No audio files, nothing to license.
- */
+/** A heroic minor-key loop composed on the fly: pad, bass, echoing arpeggio, drums, a taiko hit every four bars. */
 export class GenerativeMusic {
   private timer: ReturnType<typeof setInterval> | null = null;
   private nextStepAt = 0;
@@ -72,15 +69,24 @@ export class GenerativeMusic {
     if (inBar === 0) {
       for (const note of chord) {
         const frequency = hz(note);
-        dry.tone(at, barSeconds * 1.05, frequency, frequency, "sawtooth", 0.05, { lowpass: 900, attack: 0.5, detune: -8 });
-        dry.tone(at, barSeconds * 1.05, frequency, frequency, "sawtooth", 0.05, { lowpass: 900, attack: 0.5, detune: 8 });
+        dry.tone(at, barSeconds * 1.05, frequency, frequency, "sawtooth", 0.05, {
+          lowpass: 900,
+          attack: 0.5,
+          detune: -8,
+        });
+        dry.tone(at, barSeconds * 1.05, frequency, frequency, "sawtooth", 0.05, {
+          lowpass: 900,
+          attack: 0.5,
+          detune: 8,
+        });
       }
       if (bar % 4 === 0) dry.tone(at, 0.6, 90, 38, "sine", 0.9);
     }
 
     const root = hz(chord[0] - 24);
     if (inBar === 0 || inBar === 8) dry.tone(at, STEP_SECONDS * 5, root, root, "triangle", 0.5, { lowpass: 500 });
-    if (inBar === 6 || inBar === 14) dry.tone(at, STEP_SECONDS * 2, root * 2, root * 2, "triangle", 0.3, { lowpass: 700 });
+    if (inBar === 6 || inBar === 14)
+      dry.tone(at, STEP_SECONDS * 2, root * 2, root * 2, "triangle", 0.3, { lowpass: 700 });
 
     if (inBar % 2 === 0) {
       const pattern = ARPEGGIOS[Math.floor(bar / 8) % ARPEGGIOS.length];

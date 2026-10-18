@@ -38,7 +38,7 @@
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.705 0.015 286.067);
 
-  /* Variáveis Customizadas para o Jogo */
+  /* Game board colours. */
   --board-tile: oklch(0.95 0.01 285);
   --board-portal: oklch(0.6 0.2 300);
   --board-trap: oklch(0.6 0.2 25);
@@ -77,7 +77,7 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.552 0.016 285.938);
 
-  /* Ajuste das Variáveis de Jogo para Dark Mode */
+  /* Game board colours, dark mode. */
   --board-tile: oklch(0.25 0.02 285);
 }
 
@@ -123,7 +123,7 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
 
-  /* Injeção das Cores do Jogo no Tailwind v4 */
+  /* Board colours as Tailwind utilities. */
   --color-tile: var(--board-tile);
   --color-portal: var(--board-portal);
   --color-trap: var(--board-trap);
@@ -205,10 +205,7 @@
   }
 }
 
-/* ---- Cards ------------------------------------------------------------------------------
- * --mx/--my (0–1) follow the pointer (set in CardView); they tilt the card and slide the
- * holographic foil and glare across it. Frames and foil strength depend on rarity.
- */
+/* ---- Cards: --mx/--my (0–1) follow the pointer (set in CardView) to tilt the card and slide its foil. */
 .game-card {
   --mx: 0.5;
   --my: 0.5;
@@ -398,11 +395,7 @@
   background-size: 420px 420px;
 }
 
-/*
- * A drawn card (1.5s, matches drawRevealMs): leaves the deck at the right, rises to the middle
- * of the screen face down, turns face up, holds, then is dealt to the hand at the side.
- * The travel lives on the outer element, the flip on the inner one.
- */
+/* A drawn card (1.5s, matches drawRevealMs); travel on the outer element, flip on the inner one. */
 @keyframes card-draw-travel {
   0% {
     opacity: 0;
@@ -451,12 +444,7 @@
   }
 }
 
-/*
- * A transmuted card (4.3s, matches transmuteMs + drawMs): the old card leaves the hand at the
- * right and holds in the middle, a cloud of emerald smoke swells until it hides it completely,
- * the old card is swapped for the new one under it, the smoke clears slowly off the new one,
- * which holds a moment and is dealt to the hand.
- */
+/* A transmuted card (4.3s, matches transmuteMs + drawMs): smoke hides the old card while it's swapped for the new. */
 @keyframes transmute-travel {
   0% {
     opacity: 0;

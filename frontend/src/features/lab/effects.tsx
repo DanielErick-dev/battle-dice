@@ -6,19 +6,16 @@ import { EFFECT_SCALE } from "@/features/match/scene/character/figure";
 import { FrostAura } from "@/features/match/scene/FrostAura";
 import { HealingEmitter, HealingParticles } from "@/features/match/scene/vfx/healing";
 
-/** One effect to try out round the figure (world units: the figure stands 3 tall at the origin). */
+/** An effect to try round the figure (world units: it stands 3 tall at the origin). */
 export interface LabEffect {
   id: string;
   name: string;
-  /** What it is and what it could be used for in the game. */
+  /** What it is and where it could go in the game. */
   hint: string;
   render: () => React.ReactNode;
 }
 
-/**
- * Samples made with wawa-vfx (each emitter has `debug`, so its settings show in the Leva panel to
- * play with), next to our own hand-made Untamed aura for comparison.
- */
+/** wawa-vfx samples (`debug` puts each emitter's settings in the Leva panel) beside our hand-made Untamed aura. */
 export const LAB_EFFECTS: readonly LabEffect[] = [
   {
     id: "untamed",

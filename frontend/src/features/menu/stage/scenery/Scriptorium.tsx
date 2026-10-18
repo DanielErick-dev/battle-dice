@@ -15,9 +15,7 @@ import { drawParchment, pageStrokes } from "@/features/match/scene/character/par
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
 
-/** How far the old flagstones reach round the figure before fading out. */
 const FLOOR_RADIUS = 1.0;
-/** Candles round the back and sides: where they stand and how tall they've burnt down to. */
 const CANDLES = [
   { x: -0.74, z: -0.3, height: 0.16 },
   { x: -0.66, z: -0.42, height: 0.09 },
@@ -29,7 +27,7 @@ const CANDLES = [
   { x: 0.8, z: 0.24, height: 0.12 },
 ];
 const CANDLE_RADIUS = 0.022;
-/** Loose pages strewn over the floor: where, turned how far, and which of the written pages. */
+/** `page` picks one of the written page textures. */
 const PAGES = [
   { x: -0.42, z: 0.5, turn: 0.5, page: 0 },
   { x: 0.48, z: 0.42, turn: -0.3, page: 1 },
@@ -38,21 +36,15 @@ const PAGES = [
   { x: 0.62, z: -0.05, turn: 2.6, page: 2 },
 ];
 const PAGE_SIZE: [number, number] = [0.13, 0.18];
-/** Stacks of old books: where, and each book's leather from the bottom up. */
+/** Each book's leather, bottom up. */
 const STACKS = [
   { x: -0.52, z: -0.6, turn: 0.4, books: ["#3b1418", "#2a2017", "#4a2a12"] },
   { x: 0.6, z: -0.58, turn: -0.5, books: ["#1f1a2b", "#3b1418"] },
 ];
-/** Warm candlelight, and the faint halo round each flame. */
 const FLAME = new Color("#ffb054").multiplyScalar(2.2);
 const HALO = new Color("#ff9a3d");
 
-/**
- * The Flesh Scribe's stage in place of the rune pedestal: a round of old flagstones fading into
- * the dark, candles burnt down to stubs along the back and sides, loose written pages strewn
- * about and stacks of worn leather books. The flames are sprites, never real lights. Its origin is
- * on the floor.
- */
+/** The Flesh Scribe's stage instead of the rune pedestal (origin on the floor); flames are sprites, not lights. */
 export function Scriptorium() {
   const floor = useFlagstones();
   const pages = useStrewnPages();
@@ -149,7 +141,7 @@ export function Scriptorium() {
   );
 }
 
-/** A worn book lying flat, `level` books up its stack, a little askew. */
+/** A book lying flat, `level` books up its stack, a little askew. */
 function Book({ leather, paper, level }: { leather: string; paper: MeshStandardMaterial; level: number }) {
   const thickness = 0.034 - level * 0.004;
   const y = level * 0.034 + thickness / 2;
@@ -167,7 +159,7 @@ function Book({ leather, paper, level }: { leather: string; paper: MeshStandardM
   );
 }
 
-/** Old flagstones: worn slabs in staggered rows, dark joints, flecks, fading out towards the rim. */
+/** Staggered slabs with dark joints and flecks, fading out towards the rim. */
 function useFlagstones(): CanvasTexture {
   const texture = useMemo(() => {
     const size = 512;
@@ -206,7 +198,6 @@ function useFlagstones(): CanvasTexture {
   return texture;
 }
 
-/** Three written pages to strew about. */
 function useStrewnPages(): CanvasTexture[] {
   const pages = useMemo(
     () =>

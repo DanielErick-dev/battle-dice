@@ -1,7 +1,6 @@
 "use client";
 
 import { Lock, Play, Plus, Sparkles, X, Zap } from "lucide-react";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useState } from "react";
 import { BOARD_PRESETS } from "@/features/match/boards";
@@ -9,20 +8,13 @@ import { CHARACTER_IDS, CHARACTERS, MAX_LOCAL_PLAYERS, parseCharacterList } from
 import { ABILITY_TEXT } from "@/features/match/ui/abilityText";
 import { preferences, usePreference } from "@/features/settings/preferences";
 import { cn } from "@/lib/utils";
+import { LazyCharacterStage as CharacterStage } from "../stage/LazyCharacterStage";
 import { MenuPage } from "./MenuShell";
 
-/** Characters that can be picked come first; the ones being remade follow, locked. */
+/** Playable characters first; the ones being remade follow, locked. */
 const PICKER_ORDER = [...CHARACTER_IDS].sort((a, b) => Number(CHARACTERS[b].playable) - Number(CHARACTERS[a].playable));
 
-const CharacterStage = dynamic(() => import("./CharacterStage").then((module) => module.CharacterStage), {
-  ssr: false,
-});
-
-/**
- * Before a match: pick the mode, the players (each a character, the same one more than once if
- * wanted, all playing at this screen) and whether abilities start charged (test mode), all
- * remembered, then start.
- */
+/** Before a match: mode, local players (repeats allowed) and their characters, test mode; all remembered. */
 export function MatchSetupScreen() {
   const boardId = usePreference(preferences.board);
   const seats = parseCharacterList(usePreference(preferences.players));
@@ -96,10 +88,7 @@ export function MatchSetupScreen() {
                   onClick={() => setPicking(index)}
                   className="flex items-center gap-2 py-2 pr-2 pl-3 text-left"
                 >
-                  <span
-                    className="size-2.5 shrink-0 rounded-full"
-                    style={{ backgroundColor: character.color, boxShadow: `0 0 10px ${character.color}` }}
-                  />
+                  <ColorDot color={character.color} />
                   <span className="text-xs font-black tracking-widest text-zinc-400">J{index + 1}</span>
                   <span className="text-sm font-bold tracking-wide uppercase">{character.name}</span>
                 </button>
@@ -193,10 +182,7 @@ export function MatchSetupScreen() {
                   )}
                 >
                   <span className="flex items-center gap-2">
-                    <span
-                      className="size-2.5 shrink-0 rounded-full"
-                      style={{ backgroundColor: character.color, boxShadow: `0 0 10px ${character.color}` }}
-                    />
+                    <ColorDot color={character.color} />
                     <span className="text-base font-black tracking-wider uppercase">{character.name}</span>
                     {locked && (
                       <span className="ml-auto flex items-center gap-1 text-[10px] font-bold tracking-widest text-zinc-300 uppercase">
@@ -227,5 +213,14 @@ export function MatchSetupScreen() {
         </Link>
       </div>
     </MenuPage>
+  );
+}
+
+function ColorDot({ color }: { color: string }) {
+  return (
+    <span
+      className="size-2.5 shrink-0 rounded-full"
+      style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}` }}
+    />
   );
 }

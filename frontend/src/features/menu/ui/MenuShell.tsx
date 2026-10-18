@@ -2,10 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-/**
- * The night-sky backdrop every menu screen shares: stars, a sea haze below and, on the
- * main menu, the moon (kept off pages full of text, where it would sit behind it).
- */
+/** The night sky every menu screen shares; the moon is left off pages full of text, where it would sit behind it. */
 export function MenuBackdrop({ moon = true }: { moon?: boolean }) {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">

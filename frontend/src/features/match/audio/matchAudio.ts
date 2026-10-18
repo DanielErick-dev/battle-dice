@@ -7,10 +7,7 @@ interface ViewSource {
   getSnapshot: () => MatchView;
 }
 
-/**
- * Plays sounds for what changes on screen, by diffing consecutive views. Driving audio
- * from the view (not from game events) keeps it in sync with the animation.
- */
+/** Plays sounds by diffing consecutive views: driven by the view, not game events, so it stays in sync with the animation. */
 export function connectMatchAudio(source: ViewSource, sounds: MatchSounds): () => void {
   let previous = source.getSnapshot();
 
@@ -66,13 +63,12 @@ const EFFECT_SOUNDS: Record<TileEffectKind, (sounds: MatchSounds, effect: TileEf
         : sounds.penalty(),
 };
 
-export function playTransition(previous: MatchView, next: MatchView, sounds: MatchSounds): void {
+function playTransition(previous: MatchView, next: MatchView, sounds: MatchSounds): void {
   // Die impacts come from the 3D throw itself (see DiceThrow), in sync with each bounce.
   if (!previous.isRolling && next.isRolling) sounds.diceShake();
   if (next.poweredPlayerId !== null && next.poweredPlayerId !== previous.poweredPlayerId) sounds.powerUp();
 
-  // Dormant Fury: a whine as the player throws themselves forward, thunder as the lightning takes them,
-  // and again as it lets them go.
+  // Dormant Fury: a whine and thunder as the dash starts, thunder again on arrival.
   if (next.dash && next.dash.id !== previous.dash?.id) {
     sounds.electricRush(DEFAULT_TIMINGS.dashLaunchMs / 1000);
     sounds.thunder(DEFAULT_TIMINGS.dashLaunchMs / 1000);

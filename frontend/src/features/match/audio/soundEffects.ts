@@ -2,7 +2,7 @@ import type { AbilityId } from "@/game/domain/abilities";
 import type { CardId } from "@/game/domain/cards";
 import type { RealmKind } from "@/game/domain/types";
 import type { AudioEngine } from "./audioEngine";
-import { Synth } from "./synth";
+import { playSfx, type Synth } from "./synth";
 import { ABILITY_VOICES } from "./voices";
 
 /** Sounds the match can play. Kept as an interface so tests and a future asset-based player can swap in. */
@@ -36,10 +36,7 @@ export interface MatchSounds {
   thunder: (delay?: number) => void;
   /** An electric whine climbing over `seconds`: a push-off winding up before the dash. */
   electricRush: (seconds: number) => void;
-  /**
-   * Arrow Rain: a bow's twang and the sheaf whistling up, then, as it lands `landsIn` seconds
-   * later, a hail of arrows thudding into the ground.
-   */
+  /** Arrow Rain: a twang and a whistle up, then a hail of arrows thudding down `landsIn` seconds later. */
   arrowVolley: (landsIn: number) => void;
   /** The character's shout as they use their ability, when they have one (see ABILITY_VOICES). */
   abilityVoice: (ability: AbilityId) => void;
@@ -220,7 +217,6 @@ export class SynthSounds implements MatchSounds {
     });
   };
 
-  /** Hell's Drag: a rumble from below and the ground tearing open, then a deep pull downwards. */
   hellGrasp = (): void =>
     this.play((synth, at) => {
       synth.tone(at, 1.4, 45, 30, "sawtooth", 0.3, {
@@ -233,7 +229,6 @@ export class SynthSounds implements MatchSounds {
       synth.noiseSweep(at + 1.5, 1.1, 2200, 150, 0.4, 0.8);
     });
 
-  /** The Fall: a bright chord torn down into a low, burning drone. */
   fall = (): void =>
     this.play((synth, at) => {
       [523.25, 659.25, 783.99].forEach((frequency) => synth.tone(at, 1.2, frequency, frequency / 4, "triangle", 0.1));
@@ -254,10 +249,7 @@ export class SynthSounds implements MatchSounds {
       synth.noiseSweep(at + 0.05, 0.7, 2400, 380, 0.3);
     });
 
-  /**
-   * A beast's roar, low and rasping: detuned saws growling down over a breathy rasp, with the
-   * growl doubled an octave up and a quick flutter so small speakers, which drop the lows, carry it.
-   */
+  /** A beast's roar; the growl is doubled an octave up with a flutter so small speakers, which drop the lows, carry it. */
   private roar(delay: number): void {
     this.play((synth, now) => {
       const at = now + delay;
@@ -287,10 +279,7 @@ export class SynthSounds implements MatchSounds {
   }
 
   private play(schedule: (synth: Synth, at: number) => void): void {
-    const context = this.engine.running;
-    const output = this.engine.bus("sfx");
-    if (!context || !output) return;
-    schedule(new Synth(context, output, this.engine.noiseBuffer), context.currentTime + 0.005);
+    playSfx(this.engine, schedule);
   }
 }
 

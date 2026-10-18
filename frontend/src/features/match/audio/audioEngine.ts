@@ -10,11 +10,7 @@ const BUS_VOLUME: Record<AudioBus, number> = {
 const ALWAYS_ON: readonly AudioBus[] = ["sfx", "voice"];
 const FADE_SECONDS = 0.4;
 
-/**
- * One AudioContext for the whole game, split into buses so sound effects, voices, music and
- * ambience can be muted independently. Recorded sounds (voices) are fetched and decoded once. Created lazily; browsers only let it run after
- * a user gesture, so call `unlock` from an input handler.
- */
+/** One AudioContext split into buses muted independently. Browsers only start it after a user gesture: call `unlock` from an input handler. */
 export class AudioEngine {
   private context: AudioContext | null = null;
   private readonly buses = new Map<AudioBus, GainNode>();
@@ -22,7 +18,7 @@ export class AudioEngine {
   private muted = false;
   private musicEnabled = true;
   private readonly readyListeners = new Set<() => void>();
-  /** Decoded recordings by URL; null once one failed to load (missing file), so it isn't fetched again. */
+  /** Decoded recordings by URL; null for a missing file, so it isn't fetched again. */
   private readonly samples = new Map<string, Promise<AudioBuffer | null>>();
 
   unlock(): void {
@@ -30,7 +26,7 @@ export class AudioEngine {
     if (context?.state === "suspended") void context.resume();
   }
 
-  /** The context, only once it is actually playing. */
+  /** The context, only once it's actually playing. */
   get running(): AudioContext | null {
     return this.context?.state === "running" ? this.context : null;
   }
@@ -49,16 +45,12 @@ export class AudioEngine {
     this.applyVolumes();
   }
 
-  /** Music and ambience together; sound effects and voices follow only the global mute. */
   setMusicEnabled(enabled: boolean): void {
     this.musicEnabled = enabled;
     this.applyVolumes();
   }
 
-  /**
-   * Plays the recording at `url` on `bus`, `delay` seconds from now. Resolves to whether it played:
-   * false while the context isn't running or when the file can't be loaded.
-   */
+  /** Plays the recording at `url` `delay` seconds from now; resolves to false if not running or not loadable. */
   async playSample(url: string, bus: AudioBus, delay = 0): Promise<boolean> {
     const context = this.running;
     const output = this.bus(bus);
@@ -69,7 +61,7 @@ export class AudioEngine {
     const source = context.createBufferSource();
     source.buffer = buffer;
     source.connect(output);
-    // Loading may have eaten into the delay: what's left of it, if any.
+    // Loading may have eaten into the delay.
     source.start(Math.max(context.currentTime, requested + delay));
     return true;
   }

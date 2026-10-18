@@ -13,14 +13,10 @@ import {
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { iceShard } from "@/features/match/scene/character/ice";
 import { seededRandom } from "@/game/domain/random";
-import { useNoiseTexture, type NoiseLook } from "./stageTextures";
+import { useNoiseTexture, type NoiseLook } from "./noiseTexture";
 
-/** How far the patch of snow reaches round the figure before fading out. */
 const SNOW_RADIUS = 1;
-/**
- * Clusters of glacier ice jutting out of the snow, mostly behind him: where, how tall the tallest
- * shard, and how many shards. Uneven on purpose: a big mass on one side, smaller outcrops elsewhere.
- */
+/** `height` is the tallest shard's. Uneven on purpose: one big mass, smaller outcrops elsewhere. */
 const CRYSTAL_CLUSTERS = [
   { x: -0.72, z: -0.52, height: 0.78, shards: 7 },
   { x: -0.3, z: -0.85, height: 0.4, shards: 4 },
@@ -28,25 +24,18 @@ const CRYSTAL_CLUSTERS = [
   { x: 0.84, z: -0.26, height: 0.3, shards: 3 },
   { x: -0.86, z: 0.24, height: 0.18, shards: 3 },
 ];
-/** Snow-capped rocks half buried round the plot. */
 const ROCKS = [
   { x: -0.5, z: -0.2, size: 0.09 },
   { x: 0.18, z: -0.6, size: 0.12 },
   { x: 0.55, z: 0.05, size: 0.07 },
   { x: -0.38, z: 0.48, size: 0.06 },
 ];
-/** Snowflakes falling round him: how many, over how wide a column, from how high. */
 const FLAKES = 140;
 const FLAKE_SPREAD = 1.3;
 const FLAKE_HEIGHT = 2.4;
-/** Patches of cold mist drifting low over the snow. */
 const MISTS = 8;
 
-/**
- * Bjorn's stage in place of the rune pedestal: a patch of packed snow with clusters of glacier
- * crystals jutting out of it behind him, snow-capped rocks half buried round the plot, cold mist
- * drifting low over the ground and snow falling. Its origin is on the floor.
- */
+/** Bjorn's stage instead of the rune pedestal: snow, glacier crystals, rocks, mist and snowfall. Origin on the floor. */
 export function FrozenWastes() {
   const snow = useNoiseTexture(SNOW);
   const stone = useNoiseTexture(STONE);
@@ -64,8 +53,7 @@ export function FrozenWastes() {
         roughness: 0.95,
         flatShading: true,
       }),
-      // Clear glacier ice: light passes through, tinted deep blue the thicker it is, with faint
-      // frosting on the faces rather than a glow.
+      // Clear glacier ice, deeper blue where thicker, faintly frosted rather than glowing.
       ice: new MeshPhysicalMaterial({
         color: "#d8ecf7",
         transmission: 0.85,
@@ -115,7 +103,7 @@ export function FrozenWastes() {
       <mesh material={materials.snow} rotation-x={-Math.PI / 2} position-y={0.001} renderOrder={-1}>
         <circleGeometry args={[SNOW_RADIUS, 64]} />
       </mesh>
-      {/* A low drift of snow he stands on, in place of the pedestal. */}
+      {/* The snow drift he stands on, in place of the pedestal. */}
       <mesh material={materials.drift} position-y={-0.05} scale={[0.62, 0.05, 0.62]}>
         <sphereGeometry args={[1, 32, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
       </mesh>
@@ -130,7 +118,6 @@ export function FrozenWastes() {
               <mesh geometry={geometry} material={materials.ice} rotation-y={turn} scale={[1, shard, 1]} />
             </group>
           ))}
-          {/* Snow banked up round the foot of the ice. */}
           <mesh material={materials.drift} position-y={-0.02} scale={[0.2, 0.06, 0.17]}>
             <sphereGeometry args={[1, 14, 6, 0, Math.PI * 2, 0, Math.PI / 2]} />
           </mesh>
@@ -139,7 +126,6 @@ export function FrozenWastes() {
       {ROCKS.map(({ x, z, size }) => (
         <group key={`${x}:${z}`} position={[x, 0, z]}>
           <mesh geometry={rock} material={materials.rock} scale={[size * 1.3, size * 0.7, size]} />
-          {/* A cap of snow on top. */}
           <mesh material={materials.drift} position-y={size * 0.45} scale={[size * 1.1, size * 0.3, size * 0.85]}>
             <sphereGeometry args={[1, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2]} />
           </mesh>
@@ -151,7 +137,6 @@ export function FrozenWastes() {
   );
 }
 
-/** Pale patches of mist drifting slowly over the snow. */
 function ColdMist() {
   const disc = useSoftDisc();
   const patches = useRef<(Group | null)[]>([]);
@@ -197,7 +182,6 @@ function ColdMist() {
   );
 }
 
-/** Snowflakes drifting down round him, swaying, and starting again at the top. */
 function Snowfall() {
   const disc = useSoftDisc();
   const { geometry, flakes } = useMemo(() => {

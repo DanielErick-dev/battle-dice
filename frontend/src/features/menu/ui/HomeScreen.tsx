@@ -1,18 +1,14 @@
 "use client";
 
 import { Layers, Lock, Play, Settings, ShoppingBag, Users, type LucideIcon } from "lucide-react";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { CHARACTERS, parseCharacterList } from "@/features/match/characters";
 import { ABILITY_TEXT } from "@/features/match/ui/abilityText";
 import { preferences, usePreference } from "@/features/settings/preferences";
+import { LazyCharacterStage as CharacterStage } from "../stage/LazyCharacterStage";
 import { MenuBackdrop } from "./MenuShell";
 
-const CharacterStage = dynamic(() => import("./CharacterStage").then((module) => module.CharacterStage), {
-  ssr: false,
-});
-
-/** Parts of the game still to come, shown so the menu hints at where it's going. */
+/** Shown so the menu hints at where the game is going. */
 const COMING_SOON: readonly { label: string; icon: LucideIcon }[] = [
   { label: "Personagens", icon: Users },
   { label: "Cartas", icon: Layers },

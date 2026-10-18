@@ -41,7 +41,11 @@ export function SettingsScreen() {
             <p className="font-bold">Qualidade dos efeitos</p>
             <p className="text-sm text-zinc-400">Vale na próxima partida.</p>
           </div>
-          <div role="radiogroup" aria-label="Qualidade dos efeitos" className="grid grid-cols-2 gap-1 rounded-xl bg-black/40 p-1">
+          <div
+            role="radiogroup"
+            aria-label="Qualidade dos efeitos"
+            className="grid grid-cols-2 gap-1 rounded-xl bg-black/40 p-1"
+          >
             {QUALITY_OPTIONS.map((option) => (
               <button
                 key={option.value}
@@ -84,7 +88,12 @@ interface ToggleProps {
 
 function Toggle({ label, hint, checked, disabled = false, onChange }: ToggleProps) {
   return (
-    <label className={cn("flex cursor-pointer items-center justify-between gap-4 p-4", disabled && "cursor-not-allowed opacity-50")}>
+    <label
+      className={cn(
+        "flex cursor-pointer items-center justify-between gap-4 p-4",
+        disabled && "cursor-not-allowed opacity-50",
+      )}
+    >
       <span>
         <span className="block font-bold">{label}</span>
         <span className="block text-sm text-zinc-400">{hint}</span>

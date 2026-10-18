@@ -3,15 +3,15 @@ import { CanvasTexture, RepeatWrapping, SRGBColorSpace } from "three";
 import { seededRandom } from "@/game/domain/random";
 
 export interface NoiseLook {
-  /** Base colour and the darkest and lightest flecks, as [r, g, b]. */
+  /** [r, g, b] of the base colour and of the darker and lighter flecks. */
   base: [number, number, number];
   dark: [number, number, number];
   light: [number, number, number];
-  /** Fades to transparent towards the rim (the patch of earth) rather than tiling (stone). */
+  /** Fades to transparent towards the rim (a patch of ground) instead of tiling (stone). */
   fadeOut: boolean;
 }
 
-/** A grainy texture drawn once: clumps of darker and lighter flecks over a base colour. */
+/** A grainy texture: darker and lighter flecks over a base colour. */
 export function useNoiseTexture({ base, dark, light, fadeOut }: NoiseLook): CanvasTexture {
   const texture = useMemo(() => {
     const size = 256;

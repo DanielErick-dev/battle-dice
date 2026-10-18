@@ -5,11 +5,7 @@ import { BOARD_PRESETS, DEFAULT_BOARD_ID } from "../match/boards";
 import { DEFAULT_CHARACTER_ID } from "../match/characters";
 import type { EffectsQuality } from "../match/config";
 
-/**
- * A setting remembered per browser. Storage can be blocked (private mode, site data off),
- * so it falls back to an in-memory value for the session. Once accounts exist, the ones
- * that belong to the player (character, board) can move to their profile on the server.
- */
+/** A setting remembered per browser, kept in memory when storage is blocked (private mode, site data off). */
 export interface Preference<T> {
   subscribe: (listener: () => void) => () => void;
   get: () => T;
@@ -60,7 +56,7 @@ const booleanPreference = (key: string, fallback: boolean) =>
     (value) => (value ? "1" : "0"),
   );
 
-/** A preference restricted to a fixed set of values; anything else stored is ignored. */
+/** Anything stored outside `choices` is ignored. */
 function choicePreference<T extends string>(key: string, fallback: T, choices: readonly T[]): Preference<T> {
   return createPreference(
     key,
@@ -81,7 +77,7 @@ export const preferences = {
     (stored) => stored,
     (value) => value,
   ),
-  /** Test mode: every ability starts the match charged, to try them out quickly. */
+  /** Test mode: every ability starts the match charged. */
   chargedAbilities: booleanPreference("battle-dice:charged-abilities", false),
   board: choicePreference(
     "battle-dice:board",

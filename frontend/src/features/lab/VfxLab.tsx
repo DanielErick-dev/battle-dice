@@ -10,10 +10,7 @@ import { PostEffects } from "@/features/match/scene/PostEffects";
 import { cn } from "@/lib/utils";
 import { LAB_EFFECTS } from "./effects";
 
-/**
- * A playground for trying visual effects round a character: pick a figure and an effect, turn the
- * camera round, and tweak the effect's settings live in the Leva panel. Not linked from the menus.
- */
+/** Playground for trying effects round a character, tweaked live in the Leva panel. Not linked from the menus. */
 export function VfxLab() {
   const [characterId, setCharacterId] = useState<CharacterId>("frostfangBerserker");
   const [effectId, setEffectId] = useState(LAB_EFFECTS[0].id);

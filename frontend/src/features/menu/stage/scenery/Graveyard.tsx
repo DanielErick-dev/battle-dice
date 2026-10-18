@@ -5,31 +5,24 @@ import { useEffect, useMemo, useRef } from "react";
 import { ExtrudeGeometry, MeshStandardMaterial, Shape, type Group } from "three";
 import { Prop, usePropMesh } from "@/features/match/scene/character/props";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
-import { useNoiseTexture, type NoiseLook } from "./stageTextures";
+import { useNoiseTexture, type NoiseLook } from "./noiseTexture";
 
-/** How far the patch of earth reaches round the figure before fading out. */
 const EARTH_RADIUS = 0.95;
-/** Headstones along the back of the plot: where they stand, how tall, and how they lean (radians). */
 const HEADSTONES = [
   { x: -0.66, z: -0.42, height: 0.34, turn: 0.5, lean: -0.12, tilt: 0.05 },
   { x: -0.3, z: -0.72, height: 0.42, turn: 0.15, lean: 0.06, tilt: -0.1 },
   { x: 0.28, z: -0.76, height: 0.38, turn: -0.2, lean: -0.08, tilt: 0.14 },
   { x: 0.68, z: -0.45, height: 0.3, turn: -0.55, lean: 0.15, tilt: -0.06 },
 ];
-/** Low mounds of fresh graves either side of him. */
 const MOUNDS = [
   { x: -0.6, z: 0.32, turn: 0.5 },
   { x: 0.62, z: 0.26, turn: -0.45 },
 ];
-/** Patches of dark mist creeping over the ground, and pale wisps drifting above them. */
+/** Dark mist patches on the ground, and pale wisps above them. */
 const SHADOWS = 9;
 const WISPS = 6;
 
-/**
- * The Necromancer's stage in place of the rune pedestal: a patch of dark, freshly turned earth
- * with weathered headstones along the back, a crooked wooden cross, two fresh grave mounds and a
- * skull half sunk in the dirt, with shadows creeping over it all. Its origin is on the floor.
- */
+/** The Necromancer's stage instead of the rune pedestal: turned earth, headstones, a cross, graves. Origin on the floor. */
 export function Graveyard() {
   const soil = useNoiseTexture(SOIL);
   const stone = useNoiseTexture(STONE);
@@ -57,7 +50,6 @@ export function Graveyard() {
           <mesh geometry={headstone} material={materials.stone} />
         </group>
       ))}
-      {/* A crooked wooden cross between the stones. */}
       <group position={[0.0, -0.02, -0.86]} rotation={[0.08, 0.1, -0.18]}>
         <mesh material={materials.wood} position-y={0.2}>
           <boxGeometry args={[0.035, 0.42, 0.03]} />
@@ -79,7 +71,6 @@ export function Graveyard() {
   );
 }
 
-/** Dark patches drifting slowly over the ground, and faint pale wisps above them. */
 function CreepingMist() {
   const disc = useSoftDisc();
   const patches = useRef<(Group | null)[]>([]);
@@ -135,7 +126,7 @@ function CreepingMist() {
   );
 }
 
-/** A weathered headstone 1 tall standing on its origin and facing +Z: a slab with a rounded top. */
+/** A round-topped slab 1 tall, standing on its origin and facing +Z. */
 function useHeadstoneGeometry() {
   const geometry = useMemo(() => {
     const shape = new Shape();
