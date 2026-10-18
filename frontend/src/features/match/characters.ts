@@ -408,6 +408,7 @@ export const CHARACTERS = {
     playable: true,
     shieldColor: "#e2e8f0",
     chair: "cyberThrone",
+    stage: "hangar",
   },
 } as const satisfies Record<string, CharacterDefinition>;
 
