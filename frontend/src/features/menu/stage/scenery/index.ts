@@ -1,5 +1,6 @@
 import type { ComponentType, RefObject } from "react";
 import { AlchemyLab } from "./AlchemyLab";
+import { CardTable } from "./CardTable";
 import { FrozenWastes } from "./FrozenWastes";
 import { Graveyard } from "./Graveyard";
 import { Sanctuary } from "./Sanctuary";
@@ -30,6 +31,7 @@ export const SCENERY = {
   sanctuary: { component: Sanctuary },
   witchHollow: { component: WitchHollow },
   alchemyLab: { component: AlchemyLab },
+  cardTable: { component: CardTable },
 } as const satisfies Record<string, Scenery>;
 
 export type SceneryId = keyof typeof SCENERY;
