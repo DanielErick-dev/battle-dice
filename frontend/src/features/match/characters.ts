@@ -332,6 +332,7 @@ export const CHARACTERS = {
     ability: "sacredBulwark",
     playable: true,
     shieldColor: "#2563eb",
+    stage: "shore",
   },
   crimsonStudent: {
     name: "Akane",
