@@ -2,12 +2,9 @@ import { describe, expect, it } from "vitest";
 import { abilityCycle, type AbilityId } from "./abilities";
 import type { BoardDefinition } from "./board";
 import { SERAPH_BLESSING_TURNS } from "./blessings";
-import type { GameCommand } from "./commands";
-import { sequenceDice } from "./dice";
-import { applyCommand, createGame } from "./engine";
-import { seededRandom } from "./random";
 import { CROWN_BONUS, DIVINE_CHAINS_ROUNDS, dragTargets } from "./seraph";
-import type { GameState, Player } from "./types";
+import { activate, card, newGame, onTurnOf, play, playerOf, readyAbility, roll, send, withPlayer } from "./testing";
+import type { GameState } from "./types";
 
 /**
  * Hell through the portal on 20 (out at 25), heaven through the one on 40 (out at 45); traps at 50 and 55.
@@ -32,43 +29,15 @@ const HEAVEN_SPRING = 80;
 const HEAVEN_LIGHT = 82;
 const HEAVEN_LAST = 96;
 
-const duel = (ability: AbilityId = "seraphBlessing") =>
-  createGame(
-    BOARD,
-    [
-      { id: "hero", name: "Seraphiel", ability },
-      { id: "rival", name: "Rival", ability: "studySession" },
-    ],
-    { random: seededRandom(7) },
-  );
-const solo = (ability: AbilityId = "seraphBlessing") =>
-  createGame(BOARD, [{ id: "hero", name: "Seraphiel", ability }], {
-    random: seededRandom(7),
-  });
-function patch(state: GameState, id: string, changes: Partial<Player>): GameState {
-  return {
-    ...state,
-    players: state.players.map((player) => (player.id === id ? { ...player, ...changes } : player)),
-  };
-}
-const send = (state: GameState, command: GameCommand, dice: number[] = [1]) =>
-  applyCommand(state, command, {
-    rollDice: sequenceDice(dice),
-    random: seededRandom(3),
-  });
-const player = (state: GameState, id = "hero") => state.players.find((candidate) => candidate.id === id)!;
-const roll = (state: GameState, die: number) => send(state, { type: "rollDice", playerId: "hero" }, [die]);
-const fallen = (state: GameState) => patch(state, "hero", { ability: "hellsDrag" });
+const duel = (ability: AbilityId = "seraphBlessing") => newGame(BOARD, { hero: ability, rival: "studySession" });
+const solo = (ability: AbilityId = "seraphBlessing") => newGame(BOARD, { hero: ability });
+const fallen = (state: GameState) => withPlayer(state, "hero", { ability: "hellsDrag" });
 const drag = (state: GameState, targetId?: string) =>
-  send(patch(state, "hero", { abilityCharge: abilityCycle("hellsDrag") }), {
-    type: "activateAbility",
-    playerId: "hero",
-    targetId,
-  });
+  activate(withPlayer(state, "hero", { abilityCharge: abilityCycle("hellsDrag") }), "hero", { targetId });
 
 describe("Seraphiel in heaven", () => {
   it("picks which blessing he receives on a blessing tile, and it lasts SERAPH_BLESSING_TURNS rounds", () => {
-    const offered = roll(patch(solo(), "hero", { position: HEAVEN_RELIC }), 1);
+    const offered = roll(withPlayer(solo(), "hero", { position: HEAVEN_RELIC }), "hero", 1);
     expect(offered.events).toContainEqual({
       type: "graceOffered",
       playerId: "hero",
@@ -80,8 +49,8 @@ describe("Seraphiel in heaven", () => {
       offer: "blessing",
       endsTurn: true,
     });
-    expect(player(offered.state).blessings).toEqual([]);
-    expect(() => roll(offered.state, 1)).toThrow("GRACE_PENDING");
+    expect(playerOf(offered.state, "hero").blessings).toEqual([]);
+    expect(() => roll(offered.state, "hero", 1)).toThrow("GRACE_PENDING");
 
     const { state } = send(offered.state, {
       type: "chooseGrace",
@@ -90,11 +59,13 @@ describe("Seraphiel in heaven", () => {
     });
     expect(state.pendingGrace).toBeNull();
     // Still in heaven: it waits there, untouched, until he leaves.
-    expect(player(state).blessings).toEqual([{ kind: "halo", turnsLeft: SERAPH_BLESSING_TURNS, fresh: true }]);
+    expect(playerOf(state, "hero").blessings).toEqual([
+      { kind: "halo", turnsLeft: SERAPH_BLESSING_TURNS, fresh: true },
+    ]);
   });
 
   it("picks any of heaven's relics on a relic tile", () => {
-    const offered = roll(patch(solo(), "hero", { position: HEAVEN_LIGHT - 1, hand: [] }), 1);
+    const offered = roll(withPlayer(solo(), "hero", { position: HEAVEN_LIGHT - 1, hand: [] }), "hero", 1);
     expect(offered.state.pendingGrace).toMatchObject({
       offer: "relic",
       tile: HEAVEN_LIGHT,
@@ -104,11 +75,11 @@ describe("Seraphiel in heaven", () => {
       playerId: "hero",
       cardId: "heavenlyAegis",
     });
-    expect(player(state).hand.map((card) => card.cardId)).toEqual(["heavenlyAegis"]);
+    expect(playerOf(state, "hero").hand.map((card) => card.cardId)).toEqual(["heavenlyAegis"]);
   });
 
   it("refuses a gift that isn't on offer", () => {
-    const offered = roll(patch(solo(), "hero", { position: HEAVEN_RELIC }), 1);
+    const offered = roll(withPlayer(solo(), "hero", { position: HEAVEN_RELIC }), "hero", 1);
     expect(() =>
       send(offered.state, {
         type: "chooseGrace",
@@ -119,45 +90,42 @@ describe("Seraphiel in heaven", () => {
   });
 
   it("anyone else just receives the tile's blessing", () => {
-    const { state } = roll(patch(solo("studySession"), "hero", { position: HEAVEN_RELIC }), 1);
+    const { state } = roll(withPlayer(solo("studySession"), "hero", { position: HEAVEN_RELIC }), "hero", 1);
     expect(state.pendingGrace).toBeNull();
-    expect(player(state).blessings.map((blessing) => blessing.kind)).toEqual(["spring"]);
+    expect(playerOf(state, "hero").blessings.map((blessing) => blessing.kind)).toEqual(["spring"]);
   });
 
   it("his ability's blessing lasts SERAPH_BLESSING_TURNS rounds too", () => {
-    const { state } = send(patch(solo(), "hero", { abilityCharge: abilityCycle("seraphBlessing") }), {
-      type: "activateAbility",
-      playerId: "hero",
-    });
-    expect(player(state).blessings[0].turnsLeft).toBe(SERAPH_BLESSING_TURNS);
+    const { state } = activate(readyAbility(solo(), "hero"), "hero");
+    expect(playerOf(state, "hero").blessings[0].turnsLeft).toBe(SERAPH_BLESSING_TURNS);
   });
 
   it("comes out of heaven wearing the Seraphic Crown, CROWN_BONUS tiles on every roll", () => {
-    const { state, events } = roll(patch(solo(), "hero", { position: HEAVEN_LAST }), 1);
-    expect(player(state).position).toBe(45);
-    expect(player(state).crown).toBe("seraphic");
+    const { state, events } = roll(withPlayer(solo(), "hero", { position: HEAVEN_LAST }), "hero", 1);
+    expect(playerOf(state, "hero").position).toBe(45);
+    expect(playerOf(state, "hero").crown).toBe("seraphic");
     expect(events).toContainEqual({
       type: "crownGained",
       playerId: "hero",
       crown: "seraphic",
     });
 
-    const next = roll(state, 1);
-    expect(player(next.state).position).toBe(45 + 1 + CROWN_BONUS);
+    const next = roll(state, "hero", 1);
+    expect(playerOf(next.state, "hero").position).toBe(45 + 1 + CROWN_BONUS);
   });
 });
 
 describe("the Fall", () => {
   it("setting foot in hell makes Seraphiel the Fallen Angel for good", () => {
-    const blessed = patch(solo(), "hero", {
+    const blessed = withPlayer(solo(), "hero", {
       position: 19,
       blessings: [{ kind: "halo", turnsLeft: 4, fresh: false }],
     });
-    const { state, events } = roll(blessed, 1);
-    expect(player(state).position).toBe(HELL);
-    expect(player(state).ability).toBe("hellsDrag");
-    expect(player(state).blessings).toEqual([]);
-    expect(player(state).crown).toBe("infernal");
+    const { state, events } = roll(blessed, "hero", 1);
+    expect(playerOf(state, "hero").position).toBe(HELL);
+    expect(playerOf(state, "hero").ability).toBe("hellsDrag");
+    expect(playerOf(state, "hero").blessings).toEqual([]);
+    expect(playerOf(state, "hero").crown).toBe("infernal");
     expect(events).toContainEqual({
       type: "seraphFell",
       playerId: "hero",
@@ -166,13 +134,13 @@ describe("the Fall", () => {
   });
 
   it("crowns him infernal even if he never wore the seraphic crown", () => {
-    const { state } = roll(patch(solo(), "hero", { position: 19 }), 1);
-    expect(player(state).crown).toBe("infernal");
+    const { state } = roll(withPlayer(solo(), "hero", { position: 19 }), "hero", 1);
+    expect(playerOf(state, "hero").crown).toBe("infernal");
   });
 
   it("hell can't harm the Fallen Angel", () => {
-    const { state, events } = roll(patch(fallen(duel()), "hero", { position: HELL }), 1);
-    expect(player(state).skipTurns).toBe(0);
+    const { state, events } = roll(withPlayer(fallen(duel()), "hero", { position: HELL }), "hero", 1);
+    expect(playerOf(state, "hero").skipTurns).toBe(0);
     expect(events).toContainEqual({
       type: "trapBlocked",
       playerId: "hero",
@@ -183,14 +151,14 @@ describe("the Fall", () => {
   });
 
   it("hell still harms anyone else", () => {
-    const { state } = roll(patch(duel("studySession"), "hero", { position: HELL }), 1);
-    expect(player(state).skipTurns).toBe(1);
+    const { state } = roll(withPlayer(duel("studySession"), "hero", { position: HELL }), "hero", 1);
+    expect(playerOf(state, "hero").skipTurns).toBe(1);
   });
 
   it("heaven is shut to the Fallen Angel, and its chains hold him", () => {
-    const { state, events } = roll(patch(fallen(duel()), "hero", { position: 39 }), 1);
-    expect(player(state).position).toBe(40);
-    expect(player(state)).toMatchObject({
+    const { state, events } = roll(withPlayer(fallen(duel()), "hero", { position: 39 }), "hero", 1);
+    expect(playerOf(state, "hero").position).toBe(40);
+    expect(playerOf(state, "hero")).toMatchObject({
       skipTurns: DIVINE_CHAINS_ROUNDS,
       chained: DIVINE_CHAINS_ROUNDS,
     });
@@ -203,9 +171,9 @@ describe("the Fall", () => {
   });
 
   it("the chains loosen a round at a time as his turns are lost", () => {
-    const chained = roll(patch(fallen(duel()), "hero", { position: 39 }), 1).state;
-    const { state } = send(patch(chained, "rival", { position: 2 }), { type: "rollDice", playerId: "rival" }, [1]);
-    expect(player(state)).toMatchObject({
+    const chained = roll(withPlayer(fallen(duel()), "hero", { position: 39 }), "hero", 1).state;
+    const { state } = roll(withPlayer(chained, "rival", { position: 2 }), "rival", 1);
+    expect(playerOf(state, "hero")).toMatchObject({
       skipTurns: DIVINE_CHAINS_ROUNDS - 1,
       chained: DIVINE_CHAINS_ROUNDS - 1,
     });
@@ -214,17 +182,14 @@ describe("the Fall", () => {
 
 describe("Hell's Drag", () => {
   it("pulls the chosen opponent down into hell, to come out where they were taken from", () => {
-    const state = patch(fallen(duel()), "rival", { position: 30 });
+    const state = withPlayer(fallen(duel()), "rival", { position: 30 });
     const { state: after, events } = drag(state, "rival");
-    expect(player(after, "rival").position).toBe(HELL);
-    expect(player(after, "rival").realmEntry).toEqual({ portal: 30, exit: 30 });
+    expect(playerOf(after, "rival").position).toBe(HELL);
+    expect(playerOf(after, "rival").realmEntry).toEqual({ portal: 30, exit: 30 });
     // Out at the far end of hell: back on tile 30.
-    const rivalsTurn = {
-      ...patch(after, "rival", { position: 78 }),
-      currentPlayerIndex: 1,
-    };
-    const out = send(rivalsTurn, { type: "rollDice", playerId: "rival" }, [1]);
-    expect(player(out.state, "rival").position).toBe(30);
+    const rivalsTurn = onTurnOf(withPlayer(after, "rival", { position: 78 }), "rival");
+    const out = roll(rivalsTurn, "rival", 1);
+    expect(playerOf(out.state, "rival").position).toBe(30);
     expect(events).toContainEqual({
       type: "hellDragged",
       playerId: "hero",
@@ -236,12 +201,10 @@ describe("Hell's Drag", () => {
 
   it("can't reach anyone already in heaven or hell; the armoured turn it away", () => {
     const base = fallen(duel());
-    expect(dragTargets(base.board, patch(base, "rival", { position: HEAVEN_SPRING }).players, "hero")).toEqual([]);
-    const { state, events } = drag(patch(base, "rival", { untamed: 2 }), "rival");
+    expect(dragTargets(base.board, withPlayer(base, "rival", { position: HEAVEN_SPRING }).players, "hero")).toEqual([]);
+    const { state, events } = drag(withPlayer(base, "rival", { untamed: 2 }), "rival");
     expect(events).toContainEqual(expect.objectContaining({ type: "abilityBlocked", ward: "untamed" }));
-    expect(state.players.find((player) => player.id === "rival")?.position).toBe(
-      base.players.find((player) => player.id === "rival")?.position,
-    );
+    expect(playerOf(state, "rival").position).toBe(playerOf(base, "rival").position);
   });
 
   it("needs a target when there is one", () => {
@@ -249,7 +212,7 @@ describe("Hell's Drag", () => {
   });
 
   it("alone, hell swallows the traps ahead", () => {
-    const { state, events } = drag(patch(fallen(solo()), "hero", { position: 45 }));
+    const { state, events } = drag(withPlayer(fallen(solo()), "hero", { position: 45 }));
     expect(state.destroyedTraps).toEqual([50, 55]);
     expect(events.filter((event) => event.type === "trapDestroyed")).toHaveLength(2);
   });
@@ -257,21 +220,15 @@ describe("Hell's Drag", () => {
 
 describe("Call of the Abyss (card)", () => {
   const withCard = (state: GameState) =>
-    patch(state, "hero", {
-      hand: [{ uid: "abyss", cardId: "abyssCall" }],
+    withPlayer(state, "hero", {
+      hand: [card("abyssCall", "abyss")],
       energy: 10,
     });
-  const play = (state: GameState, targetId: string) =>
-    send(withCard(state), {
-      type: "playCard",
-      playerId: "hero",
-      cardUid: "abyss",
-      targetId,
-    });
+  const callAbyss = (state: GameState, targetId: string) => play(withCard(state), "hero", "abyss", { targetId });
 
   it("pulls the opponent down into hell, to come out where they were", () => {
-    const { state, events } = play(patch(duel("studySession"), "rival", { position: 30 }), "rival");
-    expect(player(state, "rival")).toMatchObject({
+    const { state, events } = callAbyss(withPlayer(duel("studySession"), "rival", { position: 30 }), "rival");
+    expect(playerOf(state, "rival")).toMatchObject({
       position: HELL,
       realmEntry: { portal: 30, exit: 30 },
     });
@@ -285,13 +242,16 @@ describe("Call of the Abyss (card)", () => {
   });
 
   it("is turned away by armour, and spent", () => {
-    const { state, events } = play(patch(duel("studySession"), "rival", { position: 30, spectralArmour: 2 }), "rival");
-    expect(player(state, "rival").position).toBe(30);
-    expect(player(state).hand).toHaveLength(0);
+    const { state, events } = callAbyss(
+      withPlayer(duel("studySession"), "rival", { position: 30, spectralArmour: 2 }),
+      "rival",
+    );
+    expect(playerOf(state, "rival").position).toBe(30);
+    expect(playerOf(state, "hero").hand).toHaveLength(0);
     expect(events).toContainEqual(expect.objectContaining({ type: "cardBlocked", cardId: "abyssCall" }));
   });
 
   it("can't reach someone already in a realm", () => {
-    expect(() => play(patch(duel("studySession"), "rival", { position: HEAVEN_SPRING }), "rival")).toThrow();
+    expect(() => callAbyss(withPlayer(duel("studySession"), "rival", { position: HEAVEN_SPRING }), "rival")).toThrow();
   });
 });
