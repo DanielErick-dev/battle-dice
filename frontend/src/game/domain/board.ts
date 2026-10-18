@@ -6,7 +6,7 @@ import type { Board, Player, PlayerId, RealmEntry, RealmTrack, Tile, TileEffect,
 export interface BoardDefinition {
   size: number;
   effects: Readonly<Record<TileId, TileEffect>>;
-  /** Stretches of the main path (`from`–`to`, inclusive) hiding `traps` traps among their plain tiles. */
+  /** `from`–`to` inclusive. */
   trapZones?: readonly TrapZoneDefinition[];
 }
 
@@ -36,7 +36,6 @@ export const TRAINING_BOARD: BoardDefinition = {
     8: { kind: "trap", to: 6, curse: "drain" },
     15: { kind: "portal", to: 19, realm: "celestial" },
     18: { kind: "trap", to: 17, curse: "discard" },
-    // Blessings of energy, so cards can be played more often.
     4: { kind: "blessing", blessing: "energy" },
     16: { kind: "blessing", blessing: "energy" },
   },
@@ -66,11 +65,7 @@ function cards(tiles: readonly TileId[]): Record<TileId, TileEffect> {
   return Object.fromEntries(tiles.map((id) => [id, { kind: "card" } as const]));
 }
 
-/**
- * Builds the main path (tiles 1 to `size`, each leading to the next) and, for every realm
- * portal, a track of TRACK_LENGTH tiles numbered after the main path: the portal carries the
- * player onto its first tile, and its last tile leads on to the portal's destination.
- */
+/** Realm track tiles are numbered after the main path; a track's last tile leads to its portal's destination. */
 export function createBoard({ size, effects, trapZones = [] }: BoardDefinition): Board {
   const startTile = 1;
   const finishTile = size;
@@ -132,7 +127,7 @@ export function createBoard({ size, effects, trapZones = [] }: BoardDefinition):
   };
 }
 
-/** A zone's plain tiles; it needs more of them than traps, so a sprung trap has somewhere to go. */
+/** Needs more plain tiles than traps, so a sprung trap has somewhere to go. */
 function createTrapZone(tiles: readonly Tile[], { from, to, traps }: TrapZoneDefinition): TrapZone {
   const plain = tiles
     .filter((tile) => tile.id >= from && tile.id <= to && tile.role === "regular" && tile.effect.kind === "none")
@@ -147,52 +142,37 @@ export function getTile(board: Board, id: TileId): Tile {
   return tile;
 }
 
-/**
- * The tile on the main path standing for `id`: itself, or the portal of the track it's on (the one
- * the player came in by, `entry`, when given).
- */
+/** `id` itself, or the portal of its track (the one of `entry`, when given). */
 export function mainTileOf(board: Board, id: TileId, entry?: RealmEntry | null): TileId {
   const placement = getTile(board, id).track;
   return placement ? (entry?.portal ?? placement.portal) : id;
 }
 
-/**
- * The tile after `id` for a player who came into its realm by `entry`: off a track's last tile,
- * the exit of the portal they came by; anywhere else, the tile's own `next`.
- */
+/** Off a track's last tile, the exit of the portal the player came by. */
 export function nextTile(board: Board, id: TileId, entry?: RealmEntry | null): TileId | null {
   const tile = getTile(board, id);
   if (entry && tile.track && tile.next !== null && !getTile(board, tile.next).track) return entry.exit;
   return tile.next;
 }
 
-/** The tile before `id` for that player: back past a track's first tile, the portal they came by. */
+/** Back past a track's first tile, the portal the player came by. */
 export function previousTile(board: Board, id: TileId, entry?: RealmEntry | null): TileId | null {
   const tile = getTile(board, id);
   if (entry && tile.track?.index === 0) return entry.portal;
   return tile.previous;
 }
 
-/**
- * Whether two tiles are in the same place: both on the main path, or both inside the same realm
- * track. A realm is cut off from the board: what happens in one can't reach players in the other.
- */
+/** Both on the main path or in the same realm track: a realm is cut off from the board. */
 export function sameSpace(board: Board, a: TileId, b: TileId): boolean {
   return (getTile(board, a).track?.portal ?? null) === (getTile(board, b).track?.portal ?? null);
 }
 
-/**
- * The opponents `playerId` can aim a card or an ability at: those in the same place (the main
- * path or the same realm track, see sameSpace) and not untouchable (see isUntouchable).
- */
+/** Opponents in the same place who aren't untouchable. */
 export function opponentsInReach(board: Board, players: readonly Player[], playerId: PlayerId): Player[] {
   return opponentsInSpace(board, players, playerId).filter((player) => !isUntouchable(player));
 }
 
-/**
- * The opponents in the same place as `playerId` (see sameSpace), untouchable or not: an ability
- * aimed at one of these can be thrown, and an armoured one turns it away (see aimWard).
- */
+/** Untouchable ones included: aimed at them, an ability is thrown and turned away (see aimWard). */
 export function opponentsInSpace(board: Board, players: readonly Player[], playerId: PlayerId): Player[] {
   const here = players.find((player) => player.id === playerId)?.position;
   if (here === undefined) return [];

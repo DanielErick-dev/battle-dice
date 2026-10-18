@@ -6,12 +6,7 @@ import { relocateHiddenTrap } from "./hiddenTraps";
 import { threatAt } from "./landing";
 import type { Board, PlayerId, TileId } from "./types";
 
-/**
- * Arrow Rain: the player looses a volley into the sky. Aimed at the opponents, it falls on every
- * one in reach (the same place, the main path or a realm track, see sameSpace) and knocks each
- * back ARROW_RAIN_PUSH tiles; otherwise it pins down the next ARROW_RAIN_PINS threats ahead (see
- * pinnedTraps), revealing the hidden traps among them.
- */
+/** Knocks back every opponent in reach, or pins the next threats ahead, revealing hidden traps among them. */
 export function loseArrowRain(draft: Draft, playerId: PlayerId, volley: "opponents" | "traps" = "traps"): void {
   const { board } = draft.state;
   if (volley === "opponents") {
@@ -26,15 +21,8 @@ export function loseArrowRain(draft: Draft, playerId: PlayerId, volley: "opponen
     });
     for (const target of targets) {
       const path = pushPath(board, target.position, ARROW_RAIN_PUSH, target.realmEntry);
-      draft.events.push({
-        type: "playerPushed",
-        playerId: target.id,
-        by: playerId,
-        path,
-      });
-      updatePlayer(draft, target.id, () => ({
-        position: path.at(-1) ?? target.position,
-      }));
+      draft.events.push({ type: "playerPushed", playerId: target.id, by: playerId, path });
+      updatePlayer(draft, target.id, () => ({ position: path.at(-1) ?? target.position }));
     }
     return;
   }
@@ -50,8 +38,8 @@ export function loseArrowRain(draft: Draft, playerId: PlayerId, volley: "opponen
   });
 }
 
-/** The first `count` tiles ahead (following `next`) with a threat on them that isn't pinned yet. */
-export function threatsAhead(draft: Draft, board: Board, from: TileId, count: number): TileId[] {
+/** The first `count` unpinned threats ahead. */
+function threatsAhead(draft: Draft, board: Board, from: TileId, count: number): TileId[] {
   const found: TileId[] = [];
   let tile = getTile(board, from).next;
   while (tile !== null && found.length < count) {
@@ -61,11 +49,7 @@ export function threatsAhead(draft: Draft, board: Board, from: TileId, count: nu
   return found;
 }
 
-/**
- * A walk over pinned tiles (the one it ends on included, once its landing is resolved) frees
- * them: they work again from then on. A freed hidden trap moves elsewhere in its zone, unseen,
- * since the arrows gave its place away.
- */
+/** Called after the landing resolves; a freed hidden trap moves, since the arrows gave its place away. */
 export function unpinPassed(draft: Draft, path: readonly TileId[]): void {
   for (const tile of path) {
     if (!draft.pinnedTraps.includes(tile)) continue;

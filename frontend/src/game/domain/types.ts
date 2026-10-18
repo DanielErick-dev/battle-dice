@@ -14,7 +14,7 @@ export type TileEffect =
   | { kind: "advance"; to: TileId }
   | { kind: "extraTurn" }
   | { kind: "skipTurn" }
-  /** Draws a card; with a `cardId` (a celestial relic lying on the tile), hands that very card. */
+  /** With a `cardId` (a celestial relic on the tile), hands that very card instead of a draw. */
   | { kind: "card"; cardId?: CardId }
   /** Realm track tiles: a curse without the knock-back, or a blessing. */
   | { kind: "curse"; curse: TrapCurse }
@@ -23,18 +23,12 @@ export type TileEffect =
 /** Side worlds a portal can open into: fire and curses, or light and blessings. */
 export type RealmKind = "infernal" | "celestial";
 
-/** What a blessing tile gives: energy, the Arcane Shield, or (in heaven only) a TimedBlessing. */
-/** "charge": a turn of charge for the ability, on the main path. */
+/** TimedBlessings only lie in heaven; "charge" (a turn of ability charge) only on the main path. */
 export type Blessing = "energy" | "charge" | "shield" | TimedBlessing;
 
-/**
- * Heaven's own blessings, each lasting BLESSING_TURNS rounds (see blessings.ts): Wings add tiles to
- * every roll, the Halo keeps traps and curses off, Inspiration charges the ability twice as fast
- * and the Spring of Light gives energy as each turn starts.
- */
+/** Heaven's blessings, each lasting BLESSING_TURNS rounds (see blessings.ts). */
 export type TimedBlessing = "wings" | "halo" | "inspiration" | "spring";
 
-/** A TimedBlessing on a player, and the rounds it has left. */
 export interface ActiveBlessing {
   kind: TimedBlessing;
   turnsLeft: number;
@@ -42,13 +36,10 @@ export interface ActiveBlessing {
   fresh: boolean;
 }
 
-/** What a trap takes besides the tiles: a random card from the hand, or energy. */
+/** What a trap takes besides the tiles: a random hand card, or energy. */
 export type TrapCurse = "discard" | "drain";
 
-/**
- * What kept a trap, a curse or a lost-turn tile off a player: the Arcane Shield (used up), their
- * Trap Ward, heaven's Halo, being Untamed, inside a Susanoo, or the Fallen Angel in his own hell.
- */
+/** What kept a trap, curse or lost-turn tile off a player ("fallen": the Fallen Angel in his own hell). */
 export type TrapWard = "shield" | "ability" | "halo" | "untamed" | "susanoo" | "fallen";
 
 /** Seraphiel's crown (see seraph.ts): won coming out of heaven, turned infernal by the Fall. */
@@ -64,45 +55,33 @@ export interface Tile {
   next: TileId | null;
   /** Where being pushed back leads; null on the start. A track's first tile leads back to its portal. */
   previous: TileId | null;
-  /** Set on the tiles of a realm track. */
   track?: TrackPlacement;
 }
 
-/** A tile's place in a realm track. */
 export interface TrackPlacement {
   realm: RealmKind;
-  /** The portal the track is known by (its first, when several open onto it: see RealmTrack.entries). */
+  /** The track's first portal when several open onto it (see RealmTrack.entries). */
   portal: TileId;
-  /** 0-based position along the track. */
   index: number;
 }
 
-/**
- * A side path through a realm: entered through `portal`, walked tile by tile, left at `exit`.
- * Each realm is one and the same track for every portal into it (`entries`): whoever goes in walks
- * the same heaven or hell, and leaves where the portal they came by leads.
- */
+/** One track per realm, shared by every portal into it; each leaves where its own portal leads. */
 export interface RealmTrack {
   realm: RealmKind;
   portal: TileId;
   exit: TileId;
   tiles: readonly TileId[];
-  /** Every portal opening onto it, with where it leads out; the first is `portal` and `exit`. */
+  /** The first entry is `portal` and `exit`. */
   entries: readonly RealmEntry[];
 }
 
-/** A way into a realm track: through `portal`, and out again at `exit`. */
 export interface RealmEntry {
   portal: TileId;
   exit: TileId;
 }
 
-/**
- * A stretch of the main path hiding traps: its tiles look plain, but `traps` of them (which
- * ones is secret, see GameState.hiddenTraps) spring when landed on, then move elsewhere in it.
- */
+/** A stretch of plain-looking tiles where `traps` hidden traps spring, then move elsewhere in it. */
 export interface TrapZone {
-  /** Plain tiles of the stretch, the ones a hidden trap can sit on. */
   tiles: readonly TileId[];
   traps: number;
 }
@@ -122,7 +101,7 @@ export interface Player {
   position: TileId;
   /** Upcoming turns this player will lose. */
   skipTurns: number;
-  /** Energy spent to play cards; +1 every TURNS_PER_ENERGY of the player's turns. */
+  /** +1 every TURNS_PER_ENERGY of the player's turns. */
   energy: number;
   /** Turns started since the last energy gain. */
   energyCharge: number;
@@ -133,78 +112,48 @@ export interface Player {
   discard: readonly CardInstance[];
   /** Arcane Shield up: the next trap is ignored. */
   shielded: boolean;
-  /** Modifier for the player's next roll, from a card. */
   diceBoost: DiceBoost | null;
-  /**
-   * Tiles added to the next rolls (Lucky Charm, Ancestral Awakening), each for its own number of
-   * rolls; they add up with each other (card combos) and with diceBoost.
-   */
+  /** Stack with each other (card combos) and with diceBoost. */
   diceBonuses: readonly DiceBonus[];
-  /** The character's ability; null for none. */
   ability: AbilityId | null;
-  /** Turns charged towards the ability, up to its abilityCycle (ready); emptied when it's used. */
+  /** Ready at its abilityCycle; emptied when used. */
   abilityCharge: number;
-  /** Own turns left floating over the tiles (Levitation), the current one included; 0 when grounded. */
+  /** Own turns left under Levitation, the current one included. */
   levitating: number;
-  /**
-   * Silenced by a seal: no cards while above 0. Counts down as each of the player's turns starts,
-   * so the rest of the turn it struck in and the whole next one are silent.
-   */
+  /** No cards while above 0; counts down as own turns start, so the struck turn and the next are silent. */
   silencedTurns: number;
-  /**
-   * Own turns left under Spectral Armour, the current one included: nothing other players aim at
-   * them gets through. 0 without.
-   */
+  /** Own turns left under Spectral Armour (nothing aimed at them gets through), the current one included. */
   spectralArmour: number;
-  /**
-   * Own turns left under heaven's Aegis (the Heavenly Aegis relic), the current one included: the only
-   * thing that keeps Cronos's Time Warp off. 0 without.
-   */
+  /** Own turns left under the Heavenly Aegis relic, the only thing that keeps Time Warp off. */
   divineAegis: number;
-  /**
-   * Own turns left Untamed (the Berserker's ability), the current one included: nothing harms
-   * them, from the board or from other players (see isUntouchable). 0 when not.
-   */
+  /** Own turns left Untamed (nothing harms them, see isUntouchable), the current one included. */
   untamed: number;
-  /** Heaven's blessings on the player, each with the rounds it has left. */
   blessings: readonly ActiveBlessing[];
-  /** Rolls left that walk the player backwards (Cronos's reversed time); 0 for none. */
+  /** Rolls left that walk the player backwards (Time Warp's reverse). */
   reversedRolls: number;
-  /**
-   * Stuck in the fairy's snow (`owner`'s): `rounds` of lost turns left to it. Each one drains 1 of the
-   * player's energy into the fairy; null when free.
-   */
+  /** Stuck in the fairy's snow: each of the `rounds` lost drains 1 energy into her. */
   snowbound: { owner: PlayerId; rounds: number } | null;
-  /**
-   * The way the player came into the realm track they're on (pushed back past its first tile, they
-   * land on that portal; past its last, they come out at its exit); null when they never entered one.
-   */
+  /** How they entered their current realm track, so being pushed off either end lands on the right tile. */
   realmEntry: RealmEntry | null;
-  /**
-   * Own turns still to start without charging the ability: Time Warp's charge waits for the rounds
-   * it bent to go by. 0 for none.
-   */
+  /** Own turns that start without charging: Time Warp's charge waits for the rounds it bent to pass. */
   chargeHeld: number;
-  /** Seraphiel's crown, adding CROWN_BONUS tiles to every roll for the rest of the match; null for none. */
+  /** Adds CROWN_BONUS to every roll for the rest of the match. */
   crown: Crown | null;
-  /**
-   * Lost turns left in heaven's chains (the Fallen Angel at a heaven portal, see seraph.ts); they
-   * hold the player standing, not sitting. 0 when free.
-   */
+  /** Lost turns left in heaven's chains (see seraph.ts); shown standing, not sitting. */
   chained: number;
 }
 
-/** The Shadow Warden's two apparitions (see specters.ts). */
+/** The Shadow Warden's apparitions (see specters.ts). */
 export type SpecterKind = "plunder" | "hunger";
 
-/** An apparition of the Shadow Warden on a tile, striking whoever else walks through it. */
+/** Strikes whoever else walks through its tile. */
 export interface Specter {
   tile: TileId;
   kind: SpecterKind;
   owner: PlayerId;
 }
 
-/** The Plunder specter caught `victim`: `owner` picks which of their cards to take. */
+/** `owner` picks which of `victim`'s cards their Plunder specter takes. */
 export interface PendingPlunder {
   owner: PlayerId;
   victim: PlayerId;
@@ -220,13 +169,10 @@ export interface EnchantedTile {
   owner: PlayerId;
 }
 
-/**
- * The Crystal Fairy's Eternal Winter (see fairy.ts): once no harm is left ahead of her to snow, the
- * main path freezes from the start toward the finish, WINTER_TILES more every round.
- */
+/** The Crystal Fairy's Eternal Winter: the path freezes from the start, WINTER_TILES more every round (see fairy.ts). */
 export interface Winter {
   owner: PlayerId;
-  /** The last tile frozen so far (the start itself when none yet). */
+  /** Last tile frozen so far (the start when none yet). */
   frontier: TileId;
 }
 
@@ -234,29 +180,29 @@ export interface Winter {
 export interface BlackFlame {
   tile: TileId;
   owner: PlayerId;
-  /** Rounds left before it goes out (counted down as its owner's turns end). */
+  /** Counted down as its owner's turns end. */
   turnsLeft: number;
-  /** Times it has scorched someone; it goes out at FLAME_HITS. */
+  /** It goes out at FLAME_HITS. */
   hits: number;
 }
 
 /** The Flesh Scribe's four forbidden seals (see seals.ts). */
 export type SealKind = "tithe" | "ruin" | "silence" | "bloodPact";
 
-/** A seal written on a tile: all look alike to the other players; only `owner` knows its `kind`. */
+/** Only `owner` knows its `kind`; to everyone else all seals look alike. */
 export interface Seal {
   tile: TileId;
   kind: SealKind;
   owner: PlayerId;
 }
 
-/** One physical copy of a card; `uid` tells apart copies of the same card in a hand. */
+/** One physical copy of a card; `uid` tells copies of the same card apart. */
 export interface CardInstance {
   uid: string;
   cardId: CardId;
-  /** Brought back by Resurrection: it crumbles to dust once it leaves the hand, never to return. */
+  /** Brought back by Resurrection: gone for good once it leaves the hand. */
   risen?: boolean;
-  /** Three copies fused into one (see fusion.ts): it does far more than the plain card. */
+  /** See fusion.ts. */
   fused?: boolean;
 }
 
@@ -268,7 +214,7 @@ export type DiceBoost =
   /** A chosen value instead of a throw (Fate Rune). */
   | { kind: "fixed"; value: number };
 
-/** `amount` added to each of the next `rolls` rolls, however the dice are thrown. */
+/** Added to each of the next `rolls` rolls, however the dice are thrown. */
 export interface DiceBonus {
   amount: number;
   rolls: number;
@@ -277,7 +223,7 @@ export interface DiceBonus {
 /** What's about to strike a player who could ward it off with their ability. */
 export type Threat = "trap" | "hiddenTrap" | "curse";
 
-/** A trap or curse is waiting on the player's choice to spend their reactive ability on it. */
+/** Waiting on the player's choice to spend their reactive ability on a trap or curse. */
 export interface PendingWard {
   playerId: PlayerId;
   tile: TileId;
@@ -288,10 +234,7 @@ export interface PendingWard {
   extraTurn: boolean;
 }
 
-/**
- * Seraphiel stopped on one of heaven's blessings (`offer` "blessing") or relics ("relic"): he picks
- * which one he receives before play goes on (see seraph.ts).
- */
+/** Seraphiel picks which blessing or relic of the heaven tile he receives (see seraph.ts). */
 export interface PendingGrace {
   playerId: PlayerId;
   tile: TileId;
@@ -319,7 +262,7 @@ export type GameStatus = "playing" | "finished";
 export interface GameState {
   board: Board;
   players: readonly Player[];
-  /** Each player's card list, kept to reshuffle on restart. */
+  /** Kept to reshuffle on restart. */
   decks: Readonly<Record<PlayerId, readonly CardId[]>>;
   currentPlayerIndex: number;
   status: GameStatus;
@@ -327,32 +270,24 @@ export interface GameState {
   turn: number;
   /** One card per turn (two with Double Cast). */
   cardsPlayedThisTurn: number;
-  /** Ability the current player used this turn, whose effect lasts until the turn ends. */
+  /** Its effect lasts until the turn ends. */
   abilityInUse: AbilityId | null;
   /** An extra turn earned by a card's movement, honoured when this turn ends. */
   bonusTurn: boolean;
   pendingDiscard: PendingDiscard | null;
   pendingWard: PendingWard | null;
   pendingGrace: PendingGrace | null;
-  /** Tiles holding a hidden trap right now. Server-side secret once rooms exist. */
+  /** Server-side secret once rooms exist. */
   hiddenTraps: readonly TileId[];
-  /** Tiles whose trap (hidden or not) the Trap Ward smashed: they stay harmless for good. */
+  /** Smashed by the Trap Ward: harmless for good. */
   destroyedTraps: readonly TileId[];
-  /**
-   * Tiles whose trap (hidden or not) or curse Arrow Rain pinned down: harmless until a walk
-   * passes over them, which frees them again.
-   */
+  /** Pinned by Arrow Rain: harmless until a walk passes over them. */
   pinnedTraps: readonly TileId[];
-  /** Seals written on the board and not broken yet. Their kinds are the owner's secret once rooms exist. */
+  /** Kinds are the owner's secret once rooms exist. */
   seals: readonly Seal[];
-  /** The Shadow Warden's apparitions on the board. */
   specters: readonly Specter[];
-  /** Tiles the Crystal Fairy enchanted: their harm is gone for good. */
   enchantedTiles: readonly EnchantedTile[];
-  /** Tiles burning with the Purgatory Kunoichi's black fire. */
   blackFlames: readonly BlackFlame[];
-  /** The Crystal Fairy's Eternal Winter, once it has begun; null before. */
   winter: Winter | null;
-  /** Waiting for a Warden to pick the cards their Plunder specter takes. */
   pendingPlunder: PendingPlunder | null;
 }

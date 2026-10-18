@@ -15,14 +15,10 @@ import { unpinPassed } from "./arrowRain";
 import { isUntouchable } from "./players";
 import type { Board, CardInstance, PlayerId, Seal, SealKind, TileEffect, TileId } from "./types";
 
-/** The seals written by one use of Forbidden Seals, in the order their tiles are picked. */
+/** In the order their tiles are picked. */
 export const SEAL_KINDS: readonly SealKind[] = ["tithe", "ruin", "silence", "bloodPact"];
 
-/**
- * Tiles a seal can be written on from `position`: plain tiles of the main path (no effect, not
- * the start or finish, not a realm track) up to SEAL_RANGE tiles ahead or behind, the player's own
- * included, other than those already taken (`taken`: seals, apparitions). Nearest first.
- */
+/** Plain regular tiles within SEAL_RANGE, the player's own included; nearest first. */
 export function sealableTiles(board: Board, position: TileId, taken: readonly TileId[]): TileId[] {
   const near = [position, ...walkPath(board, position, SEAL_RANGE), ...pushPath(board, position, SEAL_RANGE)];
   return near
@@ -34,21 +30,16 @@ export function sealableTiles(board: Board, position: TileId, taken: readonly Ti
     .sort((a, b) => Math.abs(a - position) - Math.abs(b - position) || a - b);
 }
 
-/** An energy or charge tile: it only gives, so it counts as a plain tile for writing on. */
+/** Energy and charge tiles only give, so they count as plain. */
 function isBoon(effect: TileEffect): boolean {
   return effect.kind === "blessing" && (effect.blessing === "energy" || effect.blessing === "charge");
 }
 
-/** Tiles already holding a seal, anyone's: no seal is written over another. */
 export function sealedTiles(seals: readonly Pick<Seal, "tile">[]): TileId[] {
   return seals.map((seal) => seal.tile);
 }
 
-/**
- * Forbidden Seals: one seal of each kind on the tiles picked (`tiles[i]` for SEAL_KINDS[i]), each
- * a tile the player can write on. Seals written before stay, the player's own too, so they pile
- * up until someone breaks them.
- */
+/** Earlier seals stay, piling up until someone breaks them. */
 export function writeSeals(draft: Draft, playerId: PlayerId, tiles: readonly TileId[]): void {
   const { board } = draft.state;
   // Not on another seal, nor where an apparition stands.
@@ -66,11 +57,7 @@ export function writeSeals(draft: Draft, playerId: PlayerId, tiles: readonly Til
   draft.events.push({ type: "sealsWritten", playerId, tiles: [...tiles] });
 }
 
-/**
- * The player stopped on `tile`: a seal there breaks and strikes them (or, alone on the board,
- * rewards its owner). True when one did, so nothing else on the tile is resolved. Someone's own
- * seal does nothing to them while they have opponents: it stays, waiting for one.
- */
+/** True when a seal broke, so nothing else on the tile resolves; one's own seal waits for an opponent. */
 export function breakSeal(draft: Draft, playerId: PlayerId, tile: TileId): boolean {
   const seal = draft.seals.find((candidate) => candidate.tile === tile);
   if (!seal) return false;
@@ -122,7 +109,7 @@ function strikeWithSeal(draft: Draft, playerId: PlayerId, seal: Seal): void {
   }
 }
 
-/** Alone on the board, the Scribe stepping on their own seal: it pays out instead of striking. */
+/** Alone on the board, the Scribe's own seal pays out instead of striking. */
 function rewardOwner(draft: Draft, { owner, kind, tile }: Seal): void {
   const gainEnergy = (amount: number) => {
     const energyGained = Math.min(amount, MAX_ENERGY - playerIn(draft, owner).energy);
@@ -154,7 +141,7 @@ function rewardOwner(draft: Draft, { owner, kind, tile }: Seal): void {
   }
 }
 
-/** The most valuable card in a hand (the dearest: cost follows rarity); the first such in hand order. */
+/** The dearest card, first in hand order on ties. */
 function bestCard(hand: readonly CardInstance[]): CardInstance | undefined {
   return hand.reduce<CardInstance | undefined>(
     (best, card) => (!best || cardCost(card.cardId) > cardCost(best.cardId) ? card : best),

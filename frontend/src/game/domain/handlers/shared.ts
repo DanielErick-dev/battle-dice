@@ -19,7 +19,7 @@ export function assertCanAct(state: GameState, playerId: PlayerId): void {
   if (state.pendingPlunder) throw new GameRuleError("PLUNDER_PENDING");
 }
 
-/** The paused prompt `playerId` is answering, if the game is on, the prompt exists and it is theirs. */
+/** The paused prompt being answered, checked to exist and belong to the player. */
 export function pendingAnswer<P>(
   state: GameState,
   pending: P | null,
@@ -34,10 +34,7 @@ export function pendingAnswer<P>(
 
 export const KEEPS_TURN = { endsTurn: false, extraTurn: false };
 
-/**
- * Turns a draft into the next state: a win ends the game, a prompt pauses for the player's choice,
- * otherwise the turn ends if the command ends it. Seraphiel is crowned or falls first (see seraph.ts).
- */
+/** A win ends the game, a prompt pauses it, otherwise the turn ends if the command ends it. */
 export function settle(
   draft: Draft,
   playerId: PlayerId,

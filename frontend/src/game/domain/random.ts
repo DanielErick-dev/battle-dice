@@ -1,4 +1,4 @@
-/** Source of uniform random numbers in [0, 1), injected so games can be replayed and tested. */
+/** Uniform in [0, 1); injected so games can be replayed and tested. */
 export type RandomSource = () => number;
 
 /** Small deterministic PRNG (mulberry32): same seed, same sequence, so procedural details stay put. */
@@ -11,4 +11,14 @@ export function seededRandom(seed: number): RandomSource {
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
+}
+
+/** A shuffled copy (Fisher–Yates). */
+export function shuffle<T>(items: readonly T[], random: RandomSource): T[] {
+  const shuffled = [...items];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
 }
