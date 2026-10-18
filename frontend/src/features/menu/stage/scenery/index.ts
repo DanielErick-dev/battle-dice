@@ -3,6 +3,7 @@ import { FrozenWastes } from "./FrozenWastes";
 import { Graveyard } from "./Graveyard";
 import { Sanctuary } from "./Sanctuary";
 import { Scriptorium } from "./Scriptorium";
+import { WitchHollow } from "./WitchHollow";
 
 export interface SceneryProps {
   /** How hard the wind blows through the stage (0 to 1): Seraphiel's wingbeats. */
@@ -26,6 +27,7 @@ export const SCENERY = {
   scriptorium: { component: Scriptorium },
   tundra: { component: FrozenWastes, weather: true },
   sanctuary: { component: Sanctuary },
+  witchHollow: { component: WitchHollow },
 } as const satisfies Record<string, Scenery>;
 
 export type SceneryId = keyof typeof SCENERY;

@@ -181,6 +181,7 @@ export const CHARACTERS = {
     playable: true,
     levitates: true,
     shieldColor: "#ef4444",
+    stage: "witchHollow",
   },
   emeraldAlchemist: {
     name: "Alquimista Esmeralda",
