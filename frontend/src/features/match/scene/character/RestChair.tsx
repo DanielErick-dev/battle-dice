@@ -57,7 +57,7 @@ const CHAIRS = {
   obsidianThrone: { prop: "obsidianThrone", height: SEAT_TOP / 0.26, z: -0.06, turn: 0 },
   // The Elven Archer's throne of living wood.
   elderwoodThrone: { prop: "elderwoodThrone", height: SEAT_TOP / 0.33, z: 0.05, turn: 0 },
-  // Nerissa's throne of coral and tide.
+  // Auric's throne of coral and tide.
   tideThrone: { prop: "tideThrone", height: SEAT_TOP / 0.365, z: 0.05, turn: 0 },
   // The Ancient Monk's storm-forged throne of stone and metal.
   stormThrone: { prop: "stormThrone", height: SEAT_TOP / 0.33, z: 0.08, turn: 0 },

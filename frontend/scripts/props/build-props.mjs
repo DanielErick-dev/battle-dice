@@ -36,7 +36,7 @@ const PROPS = {
   cyberThrone: { file: "sentinelMech/props/chair.glb", vertices: 9_000 },
   obsidianThrone: { file: "purgatoryKunoichi/props/chair.glb", vertices: 9_000 },
   elderwoodThrone: { file: "elvenArcher/props/chair.glb", vertices: 9_000 },
-  tideThrone: { file: "tideMaiden/props/chair.glb", vertices: 9_000 },
+  tideThrone: { file: "goldenGuardian/props/chair.glb", vertices: 9_000 },
   stormThrone: { file: "wanderingSage/props/chair.glb", vertices: 9_000 },
   crimsonThrone: { file: "crimsonWitch/props/chair.glb", vertices: 9_000 },
   jesterThrone: { file: "cardJester/props/chair.glb", vertices: 9_000 },
