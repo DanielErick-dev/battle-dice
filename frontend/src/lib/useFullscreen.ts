@@ -7,10 +7,7 @@ function subscribe(listener: () => void): () => void {
   return () => document.removeEventListener("fullscreenchange", listener);
 }
 
-/**
- * Whether the page fills the whole screen (the browser's own bars hidden), and a toggle for it.
- * Browsers only allow the switch from a click or key press, so call `toggle` from one.
- */
+/** Fullscreen state and toggle; browsers only allow the switch from a click or key press. */
 export function useFullscreen(): { fullscreen: boolean; toggle: () => void } {
   const fullscreen = useSyncExternalStore(
     subscribe,

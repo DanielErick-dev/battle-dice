@@ -9,11 +9,8 @@ interface MatchPageProps {
   searchParams: Promise<{ tabuleiro?: string; jogadores?: string; personagem?: string; carregadas?: string }>;
 }
 
-/**
- * /partida?tabuleiro=training&jogadores=crimsonWitch,voidKnight&carregadas=1 — one player per
- * character, in turn order (`personagem` still works for one); `carregadas=1` starts every ability
- * charged. Unknown or locked values fall back to the defaults.
- */
+// /partida?tabuleiro=training&jogadores=crimsonWitch,voidKnight&carregadas=1 (legacy `personagem` for one player).
+// Unknown or locked values fall back to the defaults.
 export default async function MatchPage({ searchParams }: MatchPageProps) {
   const { tabuleiro = "", jogadores, personagem = "", carregadas } = await searchParams;
   const boardId = boardPresetFor(tabuleiro).id;

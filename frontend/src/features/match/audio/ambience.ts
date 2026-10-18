@@ -5,10 +5,7 @@ const CRACKLE_TICK_MS = 70;
 /** Chance per tick that the braziers pop. */
 const CRACKLE_CHANCE = 0.35;
 
-/**
- * Arena soundscape: surf rolling in (low-passed noise swelling on two slow LFOs) and the
- * braziers' fire (a low rumble plus random crackles).
- */
+/** Arena soundscape: surf (low-passed noise on two slow LFOs) and the braziers' rumble and crackles. */
 export class Ambience {
   private nodes: AudioScheduledSourceNode[] = [];
   private crackles: ReturnType<typeof setInterval> | null = null;

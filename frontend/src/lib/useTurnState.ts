@@ -1,9 +1,6 @@
 import { useCallback, useState, type SetStateAction } from "react";
 
-/**
- * useState that falls back to `initial` whenever `key` changes (whose turn it is): a choice left
- * half-made on one player's turn doesn't carry over to the next player's.
- */
+/** useState that resets to `initial` when `key` (whose turn it is) changes, so half-made choices don't carry over. */
 export function useTurnState<T>(initial: T, key: string | null): [T, (next: SetStateAction<T>) => void] {
   const [state, setState] = useState<{ key: string | null; value: T }>({
     key,

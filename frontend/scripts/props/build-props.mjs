@@ -21,7 +21,7 @@ const PROPS = {
   // Many at once in an Arrow Rain: kept light.
   elvenArrow: { file: "elvenArcher/props/arrow.glb", vertices: 3_000 },
   frostWand: { file: "crystalFairy/props/wand.glb", vertices: 6_000 },
-  // Her wings, flapped in code on her back (Meshy can't rig a winged figure): see FairyWings.
+  // Her wings, flapped in code (Meshy can't rig a winged figure): see Wings.
   fairyWings: { file: "crystalFairy/props/wings.glb", vertices: 8_000, texture: 1024 },
   seraphWings: { file: "seraphGuardian/props/wings.glb", vertices: 8_000, texture: 1024 },
   fallenWings: { file: "fallenSeraph/props/wings.glb", vertices: 8_000, texture: 1024 },

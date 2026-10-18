@@ -18,26 +18,22 @@ import { seededRandom } from "@/game/domain/random";
 import { useAge } from "@/features/match/scene/useAge";
 import { GUSTS } from "./seraphEntrance";
 
-/** How long what a downstroke shakes off its wing tips takes to fly off and fade. */
+/** How long a downstroke's feathers and motes take to fly off and fade. */
 const GUST_SECONDS = 1.4;
-/** Feathers and motes of light shaken off each wing tip per downstroke. */
+/** Per wing tip per downstroke. */
 const FEATHERS = 10;
 const MOTES = 18;
-/** How far they fly (stage units: he stands 1.7 tall), and how fast they sink. */
+/** Stage units (he stands 1.7 tall). */
 const FLIGHT = 0.9;
 const SINK = 0.35;
 
-/** Where the wing tips are, in world space, kept up to date by the wings (see Wings' `tips`). */
+/** World-space wing tips, kept up to date by the wings (see Wings' `tips`). */
 export interface WingTips {
   left: Vector3;
   right: Vector3;
 }
 
-/**
- * What Seraphiel's downstrokes shake off on his way down (see seraphEntrance): on each, feathers and
- * motes of golden light fly off both wing tips, out and down with the beat, tumbling and fading.
- * Mounted with his entrance (age from its start), anywhere: it's laid out from the tips in world space.
- */
+/** Feathers and golden motes Seraphiel's downstrokes shake off his wing tips; mount anywhere, it works in world space. */
 export function WindGusts({ tips }: { tips: WingTips }) {
   const age = useAge();
   return (
@@ -51,7 +47,7 @@ export function WindGusts({ tips }: { tips: WingTips }) {
 
 interface Piece {
   side: 1 | -1;
-  /** Its flight, as a direction away from the tip (out to its side, down, a little back or forth). */
+  /** Flight direction away from the tip: out to its side, down, and a little back or forth. */
   out: number;
   down: number;
   across: number;
@@ -81,7 +77,7 @@ function Gust({
   age,
 }: {
   at: number;
-  /** 0 to 1: how far they fly and how many show. */
+  /** 0 to 1: how far they fly. */
   strength: number;
   seed: number;
   tips: WingTips;
@@ -124,7 +120,7 @@ function Gust({
   const root = useRef<Group>(null);
   const featherMesh = useRef<InstancedMesh>(null);
   const moteMesh = useRef<InstancedMesh>(null);
-  /** Where the tips were as the downstroke came, in this group's frame: where everything flies from. */
+  /** The tips as the downstroke came, in this group's frame. */
   const origins = useRef<{ left: Vector3; right: Vector3 } | null>(null);
   const scratch = useMemo(() => ({ dummy: new Object3D(), point: new Vector3() }), []);
 

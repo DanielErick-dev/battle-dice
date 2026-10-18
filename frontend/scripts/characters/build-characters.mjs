@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Merges each character's Meshy exports into one compressed GLB. Usage: docs/arquitetura.md (Assets 3D).
+// Merges each character's Meshy exports into one compressed GLB. Usage: docs/assets.md.
 import { access, mkdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -16,16 +16,13 @@ const OUTPUT_DIR = path.resolve(fileURLToPath(import.meta.url), "../../../public
 /** Plenty for a figure that fills a fraction of the screen; the heaviest export has ~100k. */
 const TARGET_VERTICES = 24_000;
 const TEXTURE_SIZE = 1024;
-/** Clips played standing on one spot (menu stage, ability), so the figure never wanders off it. */
+/** Clips played on one spot (menu stage, ability), so the figure never wanders off it. */
 const IN_PLACE_CLIPS = ["intro", "showcase", "cast", "float", "land", "dash", "shove", "knocked", "rest", "hop"];
-/**
- * Share of the travel an in-place clip keeps (none by default): a lunge into a dash keeps a little,
- * so the figure throws itself forward yet stays on its tile for the strike.
- */
+/** Share of travel an in-place clip keeps: a dash lunges forward a little yet stays on its tile. */
 const KEPT_TRAVEL = { dash: 0.4 };
-/** Seconds between two parts of a sequence, for the pose to blend from one into the next. */
+/** Gap between two parts of a sequence, for the pose to blend. */
 const SEQUENCE_BLEND_SECONDS = 0.3;
-/** How high a `grounded` part keeps the lowest joint of the body off the floor (a joint sits inside it). */
+/** How high a `grounded` part keeps the lowest joint off the floor (joints sit inside the body). */
 const GROUND_CLEARANCE = 0.06;
 
 const { values } = parseArgs({
@@ -49,14 +46,8 @@ for (const [id, model] of Object.entries(CHARACTER_MODELS)) {
   console.log(`${id}: ${(size / 1024 / 1024).toFixed(2)} MB → ${path.relative(process.cwd(), output)}`);
 }
 
-/**
- * Mesh and textures from the first of the character's own exports found, every clip's
- * animation, then optimised. A required clip without its own export is borrowed from another
- * character (`fallbacks`), bone rotations only, so it moves the same without taking on the
- * other body's proportions. Optional clips are added only when exported (or made of a sequence),
- * or shared (SHARED_CLIPS): a shared clip, made the way its lender's is, also keeps how high the
- * hips go, scaled to this body, so a fall reaches the floor.
- */
+// Borrowed clips keep only bone rotations, so they don't take on the lender's proportions; shared
+// ones (SHARED_CLIPS) also keep the hips' height, scaled to this body, so a fall reaches the floor.
 async function buildCharacter(model, output) {
   const { id: folder, fallbacks = {}, sequences = {} } = model;
   const ownExport = (clip) => exportOf(model, clip);
@@ -112,27 +103,22 @@ async function buildCharacter(model, output) {
   await io.write(output, document);
 }
 
-/** Where a character's export of `clip` is in the source folder. */
 function exportOf(model, clip) {
   return path.join(values.source, model.id, `${clip}.glb`);
 }
 
-/** A character's clip as its manifest makes it (a sequence, or its export), or null without one. */
+/** A clip as the manifest makes it (a sequence, or the export), or null without one. */
 async function clipChannels(model, name) {
   if (model.sequences?.[name]) return sequenceChannels(model, name);
   return (await exists(exportOf(model, name))) ? exportChannels(exportOf(model, name)) : null;
 }
 
-/** The clip in a Meshy export (its only animation), as plain keyframes. */
+/** A Meshy export's only animation, as plain keyframes. */
 async function exportChannels(file) {
   return channelsOf((await io.read(file)).getRoot().listAnimations()[0]);
 }
 
-/**
- * A clip made of several of the character's exports played back to back (see `sequences` in the
- * manifest): each part `file@from-to*speed:mode`, all but the file optional. A `grounded` part is
- * kept on the floor (see grounded); a `reverse` one plays backwards.
- */
+/** A clip from parts played back to back, each `file@from-to*speed:mode` (syntax: docs/assets.md). */
 async function sequenceChannels(model, name) {
   const played = [];
   for (const part of model.sequences[name]) {
@@ -151,7 +137,6 @@ async function sequenceChannels(model, name) {
   return joinParts(played, name);
 }
 
-/** The channels of `animation` as plain keyframes, each naming its bone. */
 function channelsOf(animation) {
   return animation.listChannels().map((channel) => {
     const sampler = channel.getSampler();
@@ -166,10 +151,7 @@ function channelsOf(animation) {
   });
 }
 
-/**
- * Another body's clip put on this one: bone rotations only, as the translations carry that body's
- * bone lengths. With a `hipsScale`, the hips' translations come along too, scaled to this body.
- */
+/** Rotations only (translations carry the lender's bone lengths); with `hipsScale`, also the scaled hips. */
 function borrowed(channels, { hipsScale }) {
   return channels
     .filter(
@@ -185,14 +167,12 @@ function borrowed(channels, { hipsScale }) {
 }
 
 /**
- * Moves the hips up or down, frame by frame, so the lowest joint of the body stays GROUND_CLEARANCE
- * off the floor: some Meshy library moves (getting up off the ground) are exported sunk deep
- * below it, and drift as they go. `document` is the export the channels came from (for its rig).
+ * Moves the hips frame by frame so the lowest joint stays GROUND_CLEARANCE off the floor: some Meshy
+ * library moves (getting up) are exported sunk below it, drifting. `document` is the channels' export.
  */
 function grounded(channels, document) {
   const nodes = document.getRoot().listNodes();
-  const parentOf = new Map();
-  for (const node of nodes) for (const child of node.listChildren()) parentOf.set(child, node);
+  const parentOf = parentsOf(nodes);
   const hipsNode = nodes.find((node) => node.getName().endsWith("Hips"));
   const body = [];
   const gather = (node) => {
@@ -200,36 +180,19 @@ function grounded(channels, document) {
     node.listChildren().forEach(gather);
   };
   gather(hipsNode);
-  const animated = new Map(channels.map((channel) => [`${channel.bone}/${channel.path}`, channel]));
+  const animated = channelMap(channels);
   const hips = animated.get(`${hipsNode.getName()}/translation`);
   const values = [...hips.values];
-  const scratch = { position: new Vector3(), rotation: new Quaternion(), scale: new Vector3() };
 
   hips.times.forEach((time, frame) => {
-    const world = new Map();
-    const worldOf = (node) => {
-      if (world.has(node)) return world.get(node);
-      const at = (pathName, rest) => {
-        const channel = animated.get(`${node.getName()}/${pathName}`);
-        return channel ? sampleChannel(channel, time) : rest;
-      };
-      const local = new Matrix4().compose(
-        scratch.position.fromArray(at("translation", node.getTranslation())),
-        scratch.rotation.fromArray(at("rotation", node.getRotation())).normalize(),
-        scratch.scale.fromArray(at("scale", node.getScale())),
-      );
-      const parent = parentOf.get(node);
-      const matrix = parent ? worldOf(parent).clone().multiply(local) : local;
-      world.set(node, matrix);
-      return matrix;
-    };
+    const worldOf = worldPose(animated, parentOf, time);
     const lowest = Math.min(...body.map((node) => worldOf(node).elements[13]));
     values[frame * 3 + 1] += GROUND_CLEARANCE - lowest;
   });
   return channels.map((channel) => (channel === hips ? { ...channel, values } : channel));
 }
 
-/** A clip held on its first pose, still (two keyframes a second apart, so it still loops). */
+/** The clip's first pose held still (two keyframes a second apart, so it still loops). */
 function stillPose(channels) {
   return channels.map((channel) => ({
     ...channel,
@@ -239,18 +202,14 @@ function stillPose(channels) {
 }
 
 /**
- * Seated (the rest clip), the hands laid on the lap: the shared clip's hands hover in front of its
- * lender's belly, over nothing on another body. For each hand, frame by frame, the arm is bent and
- * turned (two-bone IK, keeping its elbow on the same side) so the hand rests on the top of the
- * uppermost thigh (the crossed-over leg), near the knee, left hand outside, right hand in. Only the
- * arm and forearm rotations change. `document` is the body the clip is put on (for its bone lengths).
+ * The shared rest clip's hands hover over the lender's belly, over nothing on another body: two-bone IK
+ * (elbow kept on its side) lays them on the uppermost thigh near the knee. `document` is the receiving body.
  */
 function handsOnLap(channels, document) {
   const nodes = document.getRoot().listNodes();
-  const parentOf = new Map();
-  for (const node of nodes) for (const child of node.listChildren()) parentOf.set(child, node);
+  const parentOf = parentsOf(nodes);
   const bone = (name) => nodes.find((node) => node.getName().endsWith(`:${name}`) || node.getName() === name);
-  const animated = new Map(channels.map((channel) => [`${channel.bone}/${channel.path}`, channel]));
+  const animated = channelMap(channels);
   const rotationOf = (node) => node && animated.get(`${node.getName()}/rotation`);
   const sides = ["Left", "Right"].map((side) => ({
     side,
@@ -270,23 +229,7 @@ function handsOnLap(channels, document) {
     const armValues = [];
     const foreValues = [];
     for (const time of times) {
-      const world = new Map();
-      const worldOf = (node) => {
-        if (world.has(node)) return world.get(node);
-        const at = (pathName, rest) => {
-          const channel = animated.get(`${node.getName()}/${pathName}`);
-          return channel ? sampleChannel(channel, time) : rest;
-        };
-        const local = new Matrix4().compose(
-          new Vector3().fromArray(at("translation", node.getTranslation())),
-          new Quaternion().fromArray(at("rotation", node.getRotation())).normalize(),
-          new Vector3().fromArray(at("scale", node.getScale())),
-        );
-        const parent = parentOf.get(node);
-        const matrix = parent ? worldOf(parent).clone().multiply(local) : local;
-        world.set(node, matrix);
-        return matrix;
-      };
+      const worldOf = worldPose(animated, parentOf, time);
       const position = (node) => new Vector3().setFromMatrixPosition(worldOf(node));
       const rotation = (node) => {
         const q = new Quaternion();
@@ -299,9 +242,7 @@ function handsOnLap(channels, document) {
       const wrist = position(hand);
       const upper = elbow.distanceTo(shoulder);
       const lower = wrist.distanceTo(elbow);
-      // Where the hand goes: on top of a thigh, as far towards the knee as the arm reaches without
-      // locking straight (a figure leaning back in its seat rests them nearer the hip). The higher
-      // thigh (the crossed-over leg) when it's within reach; otherwise the hand's own.
+      // As far towards the knee as the arm reaches unlocked; the crossed-over thigh if in reach, else the hand's own.
       const [left, right] = legs.map(({ hip, knee }) => ({ hip: position(hip), knee: position(knee) }));
       const across = new Vector3().subVectors(left.hip, right.hip).normalize();
       const restOn = (leg) => {
@@ -360,7 +301,40 @@ function handsOnLap(channels, document) {
   return channels.map((channel) => replaced.get(channel) ?? channel);
 }
 
-/** A channel's value at `time`, straight between its keyframes. */
+function parentsOf(nodes) {
+  const parentOf = new Map();
+  for (const node of nodes) for (const child of node.listChildren()) parentOf.set(child, node);
+  return parentOf;
+}
+
+/** Channels keyed by `bone/path`. */
+function channelMap(channels) {
+  return new Map(channels.map((channel) => [`${channel.bone}/${channel.path}`, channel]));
+}
+
+/** A memoized node → world matrix lookup at `time`, unanimated nodes at their rest pose. */
+function worldPose(animated, parentOf, time) {
+  const world = new Map();
+  const worldOf = (node) => {
+    if (world.has(node)) return world.get(node);
+    const at = (pathName, rest) => {
+      const channel = animated.get(`${node.getName()}/${pathName}`);
+      return channel ? sampleChannel(channel, time) : rest;
+    };
+    const local = new Matrix4().compose(
+      new Vector3().fromArray(at("translation", node.getTranslation())),
+      new Quaternion().fromArray(at("rotation", node.getRotation())).normalize(),
+      new Vector3().fromArray(at("scale", node.getScale())),
+    );
+    const parent = parentOf.get(node);
+    const matrix = parent ? worldOf(parent).clone().multiply(local) : local;
+    world.set(node, matrix);
+    return matrix;
+  };
+  return worldOf;
+}
+
+/** A channel's value at `time`, linear between keyframes. */
 function sampleChannel(channel, time) {
   const { times, values, size } = channel;
   const next = times.findIndex((t) => t >= time);
@@ -377,7 +351,7 @@ async function firstExisting(files) {
   return null;
 }
 
-/** How high the hips stand in a document's rest pose (in the rig's own units). */
+/** Hips height in the rest pose, in the rig's units. */
 function restHipsHeight(document) {
   const hips = document
     .getRoot()
@@ -387,11 +361,7 @@ function restHipsHeight(document) {
   return hips.getTranslation()[1];
 }
 
-/**
- * The channels from `from` seconds on, shifted to start at 0 (a keyframe is kept just before). The
- * hips are moved back over the ground spot the clip started on, so a trimmed clip doesn't begin
- * a few steps away from the figure.
- */
+/** From `from` seconds on, shifted to 0; hips moved back over the start spot so it doesn't begin steps away. */
 function trimStart(channels, from) {
   return channels.map((channel) => {
     const first = Math.max(0, channel.times.findIndex((time) => time >= from) - 1);
@@ -407,7 +377,7 @@ function trimStart(channels, from) {
   });
 }
 
-/** The channels up to `to` seconds (a keyframe is kept just after). */
+/** Up to `to` seconds, keeping one keyframe past it. */
 function trimEnd(channels, to) {
   return channels.map((channel) => {
     const index = channel.times.findIndex((time) => time >= to);
@@ -416,11 +386,7 @@ function trimEnd(channels, to) {
   });
 }
 
-/**
- * One clip made of several played back to back, some backwards (`reverse`), each starting
- * SEQUENCE_BLEND_SECONDS after the last ends so the pose eases from one into the next. Every part
- * must animate the same bones, with linear keyframes (so a part can be turned around).
- */
+/** Parts back to back, SEQUENCE_BLEND_SECONDS apart; all must animate the same bones linearly (so they can reverse). */
 function joinParts(parts, name) {
   const key = (channel) => `${channel.bone}/${channel.path}`;
   const [first] = parts;
@@ -453,10 +419,7 @@ function joinParts(parts, name) {
   return [...joined.values()];
 }
 
-/**
- * Adds a clip named `name` to `target` from plain keyframes. Every export shares the same skeleton
- * (Meshy's Mixamo rig), so channels find their bones by name.
- */
+/** Every export shares Meshy's Mixamo rig, so channels find their bones by name. */
 function addAnimation(target, name, channels) {
   const root = target.getRoot();
   const buffer = root.listBuffers()[0];
@@ -484,11 +447,7 @@ function addAnimation(target, name, channels) {
   }
 }
 
-/**
- * Keeps the hips over their first-frame spot on the ground (but for the `kept` share of their
- * travel), leaving the height alone: Meshy moves followed a traveling figure, so a lunge would end
- * a step away and snap back into the idle.
- */
+/** Pins the hips over their first-frame spot (but for `kept` of the travel), else a lunge snaps back into the idle. */
 function pinHorizontally(positions, kept) {
   const [x, , z] = positions;
   for (let index = 0; index < positions.length; index += 3) {

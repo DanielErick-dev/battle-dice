@@ -6,10 +6,7 @@ export interface VoiceLine {
   delay: number;
 }
 
-/**
- * What characters shout as they use their ability (timed against their cast clip). Recordings are
- * optional: until one is in place, a synthesized stand-in plays, or nothing (see SynthSounds).
- */
+/** Shouts timed against each cast clip; until a recording exists, a synthesized stand-in or nothing plays (see SynthSounds). */
 export const ABILITY_VOICES: Partial<Record<AbilityId, VoiceLine>> = {
   // A roar, then "Indomável!", over the chest beats of Bjorn's cast.
   untamed: { src: "/audio/voices/untamed.mp3", delay: 0 },

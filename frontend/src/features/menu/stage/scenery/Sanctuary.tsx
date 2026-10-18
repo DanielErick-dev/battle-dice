@@ -16,46 +16,31 @@ import { useFeatherTexture } from "@/features/match/scene/character/HeavenDescen
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { useRuneTexture } from "@/features/match/scene/character/runeCircle";
 import { seededRandom } from "@/game/domain/random";
-import { useNoiseTexture, type NoiseLook } from "./stageTextures";
+import { useNoiseTexture, type NoiseLook } from "./noiseTexture";
 
 const DAIS_RADIUS = 0.6;
 const DAIS_STEP = 0.06;
 const GOLD = "#e8b84a";
-/**
- * Marble columns round the back of the dais: where, how tall the shaft (a broken one ends in a
- * jagged stump with its fallen drum beside it) and how far it leans.
- */
 const COLUMNS = [
   { x: -0.66, z: -0.58, height: 1.35, broken: false, lean: 0 },
   { x: -0.32, z: -0.9, height: 0.85, broken: true, lean: 0.04 },
   { x: 0.36, z: -0.88, height: 1.15, broken: false, lean: -0.02 },
   { x: 0.66, z: -0.52, height: 0.55, broken: true, lean: -0.06 },
 ];
-/**
- * How far out to the sides anything of the sanctuary reaches: the canvas is drawn past the
- * stage's box (see CANVAS_BLEED), and past this the ground would spill over the page beside it.
- */
+/** Side limit for everything here: the canvas bleeds past the stage's box (CANVAS_BLEED) and would spill over the page. */
 const HALF_WIDTH = 0.8;
 const COLUMN_RADIUS = 0.07;
-/** White feathers drifting down round the sanctuary, and from how high. */
 const FEATHERS = 14;
 const FEATHER_HEIGHT = 2.2;
-/** Puffs of cloud the sanctuary sits on, and how far round it they spread. */
 const CLOUDS = 26;
 const CLOUD_SPREAD = 0.95;
-/** Rays of light slanting down from above. */
 const RAYS = 5;
 
 /**
- * Seraphiel's stage in place of the rune pedestal: a dais of white marble ringed in gold, with
- * gold runes turning on top, over a sea of clouds; marble columns stand round the back, two of
- * them broken, white feathers drift down and rays of light slant down from above. Its origin
- * is on the floor. In the wind of Seraphiel's wingbeats (`gust`, 0 to 1) it shakes: feathers are blown
- * away, clouds pushed back, columns tremble and the light flickers.
+ * Seraphiel's stage instead of the rune pedestal: a marble dais over clouds, columns, feathers, rays of light.
+ * Shakes in the wind of his wingbeats (`gust`, 0 to 1). Origin on the floor.
  */
-export function Sanctuary({ gust }: { gust?: RefObject<number> }) {
-  const calm = useRef(0);
-  const wind = gust ?? calm;
+export function Sanctuary({ gust: wind }: { gust: RefObject<number> }) {
   const marble = useNoiseTexture(MARBLE);
   const runes = useRuneTexture();
   const ring = useRef<Mesh>(null);
@@ -85,8 +70,7 @@ export function Sanctuary({ gust }: { gust?: RefObject<number> }) {
 
   return (
     <group>
-      {/* Two marble steps, the top one rimmed in gold. Drawn first and leaving no depth, so a
-          foot dipping below the top still shows. */}
+      {/* Drawn first without depth, so a foot dipping below the top still shows. */}
       <mesh material={materials.marble} position-y={-DAIS_STEP / 2} renderOrder={-1}>
         <cylinderGeometry args={[DAIS_RADIUS, DAIS_RADIUS, DAIS_STEP, 48]} />
       </mesh>
@@ -120,7 +104,7 @@ export function Sanctuary({ gust }: { gust?: RefObject<number> }) {
   );
 }
 
-/** A fluted marble column on a square base, capped in gold, or broken off with its drum fallen. */
+/** A marble column capped in gold, or broken off with its drum fallen beside it. */
 function Column({
   x,
   z,
@@ -137,7 +121,7 @@ function Column({
 }) {
   const r = COLUMN_RADIUS;
   const column = useRef<Group>(null);
-  // Trembling in the gust, rocked away from the dais.
+  // Trembles in the gust, rocked away from the dais.
   useFrame(({ clock }) => {
     if (!column.current) return;
     const t = clock.elapsedTime;
@@ -159,10 +143,10 @@ function Column({
       </mesh>
       {broken ? (
         <>
-          {/* A jagged break at the top and the fallen drum at its foot. */}
           <mesh geometry={rubble} material={materials.marble} position-y={0.1 + height} scale={[r, r * 0.6, r]} />
+          {/* The fallen drum, toward the dais. */}
           <mesh
-            material={materials.marble} // Fallen inward, toward the dais.
+            material={materials.marble}
             position={[-Math.sign(x) * r * 2.6, r, r * 1.5]}
             rotation={[0.3, 0.6, Math.PI / 2]}
           >
@@ -183,7 +167,6 @@ function Column({
   );
 }
 
-/** White feathers drifting slowly down round the sanctuary, swaying and turning, then again from the top. */
 function DriftingFeathers({ wind }: { wind: RefObject<number> }) {
   const texture = useFeatherTexture();
   const pieces = useRef<(Mesh | null)[]>([]);
@@ -197,7 +180,7 @@ function DriftingFeathers({ wind }: { wind: RefObject<number> }) {
       speed: 0.06 + random() * 0.06,
       phase: random() * Math.PI * 2,
       size: 0.8 + random() * 0.5,
-      /** How far a gust has blown it out from its path (eases back as the wind drops). */
+      /** How far a gust has blown it off its path; eases back as the wind drops. */
       blown: 0,
     }));
   }, []);
@@ -218,7 +201,7 @@ function DriftingFeathers({ wind }: { wind: RefObject<number> }) {
         feather.height,
         feather.z + Math.cos(t * 0.7 + feather.phase) * 0.04 - feather.blown * 0.5,
       );
-      // Rocking side to side like a falling leaf, turning slowly; tumbling in the wind.
+      // Rocks like a falling leaf; tumbles in the wind.
       piece.rotation.set(
         0.4 + sway * 0.25 + feather.blown * 8,
         t * 0.5 + feather.phase,
@@ -242,7 +225,6 @@ function DriftingFeathers({ wind }: { wind: RefObject<number> }) {
   );
 }
 
-/** Soft puffs of cloud the sanctuary rises from, drifting slowly round it. */
 function CloudSea({ wind }: { wind: RefObject<number> }) {
   const disc = useSoftDisc();
   const puffs = useRef<(Mesh | null)[]>([]);
@@ -293,7 +275,6 @@ function CloudSea({ wind }: { wind: RefObject<number> }) {
   );
 }
 
-/** Faint rays of light slanting down from above onto the dais, slowly breathing. */
 function LightRays({ wind }: { wind: RefObject<number> }) {
   const disc = useSoftDisc();
   const rays = useRef<(Mesh | null)[]>([]);
@@ -313,7 +294,6 @@ function LightRays({ wind }: { wind: RefObject<number> }) {
     const t = clock.elapsedTime;
     beams.forEach(({ phase }, index) => {
       const ray = rays.current[index];
-      // Flickering in the gust.
       const flicker = wind.current * 0.12 * Math.sin(t * 47 + phase * 5);
       if (ray) (ray.material as MeshBasicMaterial).opacity = 0.1 + 0.07 * Math.sin(t * 0.6 + phase) + flicker;
     });

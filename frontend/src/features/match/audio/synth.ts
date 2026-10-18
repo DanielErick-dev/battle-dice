@@ -1,3 +1,5 @@
+import type { AudioEngine } from "./audioEngine";
+
 export interface ToneOptions {
   /** Low-pass cutoff in Hz, to soften bright waveforms. */
   lowpass?: number;
@@ -7,10 +9,7 @@ export interface ToneOptions {
   detune?: number;
 }
 
-/**
- * Small voices scheduled on a Web Audio graph: oscillator tones and filtered noise, each
- * with its own envelope, auto-stopped when done. Shared by effects, music and ambience.
- */
+/** Oscillator tones and filtered noise on a Web Audio graph, each with its own envelope, auto-stopped when done. */
 export class Synth {
   constructor(
     private readonly context: AudioContext,
@@ -19,7 +18,15 @@ export class Synth {
   ) {}
 
   /** Oscillator gliding from `from` to `to` Hz with an attack and exponential decay. */
-  tone(at: number, duration: number, from: number, to: number, wave: OscillatorType, volume: number, options: ToneOptions = {}) {
+  tone(
+    at: number,
+    duration: number,
+    from: number,
+    to: number,
+    wave: OscillatorType,
+    volume: number,
+    options: ToneOptions = {},
+  ) {
     const { context } = this;
     const oscillator = context.createOscillator();
     oscillator.type = wave;
@@ -59,10 +66,21 @@ export class Synth {
     filter.frequency.exponentialRampToValueAtTime(peak, at + duration * 0.5);
     filter.frequency.exponentialRampToValueAtTime(from, at + duration);
 
-    source.connect(filter).connect(envelope(context, at, duration, volume)).connect(this.output);
+    source
+      .connect(filter)
+      .connect(envelope(context, at, duration, volume))
+      .connect(this.output);
     source.start(at, Math.random() * noise.duration * 0.5);
     source.stop(at + duration + 0.05);
   }
+}
+
+/** Schedules a one-shot sound on the effects bus; silent while the context isn't running. */
+export function playSfx(engine: AudioEngine, schedule: (synth: Synth, at: number) => void): void {
+  const context = engine.running;
+  const output = engine.bus("sfx");
+  if (!context || !output) return;
+  schedule(new Synth(context, output, engine.noiseBuffer), context.currentTime + 0.005);
 }
 
 function envelope(context: AudioContext, at: number, duration: number, volume: number, attack = 0.012): GainNode {
