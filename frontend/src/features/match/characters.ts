@@ -231,6 +231,7 @@ export const CHARACTERS = {
     shieldColor: "#84cc16",
     // Her intro: the bow comes up from 0.6 s, drawn and held, the arrow loosed at 2.65 s.
     introArrows: { drawSeconds: 0.6, releaseSeconds: 2.65 },
+    stage: "glade",
   },
   cardJester: {
     name: "Coringa Carmesim",
