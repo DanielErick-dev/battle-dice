@@ -159,6 +159,7 @@ export const CHARACTERS = {
     model: model("voidKnight"),
     ability: "trapWard",
     playable: true,
+    stage: "voidRift",
     energyBlades: true,
     // Both blades hit the ground as he drops to one knee.
     castImpactSeconds: 0.95,
