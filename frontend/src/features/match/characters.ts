@@ -205,6 +205,7 @@ export const CHARACTERS = {
     color: "#facc15",
     model: model("wanderingSage"),
     chair: "stormThrone",
+    stage: "temple",
     ability: "dormantFury",
     playable: true,
     shieldColor: "#facc15",

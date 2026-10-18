@@ -5,6 +5,7 @@ import { FrozenWastes } from "./FrozenWastes";
 import { Graveyard } from "./Graveyard";
 import { Sanctuary } from "./Sanctuary";
 import { Scriptorium } from "./Scriptorium";
+import { StormTemple } from "./StormTemple";
 import { WindPeak } from "./WindPeak";
 
 export interface SceneryProps {
@@ -32,6 +33,7 @@ export const SCENERY = {
   glade: { component: ElvenGlade, weather: true },
   grove: { component: CrystalGrove, weather: true },
   peak: { component: WindPeak, weather: true },
+  temple: { component: StormTemple },
 } as const satisfies Record<string, Scenery>;
 
 export type SceneryId = keyof typeof SCENERY;
