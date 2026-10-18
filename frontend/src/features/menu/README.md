@@ -25,7 +25,24 @@ O menu principal, a tela de montar a partida (modo, jogadores, personagens) e as
 | `seraphEntrance.ts` | Os tempos da entrada do Seraphiel: batidas de asa e rajadas de vento (tem teste) |
 | `WindGusts.tsx` | Penas e brilhos que saem das pontas das asas a cada batida |
 | `layout.ts` | Altura do personagem e onde fica o chão |
-| `scenery/` | Cenários próprios dos personagens no lugar do pedestal: `Graveyard` (Necromante), `FrozenWastes` (Bjorn), `Sanctuary` (Seraphiel), `Scriptorium` (Escriba), `VoidRift` (Cavaleiro do Vazio: obsidiana rachada com fendas violeta pulsando, lascas flutuando e um vórtice de névoa escura), `MistRuins` (Guardião das Sombras: ruínas ao luar, colunas quebradas, névoa rasteira e fogos-fátuos), `BurningShrine` (Kage Rubra: pátio de santuário chamuscado com torii, lanternas de pedra, fogo negro e brasas subindo), `BloodRoseGarden` (Encantadora Carmesim: círculo de sangue sobre terra escura, roseiras, vinhas com espinhos, candelabros e pétalas caindo). O `index.ts` é o registro (`SCENERY`): cenário novo = um arquivo + uma linha lá + `stage` na ficha do personagem. Cada entrada também diz se o palco fica escuro (`dim`), a cor da luz (`light`) e se tem clima próprio (`weather`, que desliga as partículas). `noiseTexture.ts` desenha as texturas granuladas (terra, neve, pedra, mármore); `canvasTexture.ts` transforma um desenho de canvas em textura (com o esmaecer até a borda) e amassa rochas (`roughen`) |
+| `scenery/` | Os cenários próprios de cada personagem no lugar do pedestal (tabela abaixo). O `index.ts` é o registro (`SCENERY`): cenário novo = um arquivo + uma linha lá + `stage` na ficha do personagem. Cada entrada também diz se o palco fica escuro (`dim`), a cor da luz (`light`) e se tem clima próprio (`weather`, que desliga as partículas). `noiseTexture.ts` desenha as texturas granuladas (terra, neve, pedra, mármore); `canvasTexture.ts` transforma um desenho de canvas em textura (com o esmaecer até a borda) e amassa rochas (`roughen`) |
+
+### Cenários (`stage/scenery/`)
+
+| Arquivo | Personagem | O que tem |
+|---|---|---|
+| `Graveyard` | Necromante | Cemitério |
+| `FrozenWastes` | Bjorn | Neve, cristais de geleira, rochas e nevasca |
+| `Sanctuary` | Seraphiel | Altar de mármore sobre nuvens, colunas, penas e raios de luz |
+| `Scriptorium` | Escriba da Carne | Lajes de pedra, velas, páginas espalhadas e livros |
+| `VoidRift` | Cavaleiro do Vazio | Obsidiana rachada com fendas violeta pulsando, lascas flutuando e um vórtice de névoa escura |
+| `MistRuins` | Guardião das Sombras | Ruínas ao luar, colunas quebradas, névoa rasteira e fogos-fátuos |
+| `BurningShrine` | Kage Rubra | Pátio de santuário chamuscado com torii, lanternas de pedra, fogo negro e brasas subindo |
+| `BloodRoseGarden` | Encantadora Carmesim | Círculo de sangue sobre terra escura, roseiras, vinhas com espinhos, candelabros e pétalas caindo |
+| `MoonlitShore` | Nerissa | Praia ao luar, água rasa com espuma, santuário partido |
+| `SunkenTemple` | Auric | Templo dourado submerso, corais, cáusticas e bolhas |
+| `GearWorks` | Cronos | Engrenagens engatadas girando no chão, anel de algarismos cujos ponteiros às vezes voltam |
+| `HangarBay` | Unidade Alva | Plataforma de lançamento hexagonal com varredura nas juntas e mira holográfica |
 
 Os efeitos de cada intro (lâminas, cartas, ossos, gelo…) vêm de `features/match/scene/character/`, os mesmos da partida. A ficha de cada personagem (`features/match/characters.ts`) diz qual cenário e quais efeitos ele usa.
 

@@ -88,7 +88,7 @@ const PETAL_HEIGHT = 1.9;
  */
 export function BloodRoseGarden() {
   const soil = useNoiseTexture(SOIL);
-  const circle = useCanvasTexture(paintBloodCircle, { fade: false });
+  const circle = useCanvasTexture({ size: 512, draw: paintBloodCircle });
   const disc = useSoftDisc();
   const materials = useMemo(() => {
     const glow = { transparent: true, depthWrite: false, blending: AdditiveBlending, toneMapped: false };

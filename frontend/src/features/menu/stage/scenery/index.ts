@@ -2,11 +2,15 @@ import type { ComponentType, RefObject } from "react";
 import { BloodRoseGarden } from "./BloodRoseGarden";
 import { BurningShrine } from "./BurningShrine";
 import { FrozenWastes } from "./FrozenWastes";
+import { GearWorks } from "./GearWorks";
 import { Graveyard } from "./Graveyard";
 import { MistRuins } from "./MistRuins";
 import { Sanctuary } from "./Sanctuary";
 import { Scriptorium } from "./Scriptorium";
 import { VoidRift } from "./VoidRift";
+import { HangarBay } from "./HangarBay";
+import { MoonlitShore } from "./MoonlitShore";
+import { SunkenTemple } from "./SunkenTemple";
 
 export interface SceneryProps {
   /** How hard the wind blows through the stage (0 to 1): Seraphiel's wingbeats. */
@@ -34,6 +38,11 @@ export const SCENERY = {
   mistRuins: { component: MistRuins, dim: true },
   burningShrine: { component: BurningShrine, weather: true },
   bloodRoseGarden: { component: BloodRoseGarden, weather: true },
+  shore: { component: MoonlitShore },
+  // Under the sea the gold is lit by a teal wash; the bubbles stand in for the motes.
+  sunkenTemple: { component: SunkenTemple, light: "#3cc6c0", weather: true },
+  gearworks: { component: GearWorks },
+  hangar: { component: HangarBay, light: "#8ecbff" },
 } as const satisfies Record<string, Scenery>;
 
 export type SceneryId = keyof typeof SCENERY;

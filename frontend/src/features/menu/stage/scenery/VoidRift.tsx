@@ -45,10 +45,10 @@ const SHARD_SHAPES = 3;
  * it floating behind him and a slow vortex of dark mist. Origin on the floor; glows are additive, not lights.
  */
 export function VoidRift() {
-  const obsidian = useCanvasTexture(paintObsidian);
-  const fissures = useCanvasTexture(paintFissures);
-  const veins = useCanvasTexture(paintVeins);
-  const vortex = useCanvasTexture(paintVortex, { size: 256, fade: false });
+  const obsidian = useCanvasTexture({ size: 512, draw: paintObsidian, fadeFrom: 0.5 });
+  const fissures = useCanvasTexture({ size: 512, draw: paintFissures, fadeFrom: 0.5 });
+  const veins = useCanvasTexture({ size: 512, draw: paintVeins, fadeFrom: 0.5 });
+  const vortex = useCanvasTexture({ size: 256, draw: paintVortex });
   const disc = useSoftDisc();
   const materials = useMemo(() => {
     const glow = { transparent: true, depthWrite: false, blending: AdditiveBlending, toneMapped: false };

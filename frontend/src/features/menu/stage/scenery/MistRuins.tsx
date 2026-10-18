@@ -54,10 +54,10 @@ const MOON = { x: 0.62, y: 1.75, z: -1.15 };
  * creeping low and pale wisps wandering between them. Origin on the floor; wisps and moon are sprites.
  */
 export function MistRuins() {
-  const paving = useCanvasTexture(paintPaving);
+  const paving = useCanvasTexture({ size: 512, draw: paintPaving, fadeFrom: 0.5 });
   const stone = useNoiseTexture(STONE);
   const disc = useSoftDisc();
-  const moon = useCanvasTexture(paintMoon, { size: 128, fade: false });
+  const moon = useCanvasTexture({ size: 128, draw: paintMoon });
   const materials = useMemo(() => {
     const glow = { map: disc, transparent: true, depthWrite: false, blending: AdditiveBlending, toneMapped: false };
     return {

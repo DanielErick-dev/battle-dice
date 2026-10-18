@@ -336,6 +336,7 @@ export const CHARACTERS = {
     ability: "sacredBulwark",
     playable: true,
     shieldColor: "#2563eb",
+    stage: "shore",
   },
   crimsonStudent: {
     name: "Akane",
@@ -373,6 +374,7 @@ export const CHARACTERS = {
     ability: "cleansingTide",
     playable: true,
     shieldColor: "#f59e0b",
+    stage: "sunkenTemple",
   },
   seraphGuardian: {
     name: "Seraphiel",
@@ -399,6 +401,7 @@ export const CHARACTERS = {
     playable: true,
     shieldColor: "#d97706",
     chair: "clockworkThrone",
+    stage: "gearworks",
   },
   sentinelMech: {
     name: "Unidade Alva",
@@ -409,6 +412,7 @@ export const CHARACTERS = {
     playable: true,
     shieldColor: "#e2e8f0",
     chair: "cyberThrone",
+    stage: "hangar",
   },
 } as const satisfies Record<string, CharacterDefinition>;
 

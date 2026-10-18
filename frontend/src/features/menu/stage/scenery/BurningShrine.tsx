@@ -49,9 +49,9 @@ const EMBER_HEIGHT = 1.9;
  * with red flames, patches of black fire and embers rising. Origin on the floor; every flame is a sprite.
  */
 export function BurningShrine() {
-  const tiles = useCanvasTexture(paintScorchedTiles);
-  const flame = useCanvasTexture(paintFlame, { size: 128, fade: false });
-  const talisman = useCanvasTexture(paintTalisman, { size: 128, fade: false });
+  const tiles = useCanvasTexture({ size: 512, draw: paintScorchedTiles, fadeFrom: 0.5 });
+  const flame = useCanvasTexture({ size: 128, draw: paintFlame });
+  const talisman = useCanvasTexture({ size: 128, draw: paintTalisman });
   const disc = useSoftDisc();
   const materials = useMemo(() => {
     const glow = { transparent: true, depthWrite: false, blending: AdditiveBlending, toneMapped: false };
