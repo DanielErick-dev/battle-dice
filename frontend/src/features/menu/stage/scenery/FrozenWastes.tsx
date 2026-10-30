@@ -6,9 +6,9 @@ import { BufferAttribute, BufferGeometry, DodecahedronGeometry, MeshStandardMate
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { PROP_HEIGHT, usePropMesh } from "@/features/match/scene/character/props";
 import { seededRandom } from "@/game/domain/random";
-import type { GroundDressing } from "./groundDressing";
-import { GROUND_RADIUS } from "./sceneryKit";
-import { useNoiseTexture, type NoiseLook } from "./textures";
+import type { GroundDressing } from "./kit/groundDressing";
+import { GROUND_RADIUS } from "./kit/geometry";
+import { useNoiseTexture, type NoiseLook } from "./kit/textures";
 
 /** Bjorn's frost crystals (bjornCrystal): one big mass behind him, smaller outcrops elsewhere. */
 const CRYSTALS = [

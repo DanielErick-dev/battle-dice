@@ -17,9 +17,9 @@ import {
 import { usePropMesh } from "@/features/match/scene/character/props";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { withDressing, type GroundDressing } from "./groundDressing";
-import { GROUND_RADIUS } from "./sceneryKit";
-import { useCanvasTexture, useNoiseTexture, type CanvasLook, type NoiseLook } from "./textures";
+import { withDressing, type GroundDressing } from "./kit/groundDressing";
+import { GROUND_RADIUS } from "./kit/geometry";
+import { useCanvasTexture, useNoiseTexture, type CanvasLook, type NoiseLook } from "./kit/textures";
 
 /** Tooth size shared by every gear, so any two of them mesh: radius = teeth × MODULE. */
 const MODULE = 0.018;

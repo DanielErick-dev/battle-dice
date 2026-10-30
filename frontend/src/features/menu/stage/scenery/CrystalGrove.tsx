@@ -21,9 +21,9 @@ import {
 import { iceShard } from "@/features/match/scene/character/ice";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { GROUND_RADIUS, grassTuft, scatterAround } from "./sceneryKit";
-import { withDressing, type GroundDressing } from "./groundDressing";
-import { useCanvasTexture, type Painter } from "./textures";
+import { GROUND_RADIUS, grassTuft, scatterAround } from "./kit/geometry";
+import { withDressing, type GroundDressing } from "./kit/groundDressing";
+import { useCanvasTexture, type Painter } from "./kit/textures";
 
 /** `height` is the tallest shard's; `violet` clusters take the fairy-light lilac instead of cyan. */
 const CLUSTERS = [

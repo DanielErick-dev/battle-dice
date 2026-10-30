@@ -17,9 +17,9 @@ import {
 import { usePropMesh } from "@/features/match/scene/character/props";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { ABOVE_FLOOR, GROUND_RADIUS, taperedTube } from "./sceneryKit";
-import { withDressing, type GroundDressing } from "./groundDressing";
-import { useCanvasTexture, useNoiseTexture, type NoiseLook, type Painter } from "./textures";
+import { ABOVE_FLOOR, GROUND_RADIUS, taperedTube } from "./kit/geometry";
+import { withDressing, type GroundDressing } from "./kit/groundDressing";
+import { useCanvasTexture, useNoiseTexture, type NoiseLook, type Painter } from "./kit/textures";
 
 /** Thick end first: they come out of the earth past the rim, arch and dive back in (cut at the floor). */
 const ROOTS: { points: [number, number, number][]; radius: number }[] = [

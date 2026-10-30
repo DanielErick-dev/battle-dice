@@ -29,9 +29,9 @@ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js
 import { PROP_HEIGHT, usePropMesh } from "@/features/match/scene/character/props";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import type { GroundDressing } from "./groundDressing";
-import { GROUND_RADIUS } from "./sceneryKit";
-import { useCanvasTexture, useNoiseTexture, type NoiseLook } from "./textures";
+import type { GroundDressing } from "./kit/groundDressing";
+import { GROUND_RADIUS } from "./kit/geometry";
+import { useCanvasTexture, useNoiseTexture, type NoiseLook } from "./kit/textures";
 
 const CIRCLE_RADIUS = 0.8;
 const FLAME = new Color("#ffb066").multiplyScalar(2.1);

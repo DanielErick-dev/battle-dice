@@ -25,9 +25,9 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { GROUND_RADIUS, scatterAround } from "./sceneryKit";
-import { withDressing, type GroundDressing } from "./groundDressing";
-import { useCanvasTexture, useNoiseTexture, type NoiseLook, type Painter } from "./textures";
+import { GROUND_RADIUS, scatterAround } from "./kit/geometry";
+import { withDressing, type GroundDressing } from "./kit/groundDressing";
+import { useCanvasTexture, useNoiseTexture, type NoiseLook, type Painter } from "./kit/textures";
 
 /** The low parapet closing the terrace behind him: blocks along the back arc (angles in radians, -π/2 straight back). */
 const PARAPET = { radius: 0.9, from: -2.55, to: -0.59, blocks: 7, height: 0.11, depth: 0.08 };

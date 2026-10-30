@@ -1,10 +1,24 @@
-import { BufferGeometry, CatmullRomCurve3, Color, Float32BufferAttribute, Plane, TubeGeometry, Vector3 } from "three";
+import {
+  BufferGeometry,
+  CatmullRomCurve3,
+  Color,
+  Float32BufferAttribute,
+  Plane,
+  TubeGeometry,
+  Vector3,
+  type SphereGeometry,
+} from "three";
 import type { RandomSource } from "@/game/domain/random";
-import { FLOOR_Y } from "../layout";
+import { FLOOR_Y } from "../../layout";
 
 /** A tube along `points` that thins towards its last point (roots, trunks, branches). */
-export function taperedTube(points: [number, number, number][], radius: number, taper = 0.8, tubular = 24) {
-  const radial = 7;
+export function taperedTube(
+  points: readonly (readonly [number, number, number])[],
+  radius: number,
+  taper = 0.8,
+  tubular = 24,
+  radial = 7,
+) {
   const curve = new CatmullRomCurve3(points.map(([x, y, z]) => new Vector3(x, y, z)));
   const geometry = new TubeGeometry(curve, tubular, radius, radial, false);
   const position = geometry.getAttribute("position");
@@ -113,4 +127,18 @@ export function scatterAround(random: RandomSource, count: number, inner: number
     spots.push([x, z]);
   }
   return spots;
+}
+
+/** `count` angles spaced evenly round a full turn, from `start`: legs of a stand, stones of a ring. */
+export function evenAngles(count: number, start = 0): number[] {
+  return Array.from({ length: count }, (_, index) => start + (index / count) * Math.PI * 2);
+}
+
+/** SphereGeometry arguments for the top half of a sphere: mounds, caps, drifts. */
+export function dome(
+  widthSegments: number,
+  heightSegments: number,
+  radius = 1,
+): ConstructorParameters<typeof SphereGeometry> {
+  return [radius, widthSegments, heightSegments, 0, Math.PI * 2, 0, Math.PI / 2];
 }

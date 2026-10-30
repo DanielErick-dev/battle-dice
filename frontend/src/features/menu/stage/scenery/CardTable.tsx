@@ -17,9 +17,9 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { withDressing, type GroundDressing } from "./groundDressing";
-import { GROUND_RADIUS } from "./sceneryKit";
-import { paintTexture, useCanvasTexture, useCanvasTextures, type CanvasLook, type Painter } from "./textures";
+import { withDressing, type GroundDressing } from "./kit/groundDressing";
+import { GROUND_RADIUS } from "./kit/geometry";
+import { paintTexture, useCanvasTexture, useCanvasTextures, type CanvasLook, type Painter } from "./kit/textures";
 
 const CARD: [number, number] = [0.12, 0.17];
 type Suit = "hearts" | "spades" | "diamonds" | "clubs";

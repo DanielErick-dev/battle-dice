@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { shade } from "./groundDressing";
+import { shade } from "./painting";
 
 describe("shade", () => {
   it("scales each channel", () => {

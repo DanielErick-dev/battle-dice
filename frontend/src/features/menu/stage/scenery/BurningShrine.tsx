@@ -14,7 +14,7 @@ import {
 import { usePropMesh } from "@/features/match/scene/character/props";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { useCanvasTexture, type Painter } from "./textures";
+import { useCanvasTexture, type Painter } from "./kit/textures";
 
 /** Wide enough to reach under the tree, behind the torii. */
 const FLOOR_RADIUS = 1.45;

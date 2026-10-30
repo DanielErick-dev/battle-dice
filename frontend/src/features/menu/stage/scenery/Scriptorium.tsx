@@ -13,9 +13,9 @@ import {
 } from "three";
 import { drawParchment, pageStrokes } from "@/features/match/scene/character/parchment";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
-import { withDressing, type GroundDressing } from "./groundDressing";
-import { GROUND_RADIUS } from "./sceneryKit";
-import { useCanvasTexture, type Painter } from "./textures";
+import { withDressing, type GroundDressing } from "./kit/groundDressing";
+import { GROUND_RADIUS } from "./kit/geometry";
+import { useCanvasTexture, type Painter } from "./kit/textures";
 
 const CANDLES = [
   { x: -0.74, z: -0.3, height: 0.16 },

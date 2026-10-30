@@ -19,9 +19,10 @@ import {
 import { usePropMesh } from "@/features/match/scene/character/props";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { blot, withDressing, type GroundDressing } from "./groundDressing";
-import { GROUND_RADIUS } from "./sceneryKit";
-import { useCanvasTexture, useNoiseTexture, type CanvasLook, type NoiseLook, type Painter } from "./textures";
+import { withDressing, type GroundDressing } from "./kit/groundDressing";
+import { blot } from "./kit/painting";
+import { GROUND_RADIUS } from "./kit/geometry";
+import { useCanvasTexture, useNoiseTexture, type CanvasLook, type NoiseLook, type Painter } from "./kit/textures";
 
 /** Coral on its rock (a Meshy prop, 2 tall in its export): how tall each stands and how far it's turned. */
 const CORALS = [

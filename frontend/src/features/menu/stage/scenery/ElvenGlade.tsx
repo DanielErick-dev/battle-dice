@@ -19,9 +19,9 @@ import {
 import { Prop, usePropMesh } from "@/features/match/scene/character/props";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { GROUND_RADIUS, grassTuft, scatterAround } from "./sceneryKit";
-import { withDressing, type GroundDressing } from "./groundDressing";
-import { useCanvasTexture, useNoiseTexture, type NoiseLook, type Painter } from "./textures";
+import { GROUND_RADIUS, grassTuft, scatterAround } from "./kit/geometry";
+import { withDressing, type GroundDressing } from "./kit/groundDressing";
+import { useCanvasTexture, useNoiseTexture, type NoiseLook, type Painter } from "./kit/textures";
 
 const LOG = { x: -0.2, z: -0.78, turn: 0.2, length: 0.9, radius: 0.085 };
 /** Roots of an old tree just off the stage, thick end first, arching out of the moss and diving back in. */

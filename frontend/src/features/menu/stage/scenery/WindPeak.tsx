@@ -19,9 +19,9 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { GROUND_RADIUS, grassTuft, scatterAround } from "./sceneryKit";
-import { withDressing, type GroundDressing } from "./groundDressing";
-import { useCanvasTexture, useNoiseTexture, type NoiseLook, type Painter } from "./textures";
+import { GROUND_RADIUS, grassTuft, scatterAround } from "./kit/geometry";
+import { withDressing, type GroundDressing } from "./kit/groundDressing";
+import { useCanvasTexture, useNoiseTexture, type NoiseLook, type Painter } from "./kit/textures";
 
 /** Crags of the summit behind him (`height` above the ground, sunk a little), and loose boulders. */
 const CRAGS = [

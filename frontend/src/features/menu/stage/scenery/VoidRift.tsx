@@ -15,9 +15,9 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom, type RandomSource } from "@/game/domain/random";
-import { GROUND_RADIUS, roughen } from "./sceneryKit";
-import { withDressing, type GroundDressing } from "./groundDressing";
-import { useCanvasTexture } from "./textures";
+import { GROUND_RADIUS, roughen } from "./kit/geometry";
+import { withDressing, type GroundDressing } from "./kit/groundDressing";
+import { useCanvasTexture } from "./kit/textures";
 
 const FLOOR_RADIUS = 1;
 const FISSURE = new Color("#a47bff").multiplyScalar(1.8);

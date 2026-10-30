@@ -13,9 +13,9 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { GROUND_RADIUS, roughen } from "./sceneryKit";
-import { withDressing, type GroundDressing } from "./groundDressing";
-import { useCanvasTexture, useNoiseTexture, type NoiseLook } from "./textures";
+import { GROUND_RADIUS, roughen } from "./kit/geometry";
+import { withDressing, type GroundDressing } from "./kit/groundDressing";
+import { useCanvasTexture, useNoiseTexture, type NoiseLook } from "./kit/textures";
 
 const GHOST = new Color("#9be3ff").multiplyScalar(1.6);
 const COLUMN_RADIUS = 0.075;

@@ -18,9 +18,9 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { GROUND_RADIUS, taperedTube } from "./sceneryKit";
-import { withDressing, type GroundDressing } from "./groundDressing";
-import { useCanvasTexture, type Painter } from "./textures";
+import { GROUND_RADIUS, taperedTube } from "./kit/geometry";
+import { withDressing, type GroundDressing } from "./kit/groundDressing";
+import { useCanvasTexture, type Painter } from "./kit/textures";
 
 const CIRCLE_SIZE = 1.3;
 const BENCH = { x: -0.52, z: -0.66, turn: 0.55, width: 0.64, depth: 0.24, height: 0.46 };

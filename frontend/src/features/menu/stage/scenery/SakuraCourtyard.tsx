@@ -21,9 +21,9 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { ABOVE_FLOOR, GROUND_RADIUS, taperedTube } from "./sceneryKit";
-import { withDressing, type GroundDressing } from "./groundDressing";
-import { useCanvasTexture, useNoiseTexture, type NoiseLook, type Painter } from "./textures";
+import { ABOVE_FLOOR, GROUND_RADIUS, taperedTube } from "./kit/geometry";
+import { withDressing, type GroundDressing } from "./kit/groundDressing";
+import { useCanvasTexture, useNoiseTexture, type NoiseLook, type Painter } from "./kit/textures";
 
 /** Thick end first. The trunk rises at the back left; the boughs reach over the figure's head. */
 const TRUNK: [number, number, number][] = [
