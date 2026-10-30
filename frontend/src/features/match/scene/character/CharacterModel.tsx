@@ -16,48 +16,7 @@ import {
 } from "three";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import type { CharacterClip, ClipLengths } from "../../characters";
-
-/** Seconds to blend from one clip into the next. */
-const CROSSFADE_SECONDS = 0.25;
-/** Slower blend out of an intro or cast, so its final pose settles into the next loop. */
-const SETTLE_CROSSFADE_SECONDS = 0.8;
-/** Sitting down on the chair, and getting up off it: unhurried. */
-const SIT_CROSSFADE_SECONDS = 1.2;
-/** Straight from a run onto the chair: quick, or the legs keep running through it as it appears. */
-const RUN_TO_SIT_CROSSFADE_SECONDS = 0.3;
-/** Playback speed per clip: the run cycle is sped up to match how fast tokens cover a tile. */
-const CLIP_SPEED: Readonly<Record<CharacterClip, number>> = {
-  idle: 1,
-  run: 1.25,
-  cast: 1,
-  intro: 1,
-  showcase: 1,
-  float: 1,
-  dash: 1,
-  land: 1,
-  shove: 1,
-  knocked: 1,
-  rest: 1,
-  hop: 1,
-  brake: 1,
-  sit: 1,
-  guard: 1,
-  scoff: 1,
-};
-/** Clips played once, holding their last pose until the next clip takes over. */
-const ONE_SHOT_CLIPS: readonly CharacterClip[] = [
-  "cast",
-  "intro",
-  "dash",
-  "land",
-  "shove",
-  "knocked",
-  "hop",
-  "brake",
-  "sit",
-  "guard",
-  "scoff",
-];
+import { CHARACTER_CLIPS, CLIP_PLAYBACK, clipToPlay, crossfadeSeconds } from "./clipPlayback";
 
 interface CharacterModelProps {
   url: string;
@@ -67,7 +26,7 @@ interface CharacterModelProps {
   clip: RefObject<CharacterClip>;
   /** Told the length of each clip the model has (so also which it has), once it's loaded. */
   onClipLengths?: (lengths: ClipLengths) => void;
-  /** Playback speed of the intro for this character, on top of CLIP_SPEED (1 by default). */
+  /** Playback speed of the intro for this character, on top of CLIP_PLAYBACK (1 by default). */
   introSpeed?: number;
   /** Drawn as a translucent apparition glowing in this colour instead of its own textures. */
   ghost?: string;
@@ -107,7 +66,7 @@ export function CharacterModel({
     const animation = clips.get(name);
     if (!animation) return undefined;
     const action = mixer.clipAction(animation);
-    if (ONE_SHOT_CLIPS.includes(name)) {
+    if (CLIP_PLAYBACK[name].once) {
       action.setLoop(LoopOnce, 1);
       action.clampWhenFinished = true;
     }
@@ -116,7 +75,7 @@ export function CharacterModel({
 
   useEffect(() => {
     const lengths: ClipLengths = {};
-    for (const name of Object.keys(CLIP_SPEED) as CharacterClip[]) {
+    for (const name of CHARACTER_CLIPS) {
       const duration = clips.get(name)?.duration;
       // As long as it lasts on screen, at this character's intro speed.
       if (duration !== undefined) lengths[name] = duration / (name === "intro" ? introSpeed : 1);
@@ -135,33 +94,17 @@ export function CharacterModel({
   );
 
   useFrame((_, delta) => {
-    // A missing showcase or float idles; any other missing clip keeps the current one going
-    // (idle if nothing plays yet).
-    const wanted = clips.has(clip.current)
-      ? clip.current
-      : clip.current === "showcase" || clip.current === "float"
-        ? "idle"
-        : (playing.current ?? "idle");
+    const wanted = clipToPlay(clip.current, (name) => clips.has(name), playing.current);
     if (wanted !== playing.current) {
       const next = actionFor(wanted);
       const previous = playing.current ? actionFor(playing.current) : undefined;
       if (next) {
         next
           .reset()
-          .setEffectiveTimeScale(CLIP_SPEED[wanted] * (wanted === "intro" ? introSpeed : 1))
+          .setEffectiveTimeScale(CLIP_PLAYBACK[wanted].speed * (wanted === "intro" ? introSpeed : 1))
           .setEffectiveWeight(1)
           .play();
-        const fade =
-          wanted === "rest" && playing.current === "sit"
-            ? CROSSFADE_SECONDS
-            : wanted === "rest" && playing.current === "run"
-              ? RUN_TO_SIT_CROSSFADE_SECONDS
-              : wanted === "rest" || playing.current === "rest"
-                ? SIT_CROSSFADE_SECONDS
-                : playing.current === "intro" || playing.current === "cast" || playing.current === "land"
-                  ? SETTLE_CROSSFADE_SECONDS
-                  : CROSSFADE_SECONDS;
-        if (previous) next.crossFadeFrom(previous, fade, false);
+        if (previous) next.crossFadeFrom(previous, crossfadeSeconds(playing.current, wanted), false);
       }
       playing.current = wanted;
     }
