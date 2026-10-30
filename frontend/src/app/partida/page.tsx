@@ -16,7 +16,7 @@ interface MatchPageProps {
   }>;
 }
 
-// /partida?tabuleiro=training&mapa=dungeon&jogadores=crimsonWitch,voidKnight&carregadas=1 (legacy `personagem` for one player).
+// /partida?tabuleiro=training&mapa=dungeon&jogadores=witch,zarek&carregadas=1 (legacy `personagem` for one player).
 // Unknown or locked values fall back to the defaults.
 export default async function MatchPage({ searchParams }: MatchPageProps) {
   const { tabuleiro = "", mapa = "", jogadores, personagem = "", carregadas } = await searchParams;

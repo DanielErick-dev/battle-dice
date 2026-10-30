@@ -182,11 +182,11 @@ const model = (id: string) => `/models/characters/${id}.glb`;
 
 /** Every character, made with Meshy AI (see `playable`). The ids name the model files. */
 export const CHARACTERS = {
-  voidKnight: {
+  zarek: {
     name: "Zarek",
     epithet: "O Cavaleiro do Vazio",
     color: "#8b5cf6",
-    model: model("voidKnight"),
+    model: model("zarek"),
     ability: "theVoid",
     playable: true,
     chair: "amethystThrone",
@@ -195,21 +195,21 @@ export const CHARACTERS = {
     // Both blades hit the ground as he drops to one knee.
     castImpactSeconds: 0.95,
   },
-  crimsonEnchantress: {
+  enchantress: {
     name: "Encantadora Carmesim",
     epithet: "Feiticeira de sangue",
     color: "#f43f5e",
-    model: model("crimsonEnchantress"),
+    model: model("enchantress"),
     ability: "doubleCast",
     playable: true,
     chair: "roseThrone",
     stage: "bloodRoseGarden",
   },
-  crimsonWitch: {
+  witch: {
     name: "Bruxa Carmesim",
     epithet: "Senhora dos feitiços de sangue",
     color: "#ef4444",
-    model: model("crimsonWitch"),
+    model: model("witch"),
     chair: "crimsonThrone",
     ability: "levitation",
     playable: true,
@@ -217,11 +217,11 @@ export const CHARACTERS = {
     shieldColor: "#ef4444",
     stage: "witchHollow",
   },
-  emeraldAlchemist: {
+  alchemist: {
     name: "Alquimista Esmeralda",
     epithet: "Mestra das transmutações",
     color: "#10b981",
-    model: model("emeraldAlchemist"),
+    model: model("alchemist"),
     chair: "alchemistThrone",
     ability: "transmutation",
     playable: true,
@@ -235,11 +235,11 @@ export const CHARACTERS = {
     // Her arm is out in front of her by then (tune by eye on the menu).
     introPourSeconds: 2.0,
   },
-  wanderingSage: {
+  monk: {
     name: "Monge Ancião",
     epithet: "A calma antes da tempestade",
     color: "#facc15",
-    model: model("wanderingSage"),
+    model: model("monk"),
     chair: "stormThrone",
     stage: "temple",
     ability: "dormantFury",
@@ -256,12 +256,12 @@ export const CHARACTERS = {
     castsStill: true,
     landImpactSeconds: 0.4,
   },
-  elvenArcher: {
+  archer: {
     name: "Arqueira Élfica",
     epithet: "Flechas que caem do céu",
     // Leaf green, lighter and yellower than the Alchemist's emerald.
     color: "#84cc16",
-    model: model("elvenArcher"),
+    model: model("archer"),
     chair: "elderwoodThrone",
     ability: "arrowRain",
     bow: true,
@@ -273,12 +273,12 @@ export const CHARACTERS = {
     introArrows: { drawSeconds: 0.6, releaseSeconds: 2.65 },
     stage: "glade",
   },
-  cardJester: {
+  jester: {
     name: "Coringa Carmesim",
     epithet: "Quem aposta, arrisca",
     // Deep crimson, darker than the Witch's red.
     color: "#dc143c",
-    model: model("cardJester"),
+    model: model("jester"),
     chair: "jesterThrone",
     ability: "cardGamble",
     playable: true,
@@ -287,12 +287,12 @@ export const CHARACTERS = {
     // Her intro: a crouch, a pirouette from 1.5 s, then a pose with a hand held up from about 2.7 s.
     introCards: { spinSeconds: 1.5, revealSeconds: 2.7 },
   },
-  boneShaman: {
+  necromancer: {
     name: "Necromante",
     epithet: "O que foi jogado não morre",
     // Ghostly teal, the glow of spirits called back.
     color: "#2dd4bf",
-    model: model("boneShaman"),
+    model: model("necromancer"),
     chair: "necromancerThrone",
     ability: "resurrection",
     playable: true,
@@ -301,12 +301,12 @@ export const CHARACTERS = {
     introBones: { raiseSeconds: 0.5, peakSeconds: 1.4, releaseSeconds: 2.9 },
     stage: "graveyard",
   },
-  fleshScribe: {
+  scribe: {
     name: "Escriba da Carne",
     epithet: "O que ele escreve, você paga",
     // Fuchsia, the glow of his runes; apart from the reds and the Void Knight's violet.
     color: "#d946ef",
-    model: model("fleshScribe"),
+    model: model("scribe"),
     chair: "scribeThrone",
     ability: "forbiddenSeals",
     playable: true,
@@ -315,24 +315,24 @@ export const CHARACTERS = {
     introSeals: { writeSeconds: 0.7, writtenSeconds: 3.3, raiseSeconds: 4.4, releaseSeconds: 7.15 },
     stage: "scriptorium",
   },
-  shadowWarden: {
+  warden: {
     name: "Guardião das Sombras",
     epithet: "Sem rosto, sem rastro",
     // Ghostly blue, the glow of his apparitions.
     color: "#7dd3fc",
-    model: model("shadowWarden"),
+    model: model("warden"),
     ability: "spectralApparitions",
     playable: true,
     chair: "shadowThrone",
     stage: "mistRuins",
     shieldColor: "#7dd3fc",
   },
-  purgatoryKunoichi: {
+  kage: {
     name: "Kage Rubra",
     epithet: "O olhar que queima",
     // Scarlet flame, apart from the crimsons and pinks of the other reds.
     color: "#ff4d2e",
-    model: model("purgatoryKunoichi"),
+    model: model("kage"),
     chair: "obsidianThrone",
     ability: "ocularAwakening",
     playable: true,
@@ -340,12 +340,12 @@ export const CHARACTERS = {
     shieldColor: "#ff4d2e",
     armourLook: "susanoo",
   },
-  crystalFairy: {
+  fairy: {
     name: "Fada Cristalina",
     epithet: "O encanto que cura o caminho",
     // Bright cyan, the glint of her crystals; brighter and greener than the Warden's blue.
     color: "#22d3ee",
-    model: model("crystalFairy"),
+    model: model("fairy"),
     ability: "fairyBloom",
     playable: true,
     shieldColor: "#22d3ee",
@@ -360,23 +360,23 @@ export const CHARACTERS = {
   },
   // The eight below came from Meshy with idle and run only: names and abilities are placeholders
   // until their kits (intro, cast, effects) are made. Bjorn's is under way: Untamed and his trample.
-  windGuardian: {
+  zephyr: {
     name: "Zéfiro",
     epithet: "O vento sempre a favor",
     // Mint, the colour of a clear gust.
     color: "#86efac",
-    model: model("windGuardian"),
+    model: model("zephyr"),
     ability: "tailwind",
     playable: true,
     shieldColor: "#86efac",
     chair: "elementalThrone",
     stage: "peak",
   },
-  tideMaiden: {
+  themis: {
     name: "Têmis",
     epithet: "A Juíza Vendada",
     color: "#2563eb",
-    model: model("tideMaiden"),
+    model: model("themis"),
     ability: "silentVerdict",
     playable: true,
     holdsScale: true,
@@ -386,22 +386,22 @@ export const CHARACTERS = {
     seat: { scale: 1.28, turn: 1.52 },
     stage: "shore",
   },
-  crimsonStudent: {
+  akane: {
     name: "Akane",
     epithet: "Lição decorada, carta na mão",
     color: "#f9a8d4",
-    model: model("crimsonStudent"),
+    model: model("akane"),
     ability: "studySession",
     playable: true,
     shieldColor: "#f9a8d4",
     chair: "infernalThrone",
     stage: "sakuraCourtyard",
   },
-  frostfangBerserker: {
+  bjorn: {
     name: "Bjorn Presa-Gélida",
     epithet: "Quem fica no caminho, voa",
     color: "#60a5fa",
-    model: model("frostfangBerserker"),
+    model: model("bjorn"),
     ability: "untamed",
     chair: "wolfThrone",
     playable: true,
@@ -414,23 +414,23 @@ export const CHARACTERS = {
     castAura: "frost",
     stage: "tundra",
   },
-  goldenGuardian: {
+  auric: {
     name: "Auric",
     epithet: "Senhor das marés douradas",
     color: "#f59e0b",
-    model: model("goldenGuardian"),
+    model: model("auric"),
     chair: "tideThrone",
     ability: "cleansingTide",
     playable: true,
     shieldColor: "#f59e0b",
     stage: "sunkenTemple",
   },
-  seraphGuardian: {
+  seraphiel: {
     name: "Seraphiel",
     epithet: "Asas que abençoam o caminho",
     color: "#fef3c7",
-    model: model("seraphGuardian"),
-    fallenModel: model("fallenSeraph"),
+    model: model("seraphiel"),
+    fallenModel: model("seraphielFallen"),
     ability: "seraphBlessing",
     playable: true,
     shieldColor: "#fde68a",
@@ -443,22 +443,22 @@ export const CHARACTERS = {
     descends: true,
     stage: "sanctuary",
   },
-  clockworkSentinel: {
+  cronos: {
     name: "Cronos",
     epithet: "O tempo gira a seu favor",
     color: "#b45309",
-    model: model("clockworkSentinel"),
+    model: model("cronos"),
     ability: "timeWarp",
     playable: true,
     shieldColor: "#d97706",
     chair: "clockworkThrone",
     stage: "gearworks",
   },
-  sentinelMech: {
+  alva: {
     name: "Unidade Alva",
     epithet: "Alvo travado",
     color: "#e2e8f0",
-    model: model("sentinelMech"),
+    model: model("alva"),
     ability: "plasmaCannon",
     playable: true,
     shieldColor: "#e2e8f0",
@@ -472,7 +472,7 @@ export type CharacterId = keyof typeof CHARACTERS;
 export const CHARACTER_IDS = Object.keys(CHARACTERS) as CharacterId[];
 /** The characters that can be picked right now. */
 export const PLAYABLE_CHARACTER_IDS = CHARACTER_IDS.filter((id) => CHARACTERS[id].playable);
-export const DEFAULT_CHARACTER_ID: CharacterId = "crimsonWitch";
+export const DEFAULT_CHARACTER_ID: CharacterId = "witch";
 
 export function isCharacterId(id: string): id is CharacterId {
   return Object.hasOwn(CHARACTERS, id);
@@ -504,7 +504,7 @@ export interface RosterEntry {
 
 /**
  * The players of a local match, one per character, in turn order. Several may play the same
- * character: the player id is their seat and character (`p2:crimsonWitch`), and a character
+ * character: the player id is their seat and character (`p2:witch`), and a character
  * played more than once is named with each one's seat.
  */
 export function rosterOf(characters: readonly CharacterId[]): RosterEntry[] {

@@ -12,7 +12,7 @@ import { LAB_EFFECTS } from "./effects";
 
 /** Playground for trying effects round a character, tweaked live in the Leva panel. Not linked from the menus. */
 export function VfxLab() {
-  const [characterId, setCharacterId] = useState<CharacterId>("frostfangBerserker");
+  const [characterId, setCharacterId] = useState<CharacterId>("bjorn");
   const [effectId, setEffectId] = useState(LAB_EFFECTS[0].id);
   /** Bumped to restart the effect from scratch. */
   const [run, setRun] = useState(0);

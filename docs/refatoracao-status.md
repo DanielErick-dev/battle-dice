@@ -63,7 +63,7 @@ Linhas = código da própria pasta (sem subpastas e sem testes), contadas em 29/
 |---|---|---|---|
 | `frontend/scripts/characters/` | ⬜ | | `build-characters.mjs` + `manifest.mjs` (554 linhas): revisar. |
 | `frontend/scripts/props/` | 🟡 | A saída segue a pasta de cada personagem (29/10). | `build-kits.mjs` ainda monta os NPCs, que saíram do jogo. |
-| `public/models/characters/` | ✅ | Um `.glb` por personagem, com o id do código. | |
+| `public/models/characters/` | ✅ | Um `.glb` por personagem, com o id do código. Ids renomeados para o nome do personagem (`themis`, `zarek`, `necromancer`…) em 29/10. | |
 | `public/models/props/` | ✅ | Uma pasta por personagem, com os mesmos nomes da fonte (29/10). | |
 | `public/models/island/` | 🟡 | Kits dos mapas. | `npcs/` (2,3 MB) não é mais usado desde 29/10: apagar. |
 | `docs/` | ✅ | Docs em português, com índice no README. | Manter em dia a cada mudança. |
