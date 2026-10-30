@@ -38,6 +38,7 @@ export type TileEffectKind =
   | "riftOpened"
   | "voidCast"
   | "voidSeized"
+  | "voidEchoed"
   /** A lost turn in the fairy's snow: `count` energy went to her. */
   | "snowDrained"
   | "trapBlocked"
@@ -73,7 +74,9 @@ export type TileEffectKind =
   /** Themis's Silent Verdict, shown over the one judged. */
   | "verdict"
   /** Themis's Blind Scale took a hidden trap apart. */
-  | "disarmed";
+  | "disarmed"
+  /** Themis's Scales of Justice split two players' energy; shown over the one weighed against her. */
+  | "weighed";
 
 export interface LogEntry {
   id: number;

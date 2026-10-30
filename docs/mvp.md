@@ -16,6 +16,7 @@ O que fica para depois do MVP está em [ideias.md](ideias.md), seção "Pós-MVP
 
 ### Novidades do MVP
 - [ ] **4 cartas exclusivas por personagem.** O baralho continua com as cartas comuns e aleatórias, e cada personagem soma 4 cartas próprias que combinam com o estilo da habilidade dele.
+  - *Em andamento (2026-10-29):* a regra do baralho e as cartas da **Têmis** e do **Zarek** estão feitas e testadas. Os outros personagens estão como proposta em [cartas-exclusivas.md](cartas-exclusivas.md), esperando a aprovação do Daniel.
 - [x] **Log de batalha** para o jogador não se perder no caos visual. Exemplos:
   - "J1 (Bruxa) usou Levitação"
   - "J3 (Bjorn) atropelou J2 e o mandou 6 casas para trás"

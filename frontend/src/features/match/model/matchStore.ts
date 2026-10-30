@@ -46,6 +46,9 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   INVALID_GRACE: "Essa dádiva não está à escolha aqui.",
   VOID_FULL: "O Vazio já está cheio: solte algo antes.",
   INVALID_VOID: "O Vazio não pode fazer isso nessa casa.",
+  VOID_EMPTY: "O Vazio está vazio.",
+  NO_HARM_AHEAD: "Nenhuma armadilha à vista à frente.",
+  NOT_YOUR_CARD: "Essa carta é de outro personagem.",
 };
 
 /** Sends commands to the GameClient and replays the resulting events step by step (see model/README.md). */

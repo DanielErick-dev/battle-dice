@@ -215,7 +215,7 @@ Para quem quer o detalhe exato, nesta ordem:
 | Mão inicial | **6** cartas |
 | Limite da mão | **8** cartas |
 | Cartas por vez | **1** (2 com Conjuração Dupla); fundir não conta |
-| Baralho padrão | **26** cartas com oponentes, **20** sozinho (cartas que miram oponentes ficam de fora) |
+| Baralho padrão | **26** cartas com oponentes, **20** sozinho (cartas que miram oponentes ficam de fora), mais as **4 exclusivas** do personagem (1 cópia de cada) |
 
 **Custo por raridade** (algumas cartas têm custo próprio):
 
@@ -244,6 +244,8 @@ Para quem quer o detalhe exato, nesta ordem:
 - **Luz Celestial** com a energia cheia.
 - **Ascensão** com a habilidade já pronta (ou sem habilidade).
 - **Chamado do Abismo** num tabuleiro sem inferno.
+- Uma **carta exclusiva** de outro personagem (roubada): só o dono a joga.
+- **Fome do Vazio** com a habilidade já pronta; **Fenda Faminta** com o Vazio cheio ou sem armadilha à vista; **Eco do Vazio** com o Vazio vazio ou cheio.
 
 ### O catálogo
 
@@ -268,6 +270,21 @@ Para quem quer o detalhe exato, nesta ordem:
 | **Ascensão** | Relíquia | **2** | A habilidade fica pronta na hora. |
 
 Cartas de **mira** escolhem um oponente no mesmo lugar (caminho principal ou o mesmo reino). Mirar num oponente protegido gasta a carta: ver [BLOQUEADO](#a-regra-do-bloqueado).
+
+### Cartas exclusivas
+
+Cada personagem tem **4 cartas próprias**, embaralhadas só no baralho de quem o escolheu (1 cópia de cada). Só o dono as joga: roubadas, ficam mortas na mão de quem pegou. Não saem da Transmutação nem do jackpot da Aposta, e não se fundem. A lista completa (e as propostas dos outros personagens) está em [cartas-exclusivas.md](cartas-exclusivas.md).
+
+| Carta | Dono | Raridade | Custo | Efeito |
+|---|---|---|---|---|
+| **Balança da Justiça** | Têmis | Épica | 3 | Mira: soma a energia dela com a do oponente e divide igual (a sobra fica com ela). |
+| **Espada da Lei** | Têmis | Rara | 2 | Mira: empurra **4** casas, ou **8** se o oponente estiver à frente dela. |
+| **Peso da Culpa** | Têmis | Incomum | 2 | Mira: o oponente descarta **2** cartas ao acaso. |
+| **Venda Sagrada** | Têmis | Comum | 1 | Desarma as armadilhas escondidas nas próximas **12** casas (+1 de energia cada). |
+| **Fome do Vazio** | Zarek | Incomum | 2 | O Vazio ganha **+2** de carga. |
+| **Fenda Faminta** | Zarek | Rara | 2 | O Vazio engole a primeira armadilha, maldição ou "perde a vez" visível nas próximas **15** casas, sem gastar a carga. |
+| **Eco do Vazio** | Zarek | Épica | 3 | A última coisa guardada no Vazio vira duas. |
+| **Chamado da Fenda** | Zarek | Épica | 3 | Mira: puxa o oponente até a fenda do Zarek mais próxima atrás dele, e ela o atinge. Contra a Têmis armada, é só anulada. |
 
 ### Relíquias do céu
 

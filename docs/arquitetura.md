@@ -65,7 +65,7 @@ O `GameState` diz **a verdade** (o jogador está na casa 42). A `MatchView` diz 
 | `landing.ts` | o que acontece ao parar numa casa |
 | `board.ts`, `boardGenerator.ts` | tabuleiro e presets (Treino, Torneio do Poder 200 casas) |
 | `realms.ts`, `blessings.ts` | corredores do céu e do inferno, bênçãos |
-| `cards.ts`, `cardPlay.ts`, `deck.ts`, `draft.ts`, `fusion.ts` | cartas, efeitos, compra, mão cheia, fusão |
+| `cards.ts`, `cardPlay.ts`, `deck.ts`, `draft.ts`, `fusion.ts`, `exclusiveCards.ts` | cartas, efeitos, compra, mão cheia, fusão, cartas exclusivas dos personagens |
 | `abilities.ts` | carga e ativação das habilidades |
 | `players.ts` | proteções (`aimWard`), oponentes no alcance |
 | `<personagem>.ts` | mecânicas próprias: `void`, `fairy`, `kunoichi`, `berserker`, `seraph`, `seals`, `specters`, `arrowRain`, `cardGamble`, `transmutation`, `resurrection`, `hiddenTraps`, `newcomerAbilities` |

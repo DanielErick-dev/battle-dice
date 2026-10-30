@@ -7,6 +7,15 @@ import {
   FUSED_WIND_STEP_TILES,
 } from "@/game/domain/fusion";
 import { AEGIS_TURNS, ARCANE_BLAST_PUSH, HEALING_HERB_ENERGY, type CardId, type Rarity } from "@/game/domain/cards";
+import {
+  BLINDFOLD_RANGE,
+  GUILT_DISCARDS,
+  HUNGRY_RIFT_RANGE,
+  SWORD_PUSH,
+  SWORD_PUSH_AHEAD,
+  VOID_HUNGER_CHARGE,
+} from "@/game/domain/exclusiveCards";
+import { BLIND_SCALE_ENERGY } from "@/game/domain/verdict";
 
 /** Player-facing card copy (pt-BR). Rules live in the domain; this is only what the card says. */
 export const CARD_TEXT: Readonly<Record<CardId, { name: string; description: string }>> = {
@@ -72,6 +81,33 @@ export const CARD_TEXT: Readonly<Record<CardId, { name: string; description: str
     description: `Nada que os oponentes lancem em você funciona por ${AEGIS_TURNS} rodadas, nem o tempo do Cronos.`,
   },
   ascension: { name: "Ascensão", description: "Sua habilidade fica pronta na hora." },
+
+  scalesOfJustice: {
+    name: "Balança da Justiça",
+    description: "Pese sua energia com a de um oponente: cada um fica com metade do total (a sobra é sua).",
+  },
+  swordOfLaw: {
+    name: "Espada da Lei",
+    description: `Empurre um oponente ${SWORD_PUSH} casas para trás, ou ${SWORD_PUSH_AHEAD} se ele estiver à sua frente.`,
+  },
+  weightOfGuilt: {
+    name: "Peso da Culpa",
+    description: `Um oponente descarta ${GUILT_DISCARDS} cartas da mão, ao acaso.`,
+  },
+  sacredBlindfold: {
+    name: "Venda Sagrada",
+    description: `Desarme as armadilhas escondidas nas próximas ${BLINDFOLD_RANGE} casas (+${BLIND_SCALE_ENERGY} de energia cada).`,
+  },
+  voidHunger: { name: "Fome do Vazio", description: `O Vazio ganha +${VOID_HUNGER_CHARGE} de carga.` },
+  hungryRift: {
+    name: "Fenda Faminta",
+    description: `O Vazio engole a primeira armadilha, maldição ou “perde a vez” nas próximas ${HUNGRY_RIFT_RANGE} casas, sem gastar a carga.`,
+  },
+  voidEcho: { name: "Eco do Vazio", description: "A última coisa guardada no Vazio vira duas." },
+  riftCall: {
+    name: "Chamado da Fenda",
+    description: "Puxe um oponente de volta até a sua fenda mais próxima atrás dele. Ela o atinge.",
+  },
 };
 
 export const RARITY_LABEL: Readonly<Record<Rarity, string>> = {
@@ -85,6 +121,8 @@ export const RARITY_LABEL: Readonly<Record<Rarity, string>> = {
 /** What a relic's footer says in place of its rarity. */
 export const RELIC_LABEL = "Divina · Caminho Celestial";
 export const FUSED_LABEL = "Fundida · 3 em 1";
+/** Added to a character's own card's rarity. */
+export const EXCLUSIVE_LABEL = "Exclusiva";
 
 /** What a fused card is called and says instead (see fusion.ts); only the cards that fuse. */
 export const FUSED_TEXT: Readonly<Partial<Record<CardId, { name: string; description: string }>>> = {

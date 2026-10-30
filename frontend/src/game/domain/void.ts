@@ -31,20 +31,20 @@ export function offerSwallow(draft: Draft, playerId: PlayerId, tile: TileId, thr
 
 /** The harm on `tile` goes into the Void and the tile is left harmless for good. */
 export function swallow(draft: Draft, playerId: PlayerId, tile: TileId, threat: Threat): void {
+  updatePlayer(draft, playerId, () => ({ abilityCharge: 0 }));
+  draft.events.push({ type: "abilityUsed", playerId, ability: "theVoid" });
+  devour(draft, playerId, tile, threat);
+}
+
+/** Swallowing without the ability (Hungry Rift): the harm goes in, the charge stays. */
+export function devour(draft: Draft, playerId: PlayerId, tile: TileId, threat: Threat): void {
   const item = harmItem(draft, tile, threat);
   const hidden = threat === "hiddenTrap";
   if (hidden) draft.hiddenTraps = draft.hiddenTraps.filter((trap) => trap !== tile);
   if (!draft.destroyedTraps.includes(tile)) draft.destroyedTraps = [...draft.destroyedTraps, tile];
   draft.pinnedTraps = draft.pinnedTraps.filter((pinned) => pinned !== tile);
-  updatePlayer(draft, playerId, (player) => ({
-    abilityCharge: 0,
-    voidIdle: 0,
-    voidHold: [...player.voidHold, item],
-  }));
-  draft.events.push(
-    { type: "abilityUsed", playerId, ability: "theVoid" },
-    { type: "voidSwallowed", playerId, tile, item, hidden },
-  );
+  updatePlayer(draft, playerId, (player) => ({ voidIdle: 0, voidHold: [...player.voidHold, item] }));
+  draft.events.push({ type: "voidSwallowed", playerId, tile, item, hidden });
 }
 
 function harmItem(draft: Draft, tile: TileId, threat: Threat): VoidItem {

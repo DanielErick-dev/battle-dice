@@ -1,3 +1,5 @@
+import type { AbilityId } from "./abilities";
+
 export type CardId =
   | "windStep"
   | "healingHerb"
@@ -15,7 +17,17 @@ export type CardId =
   | "abyssCall"
   | "celestialLight"
   | "heavenlyAegis"
-  | "ascension";
+  | "ascension"
+  // Themis's own (see exclusiveCards.ts).
+  | "scalesOfJustice"
+  | "swordOfLaw"
+  | "weightOfGuilt"
+  | "sacredBlindfold"
+  // Zarek's own.
+  | "voidHunger"
+  | "hungryRift"
+  | "voidEcho"
+  | "riftCall";
 
 export type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary";
 
@@ -41,6 +53,8 @@ export interface CardDefinition {
   dice: "throw" | "bonus" | null;
   /** Overrides RARITY_COST. */
   cost?: number;
+  /** A character's own card: one copy in their deck only, playable only by whoever has this ability. */
+  exclusive?: AbilityId;
 }
 
 const card = (
@@ -78,6 +92,16 @@ export const CARD_CATALOG: Readonly<Record<CardId, CardDefinition>> = {
   celestialLight: card("celestialLight", "legendary", { relic: true, cost: 0 }),
   heavenlyAegis: card("heavenlyAegis", "legendary", { relic: true, cost: 2 }),
   ascension: card("ascension", "legendary", { relic: true, cost: 2 }),
+
+  scalesOfJustice: card("scalesOfJustice", "epic", { exclusive: "silentVerdict", targetsOpponent: true }),
+  swordOfLaw: card("swordOfLaw", "rare", { exclusive: "silentVerdict", targetsOpponent: true }),
+  weightOfGuilt: card("weightOfGuilt", "uncommon", { exclusive: "silentVerdict", targetsOpponent: true }),
+  sacredBlindfold: card("sacredBlindfold", "common", { exclusive: "silentVerdict" }),
+
+  voidHunger: card("voidHunger", "uncommon", { exclusive: "theVoid" }),
+  hungryRift: card("hungryRift", "rare", { exclusive: "theVoid" }),
+  voidEcho: card("voidEcho", "epic", { exclusive: "theVoid" }),
+  riftCall: card("riftCall", "epic", { exclusive: "theVoid", targetsOpponent: true }),
 };
 
 /** One kind per celestial tile. */
@@ -120,10 +144,15 @@ export function rarityLevel(cardId: CardId): number {
   return RARITY_LEVEL[CARD_CATALOG[cardId].rarity];
 }
 
-/** Relics included; opponent-targeting cards only `withOpponents`. */
+/** Relics included, characters' own cards left out; opponent-targeting cards only `withOpponents`. */
 export function cardsOfLevel(level: number, { withOpponents }: { withOpponents: boolean }): CardId[] {
   return Object.values(CARD_CATALOG)
-    .filter((definition) => RARITY_LEVEL[definition.rarity] === level && (withOpponents || !definition.targetsOpponent))
+    .filter(
+      (definition) =>
+        RARITY_LEVEL[definition.rarity] === level &&
+        !definition.exclusive &&
+        (withOpponents || !definition.targetsOpponent),
+    )
     .map((definition) => definition.id);
 }
 
@@ -135,6 +164,23 @@ export function cardCost(cardId: CardId): number {
 /** Everyone's deck until collections exist: 20 cards solo, 26 with opponents. */
 export function standardDeck({ withOpponents }: { withOpponents: boolean }): CardId[] {
   return Object.values(CARD_CATALOG)
-    .filter((definition) => !definition.relic && (withOpponents || !definition.targetsOpponent))
+    .filter(
+      (definition) => !definition.relic && !definition.exclusive && (withOpponents || !definition.targetsOpponent),
+    )
     .flatMap((definition) => Array<CardId>(COPIES_BY_RARITY[definition.rarity]).fill(definition.id));
+}
+
+/** A character's own cards, one copy each, shuffled into the standard deck of whoever has `ability`. */
+export function exclusiveCards(ability: AbilityId | null, { withOpponents }: { withOpponents: boolean }): CardId[] {
+  return Object.values(CARD_CATALOG)
+    .filter(
+      (definition) =>
+        ability !== null && definition.exclusive === ability && (withOpponents || !definition.targetsOpponent),
+    )
+    .map((definition) => definition.id);
+}
+
+/** The deck a player starts with when the match doesn't hand one in. */
+export function characterDeck(ability: AbilityId | null, options: { withOpponents: boolean }): CardId[] {
+  return [...standardDeck(options), ...exclusiveCards(ability, options)];
 }

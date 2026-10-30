@@ -2,7 +2,7 @@ import type { PointerEvent } from "react";
 import { CARD_CATALOG, cardCost, RARITY_LEVEL, type CardId } from "@/game/domain/cards";
 import { cn } from "@/lib/utils";
 import { CARD_PALETTE, CardArt } from "./CardArt";
-import { cardText, FUSED_LABEL, RARITY_LABEL, RELIC_LABEL } from "./cardText";
+import { cardText, EXCLUSIVE_LABEL, FUSED_LABEL, RARITY_LABEL, RELIC_LABEL } from "./cardText";
 
 /** The most orbs a card's cost is drawn with; a dearer card shows its number instead. */
 const MAX_COST_ORBS = 4;
@@ -23,7 +23,7 @@ interface CardViewProps {
  * follows the pointer (and tilts the card).
  */
 export function CardView({ cardId, fused = false, dimmed = false, selected = false, className }: CardViewProps) {
-  const { rarity, relic } = CARD_CATALOG[cardId];
+  const { rarity, relic, exclusive } = CARD_CATALOG[cardId];
   const stars = RARITY_LEVEL[rarity];
   const palette = CARD_PALETTE[cardId];
   const text = cardText(cardId, fused);
@@ -80,7 +80,15 @@ export function CardView({ cardId, fused = false, dimmed = false, selected = fal
           {text.description}
         </p>
         <footer className="flex items-center justify-between gap-1 px-2 py-1 text-[8px] font-bold tracking-[0.2em] text-zinc-400 uppercase">
-          <span className="truncate">{fused ? FUSED_LABEL : relic ? RELIC_LABEL : RARITY_LABEL[rarity]}</span>
+          <span className="truncate">
+            {fused
+              ? FUSED_LABEL
+              : relic
+                ? RELIC_LABEL
+                : exclusive
+                  ? `${RARITY_LABEL[rarity]} · ${EXCLUSIVE_LABEL}`
+                  : RARITY_LABEL[rarity]}
+          </span>
           <span className="shrink-0 tracking-normal text-amber-300" aria-label={`Nível ${stars} de raridade`}>
             {"★".repeat(stars)}
           </span>

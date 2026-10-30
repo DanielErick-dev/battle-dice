@@ -20,6 +20,14 @@ export const CARD_PALETTE: Readonly<Record<CardId, { from: string; to: string }>
   celestialLight: { from: "#fef9c3", to: "#ca8a04" },
   heavenlyAegis: { from: "#e0f2fe", to: "#0369a1" },
   ascension: { from: "#fae8ff", to: "#7e22ce" },
+  scalesOfJustice: { from: "#93c5fd", to: "#0f172a" },
+  swordOfLaw: { from: "#cbd5e1", to: "#1e293b" },
+  weightOfGuilt: { from: "#64748b", to: "#020617" },
+  sacredBlindfold: { from: "#bfdbfe", to: "#1e3a8a" },
+  voidHunger: { from: "#4c1d95", to: "#000000" },
+  hungryRift: { from: "#6d28d9", to: "#09090b" },
+  voidEcho: { from: "#7c3aed", to: "#030712" },
+  riftCall: { from: "#5b21b6", to: "#0a0a0a" },
 };
 
 /** Procedural artwork for each card (inline SVG, 100×70 viewBox): no image files or rights. */
@@ -363,6 +371,132 @@ const ART: Record<CardId, ReactNode> = {
       ))}
       <polygon points="30,34 26,40 34,40" fill="#ffffff" opacity="0.8" />
       <polygon points="70,34 66,40 74,40" fill="#ffffff" opacity="0.8" />
+    </g>
+  ),
+  // A golden balance, level: weighed and split.
+  scalesOfJustice: (
+    <g stroke="#fde68a" strokeLinecap="round">
+      <line x1="50" y1="12" x2="50" y2="60" strokeWidth="3" />
+      <line x1="30" y1="62" x2="70" y2="62" strokeWidth="3" />
+      <line x1="22" y1="22" x2="78" y2="22" strokeWidth="2.5" />
+      {[22, 78].map((x) => (
+        <g key={x}>
+          <path d={`M${x} 22 L${x - 9} 42 M${x} 22 L${x + 9} 42`} strokeWidth="1" />
+          <path d={`M${x - 11} 42 Q${x} 52 ${x + 11} 42 Z`} fill="#fbbf24" strokeWidth="1.5" />
+        </g>
+      ))}
+      <circle cx="50" cy="12" r="3.5" fill="#fef3c7" />
+    </g>
+  ),
+  // A longsword point down, cross guard and all, under a ring of light.
+  swordOfLaw: (
+    <g strokeLinecap="round">
+      <ellipse cx="50" cy="16" rx="16" ry="4" fill="none" stroke="#bfdbfe" strokeWidth="1.5" opacity="0.7" />
+      <path d="M46 24 L54 24 L52 62 L50 67 L48 62 Z" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="1" />
+      <line x1="50" y1="26" x2="50" y2="60" stroke="#94a3b8" strokeWidth="0.8" />
+      <line x1="36" y1="22" x2="64" y2="22" stroke="#fbbf24" strokeWidth="4" />
+      <rect x="47.5" y="8" width="5" height="13" rx="1.5" fill="#78350f" />
+      <circle cx="50" cy="7" r="3" fill="#fbbf24" />
+    </g>
+  ),
+  // A heavy weight, chains to it, crushing cards.
+  weightOfGuilt: (
+    <g>
+      {[-1, 1].map((side) => (
+        <rect
+          key={side}
+          x={50 + side * 18 - 7}
+          y="46"
+          width="14"
+          height="19"
+          rx="2"
+          fill="#e2e8f0"
+          opacity="0.5"
+          transform={`rotate(${side * 18} ${50 + side * 18} 56)`}
+        />
+      ))}
+      <path d="M50 4 L50 20" stroke="#94a3b8" strokeWidth="2" strokeDasharray="3 2" />
+      <path d="M34 50 L40 22 L60 22 L66 50 Z" fill="#334155" stroke="#94a3b8" strokeWidth="2" />
+      <circle cx="50" cy="20" r="4" fill="none" stroke="#94a3b8" strokeWidth="2.5" />
+      <text x="50" y="44" textAnchor="middle" fontSize="11" fontWeight="900" fill="#cbd5e1">
+        ⚖
+      </text>
+    </g>
+  ),
+  // A blindfold, its knot trailing, over a trap coming apart.
+  sacredBlindfold: (
+    <g>
+      <path d="M22 56 L36 46 L46 58 L56 46 L66 58 L78 50" fill="none" stroke="#f87171" strokeWidth="2" opacity="0.5" />
+      <path d="M14 26 Q50 18 86 26 L86 36 Q50 28 14 36 Z" fill="#eff6ff" stroke="#93c5fd" strokeWidth="1.5" />
+      <path d="M86 30 Q94 40 88 52 M86 32 Q98 36 96 46" fill="none" stroke="#eff6ff" strokeWidth="2.5" />
+      {[
+        [30, 14],
+        [70, 12],
+      ].map(([x, y]) => (
+        <Star key={x} x={x} y={y} r={3} fill="#bfdbfe" />
+      ))}
+    </g>
+  ),
+  // A maw of darkness opening, ringed with violet.
+  voidHunger: (
+    <g>
+      <ellipse cx="50" cy="36" rx="26" ry="20" fill="#000000" stroke="#a78bfa" strokeWidth="2" />
+      {Array.from({ length: 9 }, (_, i) => {
+        const x = 30 + i * 5;
+        return (
+          <polygon
+            key={i}
+            points={`${x},${i % 2 ? 50 : 22} ${x + 3},${i % 2 ? 42 : 30} ${x + 6},${i % 2 ? 50 : 22}`}
+            fill="#ddd6fe"
+            opacity="0.7"
+          />
+        );
+      })}
+      <circle cx="50" cy="36" r="5" fill="#7c3aed" opacity="0.8" />
+    </g>
+  ),
+  // A crack in the path swallowing a trap's spikes.
+  hungryRift: (
+    <g>
+      <path d="M8 50 L92 50" stroke="#52525b" strokeWidth="10" />
+      <path
+        d="M30 50 L40 44 L46 56 L54 42 L60 56 L70 50 L60 60 L50 52 L40 62 Z"
+        fill="#000000"
+        stroke="#8b5cf6"
+        strokeWidth="1.5"
+      />
+      {[42, 50, 58].map((x, i) => (
+        <polygon
+          key={x}
+          points={`${x - 3},${30 + i * 2} ${x},${20 + i * 2} ${x + 3},${30 + i * 2}`}
+          fill="#f87171"
+          opacity={0.9 - i * 0.25}
+        />
+      ))}
+      <path d="M50 22 Q46 34 50 46" fill="none" stroke="#a78bfa" strokeWidth="1.5" strokeDasharray="2 2" />
+    </g>
+  ),
+  // One shape of shadow mirrored into two.
+  voidEcho: (
+    <g>
+      {[34, 66].map((x, i) => (
+        <g key={x} opacity={i ? 0.55 : 1}>
+          <circle cx={x} cy="36" r="15" fill="#000000" stroke="#c4b5fd" strokeWidth="2" />
+          <path d={`M${x - 7} 40 L${x} 28 L${x + 7} 40 Z`} fill="#a78bfa" />
+        </g>
+      ))}
+      <path d="M48 36 L52 36" stroke="#ede9fe" strokeWidth="2" strokeDasharray="1 2" />
+    </g>
+  ),
+  // Shadow hands reaching from a rift to pull someone back.
+  riftCall: (
+    <g>
+      <ellipse cx="30" cy="54" rx="18" ry="6" fill="#000000" stroke="#8b5cf6" strokeWidth="1.5" />
+      <path d="M30 54 Q40 30 66 30" fill="none" stroke="#1e1b4b" strokeWidth="6" strokeLinecap="round" />
+      <path d="M30 54 Q40 30 66 30" fill="none" stroke="#a78bfa" strokeWidth="1.2" strokeLinecap="round" />
+      <circle cx="74" cy="26" r="6" fill="#e5e7eb" />
+      <path d="M68 50 Q74 32 80 50 Z" fill="#e5e7eb" />
+      <path d="M60 30 L68 26 M62 34 L69 30" stroke="#a78bfa" strokeWidth="1.5" strokeLinecap="round" />
     </g>
   ),
 };

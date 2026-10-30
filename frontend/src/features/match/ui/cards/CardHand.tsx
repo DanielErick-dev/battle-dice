@@ -69,9 +69,18 @@ export function CardHand({
         return "Sua habilidade já está pronta";
       case "NO_HELL":
         return "Não há inferno neste tabuleiro";
+      case "NOT_YOUR_CARD":
+        return "Carta de outro personagem: só o dono pode usá-la";
+      case "VOID_FULL":
+        return "O Vazio já está cheio";
+      case "VOID_EMPTY":
+        return "O Vazio está vazio";
+      case "NO_HARM_AHEAD":
+        return "Nenhuma armadilha à vista à frente";
     }
     if (CARD_CATALOG[card.cardId].targetsOpponent && targetsFor(card).length === 0) {
-      return card.cardId === "abyssCall" ? "Ninguém fora do céu ou do inferno ao seu alcance" : "Sem oponentes";
+      if (card.cardId === "abyssCall") return "Ninguém fora do céu ou do inferno ao seu alcance";
+      return card.cardId === "riftCall" ? "Nenhum oponente com uma fenda sua atrás dele" : "Sem oponentes";
     }
     return null;
   };

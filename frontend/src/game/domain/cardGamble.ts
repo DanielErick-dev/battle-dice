@@ -105,7 +105,8 @@ function isEpic(card: CardInstance): boolean {
 /** Alone on the board, so no opponent-targeting epics; they join the deck for good. */
 function conjureEpics(draft: Draft, playerId: PlayerId): void {
   const pool = Object.values(CARD_CATALOG).filter(
-    (definition) => definition.rarity === "epic" && !definition.relic && !definition.targetsOpponent,
+    (definition) =>
+      definition.rarity === "epic" && !definition.relic && !definition.exclusive && !definition.targetsOpponent,
   );
   for (let index = 0; index < CARD_GAMBLE_EPICS && pool.length > 0; index++) {
     const card: CardInstance = {

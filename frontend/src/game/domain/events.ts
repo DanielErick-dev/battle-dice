@@ -242,6 +242,10 @@ export type GameEvent =
   | { type: "voidCast"; playerId: PlayerId; tile: TileId; item: VoidItem }
   /** The idle Void took over the spell on `tile`. */
   | { type: "voidSeized"; playerId: PlayerId; tile: TileId; item: VoidItem }
+  /** The Void Echo: the last thing in the Void, now twice. */
+  | { type: "voidEchoed"; playerId: PlayerId; item: VoidItem }
+  /** The Scales of Justice: both players' energy after it was split evenly. */
+  | { type: "energyWeighed"; playerId: PlayerId; targetId: PlayerId; energy: number; targetEnergy: number }
   /** Traps sprung, smashed or pinned charged the Void. */
   | { type: "voidFed"; playerId: PlayerId; charge: number }
   /** Thrown back for stopping on her tile, or `ahead` when she stopped on theirs. */

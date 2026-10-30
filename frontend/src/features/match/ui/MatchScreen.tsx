@@ -282,7 +282,14 @@ function Match({ preset, mapId, roster, chargedAbilities, audio }: MatchProps) {
             <div className="pointer-events-auto max-sm:mt-20">
               <CardHand
                 key={activePlayer.id}
-                table={{ board, blackFlames: view.blackFlames, winter: view.winter }}
+                table={{
+                  board,
+                  blackFlames: view.blackFlames,
+                  winter: view.winter,
+                  destroyedTraps: view.destroyedTraps,
+                  pinnedTraps: view.pinnedTraps,
+                  enchantedTiles: view.enchantedTiles,
+                }}
                 player={activePlayer}
                 // Who each card can be aimed at (see cardTargets); a protected one turns it away.
                 players={view.players}

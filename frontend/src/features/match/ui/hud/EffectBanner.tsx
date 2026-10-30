@@ -71,6 +71,11 @@ const COPY: Record<
     tone: "text-violet-300",
     subtitle: (effect, name) => `${name} tomou ${voidName(effect)} para o Vazio`,
   },
+  voidEchoed: {
+    title: "ECO DO VAZIO!",
+    tone: "text-violet-300",
+    subtitle: (effect, name) => `No Vazio de ${name}, ${voidName(effect)} agora são dois`,
+  },
   snowDrained: {
     title: "PRESO NA NEVE",
     tone: "text-sky-200",
@@ -157,6 +162,11 @@ const COPY: Record<
       energyGained
         ? `A Balança Cega a sentiu: +${energyGained} de energia`
         : "A Balança Cega a sentiu (energia no máximo)",
+  },
+  weighed: {
+    title: "BALANÇA DA JUSTIÇA!",
+    tone: "text-blue-300",
+    subtitle: ({ count }, name) => `As energias foram pesadas: ${name} fica com ${count ?? 0}`,
   },
   dragged: {
     title: "ARRASTADO AO INFERNO!",

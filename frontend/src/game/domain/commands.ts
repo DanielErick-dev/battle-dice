@@ -88,7 +88,10 @@ export type GameErrorCode =
   | "NO_GRACE_PENDING"
   | "INVALID_GRACE"
   | "VOID_FULL"
-  | "INVALID_VOID";
+  | "INVALID_VOID"
+  | "VOID_EMPTY"
+  | "NO_HARM_AHEAD"
+  | "NOT_YOUR_CARD";
 
 export class GameRuleError extends Error {
   constructor(readonly code: GameErrorCode) {

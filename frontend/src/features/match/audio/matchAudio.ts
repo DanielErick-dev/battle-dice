@@ -31,6 +31,7 @@ const EFFECT_SOUNDS: Record<TileEffectKind, (sounds: MatchSounds, effect: TileEf
   riftOpened: (sounds) => sounds.portal(),
   voidCast: (sounds) => sounds.portal(),
   voidSeized: (sounds) => sounds.hellGrasp(),
+  voidEchoed: (sounds) => sounds.hellGrasp(),
   trapBlocked: (sounds) => sounds.shieldBlock(),
   abilityBlocked: (sounds) => sounds.shieldBlock(),
   trapCurse: (sounds) => sounds.penalty(),
@@ -56,6 +57,7 @@ const EFFECT_SOUNDS: Record<TileEffectKind, (sounds: MatchSounds, effect: TileEf
     sounds.thunder(0.9);
   },
   disarmed: (sounds) => sounds.bonus(),
+  weighed: (sounds) => sounds.penalty(),
   gamble: (sounds, effect) => (effect.gamble?.won ? sounds.bonus() : sounds.penalty()),
   // Breaking one's own seal (alone on the board) pays out; anyone else's strikes.
   seal: (sounds, effect) => (effect.seal?.owner === effect.playerId ? sounds.bonus() : sounds.trap()),

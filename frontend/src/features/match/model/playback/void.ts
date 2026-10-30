@@ -27,7 +27,9 @@ function released(hold: readonly VoidItem[], item: VoidItem): VoidItem[] {
   return hold.filter((_, held) => held !== index);
 }
 
-export const voidSteps: StepHandlers<"voidSwallowed" | "riftOpened" | "voidCast" | "voidSeized" | "voidFed"> = {
+export const voidSteps: StepHandlers<
+  "voidSwallowed" | "riftOpened" | "voidCast" | "voidSeized" | "voidEchoed" | "voidFed"
+> = {
   voidSwallowed: (event, timings) => [
     {
       apply: (view) => {
@@ -101,6 +103,19 @@ export const voidSteps: StepHandlers<"voidSwallowed" | "riftOpened" | "voidCast"
           "voidSeized",
           event.item,
         );
+      },
+      durationMs: timings.voidRiftMs,
+    },
+  ],
+  voidEchoed: (event, timings) => [
+    {
+      apply: (view) => {
+        const echoed = withPlayer(view, event.playerId, (player) => ({
+          voidHold: [...player.voidHold, event.item],
+          voidIdle: 0,
+        }));
+        const tile = view.players.find((player) => player.id === event.playerId)?.position ?? 0;
+        return surfaced(echoed, event.playerId, tile, "seize", "voidEchoed", event.item);
       },
       durationMs: timings.voidRiftMs,
     },

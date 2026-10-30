@@ -1,5 +1,5 @@
 import { createBoard, type BoardDefinition } from "./board";
-import { standardDeck, type CardId } from "./cards";
+import { characterDeck, type CardId } from "./cards";
 import type { GameCommand } from "./commands";
 import { COMMAND_HANDLERS } from "./handlers";
 import { openingState, type NewPlayer } from "./handlers/setup";
@@ -13,7 +13,7 @@ export type { GameDependencies, GameTransition } from "./handlers/types";
 
 export interface GameOptions {
   random?: RandomSource;
-  /** Defaults to the standard deck; collections will fill this in. */
+  /** Defaults to the standard deck plus each character's own cards; collections will fill this in. */
   decks?: Readonly<Record<PlayerId, readonly CardId[]>>;
 }
 
@@ -27,7 +27,7 @@ export function createGame(
   const decks = Object.fromEntries(
     players.map((player) => [
       player.id,
-      options.decks?.[player.id] ?? standardDeck({ withOpponents: players.length > 1 }),
+      options.decks?.[player.id] ?? characterDeck(player.ability ?? null, { withOpponents: players.length > 1 }),
     ]),
   );
   return openingState(createBoard(board), players, decks, options.random ?? Math.random);

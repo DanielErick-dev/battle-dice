@@ -258,6 +258,13 @@ export function battleLogLine(event: GameEvent, players: readonly Player[]): Log
         event.playerId,
         `O Vazio de ${who(event.playerId)} tomou: ${voidItemName(event.item)}, da casa ${event.tile}`,
       );
+    case "voidEchoed":
+      return line(event.playerId, `O Vazio de ${who(event.playerId)} duplicou: ${voidItemName(event.item)}`);
+    case "energyWeighed":
+      return line(
+        event.playerId,
+        `⚖ ${who(event.playerId)} pesou a energia com ${who(event.targetId)}: ficou com ${event.energy}, e o outro com ${event.targetEnergy}`,
+      );
     case "susanooRepelled":
       return line(event.by, `O Susanoo de ${who(event.by)} repeliu ${who(event.playerId)}`);
     case "cardTransmuted":

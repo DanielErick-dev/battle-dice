@@ -34,15 +34,16 @@ import {
   FUSED_WIND_STEP_TILES,
 } from "./fusion";
 import { isFrozen } from "./fairy";
-import type { Board, CardInstance, GameState, Player, PlayerId, RealmEntry, TileId } from "./types";
+import { exclusiveBlocker, playExclusive, riftBehind, type HarmTable } from "./exclusiveCards";
+import type { Board, CardInstance, Player, PlayerId, RealmEntry, TileId } from "./types";
 
 export interface CardChoice {
   targetId?: PlayerId;
   value?: number;
 }
 
-/** What a card's blockers look at beyond the player: the board and what covers its tiles. */
-export type CardTable = Pick<GameState, "board" | "blackFlames" | "winter">;
+/** What a card's blockers look at beyond the player: the board and what covers or has emptied its tiles. */
+export type CardTable = HarmTable;
 
 /** Blockers from the player's own state, shared with the UI; turn rules (cards per turn) are checked on play. */
 export function cardBlocker(table: CardTable, player: Player, cardId: CardId): GameErrorCode | null {
@@ -59,8 +60,11 @@ export function cardBlocker(table: CardTable, player: Player, cardId: CardId): G
   if (cardId === "celestialLight" && player.energy >= MAX_ENERGY) return "ENERGY_FULL";
   if (cardId === "ascension" && (player.ability === null || isAbilityReady(player))) return "ABILITY_ALREADY_READY";
   if (cardId === "abyssCall" && !board.tracks.some((track) => track.realm === "infernal")) return "NO_HELL";
-  return null;
+  return exclusiveBlocker(table, player, cardId);
 }
+
+/** Turned back by Themis's Silent Verdict, these do nothing to whoever aimed them. */
+const VERDICT_UNDOES: readonly CardId[] = ["fateSwap", "riftCall"];
 
 /** Movement cards resolve the tile they end on, like a roll would. */
 export function playCard(draft: Draft, playerId: PlayerId, cardUid: string, choice: CardChoice): void {
@@ -93,8 +97,9 @@ export function playCard(draft: Draft, playerId: PlayerId, cardUid: string, choi
   }
   if (target && verdictArmed(target)) {
     passVerdict(draft, target.id, playerId, { cardId: card.cardId });
-    // A swap has no side to turn: it's only undone.
-    if (card.cardId !== "fateSwap") applyEffect(draft, target.id, card, { targetId: playerId, value, portal });
+    // A swap has no side to turn, and Zarek's rifts never harm him: those are only undone.
+    if (!VERDICT_UNDOES.includes(card.cardId))
+      applyEffect(draft, target.id, card, { targetId: playerId, value, portal });
     return;
   }
   applyEffect(draft, playerId, card, { targetId, value, portal });
@@ -242,6 +247,8 @@ function applyEffect(
       // Fused (Apotheosis): another turn once this one is over.
       if (card.fused) draft.extraTurn = true;
       break;
+    default:
+      playExclusive(draft, playerId, card.cardId, targetId);
     case "blindingFlash":
       if (targetId === null) break;
       draft.events.push({
@@ -259,6 +266,8 @@ function applyEffect(
 /** Anyone in the same place, protected or not; the Call of the Abyss only reaches the main path (see dragTargets). */
 export function cardTargets(board: Board, players: readonly Player[], playerId: PlayerId, cardId: CardId): Player[] {
   const inSpace = opponentsInSpace(board, players, playerId);
+  // Only those with one of the player's rifts somewhere behind them can be called back to it.
+  if (cardId === "riftCall") return inSpace.filter((player) => riftBehind(board, player, playerId) !== null);
   if (cardId !== "abyssCall") return inSpace;
   const draggable = new Set(dragTargets(board, players, playerId).map((player) => player.id));
   return inSpace.filter((player) => draggable.has(player.id));
@@ -284,7 +293,7 @@ function validValue(value: number | undefined): number {
  * black fire or ice isn't a portal while it lasts, so it's passed by.
  */
 export function nextPortalAhead(
-  { board, blackFlames, winter }: CardTable,
+  { board, blackFlames, winter }: Pick<CardTable, "board" | "blackFlames" | "winter">,
   position: TileId,
   entry?: RealmEntry | null,
 ): TileId | null {
