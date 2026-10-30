@@ -4,6 +4,7 @@ import type { Board, Player } from "@/game/domain/types";
 import type { MatchView } from "../model/matchView";
 import { tileOffsetFor, TILE_SIZE, type BoardLayout, type Vec3 } from "./boardLayout";
 import { LEVITATE_HEIGHT } from "./character/figure";
+import { headingOf } from "./token/motion";
 
 /** How far ahead of the one he trampled the Berserker stands to shove them, face to face. */
 const SHOVE_GAP = TILE_SIZE * 0.45;
@@ -18,8 +19,8 @@ export function pathDirection(board: Board, layout: BoardLayout, tile: number): 
 }
 
 /** The angle round the vertical a figure faces when looking along `direction` (0 = +z). */
-export function headingAlong([x, , z]: Vec3): number {
-  return Math.hypot(x, z) < 1e-4 ? 0 : Math.atan2(x, z);
+export function headingAlong(direction: Vec3): number {
+  return headingOf(direction) ?? 0;
 }
 
 /** Where a player's figure is: on their tile, raised while they levitate. */

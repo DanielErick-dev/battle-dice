@@ -18,12 +18,27 @@ A cena só **lê** a `MatchView` (o que deve aparecer agora) e desenha. Ela nunc
 | `character/` | Tudo de personagem: modelo animado (`CharacterModel`), asas, cadeiras, e os efeitos de cada habilidade e intro |
 | `vfx/` | Efeitos feitos com a biblioteca wawa-vfx (partículas de cura) |
 | `effects/` | **O registro de efeitos**: quem monta cada efeito e quando (veja abaixo) |
-| `PlayerToken.tsx` | Um jogador no tabuleiro: o movimento, o clipe que toca e os efeitos do registro em volta dele |
+| `PlayerToken.tsx` | Um jogador no tabuleiro: liga o movimento e a pose (`token/`) ao Three.js a cada quadro e monta os efeitos do registro em volta dele |
+| `token/` | A lógica do boneco, sem React: `motion.ts` (o caminho casa a casa) e `pose.ts` (o clipe que toca e o corpo). Veja abaixo |
 | `tokenSignals.ts` | Lê a `MatchView` e diz o que cada boneco está fazendo (correndo, sendo empurrado, usando a habilidade…) |
 | `tokenPlacement.ts` | Onde cada boneco fica e para onde olha |
 | `cameraFocus.ts` | O que a câmera acompanha e onde o dado cai |
 | `TileMesh.tsx`, `tileTheme.ts`, `useTileFaceTexture.ts` | As casas: lajes da própria estrada (cortadas na curva por `layout.slab`), com uma runa acesa por tipo e o número na borda; o texto aparece numa etiqueta ao passar o mouse |
 | `DiceThrow.tsx` | O dado 3D rolando |
+
+## O boneco (`PlayerToken` + `token/`)
+
+A cada quadro o `PlayerToken` faz três passos, nesta ordem:
+
+1. **Movimento** (`token/motion.ts`). `followTarget` coloca o boneco no primeiro alvo e enfileira cada alvo novo como um *waypoint* (`travel`: `walk`, `teleport` ou `dash`). `advanceMotion` anda pelo *segmento* atual e pega o próximo waypoint quando ele acaba. O segmento é uma união discriminada por `motion`: `run` (com `arriving` na última casa da caminhada, que desacelera até parar), `leap` (o arco de um teleporte ou de um movimento longo demais para correr), `dash` (o raio do Sábio) e `slide` (sentado, só abre espaço na própria casa, sem levantar nem virar). O movimento também decide para onde o boneco olha (`heading`).
+2. **Pose** (`token/pose.ts`). `stepPose` recebe os sinais do `tokenSignals`, o que o movimento fez neste quadro (`MotionFrame`), a duração dos clipes do modelo e o relógio, e devolve uma `Pose`: o clipe que toca, o `heading` corrigido (o Berserker de costas para o caminho ao empurrar, a Têmis olhando para quem ela julga), o que some (`hidden` dentro do raio, `gone` no Arrasto do Inferno), os deslocamentos do corpo (`spin`, `lunge`, `reel`, `sunk`) e os atos que começaram agora (`landingAt`, `shoveAt`, `hopBurst`). O estado de cada ato (quando começou, qual id já tocou) fica em `TokenActs`. A ordem dos atos dentro de `stepPose` importa: cada um lê o que os anteriores decidiram.
+3. **Three.js** (`PlayerToken.tsx`). Aplica a pose: escreve o clipe na ref que o `CharacterModel` lê, atualiza as refs `live` dos efeitos, gira o boneco aos poucos até o `heading` e move o corpo.
+
+Prioridade dos clipes, do mais forte ao mais fraco: `knocked` → `hop` → `shove` → `dash` → `land` → reação da Têmis (`guard` → `cast` → `scoff`) → `brake` → `run`/`float` → `sit` → `cast` → `rest`/`float`/`idle`.
+
+O `CharacterModel` toca o clipe pedido. Como cada clipe toca (velocidade, se toca uma vez só) e quanto dura a transição entre dois clipes ficam em `character/clipPlayback.ts`, numa tabela com uma linha por clipe: um clipe novo em `CharacterClip` não compila até ganhar a sua linha.
+
+`motion.ts`, `pose.ts` e `clipPlayback.ts` têm testes vitest ao lado (`*.test.ts`). Para mudar como um boneco se comporta, mexa neles e no teste, não no componente.
 
 ## Boas práticas que seguimos aqui
 

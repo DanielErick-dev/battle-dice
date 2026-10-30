@@ -30,11 +30,9 @@ export function tokenSignals(view: MatchView, player: Player): TokenSignals {
     knocked: trample?.victim === id && trample.phase === "flying" ? trample.id : null,
     hop: own?.kind === "enchanted" && own.enchanted?.owner === id ? effectKey(own) : null,
     dragged:
-      drag?.targetId === id && drag.phase !== "over"
+      drag?.targetId === id && (drag.phase !== "over" || effect?.kind === "dragged")
         ? { id: drag.id, phase: drag.phase }
-        : drag?.targetId === id && effect?.kind === "dragged"
-          ? { id: drag.id, phase: "over" }
-          : null,
+        : null,
     cast: cast?.playerId === id ? cast : null,
     abilityCast: own?.kind === "abilityUsed" ? effectKey(own) : null,
     fell: own?.kind === "fallen" ? effectKey(own) : null,
@@ -42,13 +40,15 @@ export function tokenSignals(view: MatchView, player: Player): TokenSignals {
   };
 }
 
+const TELEPORTS: ReadonlySet<TileEffectView["kind"]> = new Set([
+  "portal",
+  "trap",
+  "hiddenTrap",
+  "teleport",
+  "realmEnter",
+  "trampled",
+]);
+
 function isTeleport(effect: TileEffectView | null): boolean {
-  return (
-    effect?.kind === "portal" ||
-    effect?.kind === "trap" ||
-    effect?.kind === "hiddenTrap" ||
-    effect?.kind === "teleport" ||
-    effect?.kind === "realmEnter" ||
-    effect?.kind === "trampled"
-  );
+  return effect !== null && TELEPORTS.has(effect.kind);
 }
