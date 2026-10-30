@@ -31,6 +31,8 @@ Uma partida local tem de **1 a 4 jogadores**, e o mesmo personagem pode ser esco
 As durações e cargas são contadas nas **suas** vezes: um efeito "por 3 rodadas" desconta 1 a cada vez sua que termina, e a carga da habilidade sobe 1 a cada vez sua que começa. Como cada um joga uma vez por rodada, dá no mesmo, com duas exceções:
 
 - **Vez extra** (casa de vez extra, Apoteose, Engrenagem do Tempo sem alvo) conta como mais uma vez sua: carrega, dá energia e desconta durações.
+- **Vez extra + vez perdida:** se você ainda tinha uma vez extra e, nesta jogada, ficou preso (perde a vez, neve, gelo), a vez extra **é gasta como a primeira vez perdida** e a vez passa para o próximo.
+- **Preso antes de rolar:** se uma carta ou habilidade te leva para um perde a vez, neve ou gelo antes da rolagem, a sua vez **acaba na hora**, sem rolar o dado.
 - **Vez perdida** (perde a vez, neve, correntes, Engrenagem do Tempo) não conta para nada: não carrega a habilidade, não dá energia e não desconta levitação, armadura, bênçãos nem o seu fogo negro. Tudo fica congelado até você voltar a jogar.
 
 > Exemplo: "fica pronta em 3 turnos" quer dizer "na sua 3ª vez de jogar". "Armadura por 3 rodadas, contando esta" quer dizer a vez em que você a ergueu e as duas seguintes.
@@ -45,7 +47,7 @@ Antes de rolar o dado, em qualquer ordem e quantas vezes as regras deixarem:
 
 Por fim você **rola o dado**: anda, resolve a casa onde parou e a vez passa. **Rolar é o que encerra a vez.** Jogar uma carta ou usar a habilidade nunca encerra.
 
-Algumas escolhas pausam o jogo até serem respondidas: descartar com a mão cheia, decidir se usa a Armadura do Vazio, a escolha de Seraphiel no céu, a escolha das cartas da Pilhagem.
+Algumas escolhas pausam o jogo até serem respondidas: descartar com a mão cheia, decidir se o Vazio do Zarek engole a armadilha, a escolha de Seraphiel no céu, a escolha das cartas da Pilhagem.
 
 ### O dado
 
@@ -75,9 +77,9 @@ Energia paga as cartas. Também vem de casas de energia (+2), da Fonte de Luz (+
 
 | Ciclo | Habilidades |
 |---|---|
-| **2** | Armadura do Vazio |
-| **3** | Conjuração Dupla, Vento a Favor, Revisão Relâmpago, Bênção do Serafim, Transmutação, Aposta do Coringa |
-| **5** | Levitação Carmesim, Fúria Adormecida, Chuva de Flechas, Ressurreição, Escritura dos 4 Selos, Aparições Espectrais, Florescimento Feérico, Maré Purificadora, Indomável, Baluarte Sagrado, Canhão de Plasma |
+| **3** | O Vazio (mais +1 por armadilha disparada, destruída ou presa), Conjuração Dupla, Vento a Favor, Revisão Relâmpago, Bênção do Serafim, Transmutação, Aposta do Coringa |
+| **4** | Veredito Silencioso (reativo, carga secreta) |
+| **5** | Levitação Carmesim, Fúria Adormecida, Chuva de Flechas, Ressurreição, Escritura dos 4 Selos, Aparições Espectrais, Florescimento Feérico, Maré Purificadora, Indomável, Canhão de Plasma |
 | **6** | Despertar Ocular |
 | **7** | Arrastar ao Inferno, Engrenagem do Tempo |
 
@@ -181,7 +183,7 @@ As 18 casas alternam as **quatro bênçãos** e as **três relíquias** (ver [Re
 
 - **Enquanto você está no céu, as bênçãos esperam**: não funcionam e não se gastam. Elas começam a valer, e a contar, quando você volta ao caminho.
 - A vez em que você recebe a bênção não desconta.
-- Receber de novo uma bênção que você já tem recomeça a contagem dela.
+- Bênçãos iguais **se acumulam**: cada cópia conta o próprio tempo. Asas e Fonte de Luz somam por cópia (duas Asas dão +4 por rolagem).
 
 > no código: `board.ts`, `boardGenerator.ts`, `realms.ts`, `blessings.ts`, `hiddenTraps.ts`, `landing.ts`
 
@@ -196,10 +198,9 @@ Para quem quer o detalhe exato, nesta ordem:
    3. **Levitando?** Nada da casa te afeta.
    4. Seraphiel pisando no inferno **cai** (vira o Anjo Caído).
    5. **Fogo negro** na casa: só o fogo age.
-   6. **Neve da Fada** na casa: só a neve age.
-   7. **Gelo do Inverno Eterno**: só o gelo age.
+   6. **Neve da Fada** ou **gelo do Inverno Eterno** na casa: só a neve age (o gelo é a mesma neve).
    8. **Selo** na casa: o selo quebra e nada mais acontece.
-   9. **Ameaça** (armadilha, escondida, maldição) ou **perde a vez**. Quem protege, nesta ordem: Anjo Caído no inferno, Indomável, Susanoo (não contra a escondida), Auréola (não contra perde a vez), Armadura do Vazio (o jogador escolhe), Escudo Arcano (só armadilhas).
+   9. **Ameaça** (armadilha, escondida, maldição) ou **perde a vez**. Quem protege, nesta ordem: Anjo Caído no inferno, Indomável, Susanoo (não contra a escondida), Auréola (não contra perde a vez), o Vazio do Zarek (ele escolhe; também engole o perde a vez), Escudo Arcano (só armadilhas).
    10. Senão, o efeito normal da casa (portal, bênção, carta…).
 3. **Depois**: as armadilhas presas por flechas que você atravessou voltam a funcionar.
 
@@ -257,7 +258,7 @@ Para quem quer o detalhe exato, nesta ordem:
 | **Rajada Arcana** | Incomum | 2 | Mira: empurre um oponente **7** casas para trás. |
 | **Fúria Selvagem** | Rara | 2 | Lançamento: role 2 dados e some os dois. |
 | **Clarão Ofuscante** | Rara | 2 | Mira: o oponente perde a próxima vez. |
-| **Portal Místico** | Épica | 3 | Vá direto ao próximo portal do caminho principal e atravesse-o (dentro de um reino, conta a partir do portal por onde você entrou). |
+| **Portal Místico** | Épica | 3 | Vá direto ao próximo portal do caminho principal e atravesse-o (dentro de um reino, conta a partir do portal por onde você entrou). Um portal coberto por fogo negro ou gelo do Inverno é pulado. |
 | **Runa do Destino** | Épica | 3 | Lançamento: escolha o valor (1 a 6) da próxima rolagem. |
 | **Despertar Ancestral** | Épica | 3 | Bônus: **+3** nas próximas **2** rolagens. |
 | **Chamado do Abismo** | Épica | 3 | Mira: arraste ao inferno um oponente que esteja no caminho principal. Ele anda o inferno inteiro e sai na casa de onde foi tirado (é a carta do [Arrastar ao Inferno](#18b-anjo-caído-a-queda-de-seraphiel)). |
@@ -305,15 +306,15 @@ Só as cartas dessa tabela fundem. O baralho tem 3 cópias de Passo do Vento, Er
 
 | Proteção | De onde vem | Duração | O que bloqueia | O que **não** bloqueia |
 |---|---|---|---|---|
-| **Escudo Arcano** | Carta; Baluarte Sagrado; Égide Arcana; Santuário Celestial | Até a próxima armadilha | Uma armadilha (comum, escondida ou do inferno), e aí se gasta | Maldições, perde a vez, nada mirado |
-| **Armadura Espectral** | Baluarte Sagrado (3); Égide Arcana (2); Égide Celestial (3/6) | Rodadas, contando a atual | Tudo o que os **outros** fazem contra você: cartas e habilidades miradas, selos, aparições, neve e gelo da Fada, fogo negro, atropelo, o empurrão do Susanoo quando a Kage para na sua casa, Chuva de Flechas, Canhão de Plasma | Armadilhas, maldições e perde a vez do tabuleiro |
+| **Escudo Arcano** | Carta; Égide Arcana; Santuário Celestial | Até a próxima armadilha | Uma armadilha (comum, escondida ou do inferno), e aí se gasta | Maldições, perde a vez, nada mirado |
+| **Armadura Espectral** | Égide Arcana (2); Égide Celestial (3/6) | Rodadas, contando a atual | Tudo o que os **outros** fazem contra você: cartas e habilidades miradas, selos, aparições, neve e gelo da Fada, fogo negro, atropelo, o empurrão do Susanoo quando a Kage para na sua casa, Chuva de Flechas, Canhão de Plasma | Armadilhas, maldições e perde a vez do tabuleiro |
 | **Égide Celestial** | Relíquia | 3 rodadas (6 fundida) | O mesmo que a Armadura Espectral (ela vem junto) | O mesmo |
 | **Susanoo** | Despertar Ocular da Kage Rubra | 3 rodadas | Tudo o que a Armadura bloqueia, **mais** armadilhas, maldições e perde a vez do tabuleiro. Ninguém para na casa dela. | A **armadilha escondida** e o **fogo negro** de outra pessoa (atacam por dentro) |
 | **Indomável** | Habilidade do Bjorn | 3 rodadas | Tudo o que a Armadura bloqueia, **mais** armadilhas (escondidas também), maldições e perde a vez. Desfaz o tempo invertido. | Bênçãos continuam valendo (é bom) |
 | **Auréola Sagrada** | Bênção do céu | 3 rodadas | Armadilhas (escondidas também) e maldições | Perde a vez, nada mirado |
 | **Levitação** | Habilidade da Bruxa | 2 vezes | O efeito de **qualquer** casa onde ela para, inclusive as boas | Aparições, atropelo, empurrões, cartas miradas |
 | **Anjo Caído no inferno** | Passiva | Sempre | Maldições, armadilhas e perde a vez **do inferno** | Fora do inferno, nada |
-| **Armadura do Vazio** | Habilidade do Cavaleiro | Reativa | Uma armadilha ou maldição, à escolha dele | Perde a vez, nada mirado |
+| **O Vazio** | Habilidade do Zarek | Reativa | Armadilha (escondida também), maldição ou perde a vez, à escolha dele: vai para o Vazio | Nada mirado; com o Vazio cheio, não é oferecido |
 
 Detalhes:
 - **Armadura Espectral, Égide, Susanoo e Indomável** são as quatro proteções "contra os outros". No jogo, quem está sob uma delas é chamado de **protegido**.
@@ -339,7 +340,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 
 | # | Personagem | Habilidade | Carga |
 |---|---|---|---|
-| 1 | Cavaleiro do Vazio | Armadura do Vazio | 2 |
+| 1 | Zarek, o Cavaleiro do Vazio | O Vazio | 3 |
 | 2 | Encantadora Carmesim | Conjuração Dupla | 3 |
 | 3 | Bruxa Carmesim | Levitação Carmesim | 5 |
 | 4 | Alquimista Esmeralda | Transmutação | 3 |
@@ -352,7 +353,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 | 11 | Kage Rubra | Despertar Ocular | 6 |
 | 12 | Fada Cristalina | Florescimento Feérico | 5 |
 | 13 | Zéfiro | Vento a Favor | 3 |
-| 14 | Nerissa | Baluarte Sagrado | 5 |
+| 14 | Têmis | Veredito Silencioso | 4 |
 | 15 | Akane | Revisão Relâmpago | 3 |
 | 16 | Bjorn Presa-Gélida | Indomável | 5 |
 | 17 | Auric | Maré Purificadora | 5 |
@@ -362,22 +363,35 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 
 ---
 
-### 1. Cavaleiro do Vazio
-*Guardião das sombras*
+### 1. Zarek
+*O Cavaleiro do Vazio*
 
-**Habilidade:** Armadura do Vazio · **Carga:** 2 · **Tipo:** reativa (não tem botão de usar)
+**Habilidade:** O Vazio · **Carga:** 3 · **Tipo:** reativa (o botão só aparece para "Tomar", ver abaixo)
 
-**O que faz**
-1. Com a habilidade pronta, quando uma **armadilha** (comum, escondida ou do inferno) ou uma **maldição** vai te atingir, o jogo pausa e pergunta se você quer usá-la.
-2. **Usou:** o mal não te atinge e a carga zera. Uma **armadilha** é **destruída para sempre** (a escondida sai do tabuleiro). Uma **maldição** é anulada só para você e continua lá.
-3. **Recusou:** a armadilha te atinge normalmente e a habilidade continua pronta.
+**Passiva: o Vazio se alimenta**
+- Cada armadilha em que **qualquer jogador** cai, ou que é **destruída** ou **presa** (Canhão de Plasma, Chuva de Flechas), dá **+1** de carga ao Vazio. O que o próprio Vazio engole não conta.
+
+**Engolir**
+1. Com o Vazio pronto e com espaço (guarda até **4** coisas), quando uma **armadilha** (comum, escondida ou do inferno), uma **maldição** ou um **perde a vez** vai te atingir, o jogo pausa e pergunta se o Vazio engole.
+2. **Engoliu:** o mal não te atinge, a casa fica sem efeito para sempre (a escondida sai do tabuleiro) e ele vai para o Vazio. A carga zera.
+3. **Recusou:** você sofre normalmente e o Vazio continua pronto.
+
+**Soltar (na sua vez, quantas vezes quiser, sem gastar carga)**
+- Uma **armadilha, maldição ou perde a vez** guardada abre uma **fenda**: uma **casa nova** no caminho, logo depois da casa que você escolher (o tabuleiro fica 1 casa maior). Pode ser em qualquer ponto do caminho principal antes da chegada.
+- Ao abrir, você pode **dobrar a penalidade** pagando **2 de energia**: volta o dobro de casas, a maldição atinge duas vezes, o perde a vez vale 2 rodadas.
+- As **suas fendas nunca te atingem**. Parando numa delas com o Vazio pronto, você pode engoli-la de novo.
+
+**Tomar (depois de 4 rodadas sem o Vazio agir)**
+- Com o Vazio pronto e **4 rodadas** sem ele engolir ou tomar nada, o botão **Tomar** aparece: escolha uma casa com **fogo negro, neve, gelo escolhido pela Fada, selo ou aparição** de qualquer jogador. O feitiço sai dali e vai para o Vazio (a carga zera).
+- Ao soltar, ele pousa numa casa livre do caminho e **passa a ser seu** (o fogo queima os outros, a neve te leva 5 casas e prende os outros, o selo e a aparição agem a seu favor).
 
 **Detalhes e exceções**
-- A pergunta vem **mesmo com o Escudo Arcano erguido**. Usando a habilidade, você guarda o escudo e ainda destrói a armadilha. Recusando, o escudo leva o golpe.
-- Não age contra "perde a vez", selos, aparições, fogo, neve ou nada mirado.
+- A pergunta vem **mesmo com o Escudo Arcano erguido**: engolindo, você guarda o escudo.
 - Se outra proteção já barra o golpe (Auréola, Indomável…), a pergunta nem aparece.
+- Com o Vazio cheio (4), ele não engole: solte algo antes.
+- A sombra do Vazio aparece de vez em quando vagando pelo mapa, e é ela que abre as fendas.
 
-> no código: `landing.ts` (`canWard`, `resolveWard`), `hiddenTraps.ts` (`destroyTrap`)
+> no código: `void.ts` (`swallow`, `placeVoid`, `seize`, `feedTheVoid`), `board.ts` (`linkRift`), `landing.ts`
 
 ---
 
@@ -568,7 +582,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 **Detalhes e exceções**
 - As casas seguem a regra dos selos (lisas, no caminho principal, sem selo nem outra aparição). **No céu**, você pode assombrar qualquer casa do corredor celeste dentro do alcance. **No inferno**, não há onde invocar.
 - As aparições **se acumulam** entre usos.
-- **Quem passar pela sua casa dissipa todas as suas aparições.** Isso só conta se você estiver antes delas no caminho de quem anda: uma aparição que vem antes de você ainda ataca.
+- **Quem passar pela sua casa dissipa todas as suas aparições**, inclusive as que ficam antes de você no caminho dele: se o movimento chega até você, nenhuma aparição ataca nesse movimento.
 - Atingem quem passa andando de qualquer jeito (dado, Passo do Vento, casa de avanço, até andando para trás sob o tempo invertido) e mesmo quem levita. Empurrões e teleportes não contam.
 - Pilhagem contra mão vazia não leva nada. Só uma Pilhagem espera de cada vez.
 - Protegido passa ileso, e a aparição fica.
@@ -600,7 +614,8 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 **Detalhes e exceções**
 - O fogo negro **toma a casa**: enquanto queima, só o fogo existe ali (uma armadilha ou um portal debaixo dele não agem). O seu próprio fogo não te queima.
 - Passar pelo fogo não queima: só parar.
-- **Fogo vence gelo:** acender sobre a neve da Fada derrete a neve para sempre, e a Fada não consegue nevar sobre o fogo.
+- **Fogo vence neve:** acender sobre a neve da Fada derrete a neve para sempre, e a Fada não consegue nevar sobre o fogo.
+- **Inverno vence fogo:** o gelo do Inverno Eterno apaga o fogo negro onde chega, e não dá para acender fogo no gelo.
 - O fogo negro dos outros e a **armadilha escondida** atravessam o Susanoo. A Armadura comum, o Indomável e a Bruxa Carmesim ignoram o fogo.
 - A Maré Purificadora do Auric apaga o fogo.
 
@@ -621,11 +636,9 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 
 **Inverno Eterno**
 - Quando um Florescimento deixa **nenhuma casa ruim à sua frente**, começa o Inverno Eterno (uma vez por partida).
-- A cada rodada, as próximas **10** casas do caminho principal congelam, do início em direção à chegada (a chegada nunca congela).
-- Numa casa congelada, **nada mais acontece**, para ninguém:
-  - Você e a Bruxa Carmesim andam no gelo sem nada.
-  - Um oponente que **para** ali fica preso **2 rodadas**, sugado como na neve (o gelo não te dá carga).
-- Protegidos não ficam presos.
+- A cada rodada, as próximas **6** casas do caminho principal congelam, do início em direção à chegada (a chegada nunca congela).
+- Depois que o Inverno começou, a habilidade muda: em vez de nevar, ela **congela 1 casa à sua escolha** em qualquer ponto do caminho principal (que não esteja congelada ou com neve). Pode ser até uma casa com **fogo negro**: o inverno é superior e apaga o fogo.
+- Uma casa congelada (escolhida ou tomada pelo avanço do gelo) funciona **exatamente como a neve**: você parando nela avança **5** (e encadeia em outra neve ou gelo seu), o oponente fica preso **2 rodadas** sugado como na neve, e sua habilidade ganha **+1** de carga.
 
 **Detalhes e exceções**
 - Passar por cima da neve não conta: só parar.
@@ -654,17 +667,29 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 
 ---
 
-### 14. Nerissa
-*Os olhos vendados, o escudo nunca erra*
+### 14. Têmis
+*A Juíza Vendada*
 
-**Habilidade:** Baluarte Sagrado · **Carga:** 5
+**Habilidade:** Veredito Silencioso · **Carga:** 4 · **Reativa** (não tem botão de usar)
 
 **O que faz**
-1. Ergue o **Escudo Arcano** (a próxima armadilha não te atinge).
-2. Ergue a **Armadura Espectral** por **3 rodadas**, contando esta (nada que os outros mirarem funciona).
+1. Ao carregar, o veredito **se arma sozinho, em segredo**: os oponentes veem `?` no lugar da carga dela (só aparece na vez dela), e nem banner nem log anunciam que ficou pronto.
+2. Armado, a **próxima** carta ou habilidade que um oponente **mirar nela** é anulada e **se volta contra quem mirou**. O veredito se gasta.
+   - **Rajada Arcana:** quem jogou é que recua.
+   - **Clarão Ofuscante** e **Distorção Temporal:** quem mirou é que perde a vez (ou anda de ré). Como acontece antes de rolar, a vez dele acaba na hora, e ele perde a próxima.
+   - **Chamado do Abismo** e **Arrastar ao Inferno:** quem mirou é que desce ao inferno.
+   - **Aposta do Coringa** (quando ganha): o Coringa é que entrega as cartas para ela.
+   - **Troca de Destinos:** só é anulada (a troca não tem lado para inverter).
+
+**Desarmado**, ela sofre tudo normalmente (Clarão, Distorção Temporal, empurrões…).
+
+**Passiva, a Balança Cega**
+- Armadilhas **escondidas** no caminho dela (rolagem, casa de avanço, Passo do Vento) são **desarmadas** para sempre, sem dano, e cada uma dá **+1 de energia**. Desarmar conta como armadilha para o Vazio do Zarek.
 
 **Detalhes e exceções**
-- A armadura não barra o tabuleiro (armadilhas, maldições, perde a vez). Para isso existe o escudo, que segura uma armadilha.
+- Só dispara com o que é **mirado nela**. Chuva de Flechas, atropelo do Bjorn, selos, aparições, neve, gelo, fogo e as fendas do Zarek seguem normais.
+- As proteções de quem mirou (Indomável, armadura…) não o salvam do veredito.
+- Se ela já estiver protegida (armadura, Égide…), o ataque é só bloqueado e o veredito fica guardado.
 
 > no código: `newcomerAbilities.ts` (`sacredBulwark`)
 
@@ -742,12 +767,12 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 **O que faz**
 1. Um presente aleatório do céu, com **50%** de chance para cada lado:
    - **uma bênção** (Asas, Auréola, Inspiração ou Fonte de Luz, ao acaso);
-   - **uma carta** do baralho padrão, na mão (as mais raras saem menos).
+   - **uma relíquia do céu** (Luz Celestial, Égide Celestial ou Ascensão), na mão.
 
 **Passivas**
 - **Filho do céu:** suas bênçãos duram **6 rodadas** (as dos outros, 3).
 - **Escolha divina:** no céu, numa casa de bênção você **escolhe** qual das quatro receber, e numa casa de relíquia qual das **três** relíquias. Os outros recebem só o que a casa tem.
-- **Coroa Seráfica:** ao **sair do céu**, você ganha a coroa: **+2** casas em **toda** rolagem até o fim da partida (uma vez só).
+- **Coroa Seráfica:** ao **sair do céu**, você ganha a coroa: **+1** casa em **toda** rolagem até o fim da partida (uma vez só).
 - **Cuidado com o inferno:** se pisar no inferno, de qualquer jeito (portal, arrastado, Portal Místico), você **cai para sempre** e vira o Anjo Caído (abaixo).
 
 > no código: `seraph.ts`, `blessings.ts`, `newcomerAbilities.ts` (`seraphBlessing`)
@@ -758,7 +783,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 
 **A Queda**
 - Ao cair, Seraphiel perde todas as bênçãos.
-- A coroa vira a **Coroa Infernal**, também **+2** em toda rolagem, mesmo que ele nunca tenha tido a seráfica.
+- A coroa vira a **Coroa Infernal**, também **+1** em toda rolagem, mesmo que ele nunca tenha tido a seráfica.
 - A habilidade passa a ser o Arrastar ao Inferno. A carga que ele tinha continua, mas agora o ciclo é 7.
 
 **O que faz**
@@ -774,7 +799,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 **Passivas do Anjo Caído**
 - **O inferno é dele:** maldições, armadilhas e perde a vez do inferno não o atingem.
 - **O céu está fechado:** parando num portal do céu, ele não entra e fica **acorrentado por 3 rodadas** (perde 3 vezes, em pé). A Erva Curativa solta.
-- **Coroa Infernal:** +2 em toda rolagem.
+- **Coroa Infernal:** +1 em toda rolagem.
 
 > no código: `seraph.ts` (`fallIfInHell`, `hellsDrag`, `dragIntoHell`), `landing.ts`
 

@@ -14,6 +14,7 @@ import type { DiceRoller } from "./dice";
 import { conjureCard, drawCard, handOverCards, playerIn, updatePlayer, type Draft } from "./draft";
 import { GameRuleError } from "./commands";
 import { aimWard } from "./players";
+import { passVerdict, verdictArmed } from "./verdict";
 import type { Board, CardInstance, Player, PlayerId } from "./types";
 
 /** Cards always move at random; a win against someone out of reach is blocked, but a loss still costs a card. */
@@ -67,7 +68,10 @@ export function playCardGamble(
     const holding = reachable.filter((opponent) => opponent.hand.length > 0);
     const withEpics = holding.filter((opponent) => opponent.hand.some(isEpic));
     const victim = chosen ?? pick(draft, jackpot && withEpics.length > 0 ? withEpics : holding);
-    if (victim) moveCards(draft, victim.id, playerId, CARD_GAMBLE_STOLEN, jackpot);
+    if (victim && verdictArmed(victim)) {
+      passVerdict(draft, victim.id, playerId, { ability: "cardGamble" });
+      moveCards(draft, playerId, victim.id, CARD_GAMBLE_STOLEN, jackpot);
+    } else if (victim) moveCards(draft, victim.id, playerId, CARD_GAMBLE_STOLEN, jackpot);
     return;
   }
   const taker = chosen ?? pick(draft, reachable);

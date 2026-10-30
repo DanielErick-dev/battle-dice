@@ -13,10 +13,10 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { roughen } from "./sceneryKit";
+import { GROUND_RADIUS, roughen } from "./sceneryKit";
+import { withDressing, type GroundDressing } from "./groundDressing";
 import { useCanvasTexture, useNoiseTexture, type NoiseLook } from "./textures";
 
-const FLOOR_RADIUS = 1;
 const GHOST = new Color("#9be3ff").multiplyScalar(1.6);
 const COLUMN_RADIUS = 0.075;
 /** `broken` columns end in a jagged stump instead of their capital. */
@@ -54,7 +54,7 @@ const MOON = { x: 0.62, y: 1.75, z: -1.15 };
  * creeping low and pale wisps wandering between them. Origin on the floor; wisps and moon are sprites.
  */
 export function MistRuins() {
-  const paving = useCanvasTexture({ size: 512, draw: paintPaving, fadeFrom: 0.5 });
+  const paving = useCanvasTexture({ size: 512, draw: paintRuinFloor, fadeFrom: 0.5 });
   const stone = useNoiseTexture(STONE);
   const disc = useSoftDisc();
   const moon = useCanvasTexture({ size: 128, draw: paintMoon });
@@ -91,7 +91,7 @@ export function MistRuins() {
   return (
     <group>
       <mesh material={materials.floor} rotation-x={-Math.PI / 2} position-y={0.001} renderOrder={-1}>
-        <circleGeometry args={[FLOOR_RADIUS, 64]} />
+        <circleGeometry args={[GROUND_RADIUS, 64]} />
       </mesh>
       <sprite material={materials.moonHalo} position={[MOON.x, MOON.y, MOON.z]} scale={1.1} renderOrder={-2} />
       <sprite material={materials.moon} position={[MOON.x, MOON.y, MOON.z]} scale={0.3} renderOrder={-2} />
@@ -334,3 +334,15 @@ function paintMoon(context: CanvasRenderingContext2D, size: number) {
 }
 
 const STONE: NoiseLook = { base: [72, 78, 88], dark: [36, 40, 48], light: [112, 120, 134], fadeOut: false };
+
+/** An old processional way of cold blue slabs, dead leaves and rubble. */
+const RUIN_GROUND: GroundDressing = {
+  wash: { colour: "#7dd3fc", alpha: 0.25 },
+  patches: { colours: ["rgba(140,190,230,0.18)"], count: 18, radius: [20, 50] },
+  path: { kind: "slabs", colour: "#5d6a7a", edge: "#161b22", width: [0.16, 0.26] },
+  litter: [
+    { shape: "leaf", colours: ["#5b5a52", "#3f3d36"], count: 90, size: 5 },
+    { shape: "pebble", colours: ["#6b7280", "#4b5563"], count: 50, size: 3 },
+  ],
+};
+const paintRuinFloor = withDressing(paintPaving, RUIN_GROUND);

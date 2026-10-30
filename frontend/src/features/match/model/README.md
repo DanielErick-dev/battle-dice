@@ -2,12 +2,12 @@
 
 Fica entre o jogo (`game/`) e o que aparece na tela (`scene/`, `ui/`). Não desenha nada e não tem React.
 
-| Arquivo | O que faz |
-|---|---|
-| `createLocalMatch.ts` | Monta uma partida offline: cria o jogo, o `LocalGameClient` e o store. No online, troca-se só o client aqui. |
-| `matchStore.ts` | O **store**. Recebe os cliques (`rollDice`, `playCard`, `activateAbility`…), manda o comando ao `GameClient` e toca os passos da animação em fila. |
-| `matchView.ts` | A **`MatchView`**: o que a tela mostra *agora* (posição de cada boneco, efeito tocando, banner). Também tem perguntas como `canRoll(view)` e `canPlayCard(view)`. |
-| `playback/` | Transforma cada evento do jogo em passos de animação. Tem README próprio. |
+| Arquivo               | O que faz                                                                                                                                                         |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `createLocalMatch.ts` | Monta uma partida offline: cria o jogo, o `LocalGameClient` e o store. No online, troca-se só o client aqui.                                                      |
+| `matchStore.ts`       | O **store**. Recebe os cliques (`rollDice`, `playCard`, `activateAbility`…), manda o comando ao `GameClient` e toca os passos da animação em fila.                |
+| `matchView.ts`        | A **`MatchView`**: o que a tela mostra _agora_ (posição de cada boneco, efeito tocando, banner). Também tem perguntas como `canRoll(view)` e `canPlayCard(view)`. |
+| `playback/`           | Transforma cada evento do jogo em passos de animação. Tem README próprio.                                                                                         |
 
 ## O caminho de um clique
 

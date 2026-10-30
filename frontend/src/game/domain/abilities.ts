@@ -5,14 +5,14 @@ import type { Player } from "./types";
 /** Each charges one step per own turn started, stays ready until used, and empties when used. */
 export type AbilityId =
   | "doubleCast" // two cards this turn
-  | "trapWard" // reactive: offered when a trap or curse is about to strike; a trap is smashed for good
+  | "theVoid" // Zarek's: swallows the harm he stops on when offered, sets it down anew (see void.ts)
   | "tailwind" // this turn's roll walks TAILWIND_BONUS further
   | "studySession" // draws STUDY_DRAWS cards
-  | "seraphBlessing" // a random heaven blessing or deck card (passives in seraph.ts)
+  | "seraphBlessing" // a random heaven blessing or heaven card (passives in seraph.ts)
   | "hellsDrag" // the Fallen Angel pulls an opponent into hell; alone, hell swallows traps ahead
   | "cleansingTide" // clears every spell off the TIDE_RANGE tiles ahead, whoever cast it
   | "untamed" // nothing harms the Berserker for a while; trampling is his passive (berserker.ts)
-  | "sacredBulwark" // Arcane Shield plus Spectral Armour
+  | "silentVerdict" // Themis's: armed once charged, turns what's aimed at her on the attacker (see verdict.ts)
   | "timeWarp" // halts or reverses an opponent on the same tile; alone, an extra turn
   | "plasmaCannon" // blasts traps ahead and knocks the leading opponent back
   | "levitation" // no tile does anything to the player, blessings and portals included
@@ -30,14 +30,13 @@ export type AbilityId =
 export type AbilityPower = "flames" | "armour" | "halt" | "reverse" | "fortune";
 
 export const ABILITY_CYCLE = 3;
-/** Trap Ward only answers the board's own traps, so it comes back quicker than the rest. */
-export const SHORT_ABILITY_CYCLE = 2;
 /** The strongest abilities take longer to come back. */
 export const LONG_ABILITY_CYCLE = 5;
 export const OCULAR_AWAKENING_CYCLE = 6;
 /** Hell's Drag and Time Warp take a whole opponent out of the race: the slowest to return. */
 export const HELLS_DRAG_CYCLE = 7;
 export const TIME_WARP_CYCLE = 7;
+export const VERDICT_CYCLE = 4;
 
 const LONG_CHARGE_ABILITIES: readonly AbilityId[] = [
   "levitation",
@@ -49,15 +48,14 @@ const LONG_CHARGE_ABILITIES: readonly AbilityId[] = [
   "fairyBloom",
   "cleansingTide",
   "untamed",
-  "sacredBulwark",
   "plasmaCannon",
 ];
 
 export function abilityCycle(ability: AbilityId | null): number {
-  if (ability === "trapWard") return SHORT_ABILITY_CYCLE;
   if (ability === "ocularAwakening") return OCULAR_AWAKENING_CYCLE;
   if (ability === "hellsDrag") return HELLS_DRAG_CYCLE;
   if (ability === "timeWarp") return TIME_WARP_CYCLE;
+  if (ability === "silentVerdict") return VERDICT_CYCLE;
   return ability !== null && LONG_CHARGE_ABILITIES.includes(ability) ? LONG_ABILITY_CYCLE : ABILITY_CYCLE;
 }
 /** Own turns, counting the one it's used on. */
@@ -105,7 +103,9 @@ export const ENCHANT_ADVANCE = 5;
 /** Rounds (lost turns) an opponent stays stuck in the fairy's snow. */
 export const ENCHANT_FREEZE = 2;
 /** Tiles frozen per round. */
-export const WINTER_TILES = 10;
+export const WINTER_TILES = 6;
+/** Once winter has begun, the tiles the fairy's ability freezes, wherever she likes. */
+export const WINTER_PICKS = 1;
 /** Energy drained into the fairy per round stuck in her snow. */
 export const SNOW_DRAIN = 1;
 /** Eternal Flames: tiles lit, rounds they burn, scorches before one goes out. */
@@ -118,13 +118,20 @@ export const FLAME_PUSH = 10;
 export const ARMOUR_TURNS = 3;
 export const SERAPH_CARD_CHANCE = 0.5;
 export const SUSANOO_PUSH = 1;
+/** Things Zarek's Void holds at once. */
+export const VOID_CAPACITY = 4;
+/** Paid to set a harm down with its penalty doubled. */
+export const VOID_DOUBLE_ENERGY = 2;
+/** Own turns without the Void acting before it may take over another's spell on the board. */
+export const VOID_IDLE_ROUNDS = 4;
 
 export function needsDiscardChoice(ability: AbilityId | null): boolean {
   return ability === "resurrection";
 }
 
+/** Offered by the board rather than used from the button (the Void's seizing aside, see abilityBlocker). */
 export function isReactive(ability: AbilityId): boolean {
-  return ability === "trapWard";
+  return ability === "theVoid" || ability === "silentVerdict";
 }
 
 export function isAbilityReady(player: Player): boolean {
@@ -134,7 +141,9 @@ export function isAbilityReady(player: Player): boolean {
 /** Shared by the UI's button and the engine; charged again the same turn (Ascension), it can be reused. */
 export function abilityBlocker(player: Player): GameErrorCode | null {
   if (player.ability === null) return "NO_ABILITY";
-  if (isReactive(player.ability)) return "ABILITY_REACTIVE";
+  // Idle long enough, the Void may also be used to take over a spell on the board.
+  if (isReactive(player.ability) && player.voidIdle < VOID_IDLE_ROUNDS) return "ABILITY_REACTIVE";
+  if (player.ability === "theVoid" && player.voidHold.length >= VOID_CAPACITY) return "VOID_FULL";
   if (!isAbilityReady(player)) return "ABILITY_NOT_READY";
   if (needsDiscardChoice(player.ability) && player.discard.length === 0) return "EMPTY_DISCARD";
   if (needsDiscardChoice(player.ability) && player.hand.length >= HAND_LIMIT) return "HAND_FULL";

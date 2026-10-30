@@ -17,9 +17,10 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
+import { withDressing, type GroundDressing } from "./groundDressing";
+import { GROUND_RADIUS } from "./sceneryKit";
 import { paintTexture, useCanvasTexture, useCanvasTextures, type CanvasLook, type Painter } from "./textures";
 
-const FLOOR_RADIUS = 1;
 const CARD: [number, number] = [0.12, 0.17];
 type Suit = "hearts" | "spades" | "diamonds" | "clubs";
 /** Card faces in drawing order; the last is the deck's back. */
@@ -75,7 +76,7 @@ const BULB = new Color("#ffd27a").multiplyScalar(2);
 
 /** The Crimson Jester's stage: a harlequin floor, strewn and floating cards, chips, dice and chasing marquee bulbs. */
 export function CardTable() {
-  const floor = useCanvasTexture({ size: 512, draw: paintHarlequin, seed: 17, fadeFrom: 0.3 });
+  const floor = useCanvasTexture({ size: 512, draw: paintCasinoFloor, seed: 17, fadeFrom: 0.3 });
   const cards = useCanvasTextures(CARD_LOOKS);
   const pips = useCanvasTextures(DIE_LOOKS);
   const disc = useSoftDisc();
@@ -133,7 +134,7 @@ export function CardTable() {
   return (
     <group>
       <mesh material={materials.floor} rotation-x={-Math.PI / 2} position-y={0.001} renderOrder={-1}>
-        <circleGeometry args={[FLOOR_RADIUS, 64]} />
+        <circleGeometry args={[GROUND_RADIUS, 64]} />
       </mesh>
       {/* A low lacquered rim along the back of the stage, the bulbs on top. */}
       <mesh material={materials.rim} rotation={[-Math.PI / 2, 0, ARC_START]} position-y={0.03}>
@@ -478,3 +479,14 @@ const paintHarlequin: Painter = (context, size, random) => {
     context.fillRect(random() * size, random() * size, 1 + random() * 2, 1 + random() * 2);
   }
 };
+
+/** A red casino carpet down the middle, dropped cards and chips. */
+const CASINO_GROUND: GroundDressing = {
+  wash: { colour: "#dc2626", alpha: 0.25 },
+  path: { kind: "runner", colour: "#6e0d1c", edge: "#e8c46a", width: [0.22, 0.22] },
+  litter: [
+    { shape: "speck", colours: ["rgba(245,240,228,0.95)"], count: 26, size: 9 },
+    { shape: "coin", colours: ["#b3122e", "#1a1416", "#e9e4da"], count: 30, size: 5 },
+  ],
+};
+const paintCasinoFloor = withDressing(paintHarlequin, CASINO_GROUND);

@@ -10,25 +10,25 @@ import {
 } from "./abilities";
 import { GameRuleError } from "./commands";
 import { getTile } from "./board";
+import { frozenTiles } from "./fairy";
 import { playerIn, pushPath, updatePlayer, walkPath, type Draft } from "./draft";
 import { groundSpellsSpare, inSusanoo, isUntouchable } from "./players";
 import type { Board, PlayerId, TileId } from "./types";
 
-/** Any regular main-path tile not already burning, however far; nearest first. */
-export function flammableTiles(board: Board, position: TileId, burning: readonly TileId[]): TileId[] {
+/** Any regular main-path tile not `taken` (burning, or frozen: winter beats fire), however far; nearest first. */
+export function flammableTiles(board: Board, position: TileId, taken: readonly TileId[]): TileId[] {
   return board.tiles
-    .filter(({ id, role, track }) => role === "regular" && !track && !burning.includes(id))
+    .filter(({ id, role, track }) => role === "regular" && !track && !taken.includes(id))
     .map(({ id }) => id)
     .sort((a, b) => Math.abs(a - position) - Math.abs(b - position) || a - b);
 }
 
 /** Up to FLAME_TILES picked tiles. */
 export function lightFlames(draft: Draft, playerId: PlayerId, tiles: readonly TileId[]): void {
-  const allowed = flammableTiles(
-    draft.state.board,
-    playerIn(draft, playerId).position,
-    draft.blackFlames.map((flame) => flame.tile),
-  );
+  const allowed = flammableTiles(draft.state.board, playerIn(draft, playerId).position, [
+    ...draft.blackFlames.map((flame) => flame.tile),
+    ...frozenTiles(draft.winter, draft.state.board.startTile),
+  ]);
   if (
     tiles.length === 0 ||
     tiles.length > FLAME_TILES ||

@@ -17,6 +17,7 @@ import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { useRuneTexture } from "@/features/match/scene/character/runeCircle";
 import { seededRandom } from "@/game/domain/random";
 import { useNoiseTexture, type NoiseLook } from "./textures";
+import type { GroundDressing } from "./groundDressing";
 
 const DAIS_RADIUS = 0.6;
 const DAIS_STEP = 0.06;
@@ -42,6 +43,7 @@ const RAYS = 5;
  */
 export function Sanctuary({ gust: wind }: { gust: RefObject<number> }) {
   const marble = useNoiseTexture(MARBLE);
+  const top = useNoiseTexture(DAIS_TOP);
   const runes = useRuneTexture();
   const ring = useRef<Mesh>(null);
   const materials = useMemo(
@@ -51,6 +53,7 @@ export function Sanctuary({ gust: wind }: { gust: RefObject<number> }) {
         roughness: 0.35,
         metalness: 0.05,
       }),
+      top: new MeshStandardMaterial({ map: top, roughness: 0.35, metalness: 0.05 }),
       gold: new MeshStandardMaterial({
         color: GOLD,
         metalness: 0.9,
@@ -59,7 +62,7 @@ export function Sanctuary({ gust: wind }: { gust: RefObject<number> }) {
         emissiveIntensity: 0.4,
       }),
     }),
-    [marble],
+    [marble, top],
   );
   useEffect(() => () => Object.values(materials).forEach((material) => material.dispose()), [materials]);
   const rubble = useMemo(() => new DodecahedronGeometry(1, 0), []);
@@ -82,6 +85,10 @@ export function Sanctuary({ gust: wind }: { gust: RefObject<number> }) {
       </mesh>
       <mesh material={materials.gold} position-y={-DAIS_STEP - 0.004} rotation-x={Math.PI / 2}>
         <torusGeometry args={[DAIS_RADIUS * 1.22, 0.01, 8, 64]} />
+      </mesh>
+      {/* Its top: the dressed marble, so the gold way and the feathers stay off the sides. */}
+      <mesh material={materials.top} position-y={0.001} rotation-x={-Math.PI / 2}>
+        <circleGeometry args={[DAIS_RADIUS, 64]} />
       </mesh>
       <mesh ref={ring} position-y={0.002} rotation-x={-Math.PI / 2}>
         <circleGeometry args={[DAIS_RADIUS * 0.94, 64]} />
@@ -331,3 +338,10 @@ const MARBLE: NoiseLook = {
   light: [252, 250, 246],
   fadeOut: false,
 };
+/** A way of gold-veined slabs across the dais, feathers fallen from his wings, a warm glow. */
+const HEAVEN_GROUND: GroundDressing = {
+  wash: { colour: "#fbbf24", alpha: 0.2 },
+  path: { kind: "slabs", colour: "#e8d9a8", edge: "#c9a227", width: [0.18, 0.28], wind: 0 },
+  litter: [{ shape: "leaf", colours: ["rgba(255,255,255,0.95)", "rgba(255,244,214,0.9)"], count: 50, size: 6 }],
+};
+const DAIS_TOP: NoiseLook = { ...MARBLE, dress: HEAVEN_GROUND };

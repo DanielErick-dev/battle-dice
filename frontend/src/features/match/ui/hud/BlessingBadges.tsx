@@ -31,7 +31,7 @@ export function BlessingBadges({
     <ul aria-label="Bênçãos" className="flex flex-wrap gap-1">
       {player.crown && (
         <li
-          title={`${infernal ? "Coroa Infernal" : "Coroa Seráfica"}: +${CROWN_BONUS} casas em toda rolagem, até o fim da partida`}
+          title={`${infernal ? "Coroa Infernal" : "Coroa Seráfica"}: +${CROWN_BONUS} casa em toda rolagem, até o fim da partida`}
           className={cn(
             "flex items-center gap-1 rounded-full font-bold ring-1",
             infernal
@@ -45,12 +45,12 @@ export function BlessingBadges({
           <span className="font-mono opacity-80">+{CROWN_BONUS}</span>
         </li>
       )}
-      {player.blessings.map(({ kind, turnsLeft }) => {
+      {player.blessings.map(({ kind, turnsLeft }, index) => {
         const Icon = BLESSING_ICONS[kind];
         const { name, effect } = BLESSING_TEXT[kind];
         return (
           <li
-            key={kind}
+            key={`${kind}-${index}`}
             title={`${name}: ${effect} (${
               waiting
                 ? `começa ao sair do céu, por ${turnsLeft} rodadas`

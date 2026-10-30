@@ -18,10 +18,10 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { taperedTube } from "./sceneryKit";
+import { GROUND_RADIUS, taperedTube } from "./sceneryKit";
+import { withDressing, type GroundDressing } from "./groundDressing";
 import { useCanvasTexture, type Painter } from "./textures";
 
-const FLOOR_RADIUS = 1;
 const CIRCLE_SIZE = 1.3;
 const BENCH = { x: -0.52, z: -0.66, turn: 0.55, width: 0.64, depth: 0.24, height: 0.46 };
 const BENCH_TOP = BENCH.height + 0.0175;
@@ -60,7 +60,7 @@ const FLAME = new Color("#7dffb0").multiplyScalar(2);
 
 /** The Emerald Alchemist's stage: tiled floor, a chalk circle, a bench of bubbling flasks and a brass still. */
 export function AlchemyLab() {
-  const tiles = useCanvasTexture({ size: 512, draw: paintTiles, seed: 13, fadeFrom: 0.3 });
+  const tiles = useCanvasTexture({ size: 512, draw: paintLabFloor, seed: 13, fadeFrom: 0.3 });
   const chalk = useCanvasTexture({ size: 512, draw: paintChalkCircle, seed: 3 });
   const disc = useSoftDisc();
   const materials = useMemo(
@@ -154,7 +154,7 @@ export function AlchemyLab() {
   return (
     <group>
       <mesh material={materials.floor} rotation-x={-Math.PI / 2} position-y={0.001} renderOrder={-1}>
-        <circleGeometry args={[FLOOR_RADIUS, 64]} />
+        <circleGeometry args={[GROUND_RADIUS, 64]} />
       </mesh>
       <mesh material={materials.chalk} rotation-x={-Math.PI / 2} position-y={0.003} renderOrder={1}>
         <planeGeometry args={[CIRCLE_SIZE, CIRCLE_SIZE]} />
@@ -489,3 +489,12 @@ const paintChalkCircle: Painter = (context, size, random) => {
     }, 2);
   }
 };
+
+/** A green runner trimmed in gold down the lab, spilled potions and broken glass. */
+const LAB_GROUND: GroundDressing = {
+  wash: { colour: "#10b981", alpha: 0.3 },
+  patches: { colours: ["rgba(40,220,140,0.28)", "rgba(120,60,200,0.2)"], count: 14, radius: [16, 40] },
+  path: { kind: "runner", colour: "#0f3d2e", edge: "#d4af37", width: [0.2, 0.2] },
+  litter: [{ shape: "shard", colours: ["rgba(170,255,220,0.8)", "rgba(120,220,255,0.7)"], count: 70, size: 4 }],
+};
+const paintLabFloor = withDressing(paintTiles, LAB_GROUND);

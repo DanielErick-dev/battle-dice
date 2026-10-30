@@ -1,7 +1,9 @@
 import { abilityBlocker, cardsPerTurn, type AbilityId } from "@/game/domain/abilities";
 import { currentPlayer } from "@/game/domain/engine";
+import type { GameEvent } from "@/game/domain/events";
 import type { AimWard } from "@/game/domain/players";
 import type { CardId } from "@/game/domain/cards";
+import { riftsOf } from "@/game/domain/void";
 import type {
   BlackFlame,
   Crown,
@@ -15,6 +17,8 @@ import type {
   RealmKind,
   SealKind,
   SpecterKind,
+  Tile,
+  VoidItem,
   Threat,
   TileId,
   TrapCurse,
@@ -29,6 +33,13 @@ export type TileEffectKind =
   | "extraTurn"
   | "skipTurn"
   | "turnSkipped"
+  /** Zarek's Void at work: shown over Zarek. */
+  | "voidSwallowed"
+  | "riftOpened"
+  | "voidCast"
+  | "voidSeized"
+  /** A lost turn in the fairy's snow: `count` energy went to her. */
+  | "snowDrained"
   | "trapBlocked"
   | "trapCurse"
   | "realmEnter"
@@ -58,7 +69,16 @@ export type TileEffectKind =
   | "heavenBarred"
   | "dragged"
   /** Shown over whoever aimed it. */
-  | "abilityBlocked";
+  | "abilityBlocked"
+  /** Themis's Silent Verdict, shown over the one judged. */
+  | "verdict"
+  /** Themis's Blind Scale took a hidden trap apart. */
+  | "disarmed";
+
+export interface LogEntry {
+  id: number;
+  event: GameEvent;
+}
 
 /** The last revealed roll. */
 export interface RollView {
@@ -105,6 +125,8 @@ interface VolleyView {
   playerId: PlayerId;
   from: TileId;
   targets: readonly TileId[];
+  /** The rain has landed: the camera goes back to the archer while the arrows fade. */
+  settled?: boolean;
 }
 
 /**
@@ -122,6 +144,14 @@ interface TrampleView {
   susanoo?: boolean;
 }
 
+/** Silent Verdict: a giant scale over the two of them `weigh`s, then `tip`s down on the attacker's side. */
+export interface VerdictView {
+  id: number;
+  judgeId: PlayerId;
+  attackerId: PlayerId;
+  phase: "weigh" | "tip";
+}
+
 /** Hell's Drag: a hand rises on `from` and closes on the target (`grab`), sinks with them, and they're in hell. */
 export interface DragView {
   id: number;
@@ -129,6 +159,14 @@ export interface DragView {
   targetId: PlayerId;
   from: TileId;
   phase: "grab" | "sink" | "over";
+}
+
+/** Zarek's Void surfacing as a rift on a tile to swallow, open, set down or take something. */
+export interface VoidRiftView {
+  id: number;
+  playerId: PlayerId;
+  tile: TileId;
+  action: "swallow" | "open" | "cast" | "seize";
 }
 
 /** Snow streaming from the Crystal Fairy's wand to a tile she's enchanting. */
@@ -179,6 +217,8 @@ export interface MatchFx {
   drag: DragView | null;
   /** The camera follows it to each tile. */
   frostStream: FrostStreamView | null;
+  voidRift: VoidRiftView | null;
+  verdict: VerdictView | null;
 }
 
 const NO_FX: MatchFx = {
@@ -192,6 +232,8 @@ const NO_FX: MatchFx = {
   trample: null,
   drag: null,
   frostStream: null,
+  voidRift: null,
+  verdict: null,
 };
 
 /** A tile effect or turn notice; without travel, `from` and `to` are the same tile. */
@@ -234,6 +276,12 @@ export interface TileEffectView {
     energyGained: number;
     chargeGained: number;
   };
+  /** What the Void swallowed, opened, set down or took; `doubled` for a rift. */
+  void?: { item: VoidItem | null; doubled?: boolean };
+  /** The judge, and what the one judged had aimed at her. */
+  verdict?: { judgeName: string; cardId?: CardId; ability?: AbilityId };
+  /** Energy Themis's Blind Scale gained. */
+  energyGained?: number;
 }
 
 /** A Shadow Warden's apparition; only its owner is shown its `kind`, others see the Warden himself. */
@@ -272,7 +320,7 @@ export interface MatchView {
   cardsPlayedThisTurn: number;
   /** Used this turn and still in effect. */
   abilityInUse: AbilityId | null;
-  /** Waiting on this player's choice to spend their Trap Ward. */
+  /** Waiting on Zarek's choice to let his Void swallow the harm. */
   pendingWard: { playerId: PlayerId; tile: TileId; threat: Threat } | null;
   /** Seraphiel picking a blessing or a relic on a heaven tile. */
   pendingGrace: {
@@ -280,7 +328,7 @@ export interface MatchView {
     tile: TileId;
     offer: "blessing" | "relic";
   } | null;
-  /** Smashed for good by the Trap Ward: drawn as rubble. */
+  /** Smashed for good or swallowed by the Void: drawn as rubble. */
   destroyedTraps: readonly TileId[];
   /** Pinned by Arrow Rain until walked past: drawn with arrows stuck in them. */
   pinnedTraps: readonly TileId[];
@@ -289,8 +337,14 @@ export interface MatchView {
   enchantedTiles: readonly EnchantedTile[];
   blackFlames: readonly BlackFlame[];
   winter: Winter | null;
+  /** Tiles Zarek's Void opened into the path, in the order they opened (see linkRift). */
+  rifts: readonly Tile[];
   /** A Warden picking the cards their Plunder apparition takes from `victim`. */
   pendingPlunder: { owner: PlayerId; victim: PlayerId } | null;
+  /** The tile a walk ends on: the figure slows to a stop on its way there. */
+  walkEnd: { playerId: PlayerId; tile: TileId } | null;
+  /** The battle log: events as their animation starts, the latest last (see logStep). */
+  log: readonly LogEntry[];
   isAnimating: boolean;
   /** A refused move, shown briefly; the id lets a repeated refusal show again. */
   error: { id: number; message: string } | null;
@@ -321,7 +375,10 @@ export function createInitialView(state: GameState): MatchView {
     enchantedTiles: state.enchantedTiles,
     blackFlames: state.blackFlames,
     winter: state.winter,
+    rifts: riftsOf(state.board),
     pendingPlunder: state.pendingPlunder,
+    walkEnd: null,
+    log: [],
     isAnimating: false,
     error: null,
   };

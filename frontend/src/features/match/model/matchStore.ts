@@ -5,7 +5,7 @@ import { GameRuleError, type GameCommand, type GameErrorCode } from "@/game/doma
 import type { Board, TimedBlessing } from "@/game/domain/types";
 import { DEFAULT_TIMINGS, type PlaybackTimings } from "../config";
 import { canActivateAbility, canPlayCard, canRoll, createInitialView, type MatchView } from "./matchView";
-import { eventToSteps, syncStep, type PlaybackStep } from "./playback";
+import { updateSteps, type PlaybackStep } from "./playback";
 
 const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   NOT_YOUR_TURN: "Não é a sua vez.",
@@ -25,7 +25,7 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   WARD_PENDING: "Decida primeiro se usa a habilidade contra a armadilha.",
   NO_WARD_PENDING: "Não há armadilha esperando resposta.",
   NO_ABILITY: "Este personagem não tem habilidade.",
-  ABILITY_REACTIVE: "Esta habilidade é usada quando uma armadilha te atinge.",
+  ABILITY_REACTIVE: "Esta habilidade dispara sozinha, na hora certa.",
   ABILITY_NOT_READY: "A habilidade ainda está carregando.",
   ENERGY_FULL: "Sua energia já está no máximo.",
   ABILITY_ALREADY_READY: "Sua habilidade já está pronta.",
@@ -37,12 +37,15 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   SILENCED: "Você está silenciado: não pode jogar cartas.",
   INVALID_SPECTERS: "Escolha 2 casas diferentes dentro do alcance.",
   INVALID_FLAMES: "Escolha até 3 casas diferentes do caminho.",
+  INVALID_FROST: "Escolha até 2 casas diferentes que ainda não congelaram.",
   PLUNDER_PENDING: "Aguarde o Guardião escolher as cartas.",
   NO_PLUNDER_PENDING: "Não há cartas para pilhar agora.",
   CANNOT_FUSE: "Você precisa de 3 cartas iguais que se fundem.",
   GRACE_PENDING: "Escolha primeiro a sua dádiva do céu.",
   NO_GRACE_PENDING: "Não há dádiva do céu para escolher.",
   INVALID_GRACE: "Essa dádiva não está à escolha aqui.",
+  VOID_FULL: "O Vazio já está cheio: solte algo antes.",
+  INVALID_VOID: "O Vazio não pode fazer isso nessa casa.",
 };
 
 /** Sends commands to the GameClient and replays the resulting events step by step (see model/README.md). */
@@ -117,10 +120,18 @@ export class MatchStore {
       volley?: "opponents" | "traps";
       power?: AbilityPower;
       flameTiles?: readonly number[];
+      frostTiles?: readonly number[];
+      seizeTile?: number;
     } = {},
   ): void => {
     if (!canActivateAbility(this.view)) return;
     this.dispatch({ type: "activateAbility", playerId: this.view.activePlayerId, ...choice });
+  };
+
+  /** Sets down the Void's `index`th item: after `tile` for a harm (a new rift), on it for a spell. */
+  placeVoid = (index: number, tile: number, doubled = false): void => {
+    if (!canRoll(this.view)) return;
+    this.dispatch({ type: "placeVoid", playerId: this.view.activePlayerId, index, tile, doubled });
   };
 
   plunderCards = (cardUids: readonly string[]): void => {
@@ -155,7 +166,7 @@ export class MatchStore {
   }
 
   private enqueue = ({ state, events }: GameUpdate): void => {
-    this.queue.push(...events.flatMap((event) => eventToSteps(event, this.timings)), syncStep(state));
+    this.queue.push(...updateSteps(events, state, this.timings));
     if (this.timer === null) this.runNextStep();
   };
 

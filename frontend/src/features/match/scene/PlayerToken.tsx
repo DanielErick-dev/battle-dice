@@ -29,6 +29,8 @@ interface PlayerTokenProps {
   wandTip?: Vector3;
   /** "J2 Bruxa" over the head; the seat lifts tags of figures sharing a tile apart. */
   nameTag?: { text: string; seat: number };
+  /** Where the one their reaction answers stands (Themis points at whoever her verdict judges). */
+  faceToward?: Vec3 | null;
 }
 
 /** A slide: making room on its own tile, without getting up or turning (seated on its chair). */
@@ -40,6 +42,8 @@ interface Waypoint {
   dash: boolean;
   /** Seated when sent there: a shift on its own tile slides the chair over instead of a run. */
   seated: boolean;
+  /** The walk ends there: the run slows to a stop on the way. */
+  arriving: boolean;
   /** Path direction at `to`. */
   path: Vector3;
 }
@@ -51,6 +55,8 @@ interface Segment {
   motion: Motion;
   progress: number;
   duration: number;
+  /** Eases out to a stop (the last tile of a walk), playing the brake clip. */
+  arriving: boolean;
 }
 
 /** A seated figure making room on its own tile: as far as that can be, and how long it takes. */
@@ -58,6 +64,8 @@ const SLIDE_DISTANCE = TILE_SIZE * 0.8;
 const SLIDE_SECONDS = 0.4;
 /** One tile per playback step, so steps chain seamlessly. */
 const RUN_SPEED = TILE_PITCH / (DEFAULT_TIMINGS.stepMs / 1000);
+/** The last tile of a walk, eased out from about the run's speed to a stop. */
+const ARRIVE_SECONDS = DEFAULT_TIMINGS.arriveMs / 1000;
 const DASH_SPEED = TILE_PITCH / (DEFAULT_TIMINGS.dashStepMs / 1000);
 /** The figure throws itself forward (its dash clip) before the bolt takes it out of sight. */
 const DASH_VANISH_SECONDS = DEFAULT_TIMINGS.dashLaunchMs / 1000 + 0.1;
@@ -80,6 +88,10 @@ const HOP_SECONDS = 0.7;
 const HOP_HEIGHT = 0.9;
 /** A cast clip's last pose is held this long before settling into idle. */
 const CAST_HOLD_SECONDS = 0.5;
+/** Themis's verdict: she guards against the attack, points at the one judged, then scoffs as it turns on them. */
+const VERDICT_CLIPS: readonly CharacterClip[] = ["guard", "cast", "scoff"];
+/** Share of a sit clip gone when the chair starts growing in: they turn to it first, then sit. */
+const CHAIR_AT = 0.15;
 const LEVITATE_BOB = 0.12;
 /** Sent flying without a knocked clip: how far back the figure reels (radians). */
 const KNOCKED_TILT = 0.9;
@@ -101,9 +113,22 @@ export function PlayerToken({
   signals,
   wandTip,
   nameTag,
+  faceToward = null,
 }: PlayerTokenProps) {
-  const { isTeleporting, isDashing, isFuryAwake, isActive, isResting, shove, knocked, hop, dragged, abilityCast } =
-    signals;
+  const {
+    isTeleporting,
+    isArriving,
+    isDashing,
+    isFuryAwake,
+    isActive,
+    isResting,
+    shove,
+    knocked,
+    hop,
+    dragged,
+    abilityCast,
+    verdict,
+  } = signals;
   const isLevitating = player.levitating > 0;
   const castsStill = character?.castsStill ?? false;
   const landImpactSeconds = character?.landImpactSeconds ?? 0;
@@ -130,6 +155,7 @@ export function PlayerToken({
   const shoveSeconds = useRef<number | null>(null);
   const knockedSeconds = useRef<number | null>(null);
   const hopSeconds = useRef<number | null>(null);
+  const clipLengths = useRef<ClipLengths>({});
   const [canRest, setCanRest] = useState(false);
   const seated = useRef(false);
   const onClipLengths = useCallback((lengths: ClipLengths) => {
@@ -139,7 +165,13 @@ export function PlayerToken({
     shoveSeconds.current = lengths.shove ?? null;
     knockedSeconds.current = lengths.knocked ?? null;
     hopSeconds.current = lengths.hop ?? null;
+    clipLengths.current = lengths;
   }, []);
+  // Sitting down (sit), and Themis passing her verdict with the clips it plays.
+  const sitStartedAt = useRef<number | null>(null);
+  const reactStartedAt = useRef<number | null>(null);
+  const reactClips = useRef<readonly CharacterClip[]>([]);
+  const lastVerdict = useRef<number | null>(null);
   // Clock seconds each act started at; the `last*` refs make each id play once.
   const hopStartedAt = useRef<number | null>(null);
   const lastHop = useRef<number | null>(null);
@@ -187,6 +219,7 @@ export function PlayerToken({
         teleport: isTeleporting,
         dash: isDashing,
         seated: seated.current,
+        arriving: isArriving,
         path: new Vector3(...pathDirection),
       });
     }
@@ -204,7 +237,8 @@ export function PlayerToken({
       current.progress = Math.min(1, current.progress + delta / current.duration);
 
       if (current.motion !== "leap") {
-        node.position.lerpVectors(current.from, current.to, current.progress);
+        const eased = current.arriving ? 1 - (1 - current.progress) ** 2 : current.progress;
+        node.position.lerpVectors(current.from, current.to, eased);
       } else {
         const height = 1 + current.from.distanceTo(current.to) * 0.12;
         node.position.lerpVectors(current.from, current.to, easeInOut(current.progress));
@@ -315,20 +349,57 @@ export function PlayerToken({
     const moving = segment.current !== null && segment.current.motion !== "slide";
     // Sent on (a trap where the dash ended): the landing is over, not to be played again after.
     if (moving) landStartedAt.current = null;
-    runLinger.current = moving ? RUN_LINGER_SECONDS : Math.max(0, runLinger.current - delta);
+    runLinger.current = moving ? (current?.arriving ? 0 : RUN_LINGER_SECONDS) : Math.max(0, runLinger.current - delta);
+    const lengths = clipLengths.current;
+    // Slowing onto the walk's last tile (with a brake clip): it stops there, no run lingers after.
+    const braking = moving && current?.arriving === true && !isLevitating && lengths.brake !== undefined;
+    if (verdict !== null && verdict !== lastVerdict.current) {
+      lastVerdict.current = verdict;
+      reactStartedAt.current = now;
+      reactClips.current = VERDICT_CLIPS.filter((name) => lengths[name] !== undefined);
+    }
+    let reactClip: CharacterClip | null = null;
+    if (reactStartedAt.current !== null) {
+      let left = now - reactStartedAt.current;
+      for (const name of reactClips.current) {
+        if (left < (lengths[name] ?? 0)) {
+          reactClip = name;
+          break;
+        }
+        left -= lengths[name] ?? 0;
+      }
+      // The last pose holds a moment, then they face the path again.
+      if (reactClip === null && left >= CAST_HOLD_SECONDS) {
+        reactStartedAt.current = null;
+        heading.current = headingOf(new Vector3(...pathDirection)) ?? heading.current;
+      } else reactClip ??= reactClips.current.at(-1) ?? null;
+    }
+    if (reactStartedAt.current !== null && faceToward) {
+      heading.current = headingOf(new Vector3(...faceToward).sub(node.position)) ?? heading.current;
+    }
     // Sheathed as soon as the figure runs off (a roll can cut the cast short).
     bladesOut.current = castClip !== null && castElapsed < castClip && !moving;
     propHeld.current =
       castClip !== null && castElapsed >= castPropSeconds && castElapsed < (castImpactSeconds ?? castClip) && !moving;
     wandOut.current = isCasting && !moving;
-    seated.current = canRest && isResting && !isLevitating && !moving && !isCasting && !reeling && !gone;
+    const resting = canRest && isResting && !isLevitating && !moving && !isCasting && !reeling && !gone;
+    // With a sit clip they sit down once the brake is over, and the chair grows in as they do.
+    if (!resting) sitStartedAt.current = null;
+    else sitStartedAt.current ??= lengths.sit === undefined ? -Infinity : now;
+    const sitElapsed = sitStartedAt.current === null ? -1 : now - sitStartedAt.current;
+    const sitting = lengths.sit !== undefined && sitElapsed >= 0 && sitElapsed < lengths.sit;
+    seated.current = resting && sitElapsed >= (lengths.sit ?? 0) * CHAIR_AT;
     const rest = isLevitating ? "float" : seated.current ? "rest" : "idle";
     if (reeling && knockedSeconds.current !== null) clip.current = "knocked";
     else if (hopping && segment.current === null) clip.current = "hop";
     else if (shoving && !moving) clip.current = "shove";
     else if (launching) clip.current = "dash";
     else if (landed && !moving) clip.current = "land";
-    else if (moving || runLinger.current > 0) clip.current = isLevitating ? "float" : "run";
+    else if (reactClip !== null && !moving) clip.current = reactClip;
+    else if (braking) clip.current = "brake";
+    // Landing on its chair it sits at once: the run's linger would carry it running through the chair.
+    else if (moving || (runLinger.current > 0 && !seated.current)) clip.current = isLevitating ? "float" : "run";
+    else if (sitting) clip.current = "sit";
     else clip.current = isCasting && castClip !== null && !castsStill ? "cast" : rest;
 
     rise.current = stepLevitation(rise.current, isLevitating, delta);
@@ -381,11 +452,15 @@ export function PlayerToken({
           <NameTag text={nameTag.text} color={color} active={isActive} y={TAG_HEIGHT + nameTag.seat * TAG_STAGGER} />
         )}
         {TOKEN_EFFECTS.aura.map((Effect, index) => (
-          <Effect key={index} token={token} />
+          <Suspense key={index} fallback={null}>
+            <Effect token={token} />
+          </Suspense>
         ))}
       </group>
       {TOKEN_EFFECTS.ground.map((Effect, index) => (
-        <Effect key={index} token={token} />
+        <Suspense key={index} fallback={null}>
+          <Effect token={token} />
+        </Suspense>
       ))}
       <mesh ref={ring} rotation-x={-Math.PI / 2} position-y={0.02}>
         <ringGeometry args={[0.62, 0.75, 48]} />
@@ -393,8 +468,11 @@ export function PlayerToken({
       </mesh>
 
       <group ref={body}>
+        {/* Each effect waits for its own models apart: one still loading never blanks the figure or the scene. */}
         {TOKEN_EFFECTS.body.map((Effect, index) => (
-          <Effect key={index} token={token} />
+          <Suspense key={index} fallback={null}>
+            <Effect token={token} />
+          </Suspense>
         ))}
         {model ? (
           <Suspense fallback={<Placeholder color={color} />}>
@@ -406,14 +484,26 @@ export function PlayerToken({
               fallen={token.charred}
             >
               {(figure) =>
-                TOKEN_EFFECTS.figure.map((Effect, index) => <Effect key={index} token={token} figure={figure} />)
+                TOKEN_EFFECTS.figure.map((Effect, index) => (
+                  <Suspense key={index} fallback={null}>
+                    <Effect token={token} figure={figure} />
+                  </Suspense>
+                ))
               }
             </CharacterModel>
           </Suspense>
         ) : (
           <Placeholder color={color} />
         )}
-        {canRest && <RestChair seated={seated} chair={fallen ? character?.fallenChair : character?.chair} />}
+        {canRest && (
+          <Suspense fallback={null}>
+            <RestChair
+              seated={seated}
+              chair={fallen ? character?.fallenChair : character?.chair}
+              seat={fallen ? undefined : character?.seat}
+            />
+          </Suspense>
+        )}
       </group>
     </group>
   );
@@ -432,17 +522,25 @@ function nextSegment(from: Vector3, waypoint: Waypoint | undefined): Segment | n
       motion: "slide",
       progress: 0,
       duration: SLIDE_SECONDS,
+      arriving: false,
     };
   }
   const motion: Motion = waypoint.dash ? "dash" : waypoint.teleport || distance > MAX_RUN_DISTANCE ? "leap" : "run";
   const speed = motion === "dash" ? DASH_SPEED : RUN_SPEED;
+  const arriving = waypoint.arriving && motion === "run";
   return {
     from: from.clone(),
     to: waypoint.to,
     path: waypoint.path,
     motion,
     progress: 0,
-    duration: motion === "leap" ? LEAP_SECONDS + distance * LEAP_SECONDS_PER_UNIT : Math.max(distance / speed, 0.01),
+    duration:
+      motion === "leap"
+        ? LEAP_SECONDS + distance * LEAP_SECONDS_PER_UNIT
+        : arriving
+          ? ARRIVE_SECONDS
+          : Math.max(distance / speed, 0.01),
+    arriving,
   };
 }
 

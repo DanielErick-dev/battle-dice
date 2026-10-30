@@ -51,7 +51,7 @@ Nos testes passamos um dado "viciado" e conferimos o resultado exato. No servido
 - **Base:** `types.ts`, `engine.ts`, `handlers/`, `turn.ts` (fim de turno e rodadas), `landing.ts` (parar numa casa), `players.ts` (proteções e alcance).
 - **Tabuleiro:** `board.ts`, `boardGenerator.ts`, `realms.ts` (céu e inferno), `blessings.ts`, `hiddenTraps.ts`.
 - **Cartas:** `cards.ts` (catálogo), `cardPlay.ts` (efeitos), `deck.ts`, `fusion.ts`.
-- **Habilidades:** `abilities.ts` (carga e lista), mais um arquivo por personagem com mecânica própria: `fairy.ts`, `kunoichi.ts`, `berserker.ts`, `seraph.ts`, `seals.ts`, `specters.ts`, `arrowRain.ts`, `cardGamble.ts`, `transmutation.ts`, `resurrection.ts`, `newcomerAbilities.ts`.
+- **Habilidades:** `abilities.ts` (carga e lista), mais um arquivo por personagem com mecânica própria: `void.ts` (o Vazio do Zarek e as fendas, casas novas no tabuleiro), `fairy.ts`, `kunoichi.ts`, `berserker.ts`, `seraph.ts`, `seals.ts`, `specters.ts`, `arrowRain.ts`, `cardGamble.ts`, `transmutation.ts`, `resurrection.ts`, `newcomerAbilities.ts`.
 
 ## Adicionando uma mecânica nova
 

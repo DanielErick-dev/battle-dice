@@ -1,7 +1,7 @@
 import { TRAP_DRAIN_ENERGY } from "@/game/domain/landing";
 import { WINGS_BONUS } from "@/game/domain/blessings";
 import { BLESSING_ENERGY } from "@/game/domain/realms";
-import type { Blessing, RealmKind, Tile, TrapCurse } from "@/game/domain/types";
+import type { Blessing, RealmKind, Rift, Tile, TrapCurse } from "@/game/domain/types";
 import { CARD_TEXT } from "../ui/cards/cardText";
 
 export type TileKind =
@@ -148,8 +148,9 @@ export function themeFor(
 ): TileTheme {
   const { effect } = tile;
   if (tile.track) return trackTheme(tile, tile.track.realm);
-  // Its trap smashed by the Trap Ward: a harmless wreck for the rest of the game.
+  // Its harm smashed or swallowed by the Void: a harmless wreck for the rest of the game.
   if (destroyed) return { kind: "destroyed", ...THEMES.destroyed, label: "DESTRUÍDA", caption: "" };
+  if (tile.rift) return riftTheme(tile, tile.rift);
   if (inTrapZone) return { kind: "trapZone", ...THEMES.trapZone, label: "", caption: "" };
   if (effect.kind === "portal") {
     if (effect.realm) {
@@ -295,3 +296,30 @@ export function pathColor(progress: number): string {
   const channel = (i: number) => Math.round(start[i] + (end[i] - start[i]) * k);
   return `rgb(${channel(0)}, ${channel(1)}, ${channel(2)})`;
 }
+
+/** A rift of Zarek's Void: its harm under a void-violet glow, ×2 when doubled. */
+function riftTheme(tile: Tile, { back, doubled }: Rift): TileTheme {
+  const times = doubled ? " ×2" : "";
+  const { effect } = tile;
+  if (effect.kind === "trap") {
+    const curse = effect.curse ? ` · ${CURSE_CAPTION[effect.curse]}${times}` : "";
+    return { kind: "trap", ...THEMES.trap, glow: RIFT_GLOW, label: `VOLTE ${back ?? 0}`, caption: `FENDA${curse}` };
+  }
+  if (effect.kind === "curse")
+    return {
+      kind: "curse",
+      ...THEMES.curse,
+      glow: RIFT_GLOW,
+      label: "MALDIÇÃO",
+      caption: `${CURSE_CAPTION[effect.curse]}${times}`,
+    };
+  return {
+    kind: "skipTurn",
+    ...THEMES.skipTurn,
+    glow: RIFT_GLOW,
+    label: "PERDE",
+    caption: doubled ? "2 VEZES" : "A VEZ",
+  };
+}
+
+const RIFT_GLOW = "#a78bfa";

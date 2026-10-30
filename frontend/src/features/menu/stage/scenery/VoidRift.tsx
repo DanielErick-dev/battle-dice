@@ -15,7 +15,8 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom, type RandomSource } from "@/game/domain/random";
-import { roughen } from "./sceneryKit";
+import { GROUND_RADIUS, roughen } from "./sceneryKit";
+import { withDressing, type GroundDressing } from "./groundDressing";
 import { useCanvasTexture } from "./textures";
 
 const FLOOR_RADIUS = 1;
@@ -46,7 +47,7 @@ const SHARD_SHAPES = 3;
  * it floating behind him and a slow vortex of dark mist. Origin on the floor; glows are additive, not lights.
  */
 export function VoidRift() {
-  const obsidian = useCanvasTexture({ size: 512, draw: paintObsidian, fadeFrom: 0.5 });
+  const obsidian = useCanvasTexture({ size: 512, draw: paintRiftFloor, fadeFrom: 0.5 });
   const fissures = useCanvasTexture({ size: 512, draw: paintFissures, fadeFrom: 0.5 });
   const veins = useCanvasTexture({ size: 512, draw: paintVeins, fadeFrom: 0.5 });
   const vortex = useCanvasTexture({ size: 256, draw: paintVortex });
@@ -123,7 +124,7 @@ export function VoidRift() {
   return (
     <group>
       <mesh material={materials.floor} rotation-x={-Math.PI / 2} position-y={0.001} renderOrder={-1}>
-        <circleGeometry args={[FLOOR_RADIUS, 64]} />
+        <circleGeometry args={[GROUND_RADIUS, 64]} />
       </mesh>
       <mesh material={materials.veins} rotation-x={-Math.PI / 2} position-y={0.003}>
         <circleGeometry args={[FLOOR_RADIUS, 64]} />
@@ -289,3 +290,12 @@ function paintVortex(context: CanvasRenderingContext2D, size: number) {
     }
   }
 }
+
+/** Obsidian slabs leading into the rift, glowing violet at the joints, shards of void glass. */
+const RIFT_GROUND: GroundDressing = {
+  wash: { colour: "#7c3aed", alpha: 0.35 },
+  path: { kind: "slabs", colour: "#2a1f3d", edge: "#8b5cf6", width: [0.15, 0.25] },
+  litter: [{ shape: "shard", colours: ["rgba(190,140,255,0.85)", "rgba(40,20,70,0.9)"], count: 80, size: 5 }],
+  glow: { colour: "#b06cff", count: 12 },
+};
+const paintRiftFloor = withDressing(paintObsidian, RIFT_GROUND);

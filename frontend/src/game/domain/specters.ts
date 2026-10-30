@@ -49,17 +49,21 @@ export function summonSpecters(draft: Draft, playerId: PlayerId, tiles: readonly
   draft.events.push({ type: "spectersSummoned", playerId, tiles: [...tiles] });
 }
 
-/** Walking through a Warden first dispels all their apparitions; alone, one's own apparitions reward. */
+/**
+ * Walking through a Warden dispels all their apparitions, even ones passed earlier in the same
+ * move: reaching the Warden in that move spares the walker. Alone, one's own apparitions reward.
+ */
 export function crossSpecters(draft: Draft, playerId: PlayerId, path: readonly TileId[]): void {
   const alone = draft.players.length === 1;
+  const crossed = new Set(path);
+  for (const warden of draft.players) {
+    if (warden.id === playerId || !crossed.has(warden.position)) continue;
+    const fading = draft.specters.filter((specter) => specter.owner === warden.id);
+    if (fading.length === 0) continue;
+    draft.specters = draft.specters.filter((specter) => specter.owner !== warden.id);
+    draft.events.push({ type: "spectersDispelled", playerId, owner: warden.id, tiles: fading.map((s) => s.tile) });
+  }
   for (const tile of path) {
-    for (const warden of draft.players) {
-      if (warden.id === playerId || warden.position !== tile) continue;
-      const fading = draft.specters.filter((specter) => specter.owner === warden.id);
-      if (fading.length === 0) continue;
-      draft.specters = draft.specters.filter((specter) => specter.owner !== warden.id);
-      draft.events.push({ type: "spectersDispelled", playerId, owner: warden.id, tiles: fading.map((s) => s.tile) });
-    }
     const specter = draft.specters.find(
       (candidate) => candidate.tile === tile && (alone || candidate.owner !== playerId),
     );

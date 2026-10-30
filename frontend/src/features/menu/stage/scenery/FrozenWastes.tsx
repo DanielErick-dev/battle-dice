@@ -2,27 +2,21 @@
 
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
-import {
-  BufferAttribute,
-  BufferGeometry,
-  DodecahedronGeometry,
-  MeshPhysicalMaterial,
-  MeshStandardMaterial,
-  type Group,
-} from "three";
+import { BufferAttribute, BufferGeometry, DodecahedronGeometry, MeshStandardMaterial, type Group } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
-import { iceShard } from "@/features/match/scene/character/ice";
+import { PROP_HEIGHT, usePropMesh } from "@/features/match/scene/character/props";
 import { seededRandom } from "@/game/domain/random";
+import type { GroundDressing } from "./groundDressing";
+import { GROUND_RADIUS } from "./sceneryKit";
 import { useNoiseTexture, type NoiseLook } from "./textures";
 
-const SNOW_RADIUS = 1;
-/** `height` is the tallest shard's. Uneven on purpose: one big mass, smaller outcrops elsewhere. */
-const CRYSTAL_CLUSTERS = [
-  { x: -0.72, z: -0.52, height: 0.78, shards: 7 },
-  { x: -0.3, z: -0.85, height: 0.4, shards: 4 },
-  { x: 0.46, z: -0.78, height: 0.62, shards: 6 },
-  { x: 0.84, z: -0.26, height: 0.3, shards: 3 },
-  { x: -0.86, z: 0.24, height: 0.18, shards: 3 },
+/** Bjorn's frost crystals (bjornCrystal): one big mass behind him, smaller outcrops elsewhere. */
+const CRYSTALS = [
+  { x: -0.72, z: -0.52, height: 0.8, turn: 0.4 },
+  { x: -0.3, z: -0.88, height: 0.42, turn: 2.1 },
+  { x: 0.48, z: -0.78, height: 0.62, turn: -0.8 },
+  { x: 0.84, z: -0.26, height: 0.3, turn: 1.3 },
+  { x: -0.86, z: 0.24, height: 0.2, turn: 2.8 },
 ];
 const ROCKS = [
   { x: -0.5, z: -0.2, size: 0.09 },
@@ -35,8 +29,9 @@ const FLAKE_SPREAD = 1.3;
 const FLAKE_HEIGHT = 2.4;
 const MISTS = 8;
 
-/** Bjorn's stage instead of the rune pedestal: snow, glacier crystals, rocks, mist and snowfall. Origin on the floor. */
+/** Bjorn's stage instead of the rune pedestal: snow, frost crystals, rocks, mist and snowfall. Origin on the floor. */
 export function FrozenWastes() {
+  const crystal = usePropMesh("bjornCrystal");
   const snow = useNoiseTexture(SNOW);
   const stone = useNoiseTexture(STONE);
   const materials = useMemo(
@@ -53,72 +48,30 @@ export function FrozenWastes() {
         roughness: 0.95,
         flatShading: true,
       }),
-      // Clear glacier ice, deeper blue where thicker, faintly frosted rather than glowing.
-      ice: new MeshPhysicalMaterial({
-        color: "#d8ecf7",
-        transmission: 0.85,
-        thickness: 0.25,
-        ior: 1.31,
-        attenuationColor: "#2b6ea6",
-        attenuationDistance: 0.35,
-        roughness: 0.18,
-        metalness: 0,
-        emissive: "#14385c",
-        emissiveIntensity: 0.15,
-        flatShading: true,
-      }),
     }),
     [snow, stone],
   );
   useEffect(() => () => Object.values(materials).forEach((material) => material.dispose()), [materials]);
   const rock = useMemo(() => new DodecahedronGeometry(1, 0), []);
   useEffect(() => () => rock.dispose(), [rock]);
-  // Each shard its own uneven shape, so no two read as copies.
-  const clusters = useMemo(() => {
-    const random = seededRandom(11);
-    return CRYSTAL_CLUSTERS.map((cluster) => ({
-      ...cluster,
-      // The tallest near upright in the middle; the rest shorter, fanning out from its foot.
-      shards: Array.from({ length: cluster.shards }, (_, index) => {
-        const main = index === 0;
-        const height = main ? 1 : 0.3 + random() * 0.55;
-        return {
-          geometry: iceShard(random, main ? 0.075 : 0.05 + random() * 0.04, !main && random() < 0.3),
-          angle: random() * Math.PI * 2,
-          out: main ? 0 : 0.04 + random() * 0.08,
-          lean: main ? random() * 0.12 : 0.3 + random() * 0.55,
-          height,
-          turn: random() * Math.PI,
-        };
-      }),
-    }));
-  }, []);
-  useEffect(
-    () => () => clusters.forEach(({ shards }) => shards.forEach(({ geometry }) => geometry.dispose())),
-    [clusters],
-  );
-
   return (
     <group>
       <mesh material={materials.snow} rotation-x={-Math.PI / 2} position-y={0.001} renderOrder={-1}>
-        <circleGeometry args={[SNOW_RADIUS, 64]} />
+        <circleGeometry args={[GROUND_RADIUS, 64]} />
       </mesh>
       {/* The snow drift he stands on, in place of the pedestal. */}
       <mesh material={materials.drift} position-y={-0.05} scale={[0.62, 0.05, 0.62]}>
         <sphereGeometry args={[1, 32, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
       </mesh>
-      {clusters.map(({ x, z, height, shards }) => (
-        <group key={`${x}:${z}`} position={[x, -0.01, z]} scale={height}>
-          {shards.map(({ geometry, angle, out, lean, height: shard, turn }, index) => (
-            <group
-              key={index}
-              position={[Math.cos(angle) * out, 0, Math.sin(angle) * out]}
-              rotation={[Math.sin(angle) * lean, 0, -Math.cos(angle) * lean]}
-            >
-              <mesh geometry={geometry} material={materials.ice} rotation-y={turn} scale={[1, shard, 1]} />
-            </group>
-          ))}
-          <mesh material={materials.drift} position-y={-0.02} scale={[0.2, 0.06, 0.17]}>
+      {CRYSTALS.map(({ x, z, height, turn }) => (
+        <group key={`${x}:${z}`} position={[x, -0.01, z]} rotation-y={turn}>
+          <mesh
+            geometry={crystal.geometry}
+            material={crystal.material}
+            position-y={height / 2}
+            scale={height / PROP_HEIGHT}
+          />
+          <mesh material={materials.drift} position-y={-0.02} scale={[height * 0.3, height * 0.08, height * 0.26]}>
             <sphereGeometry args={[1, 14, 6, 0, Math.PI * 2, 0, Math.PI / 2]} />
           </mesh>
         </group>
@@ -222,11 +175,27 @@ function Snowfall() {
   );
 }
 
+/** Bjorn's trail trampled through the snow, grey stones showing through, an icy blue. */
+const FROZEN_GROUND: GroundDressing = {
+  wash: { colour: "#60a5fa", alpha: 0.28 },
+  path: {
+    kind: "dirt",
+    colour: "rgba(170,195,215,0.8)",
+    edge: "rgba(110,140,170,0.45)",
+    width: [0.14, 0.26],
+    wind: 0.05,
+  },
+  litter: [
+    { shape: "pebble", colours: ["#6b7280", "#9ca3af"], count: 45, size: 3 },
+    { shape: "shard", colours: ["rgba(200,235,255,0.85)"], count: 40, size: 3 },
+  ],
+};
 const SNOW: NoiseLook = {
   base: [214, 228, 240],
   dark: [160, 184, 208],
   light: [246, 250, 255],
   fadeOut: true,
+  dress: FROZEN_GROUND,
 };
 const STONE: NoiseLook = {
   base: [58, 66, 78],

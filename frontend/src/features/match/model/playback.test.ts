@@ -34,7 +34,7 @@ describe("playback of rule events", () => {
     expect(wind.players[0]).toMatchObject({ abilityCharge: 0 });
     expect(wind.abilityInUse).toBe("tailwind");
 
-    const [ward] = replay(initial(), { type: "abilityUsed", playerId: "p1", ability: "trapWard" });
+    const [ward] = replay(initial(), { type: "abilityUsed", playerId: "p1", ability: "theVoid" });
     expect(ward.abilityInUse).toBeNull();
   });
 

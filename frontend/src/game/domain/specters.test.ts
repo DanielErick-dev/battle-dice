@@ -102,6 +102,13 @@ describe("Spectral Apparitions", () => {
     expect(hasEvent(events, "specterStruck")).toBe(false);
   });
 
+  it("passing apparitions and then the warden in the same move costs nothing", () => {
+    const { state, events } = rivalWalks(10, [specter(11, "hunger"), specter(12, "plunder")], 5, 14, { energy: 6 });
+    expect(state.specters).toEqual([]);
+    expect(hasEvent(events, "specterStruck")).toBe(false);
+    expect(state.players.find((player) => player.id === "rival")?.energy).toBeGreaterThanOrEqual(6);
+  });
+
   it("does nothing to the warden while there are opponents", () => {
     const start = { ...withPlayer(duel(), "warden", { position: 20 }), specters: [specter(21, "hunger")] };
     const { state } = roll(start, "warden", 1);

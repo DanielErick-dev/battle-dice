@@ -29,7 +29,12 @@ export function ShieldFx({ token }: { token: TokenFx }) {
   const { shielded, spectralArmour } = token.player;
   // Inside her Susanoo the shield waits; it shows again once the Susanoo is gone.
   const underSusanoo = token.character?.armourLook === "susanoo" && spectralArmour > 0;
-  return shielded && !underSusanoo && <ShieldBubble color={token.character?.shieldColor} />;
+  return (
+    shielded &&
+    !underSusanoo && (
+      <ShieldBubble color={token.character?.shieldColor} winged={hasGreatWings(token)} seated={token.live.seated} />
+    )
+  );
 }
 
 export function WindStepFx({ token }: { token: TokenFx }) {
@@ -65,4 +70,10 @@ function orbFor(boost: DiceBoost | null, bonuses: readonly DiceBonus[]): OrbPale
   if (boost?.kind === "best") return "oracle";
   if (bonuses.some(({ amount }) => amount !== AWAKENING_BONUS)) return "luck";
   return null;
+}
+
+/** Seraphiel's great wings stand out of the usual bubble; the fairy's small ones fit inside it. */
+export function hasGreatWings(token: TokenFx): boolean {
+  const wings = token.character?.wings;
+  return wings === "seraph" || wings === "fallen";
 }

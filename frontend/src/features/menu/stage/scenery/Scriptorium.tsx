@@ -13,9 +13,10 @@ import {
 } from "three";
 import { drawParchment, pageStrokes } from "@/features/match/scene/character/parchment";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
+import { withDressing, type GroundDressing } from "./groundDressing";
+import { GROUND_RADIUS } from "./sceneryKit";
 import { useCanvasTexture, type Painter } from "./textures";
 
-const FLOOR_RADIUS = 1.0;
 const CANDLES = [
   { x: -0.74, z: -0.3, height: 0.16 },
   { x: -0.66, z: -0.42, height: 0.09 },
@@ -46,7 +47,7 @@ const HALO = new Color("#ff9a3d");
 
 /** The Flesh Scribe's stage instead of the rune pedestal (origin on the floor); flames are sprites, not lights. */
 export function Scriptorium() {
-  const floor = useCanvasTexture({ size: 512, draw: paintFlagstones, seed: 19, fadeFrom: 0.5 });
+  const floor = useCanvasTexture({ size: 512, draw: paintScriptoriumFloor, seed: 19, fadeFrom: 0.5 });
   const pages = useStrewnPages();
   const disc = useSoftDisc();
   const materials = useMemo(
@@ -96,7 +97,7 @@ export function Scriptorium() {
   return (
     <group>
       <mesh material={materials.floor} rotation-x={-Math.PI / 2} position-y={0.001} renderOrder={-1}>
-        <circleGeometry args={[FLOOR_RADIUS, 64]} />
+        <circleGeometry args={[GROUND_RADIUS, 64]} />
       </mesh>
       {CANDLES.map(({ x, z, height }, index) => (
         <group key={`${x}:${z}`} position={[x, 0, z]}>
@@ -193,3 +194,12 @@ function useStrewnPages(): CanvasTexture[] {
   useEffect(() => () => pages.forEach((page) => page.dispose()), [pages]);
   return pages;
 }
+
+/** A crimson carpet with a gold trim between the desks, ink blots and torn pages. */
+const SCRIPTORIUM_GROUND: GroundDressing = {
+  wash: { colour: "#b91c1c", alpha: 0.25 },
+  patches: { colours: ["rgba(10,6,20,0.55)"], count: 10, radius: [8, 22] },
+  path: { kind: "runner", colour: "#5a1018", edge: "#b08a3a", width: [0.22, 0.22] },
+  litter: [{ shape: "shard", colours: ["rgba(230,215,180,0.9)"], count: 30, size: 7 }],
+};
+const paintScriptoriumFloor = withDressing(paintFlagstones, SCRIPTORIUM_GROUND);

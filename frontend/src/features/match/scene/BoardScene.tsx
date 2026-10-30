@@ -5,18 +5,21 @@ import { Canvas } from "@react-three/fiber";
 import { Suspense, useMemo } from "react";
 import { Vector3 } from "three";
 import { getTile } from "@/game/domain/board";
+import { withRifts } from "@/game/domain/void";
 import { DICE_SIDES } from "@/game/domain/dice";
+import { frozenTiles } from "@/game/domain/fairy";
 import type { Board, PlayerId, TileId } from "@/game/domain/types";
 import { characterFor, playerColor } from "../characters";
 import type { EffectsQuality } from "../config";
 import type { MatchView } from "../model/matchView";
-import { createBoardLayout, type BoardLayout } from "./boardLayout";
+import { createBoardLayout, withRiftPositions, type BoardLayout, type Vec3 } from "./boardLayout";
 import { boardScaleFor, CameraRig, type CameraFraming } from "./CameraRig";
 import { diceLanding, dieRoll, focusPoint, focusTile, realmAt } from "./cameraFocus";
 import { PickedTileMark } from "./character/PickedTileMark";
 import { DiceThrow } from "./DiceThrow";
 import { BOARD_EFFECTS, OVERLAY_EFFECTS, type BoardFx } from "./effects";
 import { ArenaEnvironment, HORIZON_COLOR } from "./environment/ArenaEnvironment";
+import type { MapId } from "../maps";
 import type { PickCursor } from "./pickCursor";
 import { PlayerToken } from "./PlayerToken";
 import { PostEffects } from "./PostEffects";
@@ -44,6 +47,8 @@ export interface BoardPicking {
 interface BoardSceneProps {
   board: Board;
   columns: number;
+  /** The world around the trail (see maps.ts). */
+  mapId: MapId;
   view: MatchView;
   /** How the camera frames the play (following the action matters on boards too big to frame whole). */
   cameraFraming: CameraFraming;
@@ -63,12 +68,16 @@ interface BoardSceneProps {
   onFreeLook: () => void;
 }
 
+/** Zarek's violet, on the rifts his Void opens. */
+const RIFT_ACCENT = "#8b5cf6";
+
 /** Above this many tiles, face textures drop to half resolution to save GPU memory. */
 const HIGH_RES_TILE_LIMIT = 50;
 
 export default function BoardScene({
-  board,
+  board: plainBoard,
   columns,
+  mapId,
   view,
   cameraFraming,
   onDiceImpact,
@@ -80,7 +89,10 @@ export default function BoardScene({
   onFreeLook,
   picking,
 }: BoardSceneProps) {
-  const layout = useMemo(() => createBoardLayout(board, columns), [board, columns]);
+  const roadLayout = useMemo(() => createBoardLayout(plainBoard, columns), [plainBoard, columns]);
+  // The path as it stands, with the rifts Zarek's Void opened linked in beside the road.
+  const board = useMemo(() => withRifts(plainBoard, view.rifts), [plainBoard, view.rifts]);
+  const layout = useMemo(() => withRiftPositions(roadLayout, board), [roadLayout, board]);
   const playerIds = view.players.map((player) => player.id).join(",");
   const wandTips = useMemo(
     () => new Map(playerIds.split(",").map((id) => [id as PlayerId, new Vector3()])),
@@ -89,10 +101,14 @@ export default function BoardScene({
   const occupiedTiles = new Set(view.players.map((player) => player.position));
   const mainTiles = useMemo(() => board.tiles.filter((tile) => !tile.track), [board]);
   const trapZoneTiles = useMemo(() => new Set(board.trapZones.flatMap((zone) => zone.tiles)), [board]);
-  // Snowed-over and burning tiles hide what stands on them under the spell.
+  // Snowed-over, frozen and burning tiles hide what stands on them under the spell.
   const coveredTiles = useMemo(
-    () => new Set([...view.enchantedTiles, ...view.blackFlames].map(({ tile }) => tile)),
-    [view.enchantedTiles, view.blackFlames],
+    () =>
+      new Set([
+        ...[...view.enchantedTiles, ...view.blackFlames].map(({ tile }) => tile),
+        ...frozenTiles(view.winter, board.startTile),
+      ]),
+    [view.enchantedTiles, view.blackFlames, view.winter, board.startTile],
   );
   const scale = boardScaleFor(layout);
   const shadowExtent = Math.max(layout.width, layout.depth) / 2 + 3;
@@ -129,14 +145,17 @@ export default function BoardScene({
       }}
     >
       <color attach="background" args={[HORIZON_COLOR]} />
-      <fog attach="fog" args={[HORIZON_COLOR, 30 * scale, 85 * scale]} />
+      {/* Closer in than a clear night: the far shore and the sea sink into the murk. */}
+      <fog attach="fog" args={[HORIZON_COLOR, 26 * scale, 78 * scale]} />
 
       {/* Nothing shows until every model has loaded; then it's all compiled before the match starts. */}
       <Suspense fallback={null}>
         <RealmAtmosphere realm={focusRealm}>
+          {/* Cold moonlight; warmth comes only from fires, torches and lanterns. */}
           <directionalLight
             position={[7 * scale, 14 * scale, 8 * scale]}
-            intensity={1.6}
+            intensity={1.55}
+            color="#c6d1e6"
             castShadow
             shadow-mapSize={[2048, 2048]}
             shadow-camera-left={-shadowExtent}
@@ -146,9 +165,9 @@ export default function BoardScene({
             shadow-camera-far={60 * scale}
           />
           {/* Cool rim light from the moon's side of the sky. */}
-          <directionalLight position={[-0.3, 0.28, -0.8]} intensity={0.45} color="#b9b0ff" />
+          <directionalLight position={[-0.3, 0.28, -0.8]} intensity={0.5} color="#8da0c2" />
 
-          <ArenaEnvironment layout={layout} scale={scale} />
+          <ArenaEnvironment layout={roadLayout} scale={scale} mapId={mapId} />
           {/* Pools of particles in world space, fed by emitters on the tokens. */}
           <HealingParticles />
           {mainTiles.map((tile) => (
@@ -156,7 +175,8 @@ export default function BoardScene({
               key={tile.id}
               tile={tile}
               position={layout.position(tile.id)}
-              accent={pathColor((tile.id - 1) / (lastTile - 1))}
+              slab={layout.slab(tile.id)}
+              accent={tile.rift ? RIFT_ACCENT : pathColor((tile.id - 1) / (lastTile - 1))}
               arrowAngle={tile.next !== null ? directionBetween(layout, tile.id, tile.next) : null}
               highlighted={highlighted.has(tile.id)}
               reachable={reachable.has(tile.id)}
@@ -187,8 +207,11 @@ export default function BoardScene({
               picking={picking}
             />
           ))}
+          {/* Apart, so an effect whose models are still loading never blanks the whole scene. */}
           {BOARD_EFFECTS.map((Effect, index) => (
-            <Effect key={index} fx={fx} />
+            <Suspense key={index} fallback={null}>
+              <Effect fx={fx} />
+            </Suspense>
           ))}
 
           {view.players.map((player, seat) => (
@@ -204,6 +227,7 @@ export default function BoardScene({
               pathDirection={pathDirection(board, layout, player.position)}
               signals={tokenSignals(view, player)}
               wandTip={wandTips.get(player.id)}
+              faceToward={judgedBy(view, layout, player.id)}
             />
           ))}
           {OVERLAY_EFFECTS.map((Effect, index) => (
@@ -270,6 +294,14 @@ function reachableTiles(view: MatchView, board: Board): Set<number> {
 }
 
 /** Angle from one tile to another on the face texture (canvas x = world x, canvas y = world z). */
+/** Where whoever Themis's verdict judges stands, for her to point at; null for anyone else. */
+function judgedBy(view: MatchView, layout: BoardLayout, playerId: string): Vec3 | null {
+  const verdict = view.fx.verdict;
+  if (verdict?.judgeId !== playerId) return null;
+  const attacker = view.players.find((player) => player.id === verdict.attackerId);
+  return attacker ? layout.position(attacker.position) : null;
+}
+
 function directionBetween(layout: BoardLayout, from: number, to: number): number {
   const [x1, , z1] = layout.position(from);
   const [x2, , z2] = layout.position(to);

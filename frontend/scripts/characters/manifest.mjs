@@ -2,10 +2,25 @@
 // Ids match CHARACTERS in src/features/match/characters.ts and name the source folders.
 
 export const REQUIRED_CLIPS = ["idle", "run"];
-export const OPTIONAL_CLIPS = ["intro", "showcase", "cast", "float", "dash", "land", "shove", "knocked", "rest", "hop"];
+export const OPTIONAL_CLIPS = [
+  "intro",
+  "showcase",
+  "cast",
+  "float",
+  "dash",
+  "land",
+  "shove",
+  "knocked",
+  "rest",
+  "hop",
+  "brake",
+  "sit",
+  "guard",
+  "scoff",
+];
 
-// Clips borrowed by everyone without their own (one fall and one way of sitting fit every body).
-export const SHARED_CLIPS = { knocked: "voidKnight", rest: "goldenGuardian" };
+// Clips borrowed by everyone without their own (one fall, one way of sitting and one of slowing to a stop fit every body).
+export const SHARED_CLIPS = { knocked: "voidKnight", rest: "goldenGuardian", brake: "tideMaiden" };
 
 // `sequences` build a clip from files in parts/, played back to back (syntax: docs/assets.md).
 const MODELS = {
@@ -26,7 +41,21 @@ const MODELS = {
   purgatoryKunoichi: {},
   crystalFairy: {},
   windGuardian: {},
-  tideMaiden: {},
+  // Themis: one raised hand is both her intro and her pointing at the judged; she slows to a walk on
+  // arriving, turns and sits (resting on the sit's last pose); her verdict is a guard, the point and a scoff.
+  tideMaiden: {
+    // Her parts were made on her first model; her idle and run are the Lady Justice one's.
+    retargetParts: true,
+    sequences: {
+      intro: ["raise-hand"],
+      cast: ["raise-hand"],
+      brake: ["run-to-walk@1.2"],
+      sit: ["step-to-sit@2.2"],
+      rest: ["step-to-sit@4.7"],
+      guard: ["guard@1.2-2.6"],
+      scoff: ["scoff@0.4-3.2"],
+    },
+  },
   crimsonStudent: {},
   // Only the first thrust: the export walks on into a second push.
   frostfangBerserker: { sequences: { shove: ["shove@0.05-0.55"] } },

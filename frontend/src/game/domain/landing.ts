@@ -1,26 +1,28 @@
-import { chargeAbility, isAbilityReady } from "./abilities";
+import { chargeAbility } from "./abilities";
 import { getTile } from "./board";
 import { MAX_ENERGY } from "./cards";
 import { drawCard, giveCard, playerIn, pushPath, updatePlayer, walkPath, type Draft } from "./draft";
 import { grantBlessing, isBlessed } from "./blessings";
 import { throwOnPile } from "./deck";
-import { HIDDEN_TRAP_PUSH, destroyTrap, relocateHiddenTrap } from "./hiddenTraps";
+import { HIDDEN_TRAP_PUSH, relocateHiddenTrap } from "./hiddenTraps";
 import { unpinPassed } from "./arrowRain";
 import { BLESSING_ENERGY } from "./realms";
-import { frostbite, stirEnchantment } from "./fairy";
+import { stirEnchantment } from "./fairy";
 import { repelledBySusanoo, scorch, sweptBySusanoo } from "./kunoichi";
 import { inSusanoo } from "./players";
 import { breakSeal } from "./seals";
 import { DIVINE_CHAINS_ROUNDS, fallIfInHell, inHell, isFallen, isSeraph, offerGrace } from "./seraph";
 import { crossSpecters } from "./specters";
-import type { Blessing, Player, PlayerId, Threat, TileId, TrapCurse } from "./types";
+import { senseHiddenTraps } from "./verdict";
+import { canSwallow, offerSwallow, swallow } from "./void";
+import type { Blessing, PlayerId, Threat, TileId, TrapCurse } from "./types";
 
 export const TRAP_DRAIN_ENERGY = 2;
 
 /** Destinations never chain into another effect; a ward prompt pauses resolving until resolveWard. */
 export function resolveLanding(draft: Draft, playerId: PlayerId, landed: TileId): void {
   const { board } = draft.state;
-  const { effect } = getTile(board, landed);
+  const { effect, rift } = getTile(board, landed);
   const moveTo = (position: TileId) => updatePlayer(draft, playerId, () => ({ position }));
   moveTo(landed);
 
@@ -42,21 +44,26 @@ export function resolveLanding(draft: Draft, playerId: PlayerId, landed: TileId)
     scorch(draft, playerId, landed);
     return;
   }
-  // An enchanted tile has lost its harm for good: it stirs instead.
+  // Snow, or Eternal Winter's ice, has taken the tile's harm for good: it stirs instead.
   if (stirEnchantment(draft, playerId, landed)) return;
-  // Under Eternal Winter's ice the tile is gone too.
-  if (frostbite(draft, playerId, landed)) return;
   // A seal written here breaks first; whatever else is on the tile (a hidden trap) waits.
   if (breakSeal(draft, playerId, landed)) return;
 
   const threat = threatAt(draft, landed);
+  const skipping = effect.kind === "skipTurn" && !draft.destroyedTraps.includes(landed);
+  const harm: Threat | null = threat ?? (skipping ? "skipTurn" : null);
+  // A rift never harms the one who opened it; with the Void ready he may swallow it back.
+  if (rift?.owner === playerId) {
+    if (harm && canSwallow(playerIn(draft, playerId))) offerSwallow(draft, playerId, landed, harm);
+    return;
+  }
   // Hell is the Fallen Angel's own: its curses, setbacks and lost turns don't touch him.
-  if ((threat || effect.kind === "skipTurn") && isFallen(playerIn(draft, playerId)) && inHell(board, landed)) {
+  if (harm && isFallen(playerIn(draft, playerId)) && inHell(board, landed)) {
     draft.events.push({ type: "trapBlocked", playerId, tile: landed, ward: "fallen", hidden: false });
     return;
   }
   // Untamed: they take the hit and don't even notice. A hidden trap shows itself and moves on.
-  if ((threat || effect.kind === "skipTurn") && playerIn(draft, playerId).untamed > 0) {
+  if (harm && playerIn(draft, playerId).untamed > 0) {
     if (threat === "hiddenTrap") moveHiddenTrap(draft, landed);
     draft.events.push({
       type: "trapBlocked",
@@ -68,7 +75,7 @@ export function resolveLanding(draft: Draft, playerId: PlayerId, landed: TileId)
     return;
   }
   // Inside a Susanoo the board's harm can't reach her, all but a hidden trap's spike from below.
-  if (((threat && threat !== "hiddenTrap") || effect.kind === "skipTurn") && inSusanoo(playerIn(draft, playerId))) {
+  if (harm && harm !== "hiddenTrap" && inSusanoo(playerIn(draft, playerId))) {
     draft.events.push({ type: "trapBlocked", playerId, tile: landed, ward: "susanoo", hidden: false });
     return;
   }
@@ -78,12 +85,12 @@ export function resolveLanding(draft: Draft, playerId: PlayerId, landed: TileId)
     draft.events.push({ type: "trapBlocked", playerId, tile: landed, ward: "halo", hidden: threat === "hiddenTrap" });
     return;
   }
+  // Zarek is asked first: he may rather keep the Void's charge (or his Arcane Shield) and take it.
+  if (harm && canSwallow(playerIn(draft, playerId))) {
+    offerSwallow(draft, playerId, landed, harm);
+    return;
+  }
   if (threat) {
-    if (canWard(playerIn(draft, playerId))) {
-      draft.pendingWard = { tile: landed, threat };
-      draft.events.push({ type: "wardOffered", playerId, tile: landed, threat });
-      return;
-    }
     strike(draft, playerId, landed, threat);
     return;
   }
@@ -132,6 +139,7 @@ export function resolveLanding(draft: Draft, playerId: PlayerId, landed: TileId)
         { type: "playerMoved", playerId, path },
       );
       crossSpecters(draft, playerId, path);
+      senseHiddenTraps(draft, playerId, path);
       moveTo(effect.to);
       unpinPassed(draft, path);
       break;
@@ -141,8 +149,7 @@ export function resolveLanding(draft: Draft, playerId: PlayerId, landed: TileId)
       draft.extraTurn = true;
       break;
     case "skipTurn":
-      draft.events.push({ type: "skipTurnGained", playerId, tile: landed });
-      updatePlayer(draft, playerId, (player) => ({ skipTurns: player.skipTurns + 1 }));
+      if (skipping) loseTurns(draft, playerId, landed);
       break;
     case "card":
       // A relic of heaven is that very card, a fresh copy each time; any other card tile draws.
@@ -161,18 +168,18 @@ export function resolveLanding(draft: Draft, playerId: PlayerId, landed: TileId)
   }
 }
 
-/** Warded off, a trap (hidden or not) is smashed for good; a curse isn't a trap and stays. */
+/** Swallowed by the Void, or let through to strike. */
 export function resolveWard(draft: Draft, playerId: PlayerId, tile: TileId, threat: Threat, use: boolean): void {
-  if (!use) {
-    strike(draft, playerId, tile, threat);
-    return;
-  }
-  const player = playerIn(draft, playerId);
-  updatePlayer(draft, playerId, () => ({ abilityCharge: 0 }));
-  const hidden = threat === "hiddenTrap";
-  draft.events.push({ type: "abilityUsed", playerId, ability: player.ability ?? "trapWard" });
-  if (threat !== "curse") destroyTrap(draft, playerId, tile, hidden);
-  draft.events.push({ type: "trapBlocked", playerId, tile, ward: "ability", hidden });
+  if (use) swallow(draft, playerId, tile, threat);
+  else if (threat === "skipTurn") loseTurns(draft, playerId, tile);
+  else strike(draft, playerId, tile, threat);
+}
+
+/** A doubled rift takes two. */
+function loseTurns(draft: Draft, playerId: PlayerId, tile: TileId): void {
+  const turns = getTile(draft.state.board, tile).rift?.doubled ? 2 : 1;
+  draft.events.push({ type: "skipTurnGained", playerId, tile, ...(turns > 1 && { turns }) });
+  updatePlayer(draft, playerId, (player) => ({ skipTurns: player.skipTurns + turns }));
 }
 
 /** Null too when the harm is smashed, pinned by Arrow Rain or enchanted. */
@@ -185,18 +192,14 @@ export function threatAt(draft: Draft, tile: TileId): Threat | null {
   return kind === "trap" || kind === "curse" ? kind : null;
 }
 
-/** Asked even when shielded: they may rather keep the Arcane Shield and smash the trap. */
-function canWard(player: Player): boolean {
-  return player.ability === "trapWard" && isAbilityReady(player);
-}
-
 /** The Arcane Shield blocks traps but not curses; a found hidden trap moves, blocked or not. */
 function strike(draft: Draft, playerId: PlayerId, tile: TileId, threat: Threat): void {
   const { board } = draft.state;
   const effect = getTile(board, tile).effect;
 
+  const curses = getTile(board, tile).rift?.doubled ? 2 : 1;
   if (threat === "curse") {
-    if (effect.kind === "curse") applyCurse(draft, playerId, effect.curse);
+    if (effect.kind === "curse") for (let curse = 0; curse < curses; curse++) applyCurse(draft, playerId, effect.curse);
     return;
   }
 
@@ -216,7 +219,7 @@ function strike(draft: Draft, playerId: PlayerId, tile: TileId, threat: Threat):
   if (effect.kind !== "trap") return;
   draft.events.push({ type: "trapTriggered", playerId, from: tile, to: effect.to });
   updatePlayer(draft, playerId, () => ({ position: effect.to }));
-  if (effect.curse) applyCurse(draft, playerId, effect.curse);
+  if (effect.curse) for (let curse = 0; curse < curses; curse++) applyCurse(draft, playerId, effect.curse);
 }
 
 function isTimedBlessing(blessing: Blessing): boolean {

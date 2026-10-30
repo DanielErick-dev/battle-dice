@@ -1,6 +1,7 @@
 import type { AbilityId } from "@/game/domain/abilities";
 import type { PlayerId } from "@/game/domain/types";
 import type { SceneryId } from "@/features/menu/stage/scenery";
+import type { CrownId } from "./scene/character/HeadCrown";
 import type { ChairId } from "./scene/character/RestChair";
 import type { WingsId } from "./scene/character/Wings";
 
@@ -13,10 +14,27 @@ import type { WingsId } from "./scene/character/Wings";
  * shove plays once as the Berserker shoves someone he trampled; knocked as anyone is sent flying
  * (every model borrows it from one, see SHARED_CLIPS in the build manifest); rest loops, seated on a
  * chair, while they've lost turns (shared the same way); hop plays once as the Crystal Fairy stops on
- * her own snow, before it carries her on.
+ * her own snow, before it carries her on. brake plays once as they come to a stop out of a run, slowing
+ * to a walk, and sit as they settle onto their chair before rest. guard and scoff are Themis's: passing
+ * her verdict she guards, points (her cast) at the one judged, and scoffs as it turns on them.
  */
 export type CharacterClip =
-  "idle" | "run" | "cast" | "intro" | "showcase" | "float" | "dash" | "land" | "shove" | "knocked" | "rest" | "hop";
+  | "idle"
+  | "run"
+  | "cast"
+  | "intro"
+  | "showcase"
+  | "float"
+  | "dash"
+  | "land"
+  | "shove"
+  | "knocked"
+  | "rest"
+  | "hop"
+  | "brake"
+  | "sit"
+  | "guard"
+  | "scoff";
 
 /** Seconds each clip lasts, for the clips a model has. */
 export type ClipLengths = Partial<Record<CharacterClip, number>>;
@@ -38,8 +56,12 @@ export interface CharacterDefinition {
   castImpactSeconds?: number;
   /** Tint of their Arcane Shield bubble (cyan by default). */
   shieldColor?: string;
+  /** Holds the scales of justice in the left hand, always (see JusticeScale). */
+  holdsScale?: boolean;
   /** A prop made in code, held in the right hand in the moves that use it (see HeldVial). */
   handProp?: "vial";
+  /** Carries her bow slung on her back, drawn for her ability (see BackBow). */
+  bow?: boolean;
   /** Holds the frost wand (see FrostWand) through the intro and while using the ability, instead of leaping. */
   wand?: boolean;
   /** Seconds into their hop clip when the feet leave the ground (a burst of snow round them). */
@@ -50,10 +72,18 @@ export interface CharacterDefinition {
   wings?: WingsId;
   /** Seraphiel's wings once he has fallen (with fallenModel). */
   fallenWings?: WingsId;
+  /** Wears a crown on the head (see HeadCrown), and the one once fallen. */
+  crown?: CrownId;
+  fallenCrown?: CrownId;
   /** Seraphiel's chair once he has fallen. */
   fallenChair?: ChairId;
   /** Their own chair to sit on while they've lost turns (see RestChair); a plain wooden one without. */
   chair?: ChairId;
+  /**
+   * Their own way of sitting (a sit clip), not the shared rest: the chair is scaled to meet their hips
+   * and turned (radians) to the way they end up facing.
+   */
+  seat?: { scale: number; turn: number };
   /** Seconds into their cast clip when the hand prop is taken out (it's thrown at castImpactSeconds). */
   castPropSeconds?: number;
   /** Seconds into the intro when the held vial is tipped over and poured out, bursting into smoke. */
@@ -153,12 +183,13 @@ const model = (id: string) => `/models/characters/${id}.glb`;
 /** Every character, made with Meshy AI (see `playable`). The ids name the model files. */
 export const CHARACTERS = {
   voidKnight: {
-    name: "Cavaleiro do Vazio",
-    epithet: "Guardião das sombras",
+    name: "Zarek",
+    epithet: "O Cavaleiro do Vazio",
     color: "#8b5cf6",
     model: model("voidKnight"),
-    ability: "trapWard",
+    ability: "theVoid",
     playable: true,
+    chair: "amethystThrone",
     stage: "voidRift",
     energyBlades: true,
     // Both blades hit the ground as he drops to one knee.
@@ -171,6 +202,7 @@ export const CHARACTERS = {
     model: model("crimsonEnchantress"),
     ability: "doubleCast",
     playable: true,
+    chair: "roseThrone",
     stage: "bloodRoseGarden",
   },
   crimsonWitch: {
@@ -232,6 +264,9 @@ export const CHARACTERS = {
     model: model("elvenArcher"),
     chair: "elderwoodThrone",
     ability: "arrowRain",
+    bow: true,
+    // Until her draw-and-shoot clip comes: she just draws the bow, no leap (drop this with the clip).
+    castsStill: true,
     playable: true,
     shieldColor: "#84cc16",
     // Her intro: the bow comes up from 0.6 s, drawn and held, the arrow loosed at 2.65 s.
@@ -288,6 +323,7 @@ export const CHARACTERS = {
     model: model("shadowWarden"),
     ability: "spectralApparitions",
     playable: true,
+    chair: "shadowThrone",
     stage: "mistRuins",
     shieldColor: "#7dd3fc",
   },
@@ -333,16 +369,21 @@ export const CHARACTERS = {
     ability: "tailwind",
     playable: true,
     shieldColor: "#86efac",
+    chair: "elementalThrone",
     stage: "peak",
   },
   tideMaiden: {
-    name: "Nerissa",
-    epithet: "Os olhos vendados, o escudo nunca erra",
+    name: "Têmis",
+    epithet: "A Juíza Vendada",
     color: "#2563eb",
     model: model("tideMaiden"),
-    ability: "sacredBulwark",
+    ability: "silentVerdict",
     playable: true,
+    holdsScale: true,
     shieldColor: "#2563eb",
+    chair: "moonThrone",
+    // Her sit leaves the hips higher than the shared rest (0.69 of standing against 0.54), turned to her left.
+    seat: { scale: 1.28, turn: 1.52 },
     stage: "shore",
   },
   crimsonStudent: {
@@ -395,6 +436,8 @@ export const CHARACTERS = {
     shieldColor: "#fde68a",
     wings: "seraph",
     fallenWings: "fallen",
+    crown: "seraph",
+    fallenCrown: "fallen",
     chair: "celestialThrone",
     fallenChair: "ashenThrone",
     descends: true,

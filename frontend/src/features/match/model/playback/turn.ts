@@ -48,12 +48,16 @@ export const turnSteps: StepHandlers<
   },
   playerMoved: (event, timings) => {
     // The Berserker runs on from where he shoved someone.
-    const steps = event.path.map((tile) => ({
-      apply: (view: MatchView) =>
-        withFx(withPlayerAt(view, event.playerId, tile), {
+    const end = event.path.at(-1);
+    const steps = event.path.map((tile, index) => ({
+      apply: (view: MatchView) => ({
+        ...withFx(withPlayerAt(view, event.playerId, tile), {
           trample: view.fx.trample?.by === event.playerId ? null : view.fx.trample,
         }),
-      durationMs: event.dash ? timings.dashStepMs : timings.stepMs,
+        walkEnd: event.dash || end === undefined ? null : { playerId: event.playerId, tile: end },
+      }),
+      // Slowing down onto the last tile takes a while longer.
+      durationMs: event.dash ? timings.dashStepMs : index === event.path.length - 1 ? timings.arriveMs : timings.stepMs,
     }));
     if (!event.dash) return steps;
     // Dormant Fury: launch and strike, a blur of tiles, then the lightning lets go.
@@ -95,7 +99,7 @@ export const turnSteps: StepHandlers<
     return [
       {
         apply: (view) => ({
-          ...withPlayer(view, event.playerId, (player) => ({ skipTurns: player.skipTurns + 1 })),
+          ...withPlayer(view, event.playerId, (player) => ({ skipTurns: player.skipTurns + (event.turns ?? 1) })),
           effect: { kind: "skipTurn", ...tileOf(event) },
         }),
         durationMs: timings.noticeMs,

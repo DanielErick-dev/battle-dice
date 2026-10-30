@@ -26,6 +26,11 @@ const EFFECT_SOUNDS: Record<TileEffectKind, (sounds: MatchSounds, effect: TileEf
   extraTurn: (sounds) => sounds.bonus(),
   skipTurn: (sounds) => sounds.penalty(),
   turnSkipped: (sounds) => sounds.penalty(),
+  snowDrained: (sounds) => sounds.penalty(),
+  voidSwallowed: (sounds) => sounds.hellGrasp(),
+  riftOpened: (sounds) => sounds.portal(),
+  voidCast: (sounds) => sounds.portal(),
+  voidSeized: (sounds) => sounds.hellGrasp(),
   trapBlocked: (sounds) => sounds.shieldBlock(),
   abilityBlocked: (sounds) => sounds.shieldBlock(),
   trapCurse: (sounds) => sounds.penalty(),
@@ -46,6 +51,11 @@ const EFFECT_SOUNDS: Record<TileEffectKind, (sounds: MatchSounds, effect: TileEf
   crown: (sounds, effect) => (effect.crown === "infernal" ? sounds.powerUp() : sounds.bonus()),
   heavenBarred: (sounds) => sounds.penalty(),
   dragged: (sounds) => sounds.realmGate("infernal"),
+  verdict: (sounds) => {
+    sounds.shieldBlock();
+    sounds.thunder(0.9);
+  },
+  disarmed: (sounds) => sounds.bonus(),
   gamble: (sounds, effect) => (effect.gamble?.won ? sounds.bonus() : sounds.penalty()),
   // Breaking one's own seal (alone on the board) pays out; anyone else's strikes.
   seal: (sounds, effect) => (effect.seal?.owner === effect.playerId ? sounds.bonus() : sounds.trap()),

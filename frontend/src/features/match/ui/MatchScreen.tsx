@@ -20,6 +20,7 @@ import { useFullscreen } from "@/lib/useFullscreen";
 import { useTurnState } from "@/lib/useTurnState";
 import { cn } from "@/lib/utils";
 import { boardPresetFor, isLargeBoard, type BoardPreset } from "../boards";
+import type { MapId } from "../maps";
 import { CHARACTERS, rosterOf, type CharacterDefinition, type CharacterId, type RosterEntry } from "../characters";
 import { blessingTurns } from "@/game/domain/blessings";
 import { DIVINE_CARDS } from "@/game/domain/cards";
@@ -48,10 +49,13 @@ import { inHeaven } from "@/game/domain/blessings";
 import { ErrorToast } from "./hud/ErrorToast";
 import { LoadingCurtain } from "./hud/LoadingCurtain";
 import { PlayersPanel } from "./hud/PlayersPanel";
+import { BattleLog } from "./hud/BattleLog";
 import { TilePicking } from "./hud/TilePicking";
 import { ABILITY_FLOWS, placementOf, type AbilityContext, type AbilityScene, type Placement } from "./abilities";
 import { GracePrompt } from "./hud/GracePrompt";
 import { WardPrompt } from "./hud/WardPrompt";
+import { VoidHold } from "./hud/VoidHold";
+import { withRifts } from "@/game/domain/void";
 
 const NO_TILES: TileId[] = [];
 
@@ -69,6 +73,8 @@ const BoardScene = dynamic(() => import("../scene/BoardScene"), {
 
 export interface MatchScreenProps {
   boardId: string;
+  /** The world it's played in (see maps.ts): scenery only. */
+  mapId: MapId;
   /** One player per character, in turn order (picked on /jogar); the same character may repeat. */
   characters: readonly CharacterId[];
   /** Test mode: every ability starts charged. */
@@ -76,7 +82,7 @@ export interface MatchScreenProps {
 }
 
 /** A local match on the chosen board: everyone plays at this screen, taking turns. */
-export function MatchScreen({ boardId, characters, chargedAbilities }: MatchScreenProps) {
+export function MatchScreen({ boardId, mapId, characters, chargedAbilities }: MatchScreenProps) {
   const preset = boardPresetFor(boardId);
   const [roster] = useState(() => rosterOf(characters));
   const audio = useGameAudio();
@@ -84,17 +90,18 @@ export function MatchScreen({ boardId, characters, chargedAbilities }: MatchScre
   useEffect(() => roster.flatMap(({ character }) => modelsOf(character)).forEach(preloadCharacterModel), [roster]);
   useEffect(() => preloadChairs(roster.flatMap(({ character }) => chairsOf(character))), [roster]);
 
-  return <Match preset={preset} roster={roster} chargedAbilities={chargedAbilities} audio={audio} />;
+  return <Match preset={preset} mapId={mapId} roster={roster} chargedAbilities={chargedAbilities} audio={audio} />;
 }
 
 interface MatchProps {
   preset: BoardPreset;
+  mapId: MapId;
   roster: readonly RosterEntry[];
   chargedAbilities: boolean;
   audio: GameAudio;
 }
 
-function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
+function Match({ preset, mapId, roster, chargedAbilities, audio }: MatchProps) {
   const { store, view } = useMatch(preset.definition, roster, { chargedAbilities });
   const quality = usePreference(preferences.effectsQuality);
   const { sounds, muted, toggleMuted, musicOn, toggleMusic } = audio;
@@ -131,7 +138,9 @@ function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
   };
   const ability = activePlayer?.ability ?? null;
   const flow = ability ? ABILITY_FLOWS[ability] : undefined;
-  const scene: AbilityScene | null = activePlayer ? { board: store.board, view, player: activePlayer } : null;
+  // The path as it stands, with the rifts Zarek's Void opened (the store's board is the plain one).
+  const board = useMemo(() => withRifts(store.board, view.rifts), [store.board, view.rifts]);
+  const scene: AbilityScene | null = activePlayer ? { board, view, player: activePlayer } : null;
   const abilityCtx: AbilityContext | null = scene && {
     ...scene,
     use: (choice) => {
@@ -150,7 +159,9 @@ function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
     else if (first) setPlacing(first);
     else store.activateAbility();
   };
-  const placement = placing && scene && canActivateAbility(view) ? placementOf(placing, scene) : null;
+  // Setting the Void's things down needs no charge, only the player's moment to act.
+  const canPlace = placing !== null && (typeof placing === "object" ? canRoll(view) : canActivateAbility(view));
+  const placement = placing && scene && canPlace ? placementOf(placing, scene) : null;
   const picking: BoardPicking | null = placement && {
     tiles: new Set(
       picked.length < placement.steps.length ? placement.tiles.filter((tile) => !picked.includes(tile)) : [],
@@ -161,7 +172,7 @@ function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
       color: placement.steps[index].color,
     })),
     onPick: (tile) => setPicked((current) => (current.includes(tile) ? current : [...current, tile])),
-    cursor: placing!,
+    cursor: placement.cursor,
   };
   const AbilityPicker = flow?.Picker;
 
@@ -171,6 +182,7 @@ function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
         <BoardScene
           board={store.board}
           columns={preset.columns}
+          mapId={mapId}
           view={view}
           cameraFraming={canFollow ? framing : "board"}
           onDiceImpact={sounds.diceLand}
@@ -248,9 +260,12 @@ function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
           {/* Beside the board on the left, so the right column stays free for the hand. */}
           {view.players.length > 1 && (
             <div className="pointer-events-auto max-sm:hidden">
-              <PlayersPanel players={view.players} activePlayerId={view.activePlayerId} board={store.board} />
+              <PlayersPanel players={view.players} activePlayerId={view.activePlayerId} board={board} />
             </div>
           )}
+          <div className="pointer-events-auto max-sm:hidden">
+            <BattleLog log={view.log} players={view.players} />
+          </div>
         </header>
 
         <div className="absolute inset-x-0 top-24 flex justify-center px-4 sm:top-6">
@@ -267,7 +282,7 @@ function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
             <div className="pointer-events-auto max-sm:mt-20">
               <CardHand
                 key={activePlayer.id}
-                board={store.board}
+                table={{ board, blackFlames: view.blackFlames, winter: view.winter }}
                 player={activePlayer}
                 // Who each card can be aimed at (see cardTargets); a protected one turns it away.
                 players={view.players}
@@ -284,7 +299,12 @@ function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
                       onActivate={activateAbility}
                       canActivate={canActivateAbility(view)}
                     />
-                    <BlessingBadges player={activePlayer} waiting={inHeaven(store.board, activePlayer.position)} />
+                    <VoidHold
+                      player={activePlayer}
+                      canAct={canRoll(view)}
+                      onRelease={(release, doubled) => setPlacing({ release, doubled })}
+                    />
+                    <BlessingBadges player={activePlayer} waiting={inHeaven(board, activePlayer.position)} />
                   </>
                 }
               />
@@ -358,7 +378,7 @@ function Match({ preset, roster, chargedAbilities, audio }: MatchProps) {
           onUndo={() => setPicked((current) => current.slice(0, -1))}
           onCancel={stopPlacing}
           onConfirm={() => {
-            store.activateAbility(placement.choice(picked));
+            placement.send(store, picked);
             stopPlacing();
           }}
         />

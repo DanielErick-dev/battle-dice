@@ -49,7 +49,10 @@ export function DicePanel({
                 ×{lastRoll.multiplier}
               </span>
             )}
-            <span className="text-2xl font-black text-orange-400" title={lastRoll.best ? "Vale o maior dado" : undefined}>
+            <span
+              className="text-2xl font-black text-orange-400"
+              title={lastRoll.best ? "Vale o maior dado" : undefined}
+            >
               ={lastRoll.total}
             </span>
           </>
@@ -62,15 +65,22 @@ export function DicePanel({
         </p>
 
         {isFinished ? (
-          <Button onClick={onRestart} disabled={isAnimating} className={cn(ACTION_BUTTON, "bg-emerald-500 hover:bg-emerald-400")}>
+          <Button
+            onClick={onRestart}
+            disabled={isAnimating}
+            className={cn(ACTION_BUTTON, "bg-emerald-500 hover:bg-emerald-400")}
+          >
             JOGAR NOVAMENTE
           </Button>
         ) : (
-          <Button onClick={onRoll} disabled={isAnimating} className={cn(ACTION_BUTTON, "bg-orange-600 hover:bg-orange-500")}>
+          <Button
+            onClick={onRoll}
+            disabled={isAnimating}
+            className={cn(ACTION_BUTTON, "bg-orange-600 hover:bg-orange-500")}
+          >
             {isAnimating ? "MOVENDO..." : "ROLAR DADO"}
           </Button>
         )}
-
       </div>
     </section>
   );

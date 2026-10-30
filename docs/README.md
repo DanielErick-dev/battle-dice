@@ -1,12 +1,15 @@
 # Documentação do Battle Dice
 
 ## Visão geral (`docs/`)
+- [Visão geral completa](visao-geral.md): tudo do jogo num arquivo só, para passar contexto a outras IAs
 - [Regras do jogo](regras.md): o livro de regras completo e a ficha de cada personagem
 - [Arquitetura](arquitetura.md): camadas, o fluxo de uma jogada e o pipeline de assets
 - [Decisões (ADRs)](decisoes/README.md): o porquê das escolhas grandes
 - [Plano de refatoração](plano-refatoracao.md): diagnóstico, etapas e diário
 - [Assets 3D](assets.md): padrão de nomes e como gerar os modelos
-- [Banco de ideias](ideias.md): o que ainda não virou decisão
+- [Checklist do MVP](mvp.md): o que falta antes de fechar o MVP
+- [Plano do backend](backend-plano.md): FastAPI em marcos, arquitetura e a decisão sobre o engine
+- [Banco de ideias](ideias.md): o que ainda não virou decisão (e o pós-MVP)
 
 ## Por módulo (README dentro da pasta)
 - [game/domain](../frontend/src/game/domain/README.md): as regras do jogo

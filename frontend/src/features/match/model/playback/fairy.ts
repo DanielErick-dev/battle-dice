@@ -5,7 +5,7 @@ import { playerTileEffect } from "./helpers";
 import type { StepHandlers } from "./types";
 
 export const fairySteps: StepHandlers<
-  "snowDrained" | "tilesEnchanted" | "winterBegan" | "winterSpread" | "enchantmentStirred"
+  "snowDrained" | "tilesEnchanted" | "tilesFrozen" | "winterBegan" | "winterSpread" | "enchantmentStirred"
 > = {
   // The snow drinks from its prisoner, and loosens its grip a round.
   snowDrained: (event, timings) => {
@@ -19,9 +19,14 @@ export const fairySteps: StepHandlers<
                 ? { ...player.snowbound, rounds: player.snowbound.rounds - 1 }
                 : null,
           }));
-          return withPlayer(drained, event.owner, (owner) => ({
+          const fed = withPlayer(drained, event.owner, (owner) => ({
             energy: Math.min(MAX_ENERGY, owner.energy + event.energy),
           }));
+          const tile = fed.players.find((player) => player.id === event.playerId)?.position ?? 0;
+          return {
+            ...fed,
+            effect: { kind: "snowDrained", playerId: event.playerId, from: tile, to: tile, count: event.energy },
+          };
         },
         durationMs: timings.noticeMs,
       },
@@ -48,6 +53,30 @@ export const fairySteps: StepHandlers<
       },
     ];
   },
+  tilesFrozen: (event, timings) => {
+    // As with the snow before it: a stream from her wand to each tile she picked, freezing as it lands.
+    const landed = (view: MatchView, index: number): MatchView =>
+      index < 0 || !view.winter
+        ? view
+        : {
+            ...view,
+            winter: { ...view.winter, iced: [...view.winter.iced, event.tiles[index]] },
+            blackFlames: view.blackFlames.filter((flame) => flame.tile !== event.tiles[index]),
+          };
+    return [
+      ...event.tiles.map((tile, index) => ({
+        apply: (view: MatchView) =>
+          withFx(landed(view, index - 1), {
+            frostStream: { id: nextFxId(view.fx.frostStream), playerId: event.playerId, tile },
+          }),
+        durationMs: timings.frostStreamMs,
+      })),
+      {
+        apply: (view: MatchView) => withFx(landed(view, event.tiles.length - 1), { frostStream: null }),
+        durationMs: timings.noticeMs,
+      },
+    ];
+  },
   winterBegan: (event, timings) => {
     return [
       {
@@ -56,6 +85,7 @@ export const fairySteps: StepHandlers<
           winter: {
             owner: event.playerId,
             frontier: view.winter?.frontier ?? 1,
+            iced: view.winter?.iced ?? [],
           },
           effect: playerTileEffect(view, event.playerId, "winter"),
         }),
@@ -69,7 +99,12 @@ export const fairySteps: StepHandlers<
       {
         apply: (view) => ({
           ...view,
-          winter: { owner: event.owner, frontier: event.to },
+          winter: {
+            owner: event.owner,
+            frontier: event.to,
+            iced: (view.winter?.iced ?? []).filter((tile) => tile > event.to),
+          },
+          blackFlames: view.blackFlames.filter((flame) => flame.tile < event.from || flame.tile > event.to),
         }),
         durationMs: 0,
       },

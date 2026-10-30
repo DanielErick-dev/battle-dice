@@ -15,9 +15,10 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
+import { withDressing, type GroundDressing } from "./groundDressing";
 import { useCanvasTexture, type CanvasLook } from "./textures";
 
-const FLOOR_RADIUS = 1;
+const FLOOR_RADIUS = 1.4;
 /** Across-corners radius of a floor hex, in canvas pixels. */
 const HEX = 26;
 const PAD_RADIUS = 0.46;
@@ -489,7 +490,13 @@ function drawReticleBrackets(context: CanvasRenderingContext2D, size: number) {
   context.fill();
 }
 
-const DECK: CanvasLook = { size: 512, draw: drawDeck, fadeFrom: 0.5 };
+/** Yellow guide lines and chevrons on the deck, leading back into the bay. */
+const HANGAR_GROUND: GroundDressing = {
+  wash: { colour: "#8ecbff", alpha: 0.22 },
+  path: { kind: "lines", colour: "rgba(255,204,51,0.85)", edge: "rgba(255,204,51,0.9)", width: [0.2, 0.3], wind: 0 },
+  litter: [{ shape: "speck", colours: ["rgba(200,215,230,0.6)"], count: 60, size: 2 }],
+};
+const DECK: CanvasLook = { size: 512, draw: withDressing(drawDeck, HANGAR_GROUND), fadeFrom: 0.5 };
 const SEAMS: CanvasLook = { size: 512, draw: drawSeams, linear: true };
 const PAD: CanvasLook = { size: 512, draw: drawPad };
 const HAZARD: CanvasLook = { size: 512, draw: drawHazard };

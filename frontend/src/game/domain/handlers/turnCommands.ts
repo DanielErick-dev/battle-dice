@@ -1,13 +1,15 @@
 import { rollBonus, rollMultiplier } from "../abilities";
 import { unpinPassed } from "../arrowRain";
 import { walkTrampling } from "../berserker";
-import { isBlessed, WINGS_BONUS } from "../blessings";
+import { blessingCount, WINGS_BONUS } from "../blessings";
 import type { DiceRoller } from "../dice";
 import { playerIn, pushPath, startDraft, updatePlayer, walkPath } from "../draft";
 import type { GameEvent } from "../events";
 import { resolveLanding } from "../landing";
 import { CROWN_BONUS } from "../seraph";
 import { crossSpecters } from "../specters";
+import { senseHiddenTraps } from "../verdict";
+import { closeRifts } from "../void";
 import type { DiceBoost, PlayerId } from "../types";
 import { openingState } from "./setup";
 import { assertCanAct, settle } from "./shared";
@@ -27,7 +29,7 @@ export const turnCommands: CommandHandlers<"rollDice" | "restart"> = {
         extra:
           diceBonuses.reduce((sum, { amount }) => sum + amount, 0) +
           rollBonus(state.abilityInUse) +
-          (isBlessed(state.board, player, "wings") ? WINGS_BONUS : 0) +
+          blessingCount(state.board, player, "wings") * WINGS_BONUS +
           (player.crown ? CROWN_BONUS : 0),
         multiplier: rollMultiplier(state.abilityInUse),
       },
@@ -52,6 +54,7 @@ export const turnCommands: CommandHandlers<"rollDice" | "restart"> = {
       walkTrampling(draft, playerId, path, dash);
     }
     crossSpecters(draft, playerId, path);
+    if (!reversed) senseHiddenTraps(draft, playerId, path);
     resolveLanding(draft, playerId, path.at(-1) ?? player.position);
     unpinPassed(draft, path);
 
@@ -60,7 +63,7 @@ export const turnCommands: CommandHandlers<"rollDice" | "restart"> = {
   },
 
   restart: (state, _command, deps) => ({
-    state: openingState(state.board, state.players, state.decks, deps.random),
+    state: openingState(closeRifts(state.board), state.players, state.decks, deps.random),
     events: [{ type: "gameRestarted" }, { type: "turnChanged", playerId: state.players[0].id }],
   }),
 };

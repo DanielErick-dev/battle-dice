@@ -45,7 +45,8 @@ export type TrapWard = "shield" | "ability" | "halo" | "untamed" | "susanoo" | "
 /** Seraphiel's crown (see seraph.ts): won coming out of heaven, turned infernal by the Fall. */
 export type Crown = "seraphic" | "infernal";
 
-export type TileRole = "start" | "finish" | "regular" | "track";
+/** "rift": a tile Zarek's Void opened into the path mid-match (see void.ts). */
+export type TileRole = "start" | "finish" | "regular" | "track" | "rift";
 
 export interface Tile {
   id: TileId;
@@ -56,7 +57,30 @@ export interface Tile {
   /** Where being pushed back leads; null on the start. A track's first tile leads back to its portal. */
   previous: TileId | null;
   track?: TrackPlacement;
+  rift?: Rift;
 }
+
+/** A rift's harm never touches its owner; `doubled` was paid for when it opened. */
+export interface Rift {
+  owner: PlayerId;
+  doubled: boolean;
+  /** The tile it opened right after (later rifts there may have come between). */
+  after: TileId;
+  /** A trap's setback in tiles, doubling included. */
+  back?: number;
+}
+
+/** What Zarek's Void holds: a board harm swallowed whole, or another's spell taken over (see void.ts). */
+export type VoidItem =
+  | { kind: "trap"; back: number; curse?: TrapCurse }
+  | { kind: "curse"; curse: TrapCurse }
+  | { kind: "skipTurn" }
+  | { kind: "flame" }
+  | { kind: "snow" }
+  | { kind: "seal"; seal: SealKind }
+  | { kind: "specter"; specter: SpecterKind };
+export type VoidHarm = Extract<VoidItem, { kind: "trap" | "curse" | "skipTurn" }>;
+export type VoidSpell = Exclude<VoidItem, VoidHarm>;
 
 export interface TrackPlacement {
   realm: RealmKind;
@@ -141,6 +165,10 @@ export interface Player {
   crown: Crown | null;
   /** Lost turns left in heaven's chains (see seraph.ts); shown standing, not sitting. */
   chained: number;
+  /** Zarek's Void: what it swallowed or took, waiting to be set down (see void.ts). */
+  voidHold: readonly VoidItem[];
+  /** Own turns ended since the Void last swallowed or took something. */
+  voidIdle: number;
 }
 
 /** The Shadow Warden's apparitions (see specters.ts). */
@@ -174,6 +202,8 @@ export interface Winter {
   owner: PlayerId;
   /** Last tile frozen so far (the start when none yet). */
   frontier: TileId;
+  /** Frozen beyond the frontier by the fairy's own hand (WINTER_PICKS at a time). */
+  iced: readonly TileId[];
 }
 
 /** A tile on black fire from the Purgatory Kunoichi's Eternal Flames (see kunoichi.ts). */
@@ -220,8 +250,8 @@ export interface DiceBonus {
   rolls: number;
 }
 
-/** What's about to strike a player who could ward it off with their ability. */
-export type Threat = "trap" | "hiddenTrap" | "curse";
+/** What's about to strike a player who could swallow it with their Void. */
+export type Threat = "trap" | "hiddenTrap" | "curse" | "skipTurn";
 
 /** Waiting on the player's choice to spend their reactive ability on a trap or curse. */
 export interface PendingWard {
@@ -279,7 +309,7 @@ export interface GameState {
   pendingGrace: PendingGrace | null;
   /** Server-side secret once rooms exist. */
   hiddenTraps: readonly TileId[];
-  /** Smashed by the Trap Ward: harmless for good. */
+  /** Traps, curses and lost-turn tiles smashed or swallowed by the Void: harmless for good. */
   destroyedTraps: readonly TileId[];
   /** Pinned by Arrow Rain: harmless until a walk passes over them. */
   pinnedTraps: readonly TileId[];

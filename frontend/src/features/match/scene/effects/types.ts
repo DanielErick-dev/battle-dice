@@ -9,6 +9,8 @@ import type { BoardLayout } from "../boardLayout";
 export interface TokenSignals {
   /** Leaps in an arc instead of running to its next tile. */
   isTeleporting: boolean;
+  /** Its next tile is where its walk ends: it slows to a stop on the way (the brake clip). */
+  isArriving: boolean;
   /** Crossing the board as lightning (Dormant Fury): unseen. */
   isDashing: boolean;
   /** Dormant Fury awake, waiting for the roll. */
@@ -31,6 +33,8 @@ export interface TokenSignals {
   abilityCast: number | null;
   /** A fresh id when Seraphiel falls. */
   fell: number | null;
+  /** A fresh id per verdict Themis passes: she guards, points at the one judged and scoffs at them. */
+  verdict: number | null;
 }
 
 /** Refs the token's frame loop fills every frame, for the effects that follow its motion. */

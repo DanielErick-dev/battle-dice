@@ -7,21 +7,20 @@ import {
   Color,
   DodecahedronGeometry,
   DoubleSide,
-  LatheGeometry,
   MeshBasicMaterial,
   MeshStandardMaterial,
   SpriteMaterial,
-  Vector2,
   type Mesh,
   type Sprite,
   type Texture,
 } from "three";
+import { usePropMesh } from "@/features/match/scene/character/props";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { ABOVE_FLOOR, taperedTube } from "./sceneryKit";
+import { ABOVE_FLOOR, GROUND_RADIUS, taperedTube } from "./sceneryKit";
+import { withDressing, type GroundDressing } from "./groundDressing";
 import { useCanvasTexture, useNoiseTexture, type NoiseLook, type Painter } from "./textures";
 
-const GROUND_RADIUS = 1;
 /** Thick end first: they come out of the earth past the rim, arch and dive back in (cut at the floor). */
 const ROOTS: { points: [number, number, number][]; radius: number }[] = [
   {
@@ -89,19 +88,13 @@ const SPORE_GLOWS = [
 const STONES = 15;
 const STONE_RING = 0.6;
 const CAULDRON = { x: 0.46, z: -0.76 };
-/** The pot's outline, bottom up, before it's turned; it stands on legs this high. */
-const POT_PROFILE = [
-  [0, 0],
-  [0.08, 0.005],
-  [0.14, 0.035],
-  [0.172, 0.09],
-  [0.18, 0.14],
-  [0.168, 0.19],
-  [0.148, 0.22],
-  [0.152, 0.232],
-] as const;
+/** It stands on legs this high. */
 const POT_LIFT = 0.07;
-const BREW_Y = POT_LIFT + 0.21;
+/** The cauldron (a Meshy prop) is 2 tall in its export: drawn at this scale, half its height. */
+const POT_SCALE = 0.11;
+/** Its brim, from the export: 0.96 above the bottom and 0.48 across inside. */
+const BREW_Y = POT_LIFT + 0.96 * POT_SCALE;
+const BREW_RADIUS = 0.48 * POT_SCALE;
 const BUBBLES = 5;
 const STEAM = 8;
 const STEAM_RISE = 0.75;
@@ -110,11 +103,12 @@ const FLAME = new Color("#ff9a3a").multiplyScalar(2.2);
 
 /** The Crimson Witch's stage: a forest clearing, roots, glowing toadstools, a ring of stones and a blood-red brew. */
 export function WitchHollow() {
-  const soil = useCanvasTexture({ size: 512, draw: paintForestFloor, seed: 31, fadeFrom: 0.3 });
+  const soil = useCanvasTexture({ size: 512, draw: paintHollowFloor, seed: 31, fadeFrom: 0.3 });
   const bark = useNoiseTexture(BARK);
   const stone = useNoiseTexture(STONE);
   const caps = useCanvasTexture({ size: 128, draw: paintToadstoolCap, seed: 5 });
   const disc = useSoftDisc();
+  const cauldron = usePropMesh("witchCauldron");
   const materials = useMemo(
     () => ({
       floor: new MeshStandardMaterial({ map: soil, transparent: true, roughness: 1, depthWrite: false }),
@@ -158,10 +152,6 @@ export function WitchHollow() {
   const geometries = useMemo(
     () => ({
       roots: ROOTS.map(({ points, radius }) => taperedTube(points, radius, 0.85)),
-      pot: new LatheGeometry(
-        POT_PROFILE.map(([x, y]) => new Vector2(x, y)),
-        28,
-      ),
       stone: new DodecahedronGeometry(1, 0),
     }),
     [],
@@ -276,26 +266,18 @@ export function WitchHollow() {
             </mesh>
           );
         })}
-        <mesh geometry={geometries.pot} material={materials.iron} position-y={POT_LIFT} />
-        <mesh material={materials.iron} position-y={POT_LIFT + 0.232} rotation-x={Math.PI / 2}>
-          <torusGeometry args={[0.15, 0.013, 8, 32]} />
-        </mesh>
-        {[-1, 1].map((side) => (
-          <mesh
-            key={side}
-            material={materials.iron}
-            position={[side * 0.175, POT_LIFT + 0.17, 0]}
-            rotation-y={Math.PI / 2}
-          >
-            <torusGeometry args={[0.025, 0.006, 6, 16]} />
-          </mesh>
-        ))}
+        <mesh
+          geometry={cauldron.geometry}
+          material={cauldron.material}
+          scale={POT_SCALE}
+          position-y={POT_LIFT + POT_SCALE}
+        />
         <mesh material={materials.brew} position-y={BREW_Y} rotation-x={-Math.PI / 2}>
-          <circleGeometry args={[0.152, 28]} />
+          <circleGeometry args={[BREW_RADIUS, 28]} />
         </mesh>
         {Array.from({ length: BUBBLES }, (_, index) => {
           const angle = index * 2.4;
-          const radius = 0.03 + (index % 3) * 0.035;
+          const radius = BREW_RADIUS * (0.2 + (index % 3) * 0.23);
           return (
             <mesh
               key={index}
@@ -412,3 +394,12 @@ const paintToadstoolCap: Painter = (context, size, random) => {
 
 const BARK: NoiseLook = { base: [52, 38, 28], dark: [22, 15, 10], light: [86, 68, 50], fadeOut: false };
 const STONE: NoiseLook = { base: [72, 70, 66], dark: [34, 33, 31], light: [108, 104, 96], fadeOut: false };
+
+/** A muddy trail through the hollow, red autumn leaves and the glow of spores. */
+const HOLLOW_GROUND: GroundDressing = {
+  wash: { colour: "#ef4444", alpha: 0.22 },
+  patches: { colours: ["rgba(140,255,120,0.16)", "rgba(200,60,255,0.12)"], count: 14, radius: [14, 34] },
+  path: { kind: "dirt", colour: "rgba(70,48,32,0.9)", edge: "rgba(30,20,12,0.6)", width: [0.12, 0.24], wind: 0.06 },
+  litter: [{ shape: "leaf", colours: ["#b91c1c", "#ea580c", "#7c2d12"], count: 160, size: 5 }],
+};
+const paintHollowFloor = withDressing(paintForestFloor, HOLLOW_GROUND);

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  ARMOUR_TURNS,
   PLASMA_PUSH,
   TIDE_RANGE,
   TIME_ROUNDS,
@@ -10,6 +9,7 @@ import {
   type AbilityId,
 } from "./abilities";
 import type { BoardDefinition } from "./board";
+import { DIVINE_CARDS } from "./cards";
 import {
   activate as activateFor,
   card,
@@ -42,7 +42,7 @@ const ready = (state: GameState) => readyAbility(state, "hero");
 const activate = (state: GameState, options: ActivateOptions = {}) => activateFor(ready(state), "hero", options);
 
 describe("the newcomers' abilities", () => {
-  it("Seraph's Blessing gives one of heaven's blessings, or a card, at random", () => {
+  it("Seraph's Blessing gives one of heaven's blessings, or a heaven card, at random", () => {
     const gifts = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => {
       const start = ready(withPlayer(duel("seraphBlessing"), "hero", { hand: [] }));
       const { state, events } = send(start, { type: "activateAbility", playerId: "hero" }, [1], seed);
@@ -53,6 +53,7 @@ describe("the newcomers' abilities", () => {
         return "blessing";
       }
       expect(hand).toHaveLength(1);
+      expect(DIVINE_CARDS).toContain(hand[0].cardId);
       expect(events).toContainEqual(expect.objectContaining({ type: "cardDrawn", playerId: "hero" }));
       return "card";
     });
@@ -73,11 +74,6 @@ describe("the newcomers' abilities", () => {
     expect(state).toMatchObject({ enchantedTiles: [], pinnedTraps: [] });
     expect(state.blackFlames.map((flame) => flame.tile)).toEqual([10 + TIDE_RANGE + 1]);
     expect(events).toContainEqual(expect.objectContaining({ type: "boardCleansed", tiles: [24, 12, 20] }));
-  });
-
-  it("Sacred Bulwark raises the shield and Spectral Armour", () => {
-    const { state } = activate(duel("sacredBulwark"));
-    expect(playerOf(state, "hero")).toMatchObject({ shielded: true, spectralArmour: ARMOUR_TURNS });
   });
 
   it(`Time Warp halts an opponent for ${TIME_ROUNDS} rounds`, () => {
@@ -224,7 +220,7 @@ describe("the newcomers' abilities", () => {
   });
 
   it("the strongest of them take the long cycle, and Time Warp longer still", () => {
-    for (const ability of ["cleansingTide", "untamed", "sacredBulwark", "plasmaCannon"] as const) {
+    for (const ability of ["cleansingTide", "untamed", "plasmaCannon"] as const) {
       expect(abilityCycle(ability)).toBe(LONG_ABILITY_CYCLE);
     }
     expect(abilityCycle("timeWarp")).toBe(TIME_WARP_CYCLE);

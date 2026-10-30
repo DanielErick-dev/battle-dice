@@ -1,5 +1,5 @@
 import { chargeAbility } from "./abilities";
-import { isBlessed, SPRING_ENERGY, wearBlessings } from "./blessings";
+import { blessingCount, isBlessed, SPRING_ENERGY, wearBlessings } from "./blessings";
 import { MAX_ENERGY, TURNS_PER_ENERGY } from "./cards";
 import type { Draft } from "./draft";
 import { drainSnow, spreadWinter } from "./fairy";
@@ -17,32 +17,28 @@ export function endTurn(draft: Draft, extraTurn: boolean): number {
     divineAegis: Math.max(0, ending.divineAegis - 1),
     untamed: Math.max(0, ending.untamed - 1),
     blessings: wearBlessings(draft.state.board, ending),
+    ...(ending.ability === "theVoid" && { voidIdle: ending.voidIdle + 1 }),
   };
   burnDown(draft, ending.id);
 
-  if (!extraTurn) {
+  // Stuck by this very turn, the extra turn still owed is spent as the first lost one.
+  const passes = !extraTurn || ending.skipTurns > 0;
+  if (passes) {
+    if (extraTurn) loseTurn(draft, currentPlayerIndex);
     index = (currentPlayerIndex + 1) % draft.players.length;
     // Terminates: every pass consumes one lost turn.
     while (draft.players[index].skipTurns > 0) {
-      const skipped = draft.players[index];
-      draft.players[index] = {
-        ...skipped,
-        skipTurns: skipped.skipTurns - 1,
-        chained: Math.max(0, skipped.chained - 1),
-      };
-      draft.events.push({ type: "turnSkipped", playerId: skipped.id });
-      // Stuck in the snow, the lost turn feeds the fairy.
-      drainSnow(draft, skipped.id);
+      loseTurn(draft, index);
       index = (index + 1) % draft.players.length;
     }
   }
 
   // Play came round again: a round went by, and Eternal Winter spreads.
-  if (!extraTurn && index <= currentPlayerIndex) spreadWinter(draft);
+  if (passes && index <= currentPlayerIndex) spreadWinter(draft);
 
   const next = draft.players[index];
   const charged = next.energyCharge + 1 >= TURNS_PER_ENERGY;
-  const energy = next.energy + (charged ? 1 : 0) + (isBlessed(draft.state.board, next, "spring") ? SPRING_ENERGY : 0);
+  const energy = next.energy + (charged ? 1 : 0) + blessingCount(draft.state.board, next, "spring") * SPRING_ENERGY;
   const once = chargeAbility({
     ...next,
     silencedTurns: Math.max(0, next.silencedTurns - 1),
@@ -60,4 +56,16 @@ export function endTurn(draft: Draft, extraTurn: boolean): number {
   if (becameReady && player.ability)
     draft.events.push({ type: "abilityReady", playerId: next.id, ability: player.ability });
   return index;
+}
+
+function loseTurn(draft: Draft, index: number): void {
+  const skipped = draft.players[index];
+  draft.players[index] = {
+    ...skipped,
+    skipTurns: skipped.skipTurns - 1,
+    chained: Math.max(0, skipped.chained - 1),
+  };
+  draft.events.push({ type: "turnSkipped", playerId: skipped.id });
+  // Stuck in the snow, the lost turn feeds the fairy.
+  drainSnow(draft, skipped.id);
 }

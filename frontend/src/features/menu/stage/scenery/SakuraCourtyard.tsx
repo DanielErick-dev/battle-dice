@@ -21,10 +21,10 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { ABOVE_FLOOR, taperedTube } from "./sceneryKit";
+import { ABOVE_FLOOR, GROUND_RADIUS, taperedTube } from "./sceneryKit";
+import { withDressing, type GroundDressing } from "./groundDressing";
 import { useCanvasTexture, useNoiseTexture, type NoiseLook, type Painter } from "./textures";
 
-const PAVING_RADIUS = 1;
 /** Thick end first. The trunk rises at the back left; the boughs reach over the figure's head. */
 const TRUNK: [number, number, number][] = [
   [-0.8, -0.05, -0.64],
@@ -90,7 +90,7 @@ const NOTEBOOK_SIZE: [number, number] = [0.14, 0.19];
 
 /** Akane's stage: a stone courtyard at dusk under a cherry tree shedding petals, notebooks and a stone lantern. */
 export function SakuraCourtyard() {
-  const paving = useCanvasTexture({ size: 512, draw: paintPaving, seed: 29, fadeFrom: 0.3 });
+  const paving = useCanvasTexture({ size: 512, draw: paintCourtyardFloor, seed: 29, fadeFrom: 0.3 });
   const bark = useNoiseTexture(BARK);
   const stone = useNoiseTexture(STONE);
   const page = useCanvasTexture({ size: 128, draw: paintNotebookPage, seed: 7 });
@@ -148,7 +148,7 @@ export function SakuraCourtyard() {
   return (
     <group>
       <mesh material={materials.floor} rotation-x={-Math.PI / 2} position-y={0.001} renderOrder={-1}>
-        <circleGeometry args={[PAVING_RADIUS, 64]} />
+        <circleGeometry args={[GROUND_RADIUS, 64]} />
       </mesh>
       <mesh geometry={wood[0]} material={materials.bark} />
       {/* The boughs sway about the trunk's foot; the trunk stays put. */}
@@ -445,3 +445,13 @@ const paintNotebookPage: Painter = (context, size, random) => {
 
 const BARK: NoiseLook = { base: [58, 42, 40], dark: [26, 18, 18], light: [96, 78, 74], fadeOut: false };
 const STONE: NoiseLook = { base: [96, 94, 90], dark: [52, 50, 48], light: [138, 134, 126], fadeOut: false };
+
+/** A stepping-stone path across the courtyard, petals piling up under the cherry tree (back left). */
+const COURTYARD_GROUND: GroundDressing = {
+  wash: { colour: "#f9a8d4", alpha: 0.25 },
+  path: { kind: "slabs", colour: "#8e8577", edge: "#4d463d", width: [0.15, 0.24], wind: 0.04 },
+  litter: [
+    { shape: "petal", colours: ["#f9a8d4", "#fbcfe8", "#f472b6"], count: 260, size: 4, pile: [0, 0.5, 0, 0.55] },
+  ],
+};
+const paintCourtyardFloor = withDressing(paintPaving, COURTYARD_GROUND);

@@ -24,6 +24,9 @@ export function taperedTube(points: [number, number, number][], radius: number, 
   return geometry;
 }
 
+/** How far a habitat's ground reaches: past the figure's feet to the scenery round her, on the wide stage. */
+export const GROUND_RADIUS = 1.4;
+
 /** Cuts what dips under the stage floor: the floor doesn't write depth, so buried parts would show through it. */
 export const ABOVE_FLOOR = [new Plane(new Vector3(0, 1, 0), -FLOOR_Y)];
 

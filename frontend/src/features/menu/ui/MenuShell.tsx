@@ -1,5 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
 /** The night sky every menu screen shares; the moon is left off pages full of text, where it would sit behind it. */
@@ -17,11 +18,27 @@ export function MenuBackdrop({ moon = true }: { moon?: boolean }) {
 }
 
 /** A secondary menu page: backdrop, a back link to the main menu, a title and the content. */
-export function MenuPage({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
+export function MenuPage({
+  title,
+  subtitle,
+  wide = false,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  /** Spreads past the usual column on wide screens (the character stage takes the extra room). */
+  wide?: boolean;
+  children: ReactNode;
+}) {
   return (
     <main className="relative min-h-dvh w-full overflow-x-clip bg-[#05060b] text-white">
       <MenuBackdrop moon={false} />
-      <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-6 sm:px-8 sm:py-10">
+      <div
+        className={cn(
+          "relative mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-6 sm:px-8 sm:py-10",
+          wide && "xl:max-w-[110rem]",
+        )}
+      >
         <header className="flex items-center gap-3">
           <Link
             href="/"

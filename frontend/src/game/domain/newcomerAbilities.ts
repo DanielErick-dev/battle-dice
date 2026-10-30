@@ -1,19 +1,12 @@
-import {
-  ARMOUR_TURNS,
-  PLASMA_PUSH,
-  PLASMA_TRAPS,
-  SERAPH_CARD_CHANCE,
-  TIDE_RANGE,
-  TIME_ROUNDS,
-  type AbilityPower,
-} from "./abilities";
-import { standardDeck } from "./cards";
+import { PLASMA_PUSH, PLASMA_TRAPS, SERAPH_CARD_CHANCE, TIDE_RANGE, TIME_ROUNDS, type AbilityPower } from "./abilities";
+import { DIVINE_CARDS } from "./cards";
 import { GameRuleError } from "./commands";
 import { getTile, opponentsInReach, opponentsInSpace } from "./board";
 import { giveCard, playerIn, pushPath, updatePlayer, type Draft } from "./draft";
 import { grantBlessing, TIMED_BLESSINGS } from "./blessings";
 import { relocateHiddenTrap } from "./hiddenTraps";
 import { aimWard } from "./players";
+import { passVerdict, verdictArmed } from "./verdict";
 import type { Board, Player, PlayerId, TileId } from "./types";
 
 /** The player's tile plus the TIDE_RANGE tiles ahead. */
@@ -53,18 +46,12 @@ export function cleansingTide(draft: Draft, playerId: PlayerId): void {
   draft.events.push({ type: "boardCleansed", playerId, reach: path, tiles: [...new Set(tiles)] });
 }
 
-export function sacredBulwark(draft: Draft, playerId: PlayerId): void {
-  updatePlayer(draft, playerId, () => ({ shielded: true, spectralArmour: ARMOUR_TURNS }));
-  draft.events.push({ type: "armourRaised", playerId, turns: ARMOUR_TURNS });
-}
-
-/** A random timed blessing or deck card (the rarer, the less likely). */
+/** A random timed blessing or heaven card. */
 export function seraphBlessing(draft: Draft, playerId: PlayerId): void {
   if (draft.random() < SERAPH_CARD_CHANCE) {
-    const pool = standardDeck({ withOpponents: draft.players.length > 1 });
     giveCard(draft, playerId, {
       uid: `${playerId}:grace${draft.state.turn}`,
-      cardId: pool[Math.floor(draft.random() * pool.length)],
+      cardId: DIVINE_CARDS[Math.floor(draft.random() * DIVINE_CARDS.length)],
     });
     return;
   }
@@ -99,14 +86,24 @@ export function timeWarp(draft: Draft, playerId: PlayerId, power?: AbilityPower,
     draft.events.push({ type: "abilityBlocked", playerId, targetId: target.id, ability: "timeWarp", ward });
     return;
   }
-  updatePlayer(draft, target.id, (player) =>
+  // Themis's verdict bends Cronos's own time instead.
+  if (verdictArmed(target)) {
+    passVerdict(draft, target.id, playerId, { ability: "timeWarp" });
+    bendTime(draft, target.id, playerId, power);
+    return;
+  }
+  bendTime(draft, playerId, target.id, power);
+  // The gears only start winding again once the bent rounds have gone by.
+  updatePlayer(draft, playerId, () => ({ chargeHeld: TIME_ROUNDS }));
+}
+
+function bendTime(draft: Draft, playerId: PlayerId, targetId: PlayerId, power: "halt" | "reverse"): void {
+  updatePlayer(draft, targetId, (player) =>
     power === "halt"
       ? { skipTurns: player.skipTurns + TIME_ROUNDS }
       : { reversedRolls: player.reversedRolls + TIME_ROUNDS },
   );
-  // The gears only start winding again once the bent rounds have gone by.
-  updatePlayer(draft, playerId, () => ({ chargeHeld: TIME_ROUNDS }));
-  draft.events.push({ type: "timeBent", playerId, targetId: target.id, power, rounds: TIME_ROUNDS });
+  draft.events.push({ type: "timeBent", playerId, targetId, power, rounds: TIME_ROUNDS });
 }
 
 /** Also knocks back the opponent in reach furthest ahead. */

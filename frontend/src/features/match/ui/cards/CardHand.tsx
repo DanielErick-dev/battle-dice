@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { cardBlocker, cardTargets } from "@/game/domain/cardPlay";
+import { cardBlocker, cardTargets, type CardTable } from "@/game/domain/cardPlay";
 import { CARD_CATALOG, cardCost, HAND_LIMIT, type CardId } from "@/game/domain/cards";
 import { DICE_SIDES } from "@/game/domain/dice";
 import { FUSION_COPIES, fusibleInHand } from "@/game/domain/fusion";
-import type { Board, CardInstance, Player } from "@/game/domain/types";
+import type { CardInstance, Player } from "@/game/domain/types";
 import { cn } from "@/lib/utils";
 import { CardBack } from "./CardBack";
 import { CardView } from "./CardView";
@@ -13,7 +13,8 @@ import { CARD_TEXT, cardText } from "./cardText";
 import { EnergyMeter } from "./EnergyMeter";
 
 interface CardHandProps {
-  board: Board;
+  /** The board and what covers its tiles (a portal under black fire or ice is no portal). */
+  table: CardTable;
   player: Player;
   /** Everyone in the match: who each card can be aimed at comes from them (see cardTargets). */
   players: readonly Player[];
@@ -35,7 +36,7 @@ interface CardHandProps {
  * beside it instead, and a card that can't be played says why there.
  */
 export function CardHand({
-  board,
+  table,
   player,
   players,
   canPlay,
@@ -51,7 +52,7 @@ export function CardHand({
   const blockedReason = (card: CardInstance): string | null => {
     if (cardsLeft === 0) return "Você já usou as cartas deste turno";
     if (!canPlay) return "Aguarde sua vez";
-    switch (cardBlocker(board, player, card.cardId)) {
+    switch (cardBlocker(table, player, card.cardId)) {
       case "SILENCED":
         return "Silenciado por um selo: sem cartas neste turno";
       case "NOT_ENOUGH_ENERGY":
@@ -75,7 +76,7 @@ export function CardHand({
     return null;
   };
 
-  const targetsFor = (card: CardInstance) => cardTargets(board, players, player.id, card.cardId);
+  const targetsFor = (card: CardInstance) => cardTargets(table.board, players, player.id, card.cardId);
 
   const play = (card: CardInstance, choice: { targetId?: string; value?: number } = {}) => {
     setSelectedUid(null);

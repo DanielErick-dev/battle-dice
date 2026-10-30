@@ -5,6 +5,9 @@ import {
   FLAME_TILES,
   PLUNDER_CARDS,
   RUIN_PUSH,
+  WINTER_PICKS,
+  ENCHANT_ADVANCE,
+  ENCHANT_FREEZE,
 } from "@/game/domain/abilities";
 import { SEAL_KINDS } from "@/game/domain/seals";
 import { SPECTER_KINDS } from "@/game/domain/specters";
@@ -81,3 +84,33 @@ export const FLAME_STEPS: readonly PlacementStep[] = Array.from({ length: FLAME_
   color: "#b91c1c",
   tag: `Chama ${index + 1}`,
 }));
+/** Eternal Winter: one tile frozen per pick. */
+export const FROST_STEPS: readonly PlacementStep[] = Array.from({ length: WINTER_PICKS }, (_, index) => ({
+  name: `Gelo ${index + 1}`,
+  effect: `Igual à neve: o oponente fica preso ${ENCHANT_FREEZE} rodadas, você avança ${ENCHANT_ADVANCE}`,
+  tone: "bg-sky-500",
+  color: "#0ea5e9",
+  tag: `Gelo ${index + 1}`,
+}));
+
+/** Zarek's idle Void taking over a spell on the board. */
+export const VOID_SEIZE_STEP: PlacementStep = {
+  name: "Casa enfeitiçada",
+  effect: "O Vazio toma o fogo, a neve, o gelo, o selo ou a aparição dela",
+  tone: "bg-violet-600",
+  color: "#8b5cf6",
+  tag: "Vazio",
+};
+
+/** Where the Void sets down what it holds: a harm opens a rift right after the tile, a spell lands on it. */
+export function voidReleaseStep(name: string, harm: boolean, doubled: boolean): PlacementStep {
+  return {
+    name: harm ? "Fenda" : "Casa",
+    effect: harm
+      ? `Uma casa nova (${name}${doubled ? ", dobrada" : ""}) abre logo depois desta`
+      : `${name[0]?.toUpperCase() ?? ""}${name.slice(1)} pousa aqui e passa a ser seu`,
+    tone: "bg-violet-600",
+    color: "#8b5cf6",
+    tag: harm ? "Fenda" : "Vazio",
+  };
+}

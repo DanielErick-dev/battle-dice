@@ -26,11 +26,13 @@ import {
   type Sprite,
 } from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { PROP_HEIGHT, usePropMesh } from "@/features/match/scene/character/props";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
+import type { GroundDressing } from "./groundDressing";
+import { GROUND_RADIUS } from "./sceneryKit";
 import { useCanvasTexture, useNoiseTexture, type NoiseLook } from "./textures";
 
-const SOIL_RADIUS = 1;
 const CIRCLE_RADIUS = 0.8;
 const FLAME = new Color("#ffb066").multiplyScalar(2.1);
 const BLOOD_GLOW = "#ff2448";
@@ -77,15 +79,15 @@ const CANDELABRA = [
   { x: -0.56, z: -0.64, height: 0.62 },
   { x: 0.58, z: -0.6, height: 0.5 },
 ];
-const ARM_REACH = 0.08;
 const PETALS = 26;
 const PETAL_HEIGHT = 1.9;
 
 /**
  * The Crimson Enchantress's stage instead of the rune pedestal: a blood circle painted on dark soil, crimson rose
- * bushes and thorny vines around it, iron candelabra and petals drifting down. Origin on the floor; flames are sprites.
+ * bushes and thorny vines around it, the Meshy candelabra (roseCandelabra) and petals drifting down. Origin on the floor; flames are sprites.
  */
 export function BloodRoseGarden() {
+  const candelabra = usePropMesh("roseCandelabra");
   const soil = useNoiseTexture(SOIL);
   const circle = useCanvasTexture({ size: 512, draw: paintBloodCircle });
   const disc = useSoftDisc();
@@ -106,10 +108,7 @@ export function BloodRoseGarden() {
         flatShading: true,
       }),
       vine: new MeshStandardMaterial({ color: "#24130e", roughness: 0.8 }),
-      iron: new MeshStandardMaterial({ color: "#1b1716", roughness: 0.45, metalness: 0.8 }),
-      wax: new MeshStandardMaterial({ color: "#5e0a16", roughness: 0.6 }),
-      flame: new SpriteMaterial({ map: disc, color: FLAME, ...glow }),
-      halo: new SpriteMaterial({ map: disc, color: "#ff3a3a", opacity: 0.14, ...glow }),
+      halo: new SpriteMaterial({ map: disc, color: FLAME, opacity: 0.22, ...glow }),
       petal: new MeshStandardMaterial({ color: "#b3122f", roughness: 0.6, side: DoubleSide }),
     };
   }, [soil, circle, disc]);
@@ -157,14 +156,14 @@ export function BloodRoseGarden() {
     flames.current.forEach((flame, index) => {
       if (!flame) return;
       const flicker = 1 + 0.12 * Math.sin(t * 13 + index * 2.1) + 0.08 * Math.sin(t * 29 + index);
-      flame.scale.set(0.028 * flicker, 0.055 * (2 - flicker), 1);
+      flame.scale.setScalar(0.42 * flicker);
     });
   });
 
   return (
     <group>
       <mesh material={materials.soil} rotation-x={-Math.PI / 2} position-y={0.001} renderOrder={-1}>
-        <circleGeometry args={[SOIL_RADIUS, 64]} />
+        <circleGeometry args={[GROUND_RADIUS, 64]} />
       </mesh>
       <group ref={ring} rotation-x={-Math.PI / 2} position-y={0.003}>
         <mesh material={materials.circle}>
@@ -190,46 +189,22 @@ export function BloodRoseGarden() {
       {geometries.vines.map((geometry, index) => (
         <mesh key={index} geometry={geometry} material={materials.vine} />
       ))}
-      {CANDELABRA.map(({ x, z, height }, stand) => (
+      {CANDELABRA.map(({ x, z, height }) => (
         <group key={x} position={[x, 0, z]} rotation-y={x > 0 ? -0.4 : 0.4}>
-          {[0, 1, 2].map((foot) => (
-            <mesh
-              key={foot}
-              material={materials.iron}
-              position={[Math.cos((foot * Math.PI * 2) / 3) * 0.035, 0.012, Math.sin((foot * Math.PI * 2) / 3) * 0.035]}
-              rotation={[0, (-foot * Math.PI * 2) / 3, -0.5]}
-            >
-              <boxGeometry args={[0.07, 0.008, 0.01]} />
-            </mesh>
-          ))}
-          <mesh material={materials.iron} position-y={height / 2}>
-            <cylinderGeometry args={[0.006, 0.01, height, 8]} />
-          </mesh>
-          {/* The arms curve down from one candle to the other, under the middle one. */}
-          <mesh material={materials.iron} position-y={height - 0.06} rotation-z={Math.PI}>
-            <torusGeometry args={[ARM_REACH, 0.005, 6, 20, Math.PI]} />
-          </mesh>
-          {[-ARM_REACH, 0, ARM_REACH].map((offset, candle) => {
-            const base = offset === 0 ? height : height - 0.06;
-            return (
-              <group key={candle} position={[offset, base, 0]}>
-                <mesh material={materials.iron} position-y={0.004}>
-                  <cylinderGeometry args={[0.02, 0.012, 0.008, 10]} />
-                </mesh>
-                <mesh material={materials.wax} position-y={0.008 + 0.03}>
-                  <cylinderGeometry args={[0.009, 0.01, 0.06, 10]} />
-                </mesh>
-                <sprite
-                  ref={(sprite) => {
-                    flames.current[stand * 3 + candle] = sprite;
-                  }}
-                  material={materials.flame}
-                  position-y={0.09}
-                />
-                <sprite material={materials.halo} position-y={0.09} scale={0.26} />
-              </group>
-            );
-          })}
+          <mesh
+            geometry={candelabra.geometry}
+            material={candelabra.material}
+            position-y={height / 2}
+            scale={height / PROP_HEIGHT}
+          />
+          {/* A warm haze round its candles, flickering. */}
+          <sprite
+            ref={(sprite) => {
+              flames.current[x > 0 ? 1 : 0] = sprite;
+            }}
+            material={materials.halo}
+            position-y={height * 0.9}
+          />
         </group>
       ))}
       <FallingPetals geometry={geometries.petal} material={materials.petal} />
@@ -446,4 +421,16 @@ function paintBloodCircle(context: CanvasRenderingContext2D, size: number) {
   }
 }
 
-const SOIL: NoiseLook = { base: [30, 18, 17], dark: [10, 6, 6], light: [58, 36, 30], fadeOut: true };
+/** A garden path of dark earth, rose petals heaped round the bushes at the back. */
+const GARDEN_GROUND: GroundDressing = {
+  wash: { colour: "#f43f5e", alpha: 0.3 },
+  path: { kind: "dirt", colour: "rgba(66,24,22,0.9)", edge: "rgba(24,8,8,0.6)", width: [0.12, 0.24], wind: 0.05 },
+  litter: [{ shape: "petal", colours: ["#be123c", "#9f1239", "#e11d48"], count: 220, size: 4, pile: [0, 1, 0, 0.45] }],
+};
+const SOIL: NoiseLook = {
+  base: [30, 18, 17],
+  dark: [10, 6, 6],
+  light: [58, 36, 30],
+  fadeOut: true,
+  dress: GARDEN_GROUND,
+};

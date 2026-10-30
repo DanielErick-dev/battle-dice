@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { CanvasTexture, SRGBColorSpace } from "three";
 import { seededRandom } from "@/game/domain/random";
-import type { TileKind, TileTheme } from "./tileTheme";
+import type { TileTheme } from "./tileTheme";
 
 /** Logical drawing size; the canvas itself may be smaller (see TileFace.resolution). */
 const SIZE = 512;
@@ -18,7 +18,7 @@ export interface TileFace {
   resolution: number;
 }
 
-/** Paints the tile face (stone, number, arrows, label) into a texture so it lives in the 3D scene. */
+/** Paints a road slab's face (see TileMesh), laid along the way, into a texture so it lives in the 3D scene. */
 export function useTileFaceTexture({ tileId, theme, accent, arrowAngle, resolution }: TileFace): CanvasTexture {
   const texture = useMemo(() => {
     const canvas = document.createElement("canvas");
@@ -40,291 +40,299 @@ export function useTileFaceTexture({ tileId, theme, accent, arrowAngle, resoluti
   return texture;
 }
 
-/** Tiles that show the path arrows; the others carry their own icon. */
-const ARROW_KINDS: ReadonlySet<TileKind> = new Set(["regular", "start", "advance", "trapZone", "destroyed"]);
+const CENTER = SIZE / 2;
+/** The engraved rune's reach from the middle. */
+const RUNE = 120;
+/** Natural stone tones; each tile picks one, so the trail doesn't read as copies. */
+const STONES = ["#77727d", "#6f6a62", "#7d756a", "#686775", "#736b70"];
 
 function paintFace(ctx: CanvasRenderingContext2D, face: TileFace): void {
   const { theme } = face;
   const random = seededRandom(face.tileId * 7919);
+  const glow = theme.kind === "regular" ? face.accent : theme.glow;
 
-  paintStone(ctx, theme.top, random);
-  if (theme.kind === "start" || theme.kind === "finish") paintCheckerBand(ctx);
-  if (theme.kind === "portal") paintSpiral(ctx, theme.glow);
-  if (theme.kind === "trap") paintHazardBorder(ctx, theme.glow);
-  if (theme.kind === "advance") paintSpeedLines(ctx, theme.glow, face.arrowAngle ?? 0);
-  if (theme.kind === "extraTurn") paintDieIcon(ctx, theme.glow);
-  if (theme.kind === "skipTurn") paintPauseIcon(ctx, theme.glow);
-  if (theme.kind === "card") paintCardIcon(ctx, theme.glow);
-  if (theme.kind === "curse") paintHazardBorder(ctx, theme.glow);
-  if (theme.kind === "blessing") paintSpiral(ctx, theme.glow);
+  paintStone(ctx, random, theme.kind === "regular" ? null : theme.glow);
   if (theme.kind === "trapZone") paintEmberCracks(ctx, random);
   if (theme.kind === "destroyed") paintShattered(ctx, theme.glow, random);
-  paintBevel(ctx);
-
-  if (face.arrowAngle !== null && ARROW_KINDS.has(theme.kind)) {
-    paintArrows(ctx, face.arrowAngle, theme.kind === "regular" ? face.accent : theme.glow);
-  }
-  paintMedallion(ctx, theme.badge ?? String(face.tileId), theme.kind === "regular" ? face.accent : theme.glow);
-  if (theme.label) paintLabel(ctx, theme);
+  engrave(ctx, glow, theme.kind === "regular" ? 0.55 : 1, () => runePath(ctx, face));
+  paintNumber(ctx, theme.badge ?? String(face.tileId), glow);
 }
 
-/** Stone slab: soft light gradient, speckles and a couple of hairline cracks. */
-function paintStone(ctx: CanvasRenderingContext2D, color: string, random: () => number) {
-  ctx.fillStyle = color;
+/** A flagstone of the road: lit from the far left, moss in its cracks and edges, a worn rim. */
+function paintStone(ctx: CanvasRenderingContext2D, random: () => number, rim: string | null) {
+  ctx.save();
+  ctx.fillStyle = STONES[Math.floor(random() * STONES.length)];
   ctx.fillRect(0, 0, SIZE, SIZE);
-
   const light = ctx.createLinearGradient(0, 0, SIZE, SIZE);
-  light.addColorStop(0, "rgba(255,255,255,0.10)");
+  light.addColorStop(0, "rgba(255,255,255,0.14)");
   light.addColorStop(1, "rgba(0,0,0,0.28)");
   ctx.fillStyle = light;
   ctx.fillRect(0, 0, SIZE, SIZE);
-
-  for (let i = 0; i < 900; i++) {
+  for (let i = 0; i < 1400; i++) {
     const shade = random() > 0.5 ? 255 : 0;
-    ctx.fillStyle = `rgba(${shade},${shade},${shade},${0.03 + random() * 0.06})`;
-    const size = 1 + random() * 3.5;
+    ctx.fillStyle = `rgba(${shade},${shade},${shade},${0.03 + random() * 0.07})`;
+    const size = 1 + random() * 4;
     ctx.fillRect(random() * SIZE, random() * SIZE, size, size);
   }
-
+  // Moss creeping in from the edges, where feet don't wear it off.
+  for (let clump = 0; clump < 9; clump++) {
+    const side = Math.floor(random() * 4);
+    const along = random() * SIZE;
+    const [x, y] = [
+      [along, 8],
+      [SIZE - 8, along],
+      [along, SIZE - 8],
+      [8, along],
+    ][side];
+    const r = 26 + random() * 46;
+    const moss = ctx.createRadialGradient(x, y, 0, x, y, r);
+    moss.addColorStop(0, "rgba(74,112,60,0.7)");
+    moss.addColorStop(1, "rgba(74,112,60,0)");
+    ctx.fillStyle = moss;
+    ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
   ctx.lineCap = "round";
   for (let crack = 0; crack < 2; crack++) {
-    let x = random() * SIZE;
-    let y = random() * SIZE;
+    let [x, y] = [random() * SIZE, random() < 0.5 ? 0 : SIZE];
     ctx.strokeStyle = "rgba(0,0,0,0.35)";
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(x, y);
-    for (let segment = 0; segment < 5; segment++) {
-      x += (random() - 0.5) * 90;
-      y += (random() - 0.5) * 90;
+    for (let segment = 0; segment < 4; segment++) {
+      x += (random() - 0.5) * 80;
+      y += (CENTER - y) * 0.3 + (random() - 0.5) * 40;
       ctx.lineTo(x, y);
     }
     ctx.stroke();
   }
+  // The worn rim, darker towards the joints; a thin glowing line inside it on slabs with a power.
+  const edge = ctx.createRadialGradient(CENTER, CENTER, CENTER * 0.6, CENTER, CENTER, CENTER * 1.25);
+  edge.addColorStop(0, "rgba(0,0,0,0)");
+  edge.addColorStop(1, "rgba(0,0,0,0.45)");
+  ctx.fillStyle = edge;
+  ctx.fillRect(0, 0, SIZE, SIZE);
+  if (rim) {
+    ctx.shadowColor = rim;
+    ctx.shadowBlur = 18;
+    ctx.strokeStyle = rim;
+    ctx.globalAlpha = 0.65;
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.roundRect(46, 46, SIZE - 92, SIZE - 92, 40);
+    ctx.stroke();
+  }
+  ctx.restore();
 }
 
-/** Fake chamfer: bright top/left edges, dark bottom/right, plus an engraved inner frame. */
-function paintBevel(ctx: CanvasRenderingContext2D) {
-  const edge = 18;
-  ctx.fillStyle = "rgba(255,255,255,0.13)";
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.lineTo(SIZE, 0);
-  ctx.lineTo(SIZE - edge, edge);
-  ctx.lineTo(edge, edge);
-  ctx.lineTo(edge, SIZE - edge);
-  ctx.lineTo(0, SIZE);
-  ctx.fill();
-
-  ctx.fillStyle = "rgba(0,0,0,0.35)";
-  ctx.beginPath();
-  ctx.moveTo(SIZE, SIZE);
-  ctx.lineTo(0, SIZE);
-  ctx.lineTo(edge, SIZE - edge);
-  ctx.lineTo(SIZE - edge, SIZE - edge);
-  ctx.lineTo(SIZE - edge, edge);
-  ctx.lineTo(SIZE, 0);
-  ctx.fill();
-
-  const inset = 38;
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = "rgba(0,0,0,0.45)";
-  ctx.strokeRect(inset, inset, SIZE - inset * 2, SIZE - inset * 2);
-  ctx.strokeStyle = "rgba(255,255,255,0.08)";
-  ctx.strokeRect(inset + 3, inset + 3, SIZE - inset * 2, SIZE - inset * 2);
-}
-
-/** Number inside a round medallion ringed with the tile's accent colour. */
-function paintMedallion(ctx: CanvasRenderingContext2D, text: string, accent: string) {
-  const cx = 118;
-  const cy = 118;
-  const radius = 66;
-
+/** Cut into the stone: a dark groove a little offset, then the rune's glowing line in it. */
+function engrave(ctx: CanvasRenderingContext2D, color: string, strength: number, trace: () => void) {
   ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.6)";
-  ctx.shadowBlur = 16;
-  ctx.shadowOffsetY = 6;
-  ctx.fillStyle = "#0b0c14";
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.translate(3, 4);
+  ctx.strokeStyle = "rgba(0,0,0,0.55)";
+  ctx.fillStyle = "rgba(0,0,0,0.55)";
+  ctx.lineWidth = 20;
+  trace();
+  ctx.translate(-3, -4);
+  ctx.globalAlpha = strength;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 26;
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = 13;
+  trace();
+  ctx.restore();
+}
+
+/** Strokes (and fills, for pips) the tile's rune in the current style. */
+function runePath(ctx: CanvasRenderingContext2D, { theme, arrowAngle }: TileFace) {
+  const dot = (x: number, y: number, r: number) => {
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  };
+  const line = (points: [number, number][], closed = false) => {
+    ctx.beginPath();
+    points.forEach(([x, y], index) =>
+      index === 0 ? ctx.moveTo(CENTER + x, CENTER + y) : ctx.lineTo(CENTER + x, CENTER + y),
+    );
+    if (closed) ctx.closePath();
+    ctx.stroke();
+  };
+  const chevrons = (count: number, size: number) => {
+    ctx.save();
+    ctx.translate(CENTER, CENTER);
+    ctx.rotate(arrowAngle ?? 0);
+    for (let index = 0; index < count; index++) {
+      const x = (index - (count - 1) / 2) * size * 0.9;
+      ctx.beginPath();
+      ctx.moveTo(x - size * 0.4, -size * 0.7);
+      ctx.lineTo(x + size * 0.4, 0);
+      ctx.lineTo(x - size * 0.4, size * 0.7);
+      ctx.stroke();
+    }
+    ctx.restore();
+  };
+  switch (theme.kind) {
+    case "regular":
+    case "trapZone":
+    case "destroyed":
+      if (arrowAngle !== null) chevrons(1, 70);
+      return;
+    case "advance":
+      chevrons(3, 80);
+      return;
+    case "start":
+      // A banner on its pole.
+      line([
+        [-60, 110],
+        [-60, -110],
+      ]);
+      line(
+        [
+          [-60, -110],
+          [80, -70],
+          [-60, -20],
+        ],
+        true,
+      );
+      return;
+    case "finish":
+      starPath(ctx, 5, RUNE, RUNE * 0.45);
+      return;
+    case "portal":
+      for (let arm = 0; arm < 3; arm++) {
+        ctx.beginPath();
+        for (let t = 0; t <= 1; t += 0.02) {
+          const angle = arm * ((Math.PI * 2) / 3) + t * Math.PI * 2.2;
+          const radius = 12 + t * RUNE;
+          const [x, y] = [CENTER + Math.cos(angle) * radius, CENTER + Math.sin(angle) * radius];
+          if (t === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+      return;
+    case "trap":
+      // Three spikes over a jagged line.
+      line([
+        [-110, 70],
+        [-75, -60],
+        [-40, 70],
+        [0, -100],
+        [40, 70],
+        [75, -60],
+        [110, 70],
+      ]);
+      return;
+    case "extraTurn":
+      ctx.beginPath();
+      ctx.roundRect(CENTER - 95, CENTER - 95, 190, 190, 30);
+      ctx.stroke();
+      for (const [x, y] of [
+        [-48, -48],
+        [48, -48],
+        [0, 0],
+        [-48, 48],
+        [48, 48],
+      ])
+        dot(CENTER + x, CENTER + y, 16);
+      return;
+    case "skipTurn":
+      line(
+        [
+          [-75, -110],
+          [75, -110],
+          [-75, 110],
+          [75, 110],
+        ],
+        true,
+      );
+      return;
+    case "card":
+      for (const [angle, dx] of [
+        [-0.25, -38],
+        [0.2, 42],
+      ]) {
+        ctx.save();
+        ctx.translate(CENTER + dx, CENTER);
+        ctx.rotate(angle);
+        ctx.beginPath();
+        ctx.roundRect(-60, -90, 120, 180, 16);
+        ctx.stroke();
+        ctx.restore();
+      }
+      return;
+    case "curse":
+      // An evil eye.
+      ctx.beginPath();
+      ctx.moveTo(CENTER - 125, CENTER);
+      ctx.quadraticCurveTo(CENTER, CENTER - 120, CENTER + 125, CENTER);
+      ctx.quadraticCurveTo(CENTER, CENTER + 120, CENTER - 125, CENTER);
+      ctx.stroke();
+      line([
+        [0, -42],
+        [0, 42],
+      ]);
+      return;
+    case "blessing":
+      if (theme.label === "ENERGIA")
+        line(
+          [
+            [25, -120],
+            [-55, 15],
+            [10, 15],
+            [-25, 120],
+            [55, -15],
+            [-10, -15],
+          ],
+          true,
+        );
+      else if (theme.label === "HABILIDADE") starPath(ctx, 4, RUNE, RUNE * 0.3);
+      else {
+        dot(CENTER, CENTER, 42);
+        for (let ray = 0; ray < 8; ray++) {
+          const angle = (ray / 8) * Math.PI * 2;
+          line([
+            [Math.cos(angle) * 70, Math.sin(angle) * 70],
+            [Math.cos(angle) * RUNE, Math.sin(angle) * RUNE],
+          ]);
+        }
+      }
+      return;
+  }
+}
+
+function starPath(ctx: CanvasRenderingContext2D, points: number, outer: number, inner: number) {
+  ctx.beginPath();
+  for (let index = 0; index <= points * 2; index++) {
+    const angle = (index / (points * 2)) * Math.PI * 2 - Math.PI / 2;
+    const radius = index % 2 === 0 ? outer : inner;
+    const [x, y] = [CENTER + Math.cos(angle) * radius, CENTER + Math.sin(angle) * radius];
+    if (index === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.stroke();
+}
+
+/** The tile's number, small, carved near the slab's left edge (the way runs left to right on the face). */
+function paintNumber(ctx: CanvasRenderingContext2D, text: string, accent: string) {
+  const [cx, cy, radius] = [CENTER, 74, 40];
+  ctx.save();
+  ctx.fillStyle = "rgba(10,10,18,0.78)";
   ctx.beginPath();
   ctx.arc(cx, cy, radius, 0, Math.PI * 2);
   ctx.fill();
-  ctx.restore();
-
-  ctx.lineWidth = 8;
+  ctx.lineWidth = 5;
   ctx.strokeStyle = accent;
-  ctx.beginPath();
-  ctx.arc(cx, cy, radius - 4, 0, Math.PI * 2);
   ctx.stroke();
-
   ctx.fillStyle = "#ffffff";
-  ctx.font = `900 ${text.length > 1 ? 62 : 72}px ${FONT}`;
+  ctx.font = `900 ${text.length > 2 ? 34 : 42}px ${FONT}`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(text, cx, cy + 4, radius * 1.7);
-}
-
-/** Two chevrons pointing to the next tile, so the zig-zag path reads at a glance. */
-function paintArrows(ctx: CanvasRenderingContext2D, angle: number, color: string) {
-  ctx.save();
-  ctx.translate(SIZE * 0.6, SIZE * 0.6);
-  ctx.rotate(angle);
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 16;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  [-34, 30].forEach((x, i) => {
-    ctx.globalAlpha = i === 0 ? 0.3 : 0.55;
-    ctx.beginPath();
-    ctx.moveTo(x - 26, -44);
-    ctx.lineTo(x + 20, 0);
-    ctx.lineTo(x - 26, 44);
-    ctx.stroke();
-  });
-  ctx.restore();
-}
-
-/** Streaks along the direction of travel. */
-function paintSpeedLines(ctx: CanvasRenderingContext2D, color: string, angle: number) {
-  ctx.save();
-  ctx.translate(SIZE / 2, SIZE / 2);
-  ctx.rotate(angle);
-  ctx.strokeStyle = color;
-  ctx.lineCap = "round";
-  const streaks: [number, number, number][] = [
-    [-150, -120, 110],
-    [-60, -40, 160],
-    [30, -150, 90],
-    [110, -90, 140],
-    [160, -200, 80],
-  ];
-  for (const [y, x, length] of streaks) {
-    ctx.globalAlpha = 0.28;
-    ctx.lineWidth = 8;
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(x + length, y);
-    ctx.stroke();
-  }
-  ctx.restore();
-}
-
-/** Faint die face (five pips) behind the label. */
-function paintDieIcon(ctx: CanvasRenderingContext2D, color: string) {
-  const size = 200;
-  const x = SIZE / 2 - size / 2 + 60;
-  const y = SIZE / 2 - size / 2 - 30;
-  ctx.save();
-  ctx.globalAlpha = 0.35;
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 10;
-  ctx.beginPath();
-  ctx.roundRect(x, y, size, size, 36);
-  ctx.stroke();
-  ctx.fillStyle = color;
-  for (const [px, py] of [
-    [0.25, 0.25],
-    [0.75, 0.25],
-    [0.5, 0.5],
-    [0.25, 0.75],
-    [0.75, 0.75],
-  ]) {
-    ctx.beginPath();
-    ctx.arc(x + px * size, y + py * size, 17, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.restore();
-}
-
-/** Faint fanned pair of cards behind the label. */
-function paintCardIcon(ctx: CanvasRenderingContext2D, color: string) {
-  ctx.save();
-  ctx.globalAlpha = 0.35;
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 9;
-  for (const [angle, dx] of [
-    [-0.25, -40],
-    [0.2, 50],
-  ]) {
-    ctx.save();
-    ctx.translate(SIZE / 2 + dx, SIZE / 2 - 20);
-    ctx.rotate(angle);
-    ctx.beginPath();
-    ctx.roundRect(-70, -100, 140, 200, 18);
-    ctx.stroke();
-    ctx.restore();
-  }
-  ctx.restore();
-}
-
-/** Faint pause symbol behind the label. */
-function paintPauseIcon(ctx: CanvasRenderingContext2D, color: string) {
-  ctx.save();
-  ctx.globalAlpha = 0.3;
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.roundRect(SIZE / 2 - 20, 110, 60, 190, 18);
-  ctx.roundRect(SIZE / 2 + 80, 110, 60, 190, 18);
-  ctx.fill();
-  ctx.restore();
-}
-
-function paintCheckerBand(ctx: CanvasRenderingContext2D) {
-  const cell = 32;
-  const top = SIZE - 190;
-  for (let row = 0; row < 2; row++) {
-    for (let column = 0; column < SIZE / cell; column++) {
-      ctx.fillStyle = (row + column) % 2 === 0 ? "rgba(255,255,255,0.16)" : "rgba(0,0,0,0.28)";
-      ctx.fillRect(column * cell, top + row * cell, cell, cell);
-    }
-  }
-}
-
-function paintSpiral(ctx: CanvasRenderingContext2D, color: string) {
-  const center = SIZE / 2;
-  const glow = ctx.createRadialGradient(center, center, 10, center, center, SIZE * 0.5);
-  glow.addColorStop(0, `${color}88`);
-  glow.addColorStop(1, "transparent");
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, SIZE, SIZE);
-
-  ctx.strokeStyle = color;
-  ctx.lineCap = "round";
-  for (let arm = 0; arm < 3; arm++) {
-    ctx.globalAlpha = 0.45;
-    ctx.lineWidth = 7;
-    ctx.beginPath();
-    for (let t = 0; t < 1; t += 0.02) {
-      const angle = arm * ((Math.PI * 2) / 3) + t * Math.PI * 2.4;
-      const radius = 18 + t * 190;
-      const x = center + Math.cos(angle) * radius;
-      const y = center + Math.sin(angle) * radius;
-      if (t === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-  }
-  ctx.globalAlpha = 1;
-}
-
-/** Diagonal danger stripes around the edge. */
-function paintHazardBorder(ctx: CanvasRenderingContext2D, color: string) {
-  const band = 34;
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(0, 0, SIZE, SIZE);
-  ctx.rect(band, band, SIZE - band * 2, SIZE - band * 2);
-  ctx.clip("evenodd");
-  ctx.fillStyle = "#12060a";
-  ctx.fillRect(0, 0, SIZE, SIZE);
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 16;
-  ctx.globalAlpha = 0.8;
-  for (let offset = -SIZE; offset < SIZE * 2; offset += 44) {
-    ctx.beginPath();
-    ctx.moveTo(offset, 0);
-    ctx.lineTo(offset + SIZE, SIZE);
-    ctx.stroke();
-  }
+  ctx.fillText(text, cx, cy + 2, radius * 1.7);
   ctx.restore();
 }
 
@@ -397,25 +405,4 @@ function paintShattered(ctx: CanvasRenderingContext2D, glow: string, random: () 
     ctx.stroke();
   }
   ctx.restore();
-}
-
-function paintLabel(ctx: CanvasRenderingContext2D, theme: TileTheme) {
-  const bottom = theme.caption ? SIZE - 110 : SIZE - 70;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "alphabetic";
-
-  ctx.save();
-  ctx.shadowColor = theme.glow;
-  ctx.shadowBlur = 18;
-  ctx.fillStyle = "#ffffff";
-  ctx.font = `900 italic 60px ${FONT}`;
-  ctx.fillText(theme.label, SIZE / 2, bottom);
-  ctx.restore();
-
-  if (theme.caption) {
-    ctx.fillStyle = theme.glow;
-    ctx.font = `800 38px ${FONT}`;
-    // Squeezed rather than cut off when long (a cursed trap's caption).
-    ctx.fillText(theme.caption, SIZE / 2, bottom + 52, SIZE - 90);
-  }
 }

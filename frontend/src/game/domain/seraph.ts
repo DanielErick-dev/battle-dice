@@ -5,12 +5,13 @@ import { giveCard, playerIn, updatePlayer, type Draft } from "./draft";
 import { grantBlessing, TIMED_BLESSINGS } from "./blessings";
 import { blastTrapsAhead } from "./newcomerAbilities";
 import { aimWard } from "./players";
+import { passVerdict, verdictArmed } from "./verdict";
 import type { Board, Player, PlayerId, TileId, TimedBlessing } from "./types";
 
 // Seraphiel picks heaven's gifts, is crowned leaving heaven, and falls for good on entering hell.
 
 /** Seraphic or infernal alike. */
-export const CROWN_BONUS = 2;
+export const CROWN_BONUS = 1;
 /** Lost turns when the Fallen Angel stops on a celestial portal. */
 export const DIVINE_CHAINS_ROUNDS = 3;
 /** Alone on the board, the traps ahead Hell's Drag swallows instead. */
@@ -100,6 +101,11 @@ export function hellsDrag(draft: Draft, playerId: PlayerId, targetId: PlayerId |
   const ward = aimWard(target);
   if (ward) {
     draft.events.push({ type: "abilityBlocked", playerId, targetId: target.id, ability: "hellsDrag", ward });
+    return;
+  }
+  if (verdictArmed(target)) {
+    passVerdict(draft, target.id, playerId, { ability: "hellsDrag" });
+    dragIntoHell(draft, target.id, playerId);
     return;
   }
 

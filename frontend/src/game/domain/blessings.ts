@@ -17,16 +17,19 @@ export function inHeaven(board: Board, position: TileId): boolean {
 }
 
 export function isBlessed(board: Board, player: Player, kind: TimedBlessing): boolean {
-  return !inHeaven(board, player.position) && player.blessings.some((blessing) => blessing.kind === kind);
+  return blessingCount(board, player, kind) > 0;
 }
 
-/** One the player already has starts over. */
+/** Copies of one blessing stack: two Springs give twice the energy while both last. */
+export function blessingCount(board: Board, player: Player, kind: TimedBlessing): number {
+  if (inHeaven(board, player.position)) return 0;
+  return player.blessings.filter((blessing) => blessing.kind === kind).length;
+}
+
+/** One the player already has is kept alongside the new one, each wearing on its own. */
 export function grantBlessing(draft: Draft, playerId: PlayerId, kind: TimedBlessing): void {
   updatePlayer(draft, playerId, (player) => ({
-    blessings: [
-      ...player.blessings.filter((blessing) => blessing.kind !== kind),
-      { kind, turnsLeft: blessingTurns(player), fresh: true },
-    ],
+    blessings: [...player.blessings, { kind, turnsLeft: blessingTurns(player), fresh: true }],
   }));
 }
 

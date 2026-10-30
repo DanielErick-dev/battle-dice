@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
 import type { BoardDefinition } from "./board";
-import { CARD_PORTAL_TRAP_BOARD, card, hasEvent, newGame, playerOf, roll, withPlayer, withTileEffect } from "./testing";
+import {
+  CARD_PORTAL_TRAP_BOARD,
+  card,
+  hasEvent,
+  newGame,
+  play,
+  playerOf,
+  roll,
+  withPlayer,
+  withTileEffect,
+} from "./testing";
 import type { Player, TrapCurse } from "./types";
 
 describe("special tiles", () => {
@@ -44,6 +54,24 @@ describe("special tiles", () => {
 
     const afterSkip = roll(afterP2.state, "p2", 1);
     expect(afterSkip.events.at(-1)).toEqual({ type: "turnChanged", playerId: "p1" });
+  });
+
+  it("spends an extra turn still owed as the first lost turn", () => {
+    const { state, events } = roll({ ...duo(), bonusTurn: true }, "p1", 4);
+    expect(events.slice(-2)).toEqual([
+      { type: "turnSkipped", playerId: "p1" },
+      { type: "turnChanged", playerId: "p2" },
+    ]);
+    expect(playerOf(state, "p1").skipTurns).toBe(0);
+    expect(roll(state, "p2", 1).events.at(-1)).toEqual({ type: "turnChanged", playerId: "p1" });
+  });
+
+  it("a card carrying them onto a lost turn ends the turn there and then, without a roll", () => {
+    const windy = withPlayer(duo(), "p1", { position: 2, hand: [card("windStep", "w")], energy: 3 });
+    const { state, events } = play(windy, "p1", "w");
+    expect(playerOf(state, "p1")).toMatchObject({ position: 5, skipTurns: 1 });
+    expect(events.at(-1)).toEqual({ type: "turnChanged", playerId: "p2" });
+    expect(state).toMatchObject({ cardsPlayedThisTurn: 0, bonusTurn: false });
   });
 
   it("consumes the skip right away when playing alone", () => {

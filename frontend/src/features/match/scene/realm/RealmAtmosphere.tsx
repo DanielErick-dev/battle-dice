@@ -24,7 +24,7 @@ export function useRealmMix(): RefObject<RealmMix> {
 
 /** Sky colours per world; the fog and background follow the horizon. */
 export const SKY = {
-  mortal: { horizon: new Color("#1b1236"), zenith: new Color("#03040b") },
+  mortal: { horizon: new Color("#121821"), zenith: new Color("#030508") },
   infernal: { horizon: new Color("#5a1206"), zenith: new Color("#120203") },
   celestial: { horizon: new Color("#c9a47c"), zenith: new Color("#2f4f9e") },
 } as const;
@@ -68,17 +68,23 @@ export function RealmAtmosphere({ realm, children }: RealmAtmosphereProps) {
 
     if (hemisphere.current) {
       blendRealm(hemisphere.current.color, HEMI_SKY.mortal, HEMI_SKY.infernal, HEMI_SKY.celestial, current);
-      blendRealm(hemisphere.current.groundColor, HEMI_GROUND.mortal, HEMI_GROUND.infernal, HEMI_GROUND.celestial, current);
+      blendRealm(
+        hemisphere.current.groundColor,
+        HEMI_GROUND.mortal,
+        HEMI_GROUND.infernal,
+        HEMI_GROUND.celestial,
+        current,
+      );
       hemisphere.current.intensity = 0.5 + current.infernal * 0.25 + current.celestial * 0.35;
     }
-    if (ambient.current) ambient.current.intensity = 0.3 + current.celestial * 0.1;
+    if (ambient.current) ambient.current.intensity = 0.24 + current.celestial * 0.16;
     if (lavaLight.current) lavaLight.current.intensity = current.infernal * 60;
   });
 
   return (
     <RealmMixContext.Provider value={mix}>
-      <ambientLight ref={ambient} intensity={0.3} />
-      <hemisphereLight ref={hemisphere} args={["#8fa3ff", "#1b0b22", 0.5]} />
+      <ambientLight ref={ambient} intensity={0.24} />
+      <hemisphereLight ref={hemisphere} args={["#6c7c96", "#0b0a0e", 0.5]} />
       {/* Hellfire from below: lights the underside of the arena and the infernal track. */}
       <pointLight ref={lavaLight} position={[0, -3, 0]} color="#ff4a12" intensity={0} distance={60} decay={1.4} />
       {children}
@@ -86,5 +92,5 @@ export function RealmAtmosphere({ realm, children }: RealmAtmosphereProps) {
   );
 }
 
-const HEMI_SKY = { mortal: new Color("#8fa3ff"), infernal: new Color("#ff6a3a"), celestial: new Color("#fff1d0") };
-const HEMI_GROUND = { mortal: new Color("#1b0b22"), infernal: new Color("#3a0802"), celestial: new Color("#4a5a8a") };
+const HEMI_SKY = { mortal: new Color("#6c7c96"), infernal: new Color("#ff6a3a"), celestial: new Color("#fff1d0") };
+const HEMI_GROUND = { mortal: new Color("#0b0a0e"), infernal: new Color("#3a0802"), celestial: new Color("#4a5a8a") };

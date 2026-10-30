@@ -1,10 +1,19 @@
 "use client";
 
-import { RoundedBox, Sparkles } from "@react-three/drei";
+import { Sparkles } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
-import { CanvasTexture, Color, DoubleSide, SRGBColorSpace, type Group, type MeshStandardMaterial } from "three";
+import {
+  CanvasTexture,
+  Color,
+  DoubleSide,
+  SRGBColorSpace,
+  type BufferGeometry,
+  type Group,
+  type MeshStandardMaterial,
+} from "three";
 import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "../boardLayout";
+import { slabBody, SQUARE_SLAB, type SlabOutline } from "../slab";
 import { useAge } from "../useAge";
 import { preloadProps, PROP_HEIGHT, usePropMesh } from "./props";
 import { withRim, type RimUniforms } from "./rimGlow";
@@ -12,11 +21,23 @@ import { withRim, type RimUniforms } from "./rimGlow";
 const TILE_TOP = TILE_HEIGHT / 2;
 
 /** The snow cover: a slab a little thicker than a lifted tile rises, so nothing of the tile shows. */
-const COVER_HEIGHT = 0.12;
-const COVER_Y = COVER_HEIGHT / 2 - 0.02;
+export const COVER_HEIGHT = 0.12;
+export const COVER_Y = COVER_HEIGHT / 2 - 0.02;
+/** How far a cover reaches past its slab's edge, so nothing of the slab shows. */
+export const COVER_GROW = 0.06;
+
+/** A cover in the shape of the slab under it, a little bigger: from y = 0 up to COVER_HEIGHT. */
+export function useCoverGeometry(outline: SlabOutline): BufferGeometry {
+  const key = outline.map(([x, z]) => `${x.toFixed(3)},${z.toFixed(3)}`).join(";");
+  // The key stands for the outline.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const geometry = useMemo(() => slabBody(outline, COVER_HEIGHT, 0.04, COVER_GROW), [key]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  return geometry;
+}
 
 /** Drifts heaped on the snow, where the trap's spikes stood: where (shares of the tile), how big. */
-const DRIFTS = [
+export const DRIFTS = [
   { x: -0.2, z: 0.03, radius: 0.2 },
   { x: 0.02, z: -0.06, radius: 0.24 },
   { x: 0.2, z: 0.03, radius: 0.19 },
@@ -25,7 +46,7 @@ const DRIFTS = [
   { x: -0.06, z: 0.28, radius: 0.15 },
 ];
 /** Ice crystals poking out of the snow: where, how tall, how far turned. */
-const CRYSTALS = [
+export const CRYSTALS = [
   { x: -0.32, z: 0.3, height: 0.26, turn: 0.3 },
   { x: 0.32, z: 0.24, height: 0.2, turn: 1.2 },
 ];
@@ -35,7 +56,17 @@ const CRYSTALS = [
  * drifts heaped where the spikes were and a couple of ice crystals, so nothing of what it was
  * shows. Fairy dust glitters over it in her colour. Snows in as it's enchanted.
  */
-export function EnchantedTileMark({ position, color }: { position: Vec3; color: string }) {
+export function EnchantedTileMark({
+  position,
+  color,
+  outline = SQUARE_SLAB,
+}: {
+  position: Vec3;
+  color: string;
+  /** The slab it covers (see BoardLayout.slab): the snow takes its shape. */
+  outline?: SlabOutline;
+}) {
+  const cover = useCoverGeometry(outline);
   const root = useRef<Group>(null);
   const snow = useSnowTexture();
   const glow = useMemo(() => new Color(color).multiplyScalar(1.4), [color]);
@@ -51,15 +82,9 @@ export function EnchantedTileMark({ position, color }: { position: Vec3; color: 
 
   return (
     <group ref={root} position={[position[0], position[1] + TILE_TOP, position[2]]}>
-      <RoundedBox
-        args={[TILE_SIZE * 1.02, COVER_HEIGHT, TILE_SIZE * 1.02]}
-        radius={0.05}
-        smoothness={3}
-        position-y={COVER_Y}
-        receiveShadow
-      >
+      <mesh geometry={cover} position-y={COVER_Y - COVER_HEIGHT / 2} receiveShadow>
         <meshStandardMaterial color="#f4fbff" map={snow} roughness={0.95} emissive="#9fd8ff" emissiveIntensity={0.12} />
-      </RoundedBox>
+      </mesh>
       {DRIFTS.map(({ x, z, radius }) => (
         <mesh
           key={`${x}:${z}`}
@@ -105,7 +130,7 @@ export function EnchantedTileMark({ position, color }: { position: Vec3; color: 
 }
 
 /** Fresh snow: white with soft blue hollows and a scatter of glints. */
-function useSnowTexture(): CanvasTexture {
+export function useSnowTexture(): CanvasTexture {
   const texture = useMemo(() => {
     const size = 256;
     const canvas = document.createElement("canvas");
@@ -211,7 +236,17 @@ function useFireMaterial(): MeshStandardMaterial {
  * slab, and black flames edged in red burn all over it, swaying and breathing slowly (their height
  * and glow rise and fall), sparks rising off them. Flares up as it's lit.
  */
-export function BlackFlameMark({ position, color }: { position: Vec3; color: string }) {
+export function BlackFlameMark({
+  position,
+  color,
+  outline = SQUARE_SLAB,
+}: {
+  position: Vec3;
+  color: string;
+  /** The slab it burns on (see BoardLayout.slab): the charred cover takes its shape. */
+  outline?: SlabOutline;
+}) {
+  const cover = useCoverGeometry(outline);
   const root = useRef<Group>(null);
   const fires = useRef<(Group | null)[]>([]);
   const age = useAge();
@@ -239,12 +274,7 @@ export function BlackFlameMark({ position, color }: { position: Vec3; color: str
 
   return (
     <group ref={root} position={[position[0], position[1] + TILE_TOP, position[2]]}>
-      <RoundedBox
-        args={[TILE_SIZE * 1.02, COVER_HEIGHT, TILE_SIZE * 1.02]}
-        radius={0.05}
-        smoothness={3}
-        position-y={COVER_Y}
-      >
+      <mesh geometry={cover} position-y={COVER_Y - COVER_HEIGHT / 2}>
         <meshStandardMaterial
           color="#0b0507"
           map={embers}
@@ -253,7 +283,7 @@ export function BlackFlameMark({ position, color }: { position: Vec3; color: str
           emissiveIntensity={0.45}
           roughness={1}
         />
-      </RoundedBox>
+      </mesh>
       {FIRES.map(({ x, z, height, turn }, index) => (
         <group
           key={index}

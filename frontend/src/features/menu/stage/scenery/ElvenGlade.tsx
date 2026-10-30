@@ -19,10 +19,10 @@ import {
 import { Prop, usePropMesh } from "@/features/match/scene/character/props";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { grassTuft, scatterAround } from "./sceneryKit";
+import { GROUND_RADIUS, grassTuft, scatterAround } from "./sceneryKit";
+import { withDressing, type GroundDressing } from "./groundDressing";
 import { useCanvasTexture, useNoiseTexture, type NoiseLook, type Painter } from "./textures";
 
-const GROUND_RADIUS = 1;
 const LOG = { x: -0.2, z: -0.78, turn: 0.2, length: 0.9, radius: 0.085 };
 /** Roots of an old tree just off the stage, thick end first, arching out of the moss and diving back in. */
 const ROOTS = [
@@ -53,8 +53,8 @@ const ROOTS = [
     ],
   },
 ];
-/** The straw butt she practises on, turned towards the middle. */
-const TARGET = { x: 0.58, z: -0.4, turn: -0.6, radius: 0.15, height: 0.3 };
+/** The target she practises on, turned towards the middle; `height` is the whole easel's. */
+const TARGET = { x: 0.58, z: -0.4, turn: -0.6, height: 0.55 };
 /** Arrows in the target's face: offset on it and slant. */
 const TARGET_ARROWS = [
   { x: 0.02, y: 0.03, tilt: [0.08, -0.1] },
@@ -90,11 +90,9 @@ const FIREFLY = new Color("#e4ff7a").multiplyScalar(1.8);
  * glowing mushrooms, a practice target and arrows in the ground, fireflies drifting. Origin on the floor.
  */
 export function ElvenGlade() {
-  const moss = useCanvasTexture({ size: 512, draw: paintMossFloor, seed: 37, fadeFrom: 0.45 });
+  const moss = useCanvasTexture({ size: 512, draw: paintGladeFloor, seed: 37, fadeFrom: 0.45 });
   const bark = useNoiseTexture(BARK);
   const lichen = useNoiseTexture(LICHEN);
-  const straw = useNoiseTexture(STRAW);
-  const face = useCanvasTexture({ size: 256, draw: paintTargetFace, seed: 73, tile: true });
   const disc = useSoftDisc();
   const arrow = usePropMesh("elvenArrow");
   const materials = useMemo(
@@ -103,9 +101,6 @@ export function ElvenGlade() {
       bark: new MeshStandardMaterial({ map: bark, roughness: 1 }),
       heartwood: new MeshStandardMaterial({ color: "#8a6a44", roughness: 0.9 }),
       moss: new MeshStandardMaterial({ map: lichen, roughness: 1 }),
-      straw: new MeshStandardMaterial({ map: straw, roughness: 1 }),
-      face: new MeshStandardMaterial({ map: face, roughness: 0.95 }),
-      wood: new MeshStandardMaterial({ color: "#4a3622", roughness: 0.9 }),
       stem: new MeshStandardMaterial({ color: "#d8e8d0", emissive: "#3a6650", emissiveIntensity: 0.5 }),
       cap: new MeshStandardMaterial({ color: "#a8ffe0", emissive: SPORE, emissiveIntensity: 1.1, toneMapped: false }),
       halo: new SpriteMaterial({
@@ -117,7 +112,7 @@ export function ElvenGlade() {
         blending: AdditiveBlending,
       }),
     }),
-    [moss, bark, lichen, straw, face, disc],
+    [moss, bark, lichen, disc],
   );
   useEffect(() => () => Object.values(materials).forEach((material) => material.dispose()), [materials]);
   const roots = useMemo(() => ROOTS.map(({ points, radius }) => taperedRoot(points as Vec3[], radius)), []);
@@ -171,7 +166,7 @@ export function ElvenGlade() {
           </mesh>
         ))}
       </group>
-      <Target materials={materials} arrow={arrow} />
+      <Target arrow={arrow} />
       {GROUND_ARROWS.map(({ x, z, tilt }) => (
         <group key={`${x}:${z}`} position={[x, ARROW_LENGTH / 2 - 0.06, z]} rotation={[Math.PI + tilt[0], 0, tilt[1]]}>
           <Prop geometry={arrow.geometry} material={arrow.material} height={ARROW_LENGTH} />
@@ -223,39 +218,19 @@ function taperedRoot(points: Vec3[], radius: number): BufferGeometry {
   return geometry;
 }
 
-/** A round straw butt on a wooden easel, with a couple of her arrows in it. */
-function Target({
-  materials,
-  arrow,
-}: {
-  materials: Record<"straw" | "face" | "wood", MeshStandardMaterial>;
-  arrow: ReturnType<typeof usePropMesh>;
-}) {
-  const { x, z, turn, radius, height } = TARGET;
-  const depth = 0.06;
+/** Her target on its easel (PROPS.archerTarget), with a couple of her arrows in it. */
+function Target({ arrow }: { arrow: ReturnType<typeof usePropMesh> }) {
+  const target = usePropMesh("archerTarget");
+  const { x, z, turn, height } = TARGET;
   return (
     <group position={[x, 0, z]} rotation-y={turn}>
-      {[-1, 1].map((side) => (
-        <mesh
-          key={side}
-          material={materials.wood}
-          position={[side * radius * 0.7, height * 0.62, -0.02]}
-          rotation={[0.12, 0, side * -0.18]}
-        >
-          <boxGeometry args={[0.018, height * 1.35, 0.018]} />
-        </mesh>
-      ))}
-      <mesh material={materials.wood} position={[0, height * 0.55, -0.16]} rotation-x={-0.42}>
-        <boxGeometry args={[0.018, height * 1.25, 0.018]} />
-      </mesh>
-      <group position={[0, height + 0.04, 0]} rotation-x={-0.12}>
-        <mesh material={[materials.straw, materials.face, materials.straw]} rotation-x={Math.PI / 2}>
-          <cylinderGeometry args={[radius, radius, depth, 28]} />
-        </mesh>
+      <Prop geometry={target.geometry} material={target.material} height={height} standing />
+      {/* On the face: its middle at about two thirds up, leaning back a little. */}
+      <group position={[0, height * 0.68, height * 0.2]} rotation-x={-0.18}>
         {TARGET_ARROWS.map(({ x: ax, y, tilt }) => (
           <group
             key={`${ax}:${y}`}
-            position={[ax, y, depth / 2 + ARROW_LENGTH / 2 - 0.05]}
+            position={[ax, y, ARROW_LENGTH / 2 - 0.05]}
             rotation={[-Math.PI / 2 + tilt[0], 0, tilt[1]]}
           >
             <Prop geometry={arrow.geometry} material={arrow.material} height={ARROW_LENGTH} />
@@ -496,28 +471,16 @@ const paintFrond: Painter = (context, size, random) => {
   }
 };
 
-/** The face of the butt: painted rings over straw, weathered. */
-const paintTargetFace: Painter = (context, size, random) => {
-  const rings = ["#d8cba4", "#3b5a2a", "#d8cba4", "#7a2a1c", "#d8b04a"];
-  rings.forEach((colour, index) => {
-    context.fillStyle = colour;
-    context.beginPath();
-    context.arc(size / 2, size / 2, (size / 2) * (1 - index / rings.length), 0, Math.PI * 2);
-    context.fill();
-  });
-  // Straw poking through the paint.
-  for (let index = 0; index < 900; index++) {
-    context.strokeStyle = random() < 0.5 ? "rgba(120,96,48,0.35)" : "rgba(230,210,150,0.3)";
-    const x = random() * size;
-    const y = random() * size;
-    const angle = random() * Math.PI;
-    context.beginPath();
-    context.moveTo(x, y);
-    context.lineTo(x + Math.cos(angle) * 6, y + Math.sin(angle) * 6);
-    context.stroke();
-  }
-};
-
 const BARK: NoiseLook = { base: [62, 46, 32], dark: [30, 22, 16], light: [96, 78, 56], fadeOut: false };
 const LICHEN: NoiseLook = { base: [70, 104, 38], dark: [36, 58, 22], light: [124, 160, 66], fadeOut: false };
-const STRAW: NoiseLook = { base: [176, 146, 82], dark: [118, 94, 50], light: [214, 190, 128], fadeOut: false };
+
+/** A dirt trail worn by her steps through the moss, fallen leaves and pebbles. */
+const GLADE_GROUND: GroundDressing = {
+  wash: { colour: "#4ade80", alpha: 0.25 },
+  path: { kind: "dirt", colour: "rgba(110,84,52,0.9)", edge: "rgba(60,44,26,0.6)", width: [0.12, 0.24], wind: 0.06 },
+  litter: [
+    { shape: "leaf", colours: ["#c9a43a", "#8a5a24", "#6f9a2e"], count: 140, size: 5 },
+    { shape: "pebble", colours: ["#77705f", "#5a5547"], count: 40, size: 3 },
+  ],
+};
+const paintGladeFloor = withDressing(paintMossFloor, GLADE_GROUND);

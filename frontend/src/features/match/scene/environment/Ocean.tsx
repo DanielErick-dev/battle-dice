@@ -11,8 +11,9 @@ interface OceanProps {
   level: number;
   /** Side of the square water plane; should reach past the fog so the edge never shows. */
   size: number;
-  /** Half extents of the arena base, where the foam breaks. */
+  /** Half extents of the island and how far back its middle lies, where the foam breaks. */
   shoreHalfSize: [number, number];
+  shoreCenterZ: number;
   /** World position of the moon, for the glitter path on the water. */
   moonPosition: [number, number, number];
 }
@@ -20,7 +21,6 @@ interface OceanProps {
 const VERTEX = /* glsl */ `
   #include <fog_pars_vertex>
   uniform float uTime;
-  uniform float uInfernal;
   uniform float uCelestial;
   varying vec3 vWorld;
 
@@ -32,7 +32,7 @@ const VERTEX = /* glsl */ `
   void main() {
     vec4 world = modelMatrix * vec4(position, 1.0);
     // Lava heaves slowly and low; the cloud sea barely moves.
-    world.y += swell(world.xz) * (1.0 - uInfernal * 0.6 - uCelestial * 0.7);
+    world.y += swell(world.xz) * (1.0 - uCelestial * 0.7);
     vWorld = world.xyz;
     vec4 mvPosition = viewMatrix * world;
     gl_Position = projectionMatrix * mvPosition;
@@ -50,27 +50,12 @@ const FRAGMENT = /* glsl */ `
   uniform vec3 uMoonColor;
   uniform vec3 uMoonPosition;
   uniform vec2 uShoreHalf;
-  uniform float uInfernal;
+  uniform float uShoreCenterZ;
   uniform float uCelestial;
   uniform vec3 uHorizon;
   varying vec3 vWorld;
 
   ${NOISE_GLSL}
-
-  /** Molten rock: dark crust broken by glowing veins, hotter against the arena walls. */
-  vec3 lava(vec2 p, float shore) {
-    float flow = fbm(p * 0.18 + vec2(uTime * 0.02, uTime * 0.015));
-    float veins = fbm(p * 0.4 - vec2(uTime * 0.025, -uTime * 0.018) + flow * 2.0);
-    // Ridged noise: sharp, thin lines where the noise crosses its midpoint.
-    float crack = pow(1.0 - abs(veins * 2.0 - 1.0), 22.0);
-    vec3 crust = mix(vec3(0.03, 0.008, 0.006), vec3(0.09, 0.02, 0.008), flow);
-    vec3 heat = vec3(3.0, 0.7, 0.08);
-    // Mostly dark crust: thin glowing cracks and a few molten pools.
-    vec3 color = crust + heat * crack * 0.9 + heat * smoothstep(0.78, 0.95, flow) * 0.18;
-    float pulse = 0.75 + 0.25 * sin(uTime * 1.7 + flow * 9.0);
-    color += heat * smoothstep(1.2, 0.0, shore) * 0.45 * pulse;
-    return color;
-  }
 
   /** A sea of clouds lit by the sun, tinted by the horizon at grazing angles. */
   vec3 clouds(vec2 p, float fresnel) {
@@ -103,9 +88,11 @@ const FRAGMENT = /* glsl */ `
     return sum;
   }
 
-  float boxDistance(vec2 p, vec2 extent) {
-    vec2 q = abs(p) - extent;
-    return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
+  /** Roughly how far out from the island's waterline (its rounded-rectangle shape, see islandTerrain). */
+  float shoreDistance(vec2 p) {
+    vec2 q = abs((p - vec2(0.0, uShoreCenterZ)) / uShoreHalf);
+    float reach = pow(pow(q.x, 4.0) + pow(q.y, 4.0), 0.25);
+    return (reach - 0.94) * min(uShoreHalf.x, uShoreHalf.y);
   }
 
   void main() {
@@ -123,13 +110,14 @@ const FRAGMENT = /* glsl */ `
     float glitter = pow(max(dot(reflect(-toMoon, normal), toCamera), 0.0), 260.0);
     color += uMoonColor * glitter * 0.9;
 
-    float shore = boxDistance(vWorld.xz, uShoreHalf);
+    float shore = shoreDistance(vWorld.xz);
     float bands = 0.5 + 0.5 * sin(shore * 7.0 - uTime * 2.2 + w.x * 12.0);
-    float foam = smoothstep(1.4, 0.0, shore) * smoothstep(0.7, 0.98, bands);
-    foam = max(foam, smoothstep(0.25, 0.0, shore));
-    color = mix(color, uFoam, clamp(foam, 0.0, 1.0) * 0.45);
+    // Breaking only along the outer coast: inland water (the stream) stays clear.
+    float coast = smoothstep(-0.9, -0.2, shore);
+    float foam = smoothstep(1.4, 0.0, shore) * smoothstep(0.75, 0.98, bands) * coast;
+    foam = max(foam, smoothstep(0.2, 0.0, abs(shore)) * 0.6);
+    color = mix(color, uFoam, clamp(foam, 0.0, 1.0) * 0.32);
 
-    if (uInfernal > 0.001) color = mix(color, lava(vWorld.xz, shore), uInfernal);
     if (uCelestial > 0.001) color = mix(color, clouds(vWorld.xz, fresnel), uCelestial);
 
     gl_FragColor = vec4(color, 1.0);
@@ -141,9 +129,9 @@ const FRAGMENT = /* glsl */ `
 
 /**
  * Animated night sea: layered waves, sky reflection at grazing angles, moon glitter and shore
- * foam. Turns to lava in the infernal realm and to a sea of clouds in the celestial one.
+ * foam. Stays water in hell (only the sky burns); turns to a sea of clouds in the celestial realm.
  */
-export function Ocean({ level, size, shoreHalfSize, moonPosition }: OceanProps) {
+export function Ocean({ level, size, shoreHalfSize, shoreCenterZ, moonPosition }: OceanProps) {
   const material = useRef<ShaderMaterial>(null);
   const mix = useRealmMix();
   const uniforms = useMemo(
@@ -152,14 +140,14 @@ export function Ocean({ level, size, shoreHalfSize, moonPosition }: OceanProps) 
         UniformsLib.fog,
         {
           uTime: { value: 0 },
-          uDeep: { value: new Color("#041526") },
-          uShallow: { value: new Color("#0b3a52") },
-          uSky: { value: new Color("#3a2a6e") },
-          uFoam: { value: new Color("#cfe8ff") },
-          uMoonColor: { value: new Color("#fff4d6") },
+          uDeep: { value: new Color("#02070c") },
+          uShallow: { value: new Color("#0a1d26") },
+          uSky: { value: new Color("#1b2430") },
+          uFoam: { value: new Color("#8fa2b2") },
+          uMoonColor: { value: new Color("#d9e2ec") },
           uMoonPosition: { value: new Vector3() },
           uShoreHalf: { value: new Vector2() },
-          uInfernal: { value: 0 },
+          uShoreCenterZ: { value: 0 },
           uCelestial: { value: 0 },
           uHorizon: { value: new Color() },
         },
@@ -172,11 +160,11 @@ export function Ocean({ level, size, shoreHalfSize, moonPosition }: OceanProps) 
     if (!current) return;
     const realm = mix.current;
     current.uniforms.uTime.value += delta;
-    current.uniforms.uInfernal.value = realm.infernal;
     current.uniforms.uCelestial.value = realm.celestial;
     blendRealm(current.uniforms.uHorizon.value, SKY.mortal.horizon, SKY.infernal.horizon, SKY.celestial.horizon, realm);
     current.uniforms.uMoonPosition.value.set(...moonPosition);
     current.uniforms.uShoreHalf.value.set(...shoreHalfSize);
+    current.uniforms.uShoreCenterZ.value = shoreCenterZ;
   });
 
   return (

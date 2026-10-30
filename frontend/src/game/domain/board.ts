@@ -136,6 +136,19 @@ function createTrapZone(tiles: readonly Tile[], { from, to, traps }: TrapZoneDef
   return { tiles: plain, traps };
 }
 
+/** Appends a rift tile (see void.ts) and links it in right after the tile it opened after. */
+export function linkRift(board: Board, rift: Tile): Board {
+  if (!rift.rift) throw new Error(`Tile ${rift.id} is no rift`);
+  const { after } = rift.rift;
+  const onward = getTile(board, after).next;
+  const tiles = board.tiles.map((tile) => {
+    if (tile.id === after) return { ...tile, next: rift.id };
+    if (tile.id === onward) return { ...tile, previous: rift.id };
+    return tile;
+  });
+  return { ...board, tiles: [...tiles, { ...rift, next: onward, previous: after }] };
+}
+
 export function getTile(board: Board, id: TileId): Tile {
   const tile = board.tiles[id - 1];
   if (!tile) throw new RangeError(`Tile ${id} is outside the board`);

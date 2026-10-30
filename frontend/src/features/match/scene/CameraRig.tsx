@@ -33,6 +33,11 @@ const SHOTS: Record<TileEffectKind, Shot> = {
   hiddenTrap: { closeUp: { distance: 0.62, seconds: 1.2 }, trauma: 1 },
   skipTurn: { trauma: 0.3 },
   turnSkipped: { trauma: 0.2 },
+  snowDrained: {},
+  voidSwallowed: { closeUp: { distance: 0.7, seconds: 1.2 }, trauma: 0.3 },
+  riftOpened: { closeUp: { distance: 0.75, seconds: 1.2 }, trauma: 0.4 },
+  voidCast: { closeUp: { distance: 0.75, seconds: 1 } },
+  voidSeized: { closeUp: { distance: 0.75, seconds: 1 }, trauma: 0.2 },
   extraTurn: { fovKick: 0.6 },
   trapBlocked: { fovKick: 0.4 },
   abilityBlocked: { fovKick: 0.4 },
@@ -62,6 +67,9 @@ const SHOTS: Record<TileEffectKind, Shot> = {
   crown: { closeUp: { distance: 0.62, seconds: 1.2 }, fovKick: 0.5 },
   heavenBarred: { trauma: 0.3 },
   dragged: { closeUp: { distance: 0.62, seconds: 1.2 }, trauma: 0.5 },
+  // Pulled back so the scale fits over the one judged.
+  verdict: { closeUp: { distance: 1.1, seconds: 3 }, trauma: 0.35 },
+  disarmed: { fovKick: 0.3 },
 };
 
 /** Cards whose cast is filmed too (the rest are covered by the effects they cause). */

@@ -17,6 +17,7 @@ import { unpinPassed } from "./arrowRain";
 import { GameRuleError, type GameErrorCode } from "./commands";
 import { mainTileOf, opponentsInSpace } from "./board";
 import { aimWard } from "./players";
+import { passVerdict, senseHiddenTraps, verdictArmed } from "./verdict";
 import { drawCard, playerIn, pushPath, updatePlayer, walkPath, type Draft } from "./draft";
 import { throwOnPile } from "./deck";
 import { DICE_SIDES } from "./dice";
@@ -32,22 +33,27 @@ import {
   FUSED_SHIELD_ARMOUR,
   FUSED_WIND_STEP_TILES,
 } from "./fusion";
-import type { Board, CardInstance, Player, PlayerId, RealmEntry, TileId } from "./types";
+import { isFrozen } from "./fairy";
+import type { Board, CardInstance, GameState, Player, PlayerId, RealmEntry, TileId } from "./types";
 
 export interface CardChoice {
   targetId?: PlayerId;
   value?: number;
 }
 
+/** What a card's blockers look at beyond the player: the board and what covers its tiles. */
+export type CardTable = Pick<GameState, "board" | "blackFlames" | "winter">;
+
 /** Blockers from the player's own state, shared with the UI; turn rules (cards per turn) are checked on play. */
-export function cardBlocker(board: Board, player: Player, cardId: CardId): GameErrorCode | null {
+export function cardBlocker(table: CardTable, player: Player, cardId: CardId): GameErrorCode | null {
+  const { board } = table;
   if (player.silencedTurns > 0) return "SILENCED";
   if (player.energy < cardCost(cardId)) return "NOT_ENOUGH_ENERGY";
   if (cardId === "arcaneShield" && player.shielded) return "ALREADY_SHIELDED";
   const { dice } = CARD_CATALOG[cardId];
   // Bonuses add up (combos); only the way the dice are thrown can't be changed twice.
   if (dice === "throw" && player.diceBoost !== null) return "DICE_BOOST_ACTIVE";
-  if (cardId === "mysticGate" && nextPortalAhead(board, player.position, player.realmEntry) === null) {
+  if (cardId === "mysticGate" && nextPortalAhead(table, player.position, player.realmEntry) === null) {
     return "NO_PORTAL_AHEAD";
   }
   if (cardId === "celestialLight" && player.energy >= MAX_ENERGY) return "ENERGY_FULL";
@@ -58,19 +64,19 @@ export function cardBlocker(board: Board, player: Player, cardId: CardId): GameE
 
 /** Movement cards resolve the tile they end on, like a roll would. */
 export function playCard(draft: Draft, playerId: PlayerId, cardUid: string, choice: CardChoice): void {
-  const { board, cardsPlayedThisTurn, abilityInUse } = draft.state;
+  const { cardsPlayedThisTurn, abilityInUse } = draft.state;
   const player = playerIn(draft, playerId);
   if (cardsPlayedThisTurn >= cardsPerTurn(abilityInUse)) throw new GameRuleError("CARD_ALREADY_PLAYED");
 
   const card = player.hand.find((candidate) => candidate.uid === cardUid);
   if (!card) throw new GameRuleError("UNKNOWN_CARD");
-  const blocker = cardBlocker(board, player, card.cardId);
+  const blocker = cardBlocker(draft.state, player, card.cardId);
   if (blocker) throw new GameRuleError(blocker);
 
   const definition = CARD_CATALOG[card.cardId];
   const targetId = definition.targetsOpponent ? validTarget(draft, playerId, card.cardId, choice.targetId) : null;
   const value = definition.needsValue ? validValue(choice.value) : null;
-  const portal = card.cardId === "mysticGate" ? nextPortalAhead(board, player.position, player.realmEntry) : null;
+  const portal = card.cardId === "mysticGate" ? nextPortalAhead(draft.state, player.position, player.realmEntry) : null;
 
   updatePlayer(draft, playerId, (current) => ({
     energy: current.energy - cardCost(card.cardId),
@@ -78,10 +84,17 @@ export function playCard(draft: Draft, playerId: PlayerId, cardUid: string, choi
     discard: throwOnPile(current.discard, [card]),
   }));
   draft.events.push({ type: "cardPlayed", playerId, card, targetId, value });
+  const target = targetId === null ? null : playerIn(draft, targetId);
   // Thrown at a protected opponent, the card is spent for nothing.
-  const ward = targetId === null ? null : aimWard(playerIn(draft, targetId));
-  if (targetId !== null && ward) {
-    draft.events.push({ type: "cardBlocked", playerId, targetId, cardId: card.cardId, ward });
+  const ward = target && aimWard(target);
+  if (target && ward) {
+    draft.events.push({ type: "cardBlocked", playerId, targetId: target.id, cardId: card.cardId, ward });
+    return;
+  }
+  if (target && verdictArmed(target)) {
+    passVerdict(draft, target.id, playerId, { cardId: card.cardId });
+    // A swap has no side to turn: it's only undone.
+    if (card.cardId !== "fateSwap") applyEffect(draft, target.id, card, { targetId: playerId, value, portal });
     return;
   }
   applyEffect(draft, playerId, card, { targetId, value, portal });
@@ -108,6 +121,7 @@ function applyEffect(
       if (reversed) draft.events.push({ type: "playerMoved", playerId, path });
       else walkTrampling(draft, playerId, path);
       crossSpecters(draft, playerId, path);
+      senseHiddenTraps(draft, playerId, path);
       resolveLanding(draft, playerId, path.at(-1) ?? position);
       unpinPassed(draft, path);
       break;
@@ -265,11 +279,20 @@ function validValue(value: number | undefined): number {
   return value;
 }
 
-/** First main-path portal strictly ahead (from a track: ahead of the portal of `entry`). */
-export function nextPortalAhead(board: Board, position: TileId, entry?: RealmEntry | null): TileId | null {
+/**
+ * First main-path portal strictly ahead (from a track: ahead of the portal of `entry`). One under
+ * black fire or ice isn't a portal while it lasts, so it's passed by.
+ */
+export function nextPortalAhead(
+  { board, blackFlames, winter }: CardTable,
+  position: TileId,
+  entry?: RealmEntry | null,
+): TileId | null {
   const from = mainTileOf(board, position, entry);
+  const gone = (tile: TileId) =>
+    blackFlames.some((flame) => flame.tile === tile) || isFrozen(winter, board.startTile, tile);
   const portal = board.tiles.find(
-    (tile) => tile.id > from && tile.id <= board.finishTile && tile.effect.kind === "portal",
+    (tile) => tile.id > from && tile.id <= board.finishTile && tile.effect.kind === "portal" && !gone(tile.id),
   );
   return portal?.id ?? null;
 }

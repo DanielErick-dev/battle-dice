@@ -62,7 +62,7 @@ export function AbilityMeter({ player, inUse = false, onActivate, canActivate = 
       ) : inUse && !ready ? (
         // Charged again in the same turn (Ascension), it can be used again: the button takes over.
         <span className="text-[9px] font-black tracking-widest text-violet-200 uppercase">Em uso</span>
-      ) : ready && onActivate && !reactive ? (
+      ) : ready && onActivate && (!reactive || blocker === null) ? (
         <button
           type="button"
           onClick={onActivate}
@@ -70,10 +70,12 @@ export function AbilityMeter({ player, inUse = false, onActivate, canActivate = 
           title={waitReason ?? (canActivate ? `Usar ${text.name}` : "Aguarde sua vez")}
           className="rounded-md bg-violet-500 px-2 py-0.5 text-[10px] font-black tracking-wider text-white uppercase shadow-[0_0_12px_rgba(167,139,250,0.7)] transition hover:bg-violet-400 active:scale-95 disabled:opacity-40 disabled:shadow-none"
         >
-          Usar
+          {reactive ? "Tomar" : "Usar"}
         </button>
       ) : ready ? (
-        <span className="text-[9px] font-black tracking-widest text-violet-200 uppercase">Pronta</span>
+        <span className="text-[9px] font-black tracking-widest text-violet-200 uppercase">
+          {player.ability === "silentVerdict" ? "Armada" : "Pronta"}
+        </span>
       ) : (
         <span className="flex gap-0.5" aria-label={`Carga ${player.abilityCharge} de ${abilityCycle(player.ability)}`}>
           {Array.from({ length: abilityCycle(player.ability) }, (_, i) => (

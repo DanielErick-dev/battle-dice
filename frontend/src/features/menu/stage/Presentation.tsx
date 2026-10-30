@@ -13,7 +13,9 @@ import {
 import { CharacterModel } from "@/features/match/scene/character/CharacterModel";
 import { HeldVial, PourStream, SmokeCloud } from "@/features/match/scene/character/AlchemyVial";
 import { Wings } from "@/features/match/scene/character/Wings";
+import { HeadCrown } from "@/features/match/scene/character/HeadCrown";
 import { FrostWand } from "@/features/match/scene/character/FrostWand";
+import { JusticeScale } from "@/features/match/scene/character/JusticeScale";
 import { EnergyBlades } from "@/features/match/scene/character/EnergyBlades";
 import { ArcherIntro } from "@/features/match/scene/character/ArcherIntro";
 import { BoneRise } from "@/features/match/scene/character/BoneRise";
@@ -236,6 +238,8 @@ export function Presentation({
                 {character.wings && (
                   <Wings figure={figure} wings={character.wings} stroke={stroke} tips={entrance ? tips : undefined} />
                 )}
+                {character.crown && <HeadCrown figure={figure} crown={character.crown} />}
+                {character.holdsScale && <JusticeScale figure={figure} />}
                 {character.handProp === "vial" && (
                   <HeldVial figure={figure} color={character.color} active={propOut} tilt={tilt} mouth={mouth} />
                 )}

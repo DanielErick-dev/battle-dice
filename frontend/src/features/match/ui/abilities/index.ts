@@ -9,18 +9,20 @@ import { resurrection, transmutation } from "./cardChoices";
 import { cardGamble } from "./cardGamble";
 import { hellsDrag } from "./hellsDrag";
 import { ocularAwakening } from "./ocularAwakening";
-import { forbiddenSeals, spectralApparitions } from "./placements";
+import { fairyBloom, forbiddenSeals, spectralApparitions, theVoid } from "./placements";
 import { timeWarp } from "./timeWarp";
 import type { AbilityFlow } from "./types";
 
 export const ABILITY_FLOWS: Partial<Readonly<Record<AbilityId, AbilityFlow>>> = {
   arrowRain,
   cardGamble,
+  fairyBloom,
   forbiddenSeals,
   hellsDrag,
   ocularAwakening,
   resurrection,
   spectralApparitions,
+  theVoid,
   timeWarp,
   transmutation,
 };

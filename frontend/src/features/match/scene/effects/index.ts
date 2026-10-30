@@ -3,7 +3,7 @@
  * effect gets its own component in the file of whoever owns it, and one line below.
  */
 import { AbilityFlash } from "./abilities";
-import { PinnedTraps, Volley } from "./arrowRain";
+import { PinnedTraps, SlungBow, Volley } from "./arrowRain";
 import { KnockedBurst, ShoveImpact, UntamedAura } from "./berserker";
 import { ArcaneBlastFx, DiceOrb, HealingHerbFx, PoweredAura, RedAura, ShieldFx, WindStepFx } from "./cards";
 import { Tide } from "./cleansingTide";
@@ -16,9 +16,10 @@ import { Fall, HeavenChains, HellsDrag } from "./seraph";
 import { Apparitions } from "./specters";
 import { Gate, HiddenTrap } from "./tiles";
 import { HandVial, VialThrow } from "./transmutation";
-import { LightBlades, SmashedTraps } from "./trapWard";
+import { HeldScale, Verdict } from "./verdict";
+import { LightBlades, Rifts, SmashedTraps, TheVoid, VoidAtWork } from "./void";
 import type { BoardEffect, FigureEffect, TokenEffect } from "./types";
-import { BackWings } from "./wings";
+import { BackWings, WornCrown } from "./wings";
 
 export const TOKEN_EFFECTS: {
   /** Round the figure, scaled to its size and rising with it when it levitates. */
@@ -49,13 +50,16 @@ export const TOKEN_EFFECTS: {
   ],
   ground: [FuryField, DashLanding, LevitationGlow, LevitationCast],
   body: [SusanooArmour, VialThrow],
-  figure: [LightBlades, LimbBolts, LevitationStaff, HandVial, FrostWandProp, BackWings],
+  figure: [LightBlades, LimbBolts, LevitationStaff, HandVial, FrostWandProp, HeldScale, BackWings, WornCrown, SlungBow],
 };
 
 /** On the board, mounted before the figures. */
 export const BOARD_EFFECTS: readonly BoardEffect[] = [
   Gate,
   SmashedTraps,
+  Rifts,
+  VoidAtWork,
+  TheVoid,
   PinnedTraps,
   EnchantedTiles,
   EternalWinter,
@@ -65,6 +69,7 @@ export const BOARD_EFFECTS: readonly BoardEffect[] = [
   Volley,
   Tide,
   HellsDrag,
+  Verdict,
   SnowStream,
   DashBolt,
   HiddenTrap,

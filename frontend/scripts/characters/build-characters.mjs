@@ -17,7 +17,22 @@ const OUTPUT_DIR = path.resolve(fileURLToPath(import.meta.url), "../../../public
 const TARGET_VERTICES = 24_000;
 const TEXTURE_SIZE = 1024;
 /** Clips played on one spot (menu stage, ability), so the figure never wanders off it. */
-const IN_PLACE_CLIPS = ["intro", "showcase", "cast", "float", "land", "dash", "shove", "knocked", "rest", "hop"];
+const IN_PLACE_CLIPS = [
+  "intro",
+  "showcase",
+  "cast",
+  "float",
+  "land",
+  "dash",
+  "shove",
+  "knocked",
+  "rest",
+  "hop",
+  "brake",
+  "sit",
+  "guard",
+  "scoff",
+];
 /** Share of travel an in-place clip keeps: a dash lunges forward a little yet stays on its tile. */
 const KEPT_TRAVEL = { dash: 0.4 };
 /** Gap between two parts of a sequence, for the pose to blend. */
@@ -121,6 +136,8 @@ async function exportChannels(file) {
 /** A clip from parts played back to back, each `file@from-to*speed:mode` (syntax: docs/assets.md). */
 async function sequenceChannels(model, name) {
   const played = [];
+  // Parts made on an earlier body (`retargetParts`) keep only rotations and the hips, scaled to this one.
+  const bodyHips = model.retargetParts && restHipsHeight(await io.read(exportOf(model, REQUIRED_CLIPS[0])));
   for (const part of model.sequences[name]) {
     const [, file, from, to, speed, mode] = part.match(
       /^([^@:*]+)(?:@([\d.]+)(?:-([\d.]+))?)?(?:\*([\d.]+))?(?::(\w+))?$/,
@@ -128,6 +145,7 @@ async function sequenceChannels(model, name) {
     const clip = await io.read(path.join(values.source, model.id, "parts", `${file}.glb`));
     let channels = channelsOf(clip.getRoot().listAnimations()[0]);
     if (mode === "grounded") channels = grounded(channels, clip);
+    if (bodyHips) channels = borrowed(channels, { hipsScale: bodyHips / restHipsHeight(clip) });
     if (to) channels = trimEnd(channels, Number(to));
     if (from) channels = trimStart(channels, Number(from));
     if (speed)

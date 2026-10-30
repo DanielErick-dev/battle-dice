@@ -24,11 +24,11 @@ export function HomeScreen() {
     <main className="relative flex min-h-dvh w-full items-center overflow-hidden bg-[#05060b] text-white">
       <MenuBackdrop />
 
-      <div className="relative mx-auto grid w-full max-w-6xl items-center gap-10 px-4 py-10 sm:px-10 md:grid-cols-[1fr_auto]">
+      <div className="relative mx-auto grid w-full max-w-6xl items-center gap-10 px-4 py-10 sm:px-10 md:grid-cols-[1fr_auto] xl:max-w-[100rem] xl:gap-16 2xl:px-20">
         <section className="flex flex-col gap-8">
           <div>
             <p className="text-xs font-bold tracking-[0.4em] text-amber-300/80 uppercase">Tabuleiro arcano</p>
-            <h1 className="mt-3 text-5xl leading-none font-black tracking-[0.12em] uppercase drop-shadow-[0_0_30px_rgba(249,115,22,0.35)] sm:text-7xl">
+            <h1 className="mt-3 text-5xl leading-none font-black tracking-[0.12em] uppercase drop-shadow-[0_0_30px_rgba(249,115,22,0.35)] sm:text-7xl 2xl:text-8xl">
               Battle <span className="text-orange-500">Dice</span>
             </h1>
             <p className="mt-4 max-w-md text-sm text-zinc-300 sm:text-base">
@@ -71,7 +71,11 @@ export function HomeScreen() {
         </section>
 
         <aside aria-label="Personagem escolhido" className="relative flex flex-col items-center justify-self-center">
-          <CharacterStage characterId={characterId} className="h-80 w-72 sm:h-96 sm:w-80" />
+          {/* On wide screens it grows with the window, always 5:6 (the camera frames by height) and within the screen's height. */}
+          <CharacterStage
+            characterId={characterId}
+            className="h-80 w-72 sm:h-96 sm:w-80 lg:aspect-[5/6] lg:h-auto lg:w-[min(40vw,calc(66dvh*5/6))]"
+          />
           <p className="mt-2 text-center text-2xl font-black tracking-[0.2em] uppercase">{character.name}</p>
           <p className="text-xs font-semibold tracking-widest text-zinc-400 uppercase">{character.epithet}</p>
           <p className="mt-1 text-xs font-bold tracking-wider text-violet-300 uppercase">

@@ -32,7 +32,13 @@ export type GameCommand =
       /** Ocular Awakening, Time Warp and Card Gamble's pick. */
       power?: AbilityPower;
       flameTiles?: readonly TileId[];
+      /** Crystal Fairy once Eternal Winter has begun. */
+      frostTiles?: readonly TileId[];
+      /** Zarek's Void, idle long enough: the tile whose spell it takes over. */
+      seizeTile?: TileId;
     }
+  /** Zarek sets down the Void's `index`th item: a harm opens a rift right after `tile`, a spell lands on it. */
+  | { type: "placeVoid"; playerId: PlayerId; index: number; tile: TileId; doubled?: boolean }
   | { type: "plunderCards"; playerId: PlayerId; cardUids: readonly string[] }
   | { type: "answerWard"; playerId: PlayerId; use: boolean }
   /** A `blessing` on a blessing tile, a divine `cardId` on a relic. */
@@ -75,11 +81,14 @@ export type GameErrorCode =
   | "SILENCED"
   | "INVALID_SPECTERS"
   | "INVALID_FLAMES"
+  | "INVALID_FROST"
   | "PLUNDER_PENDING"
   | "NO_PLUNDER_PENDING"
   | "GRACE_PENDING"
   | "NO_GRACE_PENDING"
-  | "INVALID_GRACE";
+  | "INVALID_GRACE"
+  | "VOID_FULL"
+  | "INVALID_VOID";
 
 export class GameRuleError extends Error {
   constructor(readonly code: GameErrorCode) {

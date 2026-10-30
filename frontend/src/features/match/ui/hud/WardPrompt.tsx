@@ -13,9 +13,10 @@ const THREAT_TEXT: Readonly<Record<Threat, { title: string; detail: string }>> =
   trap: { title: "Armadilha!", detail: "Ela vai te jogar para trás." },
   hiddenTrap: { title: "Armadilha oculta!", detail: "Uma armadilha escondida disparou sob seus pés." },
   curse: { title: "Maldição!", detail: "Ela vai tirar energia ou uma carta sua." },
+  skipTurn: { title: "Perde a vez!", detail: "Você vai ficar uma rodada sem jogar." },
 };
 
-/** A trap or curse is about to strike: spend the charged ability to ignore it, or take the hit and keep it. */
+/** Harm is about to strike Zarek: let the Void swallow it (spending the charge), or take the hit and keep it. */
 export function WardPrompt({ ability, threat, onAnswer }: WardPromptProps) {
   const { title, detail } = THREAT_TEXT[threat];
   const { name } = ABILITY_TEXT[ability];
@@ -35,9 +36,12 @@ export function WardPrompt({ ability, threat, onAnswer }: WardPromptProps) {
           </h2>
           <p className="mt-1 text-sm text-zinc-300">{detail}</p>
           <p className="mt-3 text-sm text-zinc-100">
-            Usar <span className="font-bold text-violet-200">{name}</span> para anular?
+            Usar <span className="font-bold text-violet-200">{name}</span> para engolir e guardar?
           </p>
-          <p className="mt-1 text-xs text-zinc-400">Se usar, ela recarrega do zero. Se não, continua pronta.</p>
+          <p className="mt-1 text-xs text-zinc-400">
+            Se usar, ela some da casa e vai para o Vazio, que recarrega do zero. Se não, você sofre e ele continua
+            pronto.
+          </p>
         </div>
         <div className="grid w-full grid-cols-2 gap-2">
           <button

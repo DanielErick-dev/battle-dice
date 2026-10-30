@@ -14,8 +14,11 @@ import {
   type Mesh,
   type Sprite,
 } from "three";
+import { usePropMesh } from "@/features/match/scene/character/props";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
+import { withDressing, type GroundDressing } from "./groundDressing";
+import { GROUND_RADIUS } from "./sceneryKit";
 import { useCanvasTexture, useNoiseTexture, type CanvasLook, type NoiseLook } from "./textures";
 
 /** Tooth size shared by every gear, so any two of them mesh: radius = teeth × MODULE. */
@@ -36,6 +39,8 @@ const LOOSE_COGS = [
   { x: 0.76, z: 0.16, teeth: 9, turn: 1.1, tilt: -0.1 },
   { x: -0.62, z: 0.46, teeth: 5, turn: 2.3, tilt: 0.25 },
 ];
+/** A brass armillary sphere on its stand at his left (a Meshy prop, 2 tall in its export). */
+const GLOBE = { x: -0.6, z: -0.2, height: 0.6, turn: 0.6 };
 const CLOCK_Z = -0.92;
 const CLOCK_Y = 0.98;
 const CLOCK_RADIUS = 0.62;
@@ -56,6 +61,7 @@ const GLOW = new Color("#ffb347").multiplyScalar(1.8);
  * Origin on the floor.
  */
 export function GearWorks() {
+  const globe = usePropMesh("cronosGlobe");
   const plates = useCanvasTexture(PLATES);
   const numerals = useCanvasTexture(NUMERALS);
   const wear = useNoiseTexture(WEAR);
@@ -132,7 +138,7 @@ export function GearWorks() {
   return (
     <group>
       <mesh material={materials.floor} rotation-x={-Math.PI / 2} position-y={0.001} renderOrder={-1}>
-        <circleGeometry args={[1, 64]} />
+        <circleGeometry args={[GROUND_RADIUS, 64]} />
       </mesh>
       {layout.map(({ x, z, teeth, spokes }, index) => (
         <group key={index} position={[x, 0, z]}>
@@ -151,6 +157,13 @@ export function GearWorks() {
         </group>
       ))}
       <ClockRing materials={materials} gear={gears.gear} />
+      <mesh
+        geometry={globe.geometry}
+        material={globe.material}
+        scale={GLOBE.height / 2}
+        position={[GLOBE.x, GLOBE.height / 2, GLOBE.z]}
+        rotation-y={GLOBE.turn}
+      />
       {PIPES.map(({ x, z, height }) => (
         <group key={x} position={[x, 0, z]}>
           <mesh material={materials.iron} position-y={0.02}>
@@ -441,7 +454,14 @@ function drawNumerals(context: CanvasRenderingContext2D, size: number) {
   }
 }
 
-const PLATES: CanvasLook = { size: 512, draw: drawPlates, fadeFrom: 0.5 };
+/** A brass walkway riveted across the plates to the clock, bolts dropped about and seams glowing like a furnace. */
+const WORKS_GROUND: GroundDressing = {
+  wash: { colour: "#f59e0b", alpha: 0.25 },
+  path: { kind: "boards", colour: "#8a6a35", edge: "#2b2116", width: [0.17, 0.25], wind: 0 },
+  litter: [{ shape: "speck", colours: ["#c8a050", "#6b5636"], count: 70, size: 3 }],
+  glow: { colour: "#ffb347", count: 5 },
+};
+const PLATES: CanvasLook = { size: 512, draw: withDressing(drawPlates, WORKS_GROUND), fadeFrom: 0.5 };
 const NUMERALS: CanvasLook = { size: 1024, draw: drawNumerals };
 const WEAR: NoiseLook = {
   base: [200, 170, 130],

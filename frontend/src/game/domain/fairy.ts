@@ -1,9 +1,18 @@
-import { chargeAbility, ENCHANT_ADVANCE, ENCHANT_FREEZE, ENCHANT_TILES, SNOW_DRAIN, WINTER_TILES } from "./abilities";
+import {
+  chargeAbility,
+  ENCHANT_ADVANCE,
+  ENCHANT_FREEZE,
+  ENCHANT_TILES,
+  SNOW_DRAIN,
+  WINTER_PICKS,
+  WINTER_TILES,
+} from "./abilities";
 import { getTile } from "./board";
+import { GameRuleError } from "./commands";
 import { MAX_ENERGY } from "./cards";
 import { playerIn, updatePlayer, walkPath, type Draft } from "./draft";
 import { groundSpellsSpare, isUntouchable } from "./players";
-import type { PlayerId, TileId, Winter } from "./types";
+import type { Board, EnchantedTile, PlayerId, TileId, Winter } from "./types";
 
 /** Enchants the harm ahead for good; once none is left ahead, Eternal Winter begins. */
 export function bloom(draft: Draft, playerId: PlayerId): void {
@@ -13,7 +22,7 @@ export function bloom(draft: Draft, playerId: PlayerId): void {
   draft.pinnedTraps = draft.pinnedTraps.filter((tile) => !tiles.includes(tile));
   draft.events.push({ type: "tilesEnchanted", playerId, tiles });
   if (!draft.winter && harmfulAhead(draft, playerIn(draft, playerId).position, Infinity).length === 0) {
-    draft.winter = { owner: playerId, frontier: draft.state.board.startTile };
+    draft.winter = { owner: playerId, frontier: draft.state.board.startTile, iced: [] };
     draft.events.push({ type: "winterBegan", playerId });
   }
 }
@@ -25,34 +34,55 @@ export function spreadWinter(draft: Draft): void {
   if (!winter || winter.frontier >= finishTile - 1) return;
   const to = Math.min(finishTile - 1, winter.frontier + WINTER_TILES);
   draft.events.push({ type: "winterSpread", owner: winter.owner, from: winter.frontier + 1, to });
-  draft.winter = { ...winter, frontier: to };
+  draft.winter = { ...winter, frontier: to, iced: winter.iced.filter((tile) => tile > to) };
+  // Winter beats fire: the ice puts out black fire as it reaches it.
+  draft.blackFlames = draft.blackFlames.filter((flame) => flame.tile <= winter.frontier || flame.tile > to);
 }
 
 /** Main path only, never the start or finish. */
-function isFrozen(winter: Winter | null, startTile: TileId, tile: TileId): boolean {
-  return winter !== null && tile > startTile && tile <= winter.frontier;
+export function isFrozen(winter: Winter | null, startTile: TileId, tile: TileId): boolean {
+  return winter !== null && tile > startTile && (tile <= winter.frontier || winter.iced.includes(tile));
 }
 
-/** True on frozen tiles, where nothing else happens; the fairy and the Crimson Witch walk the ice untouched. */
-export function frostbite(draft: Draft, playerId: PlayerId, tile: TileId): boolean {
+/** Every frozen tile, along the path then the fairy's picks beyond it. */
+export function frozenTiles(winter: Winter | null, startTile: TileId): TileId[] {
+  if (!winter) return [];
+  const path = Array.from({ length: Math.max(0, winter.frontier - startTile) }, (_, index) => startTile + 1 + index);
+  return [...path, ...winter.iced];
+}
+
+/** Any main-path tile not frozen or snowed yet, burning ones too, nearest first; never the start or finish. */
+export function freezableTiles(
+  board: Board,
+  position: TileId,
+  winter: Winter | null,
+  snowed: readonly EnchantedTile[],
+): TileId[] {
+  const taken = new Set(snowed.map(({ tile }) => tile));
+  return board.tiles
+    .filter(
+      ({ id, role, track }) => role === "regular" && !track && !taken.has(id) && !isFrozen(winter, board.startTile, id),
+    )
+    .map(({ id }) => id)
+    .sort((a, b) => Math.abs(a - position) - Math.abs(b - position) || a - b);
+}
+
+/** Up to WINTER_PICKS tiles of her choice freeze, as the winter's own. */
+export function freezeTiles(draft: Draft, playerId: PlayerId, tiles: readonly TileId[]): void {
   const { winter } = draft;
-  if (!winter || !isFrozen(winter, draft.state.board.startTile, tile)) return false;
-  const player = playerIn(draft, playerId);
-  if (ownSnow(draft, playerId, winter.owner) || groundSpellsSpare(player)) return true;
-  if (isUntouchable(player)) {
-    draft.events.push({ type: "armourHeld", playerId, tile });
-    return true;
+  const allowed = freezableTiles(draft.state.board, playerIn(draft, playerId).position, winter, draft.enchantedTiles);
+  if (
+    !winter ||
+    tiles.length === 0 ||
+    tiles.length > WINTER_PICKS ||
+    new Set(tiles).size !== tiles.length ||
+    tiles.some((tile) => !allowed.includes(tile))
+  ) {
+    throw new GameRuleError("INVALID_FROST");
   }
-  snowIn(draft, playerId, winter.owner, ENCHANT_FREEZE);
-  draft.events.push({
-    type: "enchantmentStirred",
-    playerId,
-    owner: winter.owner,
-    tile,
-    frozen: ENCHANT_FREEZE,
-    charged: false,
-  });
-  return true;
+  draft.winter = { ...winter, iced: [...winter.iced, ...tiles] };
+  draft.blackFlames = draft.blackFlames.filter((flame) => !tiles.includes(flame.tile));
+  draft.events.push({ type: "tilesFrozen", playerId, tiles: [...tiles] });
 }
 
 /** The first `count` tiles ahead holding harm not yet enchanted. */
@@ -78,11 +108,19 @@ function isHarmful(draft: Draft, tile: TileId): boolean {
   return kind === "trap" || kind === "curse";
 }
 
-/** True when the tile is enchanted, so nothing else on it happens; the owner is carried, an opponent snowed in. */
-export function stirEnchantment(draft: Draft, playerId: PlayerId, tile: TileId): boolean {
+/** Whose snow lies on the tile: an enchanted tile's, or the winter's ice, which works just the same. */
+function snowOwner(draft: Draft, tile: TileId): PlayerId | null {
   const enchanted = draft.enchantedTiles.find((candidate) => candidate.tile === tile);
-  if (!enchanted) return false;
-  const own = ownSnow(draft, playerId, enchanted.owner);
+  if (enchanted) return enchanted.owner;
+  const { winter } = draft;
+  return winter && isFrozen(winter, draft.state.board.startTile, tile) ? winter.owner : null;
+}
+
+/** True on snow or ice, so nothing else on it happens; the owner is carried, an opponent snowed in. */
+export function stirEnchantment(draft: Draft, playerId: PlayerId, tile: TileId): boolean {
+  const owner = snowOwner(draft, tile);
+  if (!owner) return false;
+  const own = ownSnow(draft, playerId, owner);
   if (!own && groundSpellsSpare(playerIn(draft, playerId))) return true;
 
   if (!own && isUntouchable(playerIn(draft, playerId))) {
@@ -91,8 +129,8 @@ export function stirEnchantment(draft: Draft, playerId: PlayerId, tile: TileId):
   }
 
   const frozen = own ? 0 : ENCHANT_FREEZE;
-  if (!own) snowIn(draft, playerId, enchanted.owner, frozen);
-  stir(draft, playerId, enchanted.owner, tile, frozen);
+  if (!own) snowIn(draft, playerId, owner, frozen);
+  stir(draft, playerId, owner, tile, frozen);
   if (own) carryOnSnow(draft, playerId, tile);
   return true;
 }
@@ -106,9 +144,9 @@ function carryOnSnow(draft: Draft, playerId: PlayerId, from: TileId): void {
     draft.events.push({ type: "playerMoved", playerId, path });
     tile = path.at(-1) ?? tile;
     updatePlayer(draft, playerId, () => ({ position: tile }));
-    const snow = draft.enchantedTiles.find((enchanted) => enchanted.tile === tile);
-    if (!snow || !ownSnow(draft, playerId, snow.owner)) return;
-    stir(draft, playerId, snow.owner, tile, 0);
+    const owner = snowOwner(draft, tile);
+    if (!owner || !ownSnow(draft, playerId, owner)) return;
+    stir(draft, playerId, owner, tile, 0);
   }
 }
 

@@ -71,6 +71,16 @@ const CHAIRS = {
   alchemistThrone: { prop: "alchemistThrone", height: SEAT_TOP / 0.38, z: 0.05, turn: 0 },
   // The Necromancer's throne of black bone.
   necromancerThrone: { prop: "necromancerThrone", height: SEAT_TOP / 0.32, z: 0.1, turn: 0 },
+  // Zéfiro's throne of the four elements.
+  elementalThrone: { prop: "elementalThrone", height: SEAT_TOP / 0.31, z: 0.08, turn: 0 },
+  // The Void Knight's throne of amethyst and shadow.
+  amethystThrone: { prop: "amethystThrone", height: SEAT_TOP / 0.315, z: 0.08, turn: 0 },
+  // Themis's pale blue throne.
+  moonThrone: { prop: "moonThrone", height: SEAT_TOP / 0.305, z: 0.05, turn: 0 },
+  // The Shadow Warden's throne of black stone: a low seat.
+  shadowThrone: { prop: "shadowThrone", height: SEAT_TOP / 0.25, z: 0.08, turn: 0 },
+  // The Crimson Enchantress's throne of red roses: its seat sits behind the middle, so it's pushed forward.
+  roseThrone: { prop: "roseThrone", height: SEAT_TOP / 0.345, z: 0.28, turn: 0 },
 } as const satisfies Record<string, ChairModel>;
 export type ChairId = keyof typeof CHAIRS;
 
@@ -83,7 +93,15 @@ export function preloadChairs(chairs: readonly ChairId[]): void {
  * The chair that grows in under the figure while `seated` is on, and shrinks away after: their own
  * (`chair`), or a plain wooden one.
  */
-export function RestChair({ seated, chair }: { seated: RefObject<boolean>; chair?: ChairId }) {
+export function RestChair({
+  seated,
+  chair,
+  seat = { scale: 1, turn: 0 },
+}: {
+  seated: RefObject<boolean>;
+  chair?: ChairId;
+  seat?: { scale: number; turn: number };
+}) {
   const root = useRef<Group>(null);
   const shown = useRef(0);
 
@@ -99,7 +117,9 @@ export function RestChair({ seated, chair }: { seated: RefObject<boolean>; chair
   if (chair) {
     return (
       <group ref={root} visible={false}>
-        <OwnChair {...CHAIRS[chair]} />
+        <group scale={seat.scale} rotation-y={seat.turn}>
+          <OwnChair {...CHAIRS[chair]} />
+        </group>
       </group>
     );
   }

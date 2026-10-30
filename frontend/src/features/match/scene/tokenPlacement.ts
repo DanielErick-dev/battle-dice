@@ -35,7 +35,8 @@ export function tokenTarget(player: Player, view: MatchView, board: Board, layou
   const trampled = trampleTarget(player.id, view, board, layout);
   if (trampled) return trampled;
   const [x, y, z] = layout.position(player.position);
-  const [dx, , dz] = tileOffsetFor(player, view.players);
+  const [ax, , az] = pathDirection(board, layout, player.position);
+  const [dx, , dz] = tileOffsetFor(player, view.players, [ax, az], player.position === board.startTile);
   return [x + dx, y, z + dz];
 }
 

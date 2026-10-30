@@ -14,6 +14,7 @@ export const cardCommands: CommandHandlers<"playCard" | "discardCard" | "fuseCar
     playCard(draft, playerId, cardUid, command);
 
     const settled = settle(draft, playerId, KEEPS_TURN);
+    if (settled.state.turn !== state.turn) return settled;
     const bonusTurn = state.bonusTurn || draft.extraTurn;
     const cardsPlayedThisTurn = state.cardsPlayedThisTurn + 1;
     return { ...settled, state: { ...settled.state, cardsPlayedThisTurn, bonusTurn } };

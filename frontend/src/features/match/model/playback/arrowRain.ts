@@ -22,6 +22,10 @@ export const arrowRainSteps: StepHandlers<"arrowsLoosed"> = {
         apply: (view) => ({ ...view, pinnedTraps: [...view.pinnedTraps, ...event.pinned] }),
         durationMs: timings.arrowImpactMs,
       },
+      {
+        apply: (view) => (view.fx.volley ? withFx(view, { volley: { ...view.fx.volley, settled: true } }) : view),
+        durationMs: 0,
+      },
     ];
   },
 };

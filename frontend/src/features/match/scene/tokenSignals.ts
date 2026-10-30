@@ -16,6 +16,7 @@ export function tokenSignals(view: MatchView, player: Player): TokenSignals {
       isTeleport(own) ||
       // Thrown back by a Susanoo, they fly the tile back.
       (trample?.susanoo === true && trample.victim === id && trample.phase === "flying"),
+    isArriving: view.walkEnd?.playerId === id && view.walkEnd.tile === player.position,
     isDashing,
     isFuryAwake: view.abilityInUse === "dormantFury" && view.activePlayerId === id && !isDashing,
     isActive: view.activePlayerId === id,
@@ -37,6 +38,7 @@ export function tokenSignals(view: MatchView, player: Player): TokenSignals {
     cast: cast?.playerId === id ? cast : null,
     abilityCast: own?.kind === "abilityUsed" ? effectKey(own) : null,
     fell: own?.kind === "fallen" ? effectKey(own) : null,
+    verdict: view.fx.verdict?.judgeId === id ? view.fx.verdict.id : null,
   };
 }
 

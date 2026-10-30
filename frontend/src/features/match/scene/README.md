@@ -13,7 +13,7 @@ A cena só **lê** a `MatchView` (o que deve aparecer agora) e desenha. Ela nunc
 
 | Pasta / arquivo | O que tem |
 |---|---|
-| `environment/` | Arena, oceano, céu, pedras, braseiros |
+| `environment/` | O mundo em volta da trilha, por mapa (`maps.ts`), numa noite fechada e sombria: a ilha (`Island.tsx`), a masmorra (`Dungeon.tsx`, `dungeon.ts`) e a terra devastada (`Wasteland.tsx`, `wasteland.ts`), cada um com a sua estrada (`road.tsx`). A ilha onde a trilha serpenteia, com vila, acampamento na floresta, moinho d’água e castelo do kit KayKit (`settlements.ts`), costa com pedras e cais (`coast.ts`, kits em `kits.tsx`, escurecidos por `tint`), fumaça escura nas chaminés, estrada de terra com marcas de roda, relevo, riacho com pontes de madeira, pinheiros, pedras, tufos de grama e lanternas (`islandTerrain.ts` calcula o terreno), oceano, céu nublado (`SkyDome.tsx`) e pedras no mar. Sem figurantes andando |
 | `realm/` | Os corredores do céu e do inferno: paredes, portais, partículas |
 | `character/` | Tudo de personagem: modelo animado (`CharacterModel`), asas, cadeiras, e os efeitos de cada habilidade e intro |
 | `vfx/` | Efeitos feitos com a biblioteca wawa-vfx (partículas de cura) |
@@ -22,7 +22,7 @@ A cena só **lê** a `MatchView` (o que deve aparecer agora) e desenha. Ela nunc
 | `tokenSignals.ts` | Lê a `MatchView` e diz o que cada boneco está fazendo (correndo, sendo empurrado, usando a habilidade…) |
 | `tokenPlacement.ts` | Onde cada boneco fica e para onde olha |
 | `cameraFocus.ts` | O que a câmera acompanha e onde o dado cai |
-| `TileMesh.tsx`, `tileTheme.ts`, `useTileFaceTexture.ts` | As casas: forma, cor por tipo e texto pintado na face |
+| `TileMesh.tsx`, `tileTheme.ts`, `useTileFaceTexture.ts` | As casas: lajes da própria estrada (cortadas na curva por `layout.slab`), com uma runa acesa por tipo e o número na borda; o texto aparece numa etiqueta ao passar o mouse |
 | `DiceThrow.tsx` | O dado 3D rolando |
 
 ## Boas práticas que seguimos aqui

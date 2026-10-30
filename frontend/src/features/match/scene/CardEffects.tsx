@@ -1,7 +1,7 @@
 "use client";
 
 import { useFrame } from "@react-three/fiber";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type RefObject } from "react";
 import {
   AdditiveBlending,
   Color,
@@ -24,19 +24,40 @@ const BEAM_COLOR = new Color("#60a5fa").multiplyScalar(3);
 const BEAM_CORE = new Color("#e0f2fe").multiplyScalar(3);
 const Y_AXIS = new Vector3(0, 1, 0);
 
-/** Arcane Shield: a hexagonal bubble around the player while the shield is up. */
-export function ShieldBubble({ color = DEFAULT_SHIELD_COLOR }: { color?: string }) {
+/** Wide enough round a winged figure that the wings stay inside, centred a little higher on them. */
+const WINGED_SHIELD = { scale: 1.4, y: 1.2 };
+
+/**
+ * Arcane Shield: a hexagonal bubble around the player while the shield is up. It folds away while
+ * the figure sits on its chair (`seated`) and comes back as it stands.
+ */
+export function ShieldBubble({
+  color = DEFAULT_SHIELD_COLOR,
+  winged = false,
+  seated,
+}: {
+  color?: string;
+  winged?: boolean;
+  seated?: RefObject<boolean>;
+}) {
   const shell = useRef<Group>(null);
   const wire = useRef<MeshBasicMaterial>(null);
+  const shown = useRef(1);
   const glow = useMemo(() => new Color(color).multiplyScalar(1.6), [color]);
+  const size = winged ? WINGED_SHIELD.scale : 1;
 
   useFrame(({ clock }, delta) => {
-    if (shell.current) shell.current.rotation.y += delta * 0.5;
+    shown.current += ((seated?.current ? 0 : 1) - shown.current) * (1 - Math.exp(-8 * delta));
+    if (shell.current) {
+      shell.current.rotation.y += delta * 0.5;
+      shell.current.scale.setScalar(size * shown.current);
+      shell.current.visible = shown.current > 0.01;
+    }
     if (wire.current) wire.current.opacity = 0.55 + Math.sin(clock.elapsedTime * 3) * 0.2;
   });
 
   return (
-    <group ref={shell} position-y={1}>
+    <group ref={shell} position-y={winged ? WINGED_SHIELD.y : 1} scale={size}>
       <mesh>
         <icosahedronGeometry args={[1.05, 1]} />
         <meshBasicMaterial ref={wire} color={glow} wireframe transparent depthWrite={false} toneMapped={false} />

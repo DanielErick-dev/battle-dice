@@ -5,9 +5,10 @@ import { useEffect, useMemo, useRef } from "react";
 import { ExtrudeGeometry, MeshStandardMaterial, Shape, type Group } from "three";
 import { Prop, usePropMesh } from "@/features/match/scene/character/props";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
+import type { GroundDressing } from "./groundDressing";
+import { GROUND_RADIUS } from "./sceneryKit";
 import { useNoiseTexture, type NoiseLook } from "./textures";
 
-const EARTH_RADIUS = 0.95;
 const HEADSTONES = [
   { x: -0.66, z: -0.42, height: 0.34, turn: 0.5, lean: -0.12, tilt: 0.05 },
   { x: -0.3, z: -0.72, height: 0.42, turn: 0.15, lean: 0.06, tilt: -0.1 },
@@ -25,17 +26,19 @@ const WISPS = 6;
 /** The Necromancer's stage instead of the rune pedestal: turned earth, headstones, a cross, graves. Origin on the floor. */
 export function Graveyard() {
   const soil = useNoiseTexture(SOIL);
+  // The mounds take the bare grain: the track and its litter belong on the ground.
+  const mounds = useNoiseTexture(MOUND);
   const stone = useNoiseTexture(STONE);
   const skull = usePropMesh("skull");
   const materials = useMemo(
     () => ({
       earth: new MeshStandardMaterial({ map: soil, transparent: true, roughness: 1, depthWrite: false }),
-      mound: new MeshStandardMaterial({ map: soil, color: "#8a8279", roughness: 1 }),
+      mound: new MeshStandardMaterial({ map: mounds, color: "#8a8279", roughness: 1 }),
       stone: new MeshStandardMaterial({ map: stone, roughness: 0.95 }),
       wood: new MeshStandardMaterial({ color: "#2a2018", roughness: 1 }),
       skull: Object.assign(skull.material.clone(), { color: skull.material.color.clone().multiplyScalar(0.6) }),
     }),
-    [soil, stone, skull.material],
+    [soil, mounds, stone, skull.material],
   );
   useEffect(() => () => Object.values(materials).forEach((material) => material.dispose()), [materials]);
   const headstone = useHeadstoneGeometry();
@@ -43,7 +46,7 @@ export function Graveyard() {
   return (
     <group>
       <mesh material={materials.earth} rotation-x={-Math.PI / 2} position-y={0.001} renderOrder={-1}>
-        <circleGeometry args={[EARTH_RADIUS, 64]} />
+        <circleGeometry args={[GROUND_RADIUS, 64]} />
       </mesh>
       {HEADSTONES.map(({ x, z, height, turn, lean, tilt }) => (
         <group key={`${x}:${z}`} position={[x, -0.03, z]} rotation={[lean, turn, tilt]} scale={height}>
@@ -153,5 +156,22 @@ function useHeadstoneGeometry() {
   return geometry;
 }
 
-const SOIL: NoiseLook = { base: [34, 27, 21], dark: [12, 10, 8], light: [62, 52, 40], fadeOut: true };
+/** A grave-digger's track of grey earth, bone chips and dead leaves under a sickly green. */
+const GRAVE_GROUND: GroundDressing = {
+  wash: { colour: "#6f8a6c", alpha: 0.35 },
+  path: { kind: "dirt", colour: "rgba(80,74,64,0.9)", edge: "rgba(30,26,20,0.6)", width: [0.14, 0.26], wind: 0.05 },
+  litter: [
+    { shape: "shard", colours: ["rgba(225,215,190,0.9)"], count: 50, size: 4 },
+    { shape: "leaf", colours: ["#4a3b2a", "#3a3020"], count: 60, size: 5 },
+  ],
+  glow: { colour: "#7dff9a", count: 3 },
+};
+const SOIL: NoiseLook = {
+  base: [34, 27, 21],
+  dark: [12, 10, 8],
+  light: [62, 52, 40],
+  fadeOut: true,
+  dress: GRAVE_GROUND,
+};
+const MOUND: NoiseLook = { base: [34, 27, 21], dark: [12, 10, 8], light: [62, 52, 40], fadeOut: false };
 const STONE: NoiseLook = { base: [70, 72, 68], dark: [36, 38, 35], light: [104, 106, 98], fadeOut: false };

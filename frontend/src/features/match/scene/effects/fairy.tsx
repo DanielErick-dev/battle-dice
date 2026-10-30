@@ -1,6 +1,7 @@
 /** Crystal Fairy: her wand and snow, the tiles she enchants and the Eternal Winter. */
 import { useMemo } from "react";
 import { Vector3, type Object3D } from "three";
+import { frozenTiles } from "@/game/domain/fairy";
 import type { PlayerId } from "@/game/domain/types";
 import { playerColor } from "../../characters";
 import type { MatchView } from "../../model/matchView";
@@ -11,6 +12,7 @@ import { FrostWand } from "../character/FrostWand";
 import { SnowBind } from "../character/SnowBind";
 import { SnowHopBurst } from "../character/SnowHopBurst";
 import { EnchantedTileMark } from "../character/TileSpells";
+import { SQUARE_SLAB } from "../slab";
 import { WinterIce } from "../character/WinterIce";
 import { Delayed } from "../TrapSmash";
 import type { BoardFx, TokenFx } from "./types";
@@ -38,22 +40,30 @@ export function EnchantedTiles({ fx: { view, layout, shown } }: { fx: BoardFx })
   return view.enchantedTiles
     .filter(({ tile }) => shown(tile))
     .map(({ tile, owner }) => (
-      <EnchantedTileMark key={`enchanted${tile}`} position={layout.position(tile)} color={playerColor(owner)} />
+      <EnchantedTileMark
+        key={`enchanted${tile}`}
+        position={layout.position(tile)}
+        outline={layout.slab(tile)?.outline}
+        color={playerColor(owner)}
+      />
     ));
 }
 
-/** Ice on the main path up to the winter's frontier; snowed and burning tiles keep their own look. */
+/** Snow on every frozen tile, like her enchanted ones; snowed and burning tiles keep their own look. */
 export function EternalWinter({ fx: { view, board, layout } }: { fx: BoardFx }) {
-  const positions = useMemo(() => {
-    if (!view.winter) return [];
+  const tiles = useMemo(() => {
     const covered = new Set([...view.enchantedTiles, ...view.blackFlames].map(({ tile }) => tile));
-    const tiles = [];
-    for (let tile = board.startTile + 1; tile <= view.winter.frontier; tile++) {
-      if (!covered.has(tile)) tiles.push(layout.position(tile));
-    }
-    return tiles;
+    return frozenTiles(view.winter, board.startTile)
+      .filter((tile) => !covered.has(tile))
+      .map((tile) => ({ tile, position: layout.position(tile), outline: layout.slab(tile)?.outline ?? SQUARE_SLAB }));
   }, [view.winter, view.enchantedTiles, view.blackFlames, board, layout]);
-  return <WinterIce positions={positions} />;
+  return (
+    <WinterIce
+      tiles={tiles}
+      color={view.winter ? playerColor(view.winter.owner) : "#7dd3fc"}
+      capacity={board.finishTile}
+    />
+  );
 }
 
 export function SnowStream({ fx: { view, layout, wandTips } }: { fx: BoardFx }) {

@@ -10,6 +10,7 @@ import {
   WINTER_TILES,
 } from "@/game/domain/abilities";
 import { ABILITY_TEXT } from "../abilityText";
+import { voidItemName } from "../voidText";
 import { CARD_TEXT } from "../cards/cardText";
 import { BLESSING_TEXT, blessingDuration } from "../blessingText";
 import { CROWN_BONUS, DIVINE_CHAINS_ROUNDS } from "@/game/domain/seraph";
@@ -49,6 +50,33 @@ const COPY: Record<
     subtitle: (_, name) => `${name} fica fora da próxima rodada`,
   },
   turnSkipped: { title: "VEZ PULADA", tone: "text-slate-300", subtitle: (_, name) => `${name} descansa esta rodada` },
+  voidSwallowed: {
+    title: "O VAZIO DEVOROU!",
+    tone: "text-violet-300",
+    subtitle: (effect, name) => `${name} guardou ${voidName(effect)} no Vazio`,
+  },
+  riftOpened: {
+    title: "FENDA ABERTA!",
+    tone: "text-violet-300",
+    subtitle: ({ void: rift }, name) =>
+      `${name} abriu uma casa nova no caminho${rift?.doubled ? ", com a penalidade dobrada" : ""}`,
+  },
+  voidCast: {
+    title: "DO VAZIO!",
+    tone: "text-violet-300",
+    subtitle: (effect, name) => `${name} soltou ${voidName(effect)}, agora dele`,
+  },
+  voidSeized: {
+    title: "O VAZIO TOMOU!",
+    tone: "text-violet-300",
+    subtitle: (effect, name) => `${name} tomou ${voidName(effect)} para o Vazio`,
+  },
+  snowDrained: {
+    title: "PRESO NA NEVE",
+    tone: "text-sky-200",
+    subtitle: ({ count }, name) =>
+      count ? `${name} perde ${count} de energia para a fada` : `${name} não tem energia para a fada sugar`,
+  },
   trapBlocked: { title: "BLOQUEADO!", tone: "text-cyan-200", subtitle: blockedSubtitle },
   trapCurse: { title: "MALDIÇÃO!", tone: "text-fuchsia-400", subtitle: curseSubtitle },
   blessing: { title: "BÊNÇÃO!", tone: "text-amber-200", subtitle: blessingSubtitle },
@@ -102,13 +130,33 @@ const COPY: Record<
     title: "COROA!",
     tone: "text-amber-300",
     subtitle: ({ crown }) =>
-      `${crown === "infernal" ? "Coroa Infernal" : "Coroa Seráfica"}: +${CROWN_BONUS} casas em toda rolagem até o fim da partida`,
+      `${crown === "infernal" ? "Coroa Infernal" : "Coroa Seráfica"}: +${CROWN_BONUS} casa em toda rolagem até o fim da partida`,
   },
   heavenBarred: {
     title: "O CÉU SE FECHA",
     tone: "text-slate-300",
     subtitle: (_, name) =>
       `${name} caiu: o céu não se abre para ele, e correntes divinas o prendem por ${DIVINE_CHAINS_ROUNDS} rodadas`,
+  },
+  verdict: {
+    title: "VEREDITO!",
+    tone: "text-blue-300",
+    subtitle: ({ verdict }, name) => {
+      const thrown = verdict?.cardId
+        ? CARD_TEXT[verdict.cardId].name
+        : verdict?.ability
+          ? ABILITY_TEXT[verdict.ability].name
+          : "o ataque";
+      return `${verdict?.judgeName ?? ""} julgou ${name}: ${thrown} se volta contra quem mirou`;
+    },
+  },
+  disarmed: {
+    title: "ARMADILHA DESARMADA!",
+    tone: "text-blue-200",
+    subtitle: ({ energyGained }) =>
+      energyGained
+        ? `A Balança Cega a sentiu: +${energyGained} de energia`
+        : "A Balança Cega a sentiu (energia no máximo)",
   },
   dragged: {
     title: "ARRASTADO AO INFERNO!",
@@ -356,4 +404,8 @@ function blessingSubtitle({ blessing }: TileEffectView): string {
     return `${name}: ${effect} ${blessingDuration(blessing.turns)}`;
   }
   return blessing.energyGained > 0 ? `+${blessing.energyGained} de energia` : "Energia já está no máximo";
+}
+
+function voidName({ void: held }: TileEffectView): string {
+  return held?.item ? voidItemName(held.item) : "algo";
 }

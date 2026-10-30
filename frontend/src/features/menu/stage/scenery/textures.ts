@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { CanvasTexture, RepeatWrapping, SRGBColorSpace } from "three";
 import { seededRandom, type RandomSource } from "@/game/domain/random";
+import { dressGround, type GroundDressing } from "./groundDressing";
 
 /** Paints the canvas (`size` is its width); module-level so a texture is drawn once. */
 export type Painter = (context: CanvasRenderingContext2D, size: number, random: RandomSource) => void;
@@ -78,10 +79,12 @@ export interface NoiseLook {
   light: [number, number, number];
   /** Fades to transparent towards the rim (a patch of ground) instead of tiling (stone). */
   fadeOut: boolean;
+  /** Painted over the grain: a path, litter, a wash of colour (see dressGround). */
+  dress?: GroundDressing;
 }
 
 /** A grainy texture: darker and lighter flecks over a base colour. */
-export function useNoiseTexture({ base, dark, light, fadeOut }: NoiseLook): CanvasTexture {
+export function useNoiseTexture({ base, dark, light, fadeOut, dress }: NoiseLook): CanvasTexture {
   const draw = useMemo<Painter>(
     () => (context, size, random) => {
       context.fillStyle = `rgb(${base.join(",")})`;
@@ -94,8 +97,9 @@ export function useNoiseTexture({ base, dark, light, fadeOut }: NoiseLook): Canv
         context.arc(random() * size, random() * size, radius, 0, Math.PI * 2);
         context.fill();
       }
+      if (dress) dressGround(context, size, random, dress);
     },
-    [base, dark, light],
+    [base, dark, light, dress],
   );
   return useCanvasTexture({ size: 256, draw, seed: 7, fadeFrom: fadeOut ? 0.56 : undefined, tile: true });
 }

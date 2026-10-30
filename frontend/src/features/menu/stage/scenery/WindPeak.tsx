@@ -19,10 +19,10 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { grassTuft, scatterAround } from "./sceneryKit";
+import { GROUND_RADIUS, grassTuft, scatterAround } from "./sceneryKit";
+import { withDressing, type GroundDressing } from "./groundDressing";
 import { useCanvasTexture, useNoiseTexture, type NoiseLook, type Painter } from "./textures";
 
-const GROUND_RADIUS = 1;
 /** Crags of the summit behind him (`height` above the ground, sunk a little), and loose boulders. */
 const CRAGS = [
   { x: -0.66, z: -0.62, size: 0.26, height: 0.42, turn: 0.4 },
@@ -51,7 +51,7 @@ const HALF_WIDTH = 0.8;
  * the four elements circling him, leaves caught in a rising spiral and wind streaks. Origin on the floor.
  */
 export function WindPeak() {
-  const ground = useCanvasTexture({ size: 512, draw: paintSummitFloor, seed: 107, fadeFrom: 0.45 });
+  const ground = useCanvasTexture({ size: 512, draw: paintPeakFloor, seed: 107, fadeFrom: 0.45 });
   const stone = useNoiseTexture(STONE);
   const materials = useMemo(
     () => ({
@@ -502,3 +502,14 @@ const paintLeaf: Painter = (context) => {
 };
 
 const STONE: NoiseLook = { base: [92, 90, 82], dark: [48, 48, 42], light: [140, 138, 126], fadeOut: false };
+
+/** A goat track over the summit rock, leaves blown in by the wind and loose pebbles. */
+const PEAK_GROUND: GroundDressing = {
+  wash: { colour: "#86efac", alpha: 0.22 },
+  path: { kind: "dirt", colour: "rgba(128,120,100,0.9)", edge: "rgba(70,66,56,0.55)", width: [0.1, 0.22], wind: 0.07 },
+  litter: [
+    { shape: "leaf", colours: ["#86efac", "#4ade80", "#bbf7d0"], count: 110, size: 4 },
+    { shape: "pebble", colours: ["#8a8678", "#5f5c52"], count: 60, size: 3 },
+  ],
+};
+const paintPeakFloor = withDressing(paintSummitFloor, PEAK_GROUND);

@@ -6,31 +6,33 @@ import {
   AdditiveBlending,
   BufferAttribute,
   BufferGeometry,
-  CylinderGeometry,
   DoubleSide,
   MeshBasicMaterial,
   MeshStandardMaterial,
   Object3D,
   PlaneGeometry,
-  Quaternion,
   SphereGeometry,
   Vector3,
   type InstancedMesh,
   type Mesh,
 } from "three";
-import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { usePropMesh } from "@/features/match/scene/character/props";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
-import { seededRandom, type RandomSource } from "@/game/domain/random";
-import { useCanvasTexture, useNoiseTexture, type CanvasLook, type NoiseLook } from "./textures";
+import { seededRandom } from "@/game/domain/random";
+import { blot, withDressing, type GroundDressing } from "./groundDressing";
+import { GROUND_RADIUS } from "./sceneryKit";
+import { useCanvasTexture, useNoiseTexture, type CanvasLook, type NoiseLook, type Painter } from "./textures";
 
-const FLOOR_RADIUS = 1;
-/** Branching coral: `size` scales the whole tree. */
+/** Coral on its rock (a Meshy prop, 2 tall in its export): how tall each stands and how far it's turned. */
 const CORALS = [
-  { x: -0.64, z: -0.5, size: 0.34, color: "#ff6b4a", seed: 3 },
-  { x: 0.6, z: -0.6, size: 0.3, color: "#f472b6", seed: 8 },
-  { x: 0.8, z: -0.12, size: 0.18, color: "#a78bfa", seed: 12 },
-  { x: -0.8, z: 0.18, size: 0.14, color: "#fb923c", seed: 21 },
+  { x: -0.7, z: -0.55, height: 0.75, turn: 0.5 },
+  { x: 0.78, z: -0.72, height: 0.6, turn: -0.6 },
+  { x: -0.86, z: 0.12, height: 0.32, turn: 1.4 },
 ];
+/** The ruin of rune pillars standing behind him (a Meshy prop, 2 tall in its export). */
+const PILLARS = { x: -0.1, z: -1.05, height: 1.7, turn: 0.15 };
+/** The open treasure chest the coins spilled from (a Meshy prop, 2 wide and 1.28 tall in its export). */
+const CHEST = { x: 0.55, z: -0.38, width: 0.42, turn: -0.5 };
 const FRONDS = [
   { x: -0.84, z: -0.14, height: 0.42, phase: 0 },
   { x: -0.48, z: -0.74, height: 0.55, phase: 1.3 },
@@ -42,15 +44,14 @@ const FRONDS = [
   { x: 0.7, z: 0.36, height: 0.2, phase: 4.2 },
 ];
 const FROND_SEGMENTS = 8;
-const COLUMN_RADIUS = 0.075;
 const COINS = 16;
 const BUBBLES = 40;
 const BUBBLE_HEIGHT = 1.9;
-/** Where bubbles rise from: the corals' feet and cracks between the tiles. */
+/** Where bubbles rise from: the corals' feet, the chest and cracks between the tiles. */
 const VENTS = [
-  [-0.64, -0.5],
-  [0.6, -0.6],
-  [0.8, -0.12],
+  [-0.7, -0.55],
+  [0.78, -0.72],
+  [0.55, -0.38],
   [-0.2, -0.75],
   [0.3, -0.3],
   [-0.5, 0.05],
@@ -59,7 +60,7 @@ const RAYS = 4;
 
 /**
  * Auric's stage instead of the rune pedestal: the gold-inlaid floor of a sunken temple, coral and swaying
- * weed, a toppled golden column, coins, caustics rippling over the tiles and bubbles rising. Origin on the floor.
+ * weed, rune pillars, an open treasure chest and its coins, caustics rippling over the seabed and bubbles rising. Origin on the floor.
  */
 export function SunkenTemple() {
   const tiles = useCanvasTexture(TILES);
@@ -104,8 +105,9 @@ export function SunkenTemple() {
         .forEach((material) => material.dispose()),
     [materials],
   );
-  const corals = useMemo(() => CORALS.map(({ seed }) => branchingCoral(seededRandom(seed))), []);
-  useEffect(() => () => corals.forEach((geometry) => geometry.dispose()), [corals]);
+  const coral = usePropMesh("auricCoral");
+  const pillars = usePropMesh("auricPillars");
+  const chest = usePropMesh("auricChest");
   const brain = useMemo(() => brainCoral(), []);
   useEffect(() => () => brain.dispose(), [brain]);
 
@@ -125,7 +127,7 @@ export function SunkenTemple() {
   return (
     <group>
       <mesh material={materials.floor} rotation-x={-Math.PI / 2} position-y={0.001} renderOrder={-1}>
-        <circleGeometry args={[FLOOR_RADIUS, 64]} />
+        <circleGeometry args={[GROUND_RADIUS, 64]} />
       </mesh>
       {materials.caustics.map((material, index) => (
         <mesh
@@ -136,14 +138,32 @@ export function SunkenTemple() {
           position-y={0.004 + index * 0.001}
           renderOrder={1}
         >
-          <circleGeometry args={[FLOOR_RADIUS * 0.95, 64]} />
+          <circleGeometry args={[GROUND_RADIUS * 0.95, 64]} />
         </mesh>
       ))}
-      <ToppledColumn gold={materials.gold} />
-      {CORALS.map(({ x, z, size, color }, index) => (
-        <mesh key={`${x}:${z}`} geometry={corals[index]} position={[x, 0, z]} rotation-y={index * 1.7} scale={size}>
-          <meshStandardMaterial color={color} roughness={0.85} emissive={color} emissiveIntensity={0.12} />
-        </mesh>
+      <mesh
+        geometry={pillars.geometry}
+        material={pillars.material}
+        scale={PILLARS.height / 2}
+        position={[PILLARS.x, PILLARS.height / 2, PILLARS.z]}
+        rotation-y={PILLARS.turn}
+      />
+      <mesh
+        geometry={chest.geometry}
+        material={chest.material}
+        scale={CHEST.width / 2}
+        position={[CHEST.x, (CHEST.width / 2) * 0.64, CHEST.z]}
+        rotation-y={CHEST.turn}
+      />
+      {CORALS.map(({ x, z, height, turn }) => (
+        <mesh
+          key={`${x}:${z}`}
+          geometry={coral.geometry}
+          material={coral.material}
+          scale={height / 2}
+          position={[x, height / 2, z]}
+          rotation-y={turn}
+        />
       ))}
       <mesh geometry={brain} material={materials.brain} position={[-0.48, -0.02, -0.3]} scale={[0.08, 0.055, 0.07]} />
       <mesh geometry={brain} material={materials.brain} position={[0.86, -0.02, 0.06]} scale={[0.06, 0.04, 0.055]} />
@@ -156,41 +176,7 @@ export function SunkenTemple() {
   );
 }
 
-/** A column toppled across the back, broken in two, beside its standing stump and a fallen capital. */
-function ToppledColumn({ gold }: { gold: MeshStandardMaterial }) {
-  const r = COLUMN_RADIUS;
-  return (
-    <group>
-      <group position={[0.1, r * 0.9, -0.66]} rotation-y={-0.32}>
-        <mesh material={gold} position-x={-0.2} rotation-z={Math.PI / 2}>
-          <cylinderGeometry args={[r, r, 0.42, 16]} />
-        </mesh>
-        <mesh material={gold} position={[0.2, -0.01, 0.03]} rotation={[0.1, 0.15, Math.PI / 2 + 0.06]}>
-          <cylinderGeometry args={[r, r, 0.28, 16]} />
-        </mesh>
-        {/* The bands where the drums met. */}
-        {[-0.41, 0.01, 0.34].map((x) => (
-          <mesh key={x} material={gold} position-x={x} rotation-z={Math.PI / 2}>
-            <cylinderGeometry args={[r * 1.12, r * 1.12, 0.025, 16]} />
-          </mesh>
-        ))}
-      </group>
-      <group position={[-0.3, 0, -0.86]}>
-        <mesh material={gold} position-y={0.03}>
-          <boxGeometry args={[r * 3, 0.06, r * 3]} />
-        </mesh>
-        <mesh material={gold} position-y={0.06 + 0.17}>
-          <cylinderGeometry args={[r * 0.95, r, 0.34, 16]} />
-        </mesh>
-      </group>
-      <mesh material={gold} position={[0.52, 0.035, -0.4]} rotation={[0.12, 0.6, 0.2]}>
-        <cylinderGeometry args={[r * 1.6, r * 1.05, 0.07, 16]} />
-      </mesh>
-    </group>
-  );
-}
-
-/** Gold coins spilled around the column's foot. */
+/** Gold coins spilled from the chest. */
 function Coins({ gold }: { gold: MeshStandardMaterial }) {
   const coins = useRef<InstancedMesh>(null);
   useLayoutEffect(() => {
@@ -370,40 +356,6 @@ function SunShafts() {
   );
 }
 
-/** A coral tree 1 tall: tapering branches forking two or three ways, merged into one mesh. */
-function branchingCoral(random: RandomSource): BufferGeometry {
-  const parts: BufferGeometry[] = [];
-  const up = new Vector3(0, 1, 0);
-  const grow = (from: Vector3, direction: Vector3, length: number, radius: number, depth: number) => {
-    const to = from.clone().addScaledVector(direction, length);
-    const segment = new CylinderGeometry(radius * 0.72, radius, length, 6);
-    segment.applyQuaternion(new Quaternion().setFromUnitVectors(up, direction));
-    segment.translate((from.x + to.x) / 2, (from.y + to.y) / 2, (from.z + to.z) / 2);
-    parts.push(segment);
-    if (depth === 0) {
-      const tip = new SphereGeometry(radius * 0.8, 6, 4);
-      tip.translate(to.x, to.y, to.z);
-      parts.push(tip);
-      return;
-    }
-    const forks = 2 + (random() < 0.4 ? 1 : 0);
-    for (let fork = 0; fork < forks; fork++) {
-      const spin = (fork / forks) * Math.PI * 2 + random() * 1.2;
-      const spread = 0.45 + random() * 0.35;
-      const next = new Vector3(
-        direction.x + Math.cos(spin) * spread,
-        direction.y,
-        direction.z + Math.sin(spin) * spread,
-      ).normalize();
-      grow(to, next, length * (0.7 + random() * 0.15), radius * 0.72, depth - 1);
-    }
-  };
-  grow(new Vector3(0, -0.02, 0), up.clone(), 0.32, 0.07, 3);
-  const merged = mergeGeometries(parts.map((part) => part.toNonIndexed()));
-  parts.forEach((part) => part.dispose());
-  return merged;
-}
-
 /** A dome 1 across, its surface folded into ridges. */
 function brainCoral(): BufferGeometry {
   const geometry = new SphereGeometry(1, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
@@ -419,67 +371,77 @@ function brainCoral(): BufferGeometry {
   return geometry;
 }
 
-/** Stone tiles in a grid with a gold sun inlaid at the centre, gold strips along some joints, sand and weed stains. */
-function drawTiles(context: CanvasRenderingContext2D, size: number) {
-  const random = seededRandom(43);
-  const tile = 64;
-  context.fillStyle = "#0e1a1c";
+/**
+ * The seabed he rules: rippled blue-green sand, seagrass meadows, his gold sigil round his feet and a few temple
+ * tiles half sunk in the sand, their gold inlay still catching the light.
+ */
+const drawSeabed: Painter = (context, size, random) => {
+  context.fillStyle = "#123b4a";
   context.fillRect(0, 0, size, size);
-  for (let y = 0; y < size; y += tile) {
-    for (let x = 0; x < size; x += tile) {
-      const shade = 52 + random() * 24;
-      context.fillStyle = `rgb(${shade - 8},${shade + 6},${shade + 4})`;
-      context.fillRect(x + 2, y + 2, tile - 4, tile - 4);
-    }
+  for (let patch = 0; patch < 70; patch++) {
+    const light = random() < 0.55;
+    blot(
+      context,
+      random() * size,
+      random() * size,
+      20 + random() * 50,
+      light ? "rgba(90,170,170,0.35)" : "rgba(8,30,50,0.45)",
+    );
   }
-  const gold = "rgba(226,176,64,0.95)";
-  context.strokeStyle = gold;
-  context.lineWidth = 3;
-  for (let line = 0; line < 6; line++) {
-    const along = Math.floor(random() * (size / tile)) * tile;
+  // Sand ripples: wavy bands the current combs across the bed.
+  context.lineCap = "round";
+  for (let band = 0; band < 46; band++) {
+    const y = (band / 46) * size + random() * 6;
+    context.strokeStyle = band % 2 ? "rgba(150,210,205,0.22)" : "rgba(6,24,36,0.3)";
+    context.lineWidth = 2 + random() * 2;
     context.beginPath();
-    if (line % 2) {
-      context.moveTo(along, 0);
-      context.lineTo(along, size);
-    } else {
-      context.moveTo(0, along);
-      context.lineTo(size, along);
+    for (let x = 0; x <= size; x += 16) {
+      const wave = Math.sin(x * 0.03 + band * 0.9) * 5;
+      if (x === 0) context.moveTo(x, y + wave);
+      else context.lineTo(x, y + wave);
     }
     context.stroke();
   }
+  for (let meadow = 0; meadow < 26; meadow++) {
+    blot(context, random() * size, random() * size, 12 + random() * 26, "rgba(40,140,90,0.45)");
+  }
+  // Half-sunk tiles: a corner showing, gold inlay along its edge.
+  for (let tile = 0; tile < 9; tile++) {
+    const x = random() * size;
+    const y = random() * size;
+    context.save();
+    context.translate(x, y);
+    context.rotate(random() * Math.PI);
+    context.fillStyle = "rgba(70,110,110,0.85)";
+    context.fillRect(-22, -22, 44, 44);
+    context.strokeStyle = "rgba(226,176,64,0.9)";
+    context.lineWidth = 2.5;
+    context.strokeRect(-18, -18, 36, 36);
+    context.restore();
+    blot(context, x + 14, y + 10, 30, "rgba(110,180,175,0.6)");
+  }
   const centre = size / 2;
-  context.lineWidth = 5;
+  context.strokeStyle = "rgba(240,190,80,0.9)";
+  context.lineWidth = 4;
   [0.36, 0.42].forEach((share) => {
     context.beginPath();
     context.arc(centre, centre, centre * share, 0, Math.PI * 2);
     context.stroke();
   });
-  context.lineWidth = 3;
+  context.lineWidth = 2.5;
   for (let ray = 0; ray < 16; ray++) {
     const angle = (ray / 16) * Math.PI * 2;
-    const inner = centre * 0.42;
-    const outer = centre * (ray % 2 ? 0.52 : 0.6);
+    const outer = centre * (ray % 2 ? 0.5 : 0.56);
     context.beginPath();
-    context.moveTo(centre + Math.cos(angle) * inner, centre + Math.sin(angle) * inner);
+    context.moveTo(centre + Math.cos(angle) * centre * 0.42, centre + Math.sin(angle) * centre * 0.42);
     context.lineTo(centre + Math.cos(angle) * outer, centre + Math.sin(angle) * outer);
     context.stroke();
   }
-  for (let stain = 0; stain < 40; stain++) {
-    const sand = random() < 0.6;
-    const x = random() * size;
-    const y = random() * size;
-    const radius = 10 + random() * 40;
-    const blot = context.createRadialGradient(x, y, 0, x, y, radius);
-    blot.addColorStop(0, sand ? "rgba(170,160,128,0.45)" : "rgba(30,80,50,0.4)");
-    blot.addColorStop(1, "rgba(0,0,0,0)");
-    context.fillStyle = blot;
-    context.fillRect(x - radius, y - radius, radius * 2, radius * 2);
-  }
   for (let fleck = 0; fleck < 3000; fleck++) {
-    context.fillStyle = random() < 0.5 ? "rgba(6,14,16,0.35)" : "rgba(120,150,150,0.2)";
+    context.fillStyle = random() < 0.5 ? "rgba(4,16,24,0.3)" : "rgba(170,225,220,0.2)";
     context.fillRect(random() * size, random() * size, 1 + random() * 2, 1 + random() * 2);
   }
-}
+};
 
 /** A tiling net of bright lines: where each point is about as near two cells of a scattered grid (Voronoi edges). */
 function drawCaustics(context: CanvasRenderingContext2D, size: number) {
@@ -550,7 +512,22 @@ function drawBubble(context: CanvasRenderingContext2D, size: number) {
   context.fill();
 }
 
-const TILES: CanvasLook = { size: 512, draw: drawTiles, fadeFrom: 0.5 };
+/** A trail of pale sand to the pillars, coins and shells strewn over it, a sea-blue sheen. */
+const TEMPLE_GROUND: GroundDressing = {
+  wash: { colour: "#0ea5e9", alpha: 0.3 },
+  path: {
+    kind: "dirt",
+    colour: "rgba(190,220,200,0.55)",
+    edge: "rgba(90,150,150,0.35)",
+    width: [0.14, 0.26],
+    wind: 0.05,
+  },
+  litter: [
+    { shape: "coin", colours: ["#f5c542", "#d4a12a"], count: 50, size: 4 },
+    { shape: "pebble", colours: ["#e8dcc0", "#cfc0a0"], count: 30, size: 3 },
+  ],
+};
+const TILES: CanvasLook = { size: 512, draw: withDressing(drawSeabed, TEMPLE_GROUND), seed: 43, fadeFrom: 0.55 };
 const CAUSTICS: CanvasLook = { size: 256, draw: drawCaustics, tile: true };
 const MASK: CanvasLook = { size: 128, draw: drawMask, linear: true };
 const LATTICE: CanvasLook = { size: 256, draw: drawLattice };

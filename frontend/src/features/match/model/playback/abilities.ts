@@ -43,9 +43,11 @@ export const abilitiesSteps: StepHandlers<
       {
         apply: (view) => {
           const charged = withPlayer(view, event.playerId, () => ({ abilityCharge: abilityCycle(event.ability) }));
+          // The Silent Verdict arms in secret: no banner for the table to read.
+          if (event.ability === "silentVerdict") return charged;
           return { ...charged, effect: abilityEffect(charged, event.playerId, "abilityReady", event.ability) };
         },
-        durationMs: timings.noticeMs,
+        durationMs: event.ability === "silentVerdict" ? 0 : timings.noticeMs,
       },
     ];
   },
@@ -109,6 +111,8 @@ export const abilitiesSteps: StepHandlers<
         }),
         durationMs: timings.timeBentMs,
       },
+      // Then the camera goes back to Cronos.
+      { apply: (view) => ({ ...view, effect: null }), durationMs: 0 },
     ];
   },
   abilityBlocked: blockedSteps,

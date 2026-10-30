@@ -1,16 +1,25 @@
 "use client";
 
-import { RoundedBox, Sparkles } from "@react-three/drei";
+import { Html, RoundedBox, Sparkles } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AdditiveBlending, DoubleSide, type Group, type MeshBasicMaterial, type MeshStandardMaterial } from "three";
+import {
+  AdditiveBlending,
+  DoubleSide,
+  Float32BufferAttribute,
+  ShapeGeometry,
+  type Group,
+  type MeshBasicMaterial,
+  type MeshStandardMaterial,
+} from "three";
 import type { Tile } from "@/game/domain/types";
-import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "./boardLayout";
+import { TILE_HEIGHT, TILE_PITCH, type BoardLayout, type Vec3 } from "./boardLayout";
 import { pickCursor, type PickCursor } from "./pickCursor";
 import { PortalVortex } from "./PortalVortex";
 import { RelicCard } from "./RelicCard";
 import { FIGURE_HEIGHT } from "./character/figure";
 import { themeFor } from "./tileTheme";
+import { slabBody, slabShape, SQUARE_SLAB, type SlabOutline } from "./slab";
 import { useTileFaceTexture } from "./useTileFaceTexture";
 
 const HIGHLIGHT_FALLBACK = "#f97316";
@@ -18,6 +27,8 @@ const HIGHLIGHT_FALLBACK = "#f97316";
 interface TileMeshProps {
   tile: Tile;
   position: Vec3;
+  /** Its slab of the road (see BoardLayout.slab); a square slab without one (realm tracks). */
+  slab?: ReturnType<BoardLayout["slab"]>;
   /** Path colour at this tile (see pathColor). */
   accent: string;
   /** Direction to the next tile on the face texture, or null on the last tile. */
@@ -30,7 +41,7 @@ interface TileMeshProps {
   textureSize: number;
   /** Part of a stretch hiding traps. */
   inTrapZone?: boolean;
-  /** Its trap was smashed by the Trap Ward: drawn as a wreck. */
+  /** Its harm was smashed or swallowed by the Void: drawn as a wreck. */
   destroyed?: boolean;
   /** Buried under a spell (the fairy's snow, black fire): what stands on the tile is hidden. */
   covered?: boolean;
@@ -48,11 +59,14 @@ interface TileMeshProps {
 /** Pixels the pointer may move between press and release for it to still count as a click, not a drag. */
 const CLICK_SLOP = 6;
 
-const UNDERGLOW_SIZE = TILE_SIZE + 0.28;
+/** The side of the slab, a weathered grey; the face carries the colour (see useTileFaceTexture). */
+const STONE_SIDE = "#5a554f";
+const BEVEL = 0.05;
 
 export function TileMesh({
   tile,
   position,
+  slab,
   accent,
   arrowAngle,
   highlighted,
@@ -68,6 +82,12 @@ export function TileMesh({
   /** The pointer is over it while it can be picked: it rises and lights up. */
   const [hovered, setHovered] = useState(false);
   if (hovered && !onPick) setHovered(false);
+  /** The pointer is over it at all: what the stone does shows in a tag above it. */
+  const [peeking, setPeeking] = useState(false);
+  const { outline, heading: way } = slab ?? { outline: SQUARE_SLAB, heading: 0 };
+  // Laid along the way, but never upside down to the camera: on rows running right to left it turns round.
+  const heading = Math.cos(way) < 0 ? way + Math.PI : way;
+  const shapes = useSlabGeometry(outline, heading);
   const hovering = hovered && onPick !== undefined;
   // Picked (or the picking over) under the pointer: the pointer goes back to normal.
   useEffect(() => {
@@ -84,7 +104,8 @@ export function TileMesh({
     tileId: tile.id,
     theme,
     accent,
-    arrowAngle,
+    // The face is laid along the way: its arrows point relative to that.
+    arrowAngle: arrowAngle === null ? null : arrowAngle - heading,
     resolution: textureSize,
   });
   const bodyMaterial = useRef<MeshStandardMaterial>(null);
@@ -110,8 +131,7 @@ export function TileMesh({
 
   return (
     <group position={position}>
-      <mesh rotation-x={-Math.PI / 2} position-y={-TILE_HEIGHT / 2 + 0.01}>
-        <planeGeometry args={[UNDERGLOW_SIZE, UNDERGLOW_SIZE]} />
+      <mesh geometry={shapes.glow} position-y={-TILE_HEIGHT / 2 + 0.03} scale={[1.12, 1, 1.12]}>
         <meshBasicMaterial
           ref={underglow}
           color={glowColor}
@@ -138,31 +158,46 @@ export function TileMesh({
               onPick(tile.id);
             })
           }
-          onPointerOver={
-            onPick &&
-            ((event) => {
-              // Only the tile nearest the pointer lights up, not the ones behind it.
-              event.stopPropagation();
-              setHovered(true);
-            })
-          }
-          onPointerOut={onPick && (() => setHovered(false))}
+          onPointerOver={(event) => {
+            // Only the tile nearest the pointer lights up, not the ones behind it.
+            event.stopPropagation();
+            setPeeking(true);
+            if (onPick) setHovered(true);
+          }}
+          onPointerOut={() => {
+            setPeeking(false);
+            setHovered(false);
+          }}
         >
-          <RoundedBox args={[TILE_SIZE, TILE_HEIGHT, TILE_SIZE]} radius={0.1} smoothness={4} castShadow receiveShadow>
+          <mesh geometry={shapes.body} castShadow receiveShadow>
             <meshStandardMaterial
               ref={bodyMaterial}
-              color={theme.base}
+              color={STONE_SIDE}
               emissive={emissive}
-              roughness={0.5}
-              metalness={0.25}
+              roughness={0.9}
+              flatShading
             />
-          </RoundedBox>
+          </mesh>
 
-          <mesh rotation-x={-Math.PI / 2} position-y={TILE_HEIGHT / 2 + 0.003} receiveShadow>
-            <planeGeometry args={[TILE_SIZE * 0.95, TILE_SIZE * 0.95]} />
+          <mesh geometry={shapes.face} position-y={TILE_HEIGHT / 2 + 0.004} receiveShadow>
             <meshStandardMaterial map={faceTexture} roughness={0.85} />
           </mesh>
         </group>
+        {peeking && theme.label && (
+          <Html center position-y={1.5} zIndexRange={[20, 0]} style={{ pointerEvents: "none" }}>
+            <div
+              className="rounded-lg bg-black/80 px-2.5 py-1 text-center whitespace-nowrap ring-1 ring-white/15"
+              style={{ boxShadow: `0 0 14px ${theme.glow}66` }}
+            >
+              <div className="text-xs font-black tracking-wide text-white italic">{theme.label}</div>
+              {theme.caption && (
+                <div className="text-[10px] font-bold" style={{ color: theme.glow }}>
+                  {theme.caption}
+                </div>
+              )}
+            </div>
+          </Html>
+        )}
 
         {!covered && (
           <>
@@ -374,4 +409,39 @@ function FinishBeacon({ color, occupied }: { color: string; occupied: boolean })
       <pointLight color={color} intensity={3} distance={4} position-y={1.2} />
     </group>
   );
+}
+
+/**
+ * A slab of the road from its outline: the body (bevelled, TILE_HEIGHT tall, centred on y = 0), its top
+ * face (flat, at y = 0, its texture laid along `heading` so the rune points the way) and a flat copy
+ * for the glow under it.
+ */
+function useSlabGeometry(outline: SlabOutline, heading: number) {
+  const key = `${outline.map(([x, z]) => `${x.toFixed(3)},${z.toFixed(3)}`).join(";")}|${heading.toFixed(3)}`;
+  const shapes = useMemo(() => {
+    const body = slabBody(outline, TILE_HEIGHT, BEVEL).translate(0, -TILE_HEIGHT / 2, 0);
+    const face = new ShapeGeometry(slabShape(outline, BEVEL * 0.6)).rotateX(-Math.PI / 2);
+    // u along the way, v across it (canvas y towards the way's right), a TILE_PITCH square per texture.
+    const [cos, sin] = [Math.cos(heading), Math.sin(heading)];
+    const position = face.getAttribute("position");
+    const uv: number[] = [];
+    for (let index = 0; index < position.count; index++) {
+      const [x, z] = [position.getX(index), position.getZ(index)];
+      uv.push(0.5 + (x * cos + z * sin) / TILE_PITCH, 0.5 - (-x * sin + z * cos) / TILE_PITCH);
+    }
+    face.setAttribute("uv", new Float32BufferAttribute(uv, 2));
+    const glow = new ShapeGeometry(slabShape(outline)).rotateX(-Math.PI / 2);
+    return { body, face, glow };
+    // The key stands for the outline and heading.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+  useEffect(
+    () => () => {
+      shapes.body.dispose();
+      shapes.face.dispose();
+      shapes.glow.dispose();
+    },
+    [shapes],
+  );
+  return shapes;
 }

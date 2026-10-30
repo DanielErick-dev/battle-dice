@@ -17,9 +17,10 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
+import { withDressing, type GroundDressing } from "./groundDressing";
+import { GROUND_RADIUS } from "./sceneryKit";
 import { useCanvasTexture, useNoiseTexture, type CanvasLook, type NoiseLook } from "./textures";
 
-const GROUND_RADIUS = 1;
 /** Smooth stones on the sand: `size` is the long side; flattened as the tide leaves them. */
 const STONES = [
   { x: -0.62, z: 0.12, size: 0.07, turn: 0.4 },
@@ -54,7 +55,7 @@ function shoreline(x: number) {
 }
 
 /**
- * Nerissa's stage instead of the rune pedestal: a moonlit shore of wet sand, a sheet of shallow water with
+ * Themis's stage instead of the rune pedestal: a moonlit shore of wet sand, a sheet of shallow water with
  * its foam line washing in, shells and smooth stones, and a broken shrine half in the sea. Origin on the floor.
  */
 export function MoonlitShore() {
@@ -390,7 +391,22 @@ function drawFoam(context: CanvasRenderingContext2D, size: number) {
   });
 }
 
-const SAND: CanvasLook = { size: 512, draw: drawSand, fadeFrom: 0.55 };
+/** Footprints of wet sand down to the water, shells and pebbles, a moonlit blue. */
+const SHORE_GROUND: GroundDressing = {
+  wash: { colour: "#3b82f6", alpha: 0.22 },
+  path: {
+    kind: "dirt",
+    colour: "rgba(150,135,105,0.6)",
+    edge: "rgba(110,98,76,0.35)",
+    width: [0.12, 0.22],
+    wind: 0.05,
+  },
+  litter: [
+    { shape: "petal", colours: ["#fde7f0", "#f5d0c5", "#e0e7ff"], count: 50, size: 4 },
+    { shape: "pebble", colours: ["#94a3b8", "#cbd5e1"], count: 50, size: 3 },
+  ],
+};
+const SAND: CanvasLook = { size: 512, draw: withDressing(drawSand, SHORE_GROUND), fadeFrom: 0.55 };
 const RIPPLES: CanvasLook = { size: 256, draw: drawRipples, tile: true };
 const WATER_MASK: CanvasLook = { size: 256, draw: drawWaterMask, linear: true };
 const FOAM: CanvasLook = { size: 512, draw: drawFoam, fadeFrom: 0.65 };

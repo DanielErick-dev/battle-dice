@@ -4,8 +4,11 @@ import type { MatchStore } from "../../model/matchStore";
 import type { MatchView } from "../../model/matchView";
 import type { PickCursor } from "../../scene/pickCursor";
 
-/** Tiles picked on the board for an ability: the scribe's seals, the warden's apparitions, Kage Rubra's black fire. */
-export type Placement = PickCursor;
+/**
+ * Tiles picked on the board: seals, apparitions, Kage Rubra's black fire, the fairy's ice, the spell
+ * Zarek's Void takes over ("seize"), or where the Void's `release`th item goes (doubled for energy).
+ */
+export type Placement = Exclude<PickCursor, "void"> | "seize" | { release: number; doubled: boolean };
 
 /** What an ability is used with: the cards, tiles, opponent or power the player picked. */
 export type AbilityChoice = NonNullable<Parameters<MatchStore["activateAbility"]>[0]>;

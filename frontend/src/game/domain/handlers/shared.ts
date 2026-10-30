@@ -2,6 +2,7 @@ import { GameRuleError, type GameErrorCode } from "../commands";
 import { draftState, playerIn, type Draft } from "../draft";
 import { crownAndFall } from "../seraph";
 import { endTurn } from "../turn";
+import { feedTheVoid } from "../void";
 import type { GameState, Player, PlayerId } from "../types";
 import type { GameTransition } from "./types";
 
@@ -42,6 +43,7 @@ export function settle(
 ): GameTransition {
   const { state } = draft;
   crownAndFall(draft);
+  feedTheVoid(draft);
   // A plunder waits for its Warden's pick across any other pause, then holds the turn itself.
   const pendingPlunder = draft.plunder ? { ...draft.plunder, endsTurn, extraTurn } : state.pendingPlunder;
   const paused = (pause: Partial<GameState>): GameTransition => ({
@@ -76,9 +78,12 @@ export function settle(
 
   if (pendingPlunder) return paused({});
 
-  if (!endsTurn) return { state: draftState(draft), events: draft.events };
+  // Stuck before rolling (a card or ability left them losing a turn): the turn is over there and then.
+  const acting = currentPlayer(state);
+  const stuck = playerIn(draft, acting.id).skipTurns > acting.skipTurns;
+  if (!endsTurn && !stuck) return { state: draftState(draft), events: draft.events };
 
-  const currentPlayerIndex = endTurn(draft, extraTurn);
+  const currentPlayerIndex = endTurn(draft, endsTurn ? extraTurn : state.bonusTurn || draft.extraTurn);
   return {
     state: {
       ...draftState(draft),

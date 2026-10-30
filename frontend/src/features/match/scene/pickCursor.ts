@@ -1,11 +1,13 @@
 /** Whose ability is being placed on the board, which picks the pointer's look. */
-export type PickCursor = "seals" | "specters" | "flames";
+export type PickCursor = "seals" | "specters" | "flames" | "frost" | "void";
 
 /** Each placement's glow: the scribe's seals, the warden's apparitions, Kage Rubra's black fire. */
 const GLOW: Record<PickCursor, string> = {
   seals: "#e879f9",
   specters: "#7dd3fc",
   flames: "#fb923c",
+  frost: "#a5f3fc",
+  void: "#a78bfa",
 };
 
 /**

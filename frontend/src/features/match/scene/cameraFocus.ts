@@ -15,6 +15,12 @@ export function focusTile(view: MatchView): number | null {
 export function focusPoint(view: MatchView, layout: BoardLayout): Vec3 {
   // The fairy's snow is followed to each tile it enchants.
   if (view.fx.frostStream) return layout.position(view.fx.frostStream.tile);
+  // Arrow Rain followed from the bow to where it falls: amid its targets, until it has landed.
+  const volley = view.fx.volley;
+  if (volley && !volley.settled && volley.targets.length > 0) {
+    const points = volley.targets.map((tile) => layout.position(tile));
+    return [0, 1, 2].map((axis) => points.reduce((sum, point) => sum + point[axis], 0) / points.length) as Vec3;
+  }
   // Cronos bending an opponent's time: watched on them.
   if (view.effect?.kind === "timeBent") return layout.position(view.effect.from);
   // A rolling tide is watched from halfway along its reach.

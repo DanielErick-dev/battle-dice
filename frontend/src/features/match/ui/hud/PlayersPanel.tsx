@@ -37,6 +37,8 @@ export function PlayersPanel({ players, activePlayerId, board }: PlayersPanelPro
           const progress = (((track?.portal ?? player.position) - 1) / (finishTile - 1)) * 100;
           const color = playerColor(player.id);
           const ready = isAbilityReady(player);
+          // The Silent Verdict's charge is hers to know: the others only see it on her own turn.
+          const secret = player.ability === "silentVerdict" && !isActive;
 
           return (
             <li
@@ -91,8 +93,12 @@ export function PlayersPanel({ players, activePlayerId, board }: PlayersPanelPro
                     className="ml-auto flex items-center gap-1"
                     title={`${ABILITY_TEXT[player.ability].name}: ${ABILITY_TEXT[player.ability].description}`}
                   >
-                    <Sparkles className={cn("size-3", ready ? "text-violet-200" : "text-zinc-500")} />
-                    {ready ? (
+                    <Sparkles className={cn("size-3", ready && !secret ? "text-violet-200" : "text-zinc-500")} />
+                    {secret ? (
+                      <span className="text-[10px] font-black text-zinc-500" title="Carga secreta">
+                        ?
+                      </span>
+                    ) : ready ? (
                       <span className="text-[9px] font-black tracking-wider text-violet-200 uppercase">Pronta</span>
                     ) : (
                       <span className="flex gap-0.5">

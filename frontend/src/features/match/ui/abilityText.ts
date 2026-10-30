@@ -28,10 +28,15 @@ import {
   SPECTER_RANGE,
   type AbilityId,
   ARMOUR_TURNS,
+  VOID_CAPACITY,
+  VOID_DOUBLE_ENERGY,
+  VOID_IDLE_ROUNDS,
   ENCHANT_ADVANCE,
   ENCHANT_FREEZE,
   SNOW_DRAIN,
   ENCHANT_TILES,
+  WINTER_PICKS,
+  WINTER_TILES,
   FLAME_ENERGY,
   FLAME_HITS,
   FLAME_PUSH,
@@ -41,6 +46,7 @@ import {
 import { MAX_RARITY_LEVEL } from "@/game/domain/cards";
 import { BLESSING_TURNS, SERAPH_BLESSING_TURNS } from "@/game/domain/blessings";
 import { CROWN_BONUS, DRAG_TRAPS } from "@/game/domain/seraph";
+import { BLIND_SCALE_ENERGY } from "@/game/domain/verdict";
 
 /**
  * Player-facing ability copy (pt-BR). Rules live in the domain; this is only what the ability
@@ -52,10 +58,10 @@ export const ABILITY_TEXT: Readonly<Record<AbilityId, { name: string; descriptio
     description: `Carrega em ${abilityCycle("doubleCast")} turnos. Ao usar, você pode jogar 2 cartas no turno.`,
     active: "Use até 2 cartas neste turno",
   },
-  trapWard: {
-    name: "Armadura do Vazio",
-    description: `Carrega em ${abilityCycle("trapWard")} turnos. Ao cair numa armadilha ou maldição, escolha se quer anulá-la; a armadilha é destruída para sempre.`,
-    active: "A armadilha não te atinge",
+  theVoid: {
+    name: "O Vazio",
+    description: `Carrega em ${abilityCycle("theVoid")} turnos, e +1 a cada armadilha em que alguém cai ou que é destruída ou presa. Pronto, ao cair numa armadilha, maldição ou perde a vez, você escolhe se o Vazio a engole: ela some da casa e fica guardada (até ${VOID_CAPACITY}). Na sua vez, solte o que guardou: uma armadilha abre uma casa nova no caminho, logo depois da casa que você escolher, e pode ter a penalidade dobrada por ${VOID_DOUBLE_ENERGY} de energia. As suas fendas não te atingem. Depois de ${VOID_IDLE_ROUNDS} rodadas sem o Vazio agir, ele pode tomar fogo, neve, gelo, selo ou aparição de uma casa, que passa a ser seu ao soltar.`,
+    active: "O Vazio agiu",
   },
   tailwind: {
     name: "Vento a Favor",
@@ -69,12 +75,12 @@ export const ABILITY_TEXT: Readonly<Record<AbilityId, { name: string; descriptio
   },
   seraphBlessing: {
     name: "Bênção do Serafim",
-    description: `Carrega em ${abilityCycle("seraphBlessing")} turnos. Ao usar, recebe um presente do céu aleatório: uma bênção (Asas, Auréola, Inspiração ou Fonte de Luz) ou uma carta qualquer do baralho na mão. Passivas: suas bênçãos duram ${SERAPH_BLESSING_TURNS} rodadas (as dos outros, ${BLESSING_TURNS}); no céu, você escolhe a bênção e a relíquia de cada casa; ao sair do céu ganha a Coroa Seráfica (+${CROWN_BONUS} casas em toda rolagem até o fim). Cuidado: se pisar no inferno, cai para sempre e vira o Anjo Caído.`,
+    description: `Carrega em ${abilityCycle("seraphBlessing")} turnos. Ao usar, recebe um presente do céu aleatório: uma bênção (Asas, Auréola, Inspiração ou Fonte de Luz) ou uma carta do céu na mão (Luz Celestial, Égide Celestial ou Ascensão). Passivas: suas bênçãos duram ${SERAPH_BLESSING_TURNS} rodadas (as dos outros, ${BLESSING_TURNS}); no céu, você escolhe a bênção e a relíquia de cada casa; ao sair do céu ganha a Coroa Seráfica (+${CROWN_BONUS} casa em toda rolagem até o fim). Cuidado: se pisar no inferno, cai para sempre e vira o Anjo Caído.`,
     active: "Uma bênção desce do céu",
   },
   hellsDrag: {
     name: "Arrastar ao Inferno",
-    description: `Carrega em ${abilityCycle("hellsDrag")} turnos. Ao usar, escolha um oponente: uma mão do inferno o agarra e o leva direto para o começo do inferno (quem está no céu ou no inferno escapa). Se ele estiver Indomável ou com armadura, a mão é repelida e a habilidade é gasta à toa. Sozinho, o inferno engole as próximas ${DRAG_TRAPS} armadilhas à frente. Passivas do Anjo Caído: o inferno não te fere, o céu está fechado para você e a Coroa Infernal dá +${CROWN_BONUS} casas em toda rolagem.`,
+    description: `Carrega em ${abilityCycle("hellsDrag")} turnos. Ao usar, escolha um oponente: uma mão do inferno o agarra e o leva direto para o começo do inferno (quem está no céu ou no inferno escapa). Se ele estiver Indomável ou com armadura, a mão é repelida e a habilidade é gasta à toa. Sozinho, o inferno engole as próximas ${DRAG_TRAPS} armadilhas à frente. Passivas do Anjo Caído: o inferno não te fere, o céu está fechado para você e a Coroa Infernal dá +${CROWN_BONUS} casa em toda rolagem.`,
     active: "O inferno cobra a sua parte",
   },
   cleansingTide: {
@@ -87,10 +93,10 @@ export const ABILITY_TEXT: Readonly<Record<AbilityId, { name: string; descriptio
     description: `Passiva: todo oponente que você atravessa ou em quem para, com o dado ou cartas de movimento, volta ${TRAMPLE_PUSH} casas na hora. Carrega em ${abilityCycle("untamed")} turnos. Ao usar, por ${UNTAMED_TURNS} turnos nada te atinge: armadilhas, maldições, perder a vez, neve, fogo, selos, aparições e o que os outros mirarem em você. Bênçãos continuam valendo, e se o tempo do seu dado estiver invertido ele volta a andar para a frente. A carga só volta a contar quando acaba (uma casa de habilidade ainda carrega).`,
     active: `Nada te detém por ${UNTAMED_TURNS} turnos`,
   },
-  sacredBulwark: {
-    name: "Baluarte Sagrado",
-    description: `Carrega em ${abilityCycle("sacredBulwark")} turnos. Ao usar, ergue o Escudo Arcano e uma Armadura Espectral por ${ARMOUR_TURNS} rodadas.`,
-    active: "Escudo e armadura erguidos",
+  silentVerdict: {
+    name: "Veredito Silencioso",
+    description: `Carrega em ${abilityCycle("silentVerdict")} turnos e se arma sozinho, em segredo: os oponentes não veem a sua carga. Armado, a próxima carta ou habilidade que um oponente mirar em você (Rajada Arcana, Clarão Ofuscante, Chamado do Abismo, Troca de Destinos, Distorção Temporal, Arrastar ao Inferno ou o roubo da Aposta) é anulada e se volta contra ele: quem ia te empurrar recua, quem ia te cegar perde a vez, quem ia te arrastar ao inferno desce no seu lugar, quem ia te roubar perde as cartas para você (a Troca só é anulada). Desarmado, você sofre tudo normalmente. Passiva, a Balança Cega: armadilhas escondidas no seu caminho são desarmadas e cada uma dá +${BLIND_SCALE_ENERGY} de energia.`,
+    active: "O veredito foi dado",
   },
   timeWarp: {
     name: "Engrenagem do Tempo",
@@ -139,12 +145,12 @@ export const ABILITY_TEXT: Readonly<Record<AbilityId, { name: string; descriptio
   },
   spectralApparitions: {
     name: "Aparições Espectrais",
-    description: `Carrega em ${abilityCycle("spectralApparitions")} turnos. Ao usar, 2 aparições suas surgem em casas até ${SPECTER_RANGE} à frente ou atrás; elas se acumulam. Quem passar pela da Pilhagem te deixa escolher ${PLUNDER_CARDS} cartas da mão dele; pela da Fome, perde toda a energia para você (o que sobrar adianta sua habilidade). Quem passar por você dissipa todas. Sozinho, passar pelas suas aparições te recompensa.`,
+    description: `Carrega em ${abilityCycle("spectralApparitions")} turnos. Ao usar, 2 aparições suas surgem em casas até ${SPECTER_RANGE} à frente ou atrás; elas se acumulam. Quem passar pela da Pilhagem te deixa escolher ${PLUNDER_CARDS} cartas da mão dele; pela da Fome, perde toda a energia para você (o que sobrar adianta sua habilidade). Quem passar por você dissipa todas, até as que ele já tinha passado na mesma jogada. Sozinho, passar pelas suas aparições te recompensa.`,
     active: "As aparições surgiram",
   },
   fairyBloom: {
     name: "Florescimento Feérico",
-    description: `Carrega em ${abilityCycle("fairyBloom")} turnos. Ao usar, as próximas ${ENCHANT_TILES} casas ruins à frente (armadilhas, ocultas também, e maldições) viram casas encantadas para sempre (o fogo negro derrete a neve; a neve não pousa sobre ele). Parando numa delas (passar por cima não conta) você avança ${ENCHANT_ADVANCE} casas; se o avanço terminar em outra neve sua, avança mais ${ENCHANT_ADVANCE} (em qualquer outra casa, nada acontece); o oponente que parar numa delas fica preso na neve por ${ENCHANT_FREEZE} rodadas, e cada rodada presa suga ${SNOW_DRAIN} de energia dele para você. Nos dois casos sua habilidade ganha +1 de carga.`,
+    description: `Carrega em ${abilityCycle("fairyBloom")} turnos. Ao usar, as próximas ${ENCHANT_TILES} casas ruins à frente (armadilhas, ocultas também, e maldições) viram casas encantadas para sempre (o fogo negro derrete a neve; a neve não pousa sobre ele). Parando numa delas (passar por cima não conta) você avança ${ENCHANT_ADVANCE} casas; se o avanço terminar em outra neve sua, avança mais ${ENCHANT_ADVANCE} (em qualquer outra casa, nada acontece); o oponente que parar numa delas fica preso na neve por ${ENCHANT_FREEZE} rodadas, e cada rodada presa suga ${SNOW_DRAIN} de energia dele para você. Nos dois casos sua habilidade ganha +1 de carga. Quando não sobra nada ruim à frente, começa o Inverno Eterno: a cada rodada ${WINTER_TILES} casas congelam, do início rumo à chegada, e a partir daí a habilidade congela ${WINTER_PICKS === 1 ? "1 casa" : `${WINTER_PICKS} casas`} à sua escolha, em qualquer lugar do caminho, até sob o fogo negro (o inverno apaga o fogo). O gelo funciona igual à neve: prende o oponente, te carrega ${ENCHANT_ADVANCE} casas e dá +1 de carga.`,
     active: "As casas floresceram",
   },
   ocularAwakening: {

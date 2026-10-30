@@ -12,7 +12,9 @@ import type {
   Threat,
   TileId,
   TrapCurse,
+  Tile,
   TrapWard,
+  VoidItem,
 } from "./types";
 
 /** What happened while resolving a command, in order: the UI animates them, a server will broadcast them. */
@@ -62,7 +64,8 @@ export type GameEvent =
       energyLost: number;
     }
   | { type: "extraTurnGranted"; playerId: PlayerId; tile: TileId }
-  | { type: "skipTurnGained"; playerId: PlayerId; tile: TileId }
+  /** `turns` when more than one (a doubled rift). */
+  | { type: "skipTurnGained"; playerId: PlayerId; tile: TileId; turns?: number }
   | { type: "turnSkipped"; playerId: PlayerId }
   /** A lost turn in `owner`'s snow drained `energy` from the player into the fairy. */
   | { type: "snowDrained"; playerId: PlayerId; owner: PlayerId; energy: number }
@@ -74,7 +77,7 @@ export type GameEvent =
       ward: TrapWard;
       hidden: boolean;
     }
-  /** The Trap Ward smashed the trap on `tile` for good. */
+  /** A trap on `tile` smashed for good (Plasma Cannon). */
   | { type: "trapDestroyed"; playerId: PlayerId; tile: TileId; hidden: boolean }
   /** Arrow Rain on opponents' tiles (each then pushed) or on the traps ahead it pins (`pinned`, `hidden` revealed). */
   | {
@@ -142,6 +145,7 @@ export type GameEvent =
   /** No harm was left ahead to snow (see fairy.ts). */
   | { type: "winterBegan"; playerId: PlayerId }
   | { type: "winterSpread"; owner: PlayerId; from: TileId; to: TileId }
+  | { type: "tilesFrozen"; playerId: PlayerId; tiles: TileId[] }
   | { type: "flamesLit"; playerId: PlayerId; tiles: readonly TileId[] }
   /** A playerPushed follows. */
   | { type: "flamesScorched"; playerId: PlayerId; owner: PlayerId; tile: TileId; energyLost: number; charged: boolean }
@@ -156,6 +160,16 @@ export type GameEvent =
   | { type: "hiddenTrapSprung"; playerId: PlayerId; tile: TileId; to: TileId }
   /** Hidden traps stay unseen. */
   | { type: "levitatedOver"; playerId: PlayerId; tile: TileId }
+  /** Themis's Blind Scale found the hidden trap on `tile` and took it apart (see verdict.ts). */
+  | { type: "hiddenTrapDisarmed"; playerId: PlayerId; tile: TileId; energyGained: number }
+  /** Themis's Silent Verdict caught `attackerId` aiming at her: what they aimed follows, turned on them. */
+  | {
+      type: "verdictPassed";
+      playerId: PlayerId;
+      attackerId: PlayerId;
+      cardId?: CardId;
+      ability?: AbilityId;
+    }
   | { type: "abilityReady"; playerId: PlayerId; ability: AbilityId }
   | { type: "abilityUsed"; playerId: PlayerId; ability: AbilityId }
   /** Spent for nothing; "away" when the target is out of reach (another realm). */
@@ -220,6 +234,16 @@ export type GameEvent =
       seated: boolean;
     }
   | { type: "wardOffered"; playerId: PlayerId; tile: TileId; threat: Threat }
+  /** Zarek's Void took the harm on `tile` in (a `hidden` trap leaves the board): the tile is harmless for good. */
+  | { type: "voidSwallowed"; playerId: PlayerId; tile: TileId; item: VoidItem; hidden: boolean }
+  /** A harm from the Void opened `rift`, a new tile in the path (see linkRift). */
+  | { type: "riftOpened"; playerId: PlayerId; rift: Tile }
+  /** A spell from the Void set down on `tile`, now Zarek's own. */
+  | { type: "voidCast"; playerId: PlayerId; tile: TileId; item: VoidItem }
+  /** The idle Void took over the spell on `tile`. */
+  | { type: "voidSeized"; playerId: PlayerId; tile: TileId; item: VoidItem }
+  /** Traps sprung, smashed or pinned charged the Void. */
+  | { type: "voidFed"; playerId: PlayerId; charge: number }
   /** Thrown back for stopping on her tile, or `ahead` when she stopped on theirs. */
   | { type: "susanooRepelled"; playerId: PlayerId; by: PlayerId; tile: TileId; to: TileId; ahead: boolean }
   | { type: "cardDrawn"; playerId: PlayerId; card: CardInstance }

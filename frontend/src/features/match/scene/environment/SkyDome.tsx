@@ -8,11 +8,11 @@ import { NOISE_GLSL } from "../realm/noise";
 
 /** Past 1.0 so the moon (and the blood moon, and the sun) bloom. */
 const ORB = {
-  mortal: new Color("#fff1cf").multiplyScalar(2.2),
+  mortal: new Color("#e2e9f3").multiplyScalar(1.9),
   infernal: new Color("#ff2a12").multiplyScalar(2.6),
   celestial: new Color("#fffaf0").multiplyScalar(3.2),
 };
-const HALO = { mortal: new Color("#8f7cff"), infernal: new Color("#ff3a10"), celestial: new Color("#ffe6a8") };
+const HALO = { mortal: new Color("#7d8ea8"), infernal: new Color("#ff3a10"), celestial: new Color("#ffe6a8") };
 
 interface SkyDomeProps {
   radius: number;
@@ -43,6 +43,14 @@ const FRAGMENT = /* glsl */ `
     vec3 color = mix(uHorizon, uZenith, pow(height, 0.45));
     // Project the dome onto a flat cloud layer overhead.
     vec2 layer = vDirection.xz / (vDirection.y + 0.25);
+
+    // The mortal night is overcast: heavy dark clouds drift across the stars.
+    float overcast = 1.0 - max(uInfernal, uCelestial);
+    if (overcast > 0.001) {
+      float storm = fbm(layer * 0.9 + vec2(uTime * 0.01, uTime * 0.004));
+      float body = smoothstep(0.38, 0.78, storm) * smoothstep(0.0, 0.22, height);
+      color = mix(color, vec3(0.03, 0.038, 0.05), body * 0.75 * overcast);
+    }
 
     if (uInfernal > 0.001) {
       float smoke = fbm(layer * 1.6 + vec2(uTime * 0.03, -uTime * 0.02));
@@ -101,7 +109,9 @@ export function SkyDome({ radius, moonPosition, moonRadius }: SkyDomeProps) {
     blendRealm(uniforms.uZenith.value, SKY.mortal.zenith, SKY.infernal.zenith, SKY.celestial.zenith, current);
 
     if (orb.current) blendRealm(orb.current.color, ORB.mortal, ORB.infernal, ORB.celestial, current);
-    halos.current.forEach((halo) => halo && blendRealm(halo.color, HALO.mortal, HALO.infernal, HALO.celestial, current));
+    halos.current.forEach(
+      (halo) => halo && blendRealm(halo.color, HALO.mortal, HALO.infernal, HALO.celestial, current),
+    );
     // The blood moon swells; the sun is a touch bigger too.
     moon.current?.scale.setScalar(1 + current.infernal * 0.35 + current.celestial * 0.2);
   });

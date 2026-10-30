@@ -21,10 +21,10 @@ import {
 import { iceShard } from "@/features/match/scene/character/ice";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { grassTuft, scatterAround } from "./sceneryKit";
+import { GROUND_RADIUS, grassTuft, scatterAround } from "./sceneryKit";
+import { withDressing, type GroundDressing } from "./groundDressing";
 import { useCanvasTexture, type Painter } from "./textures";
 
-const GROUND_RADIUS = 1;
 /** `height` is the tallest shard's; `violet` clusters take the fairy-light lilac instead of cyan. */
 const CLUSTERS = [
   { x: -0.62, z: -0.6, height: 0.82, shards: 6, violet: false },
@@ -55,7 +55,7 @@ const SPARKLE_HEIGHT = 2;
  * lilac crystals, a fairy ring of shining flowers, hovering crystal motes and sparkles. Origin on the floor.
  */
 export function CrystalGrove() {
-  const ground = useCanvasTexture({ size: 512, draw: paintFrostMoss, seed: 79, fadeFrom: 0.45 });
+  const ground = useCanvasTexture({ size: 512, draw: paintGroveFloor, seed: 79, fadeFrom: 0.45 });
   const disc = useSoftDisc();
   const materials = useMemo(
     () => ({
@@ -444,3 +444,18 @@ const paintStar: Painter = (context, size) => {
     context.restore();
   }
 };
+
+/** A trail of packed snow through the moss, ice shards and glints of fairy light. */
+const GROVE_GROUND: GroundDressing = {
+  wash: { colour: "#67e8f9", alpha: 0.3 },
+  path: {
+    kind: "dirt",
+    colour: "rgba(240,250,255,0.9)",
+    edge: "rgba(150,210,235,0.5)",
+    width: [0.14, 0.24],
+    wind: 0.05,
+  },
+  litter: [{ shape: "shard", colours: ["rgba(160,240,255,0.9)", "rgba(200,180,255,0.8)"], count: 90, size: 4 }],
+  glow: { colour: "#9be7ff", count: 6 },
+};
+const paintGroveFloor = withDressing(paintFrostMoss, GROVE_GROUND);

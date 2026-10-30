@@ -84,5 +84,7 @@ function dealPlayer({ id, name, ability = null }: NewPlayer, { startTile, cards,
     chargeHeld: 0,
     crown: null,
     chained: 0,
+    voidHold: [],
+    voidIdle: 0,
   };
 }

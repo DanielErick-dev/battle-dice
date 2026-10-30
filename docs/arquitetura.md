@@ -68,7 +68,7 @@ O `GameState` diz **a verdade** (o jogador está na casa 42). A `MatchView` diz 
 | `cards.ts`, `cardPlay.ts`, `deck.ts`, `draft.ts`, `fusion.ts` | cartas, efeitos, compra, mão cheia, fusão |
 | `abilities.ts` | carga e ativação das habilidades |
 | `players.ts` | proteções (`aimWard`), oponentes no alcance |
-| `<personagem>.ts` | mecânicas próprias: `fairy`, `kunoichi`, `berserker`, `seraph`, `seals`, `specters`, `arrowRain`, `cardGamble`, `transmutation`, `resurrection`, `hiddenTraps`, `newcomerAbilities` |
+| `<personagem>.ts` | mecânicas próprias: `void`, `fairy`, `kunoichi`, `berserker`, `seraph`, `seals`, `specters`, `arrowRain`, `cardGamble`, `transmutation`, `resurrection`, `hiddenTraps`, `newcomerAbilities` |
 | `random.ts`, `dice.ts` | aleatoriedade injetável (para testes determinísticos) |
 
 A aleatoriedade entra por `GameDependencies` (injeção de dependência), então os testes passam um dado "viciado" e conferem o resultado exato.

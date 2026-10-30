@@ -87,6 +87,24 @@ describe("heaven's timed blessings", () => {
     });
     expect(roll(start, "p1", 1).state.players[0].energy).toBe(2 + SPRING_ENERGY);
   });
+
+  it("stack: a second Spring adds its energy while both last, each wearing on its own", () => {
+    const start = withPlayer(game(), "p1", {
+      position: 40,
+      energy: 0,
+      energyCharge: 0,
+      blessings: [
+        { kind: "spring", turnsLeft: 1, fresh: false },
+        { kind: "spring", turnsLeft: 3, fresh: false },
+      ],
+    });
+    const first = roll(start, "p1", 1).state;
+    expect(first.players[0].energy).toBe(SPRING_ENERGY);
+    expect(first.players[0].blessings).toEqual([{ kind: "spring", turnsLeft: 2, fresh: false }]);
+    expect(roll(withPlayer(first, "p1", { position: 40, energyCharge: 0 }), "p1", 1).state.players[0].energy).toBe(
+      SPRING_ENERGY * 2,
+    );
+  });
 });
 
 describe("divine cards", () => {

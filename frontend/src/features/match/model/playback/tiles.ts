@@ -68,7 +68,7 @@ export const tilesSteps: StepHandlers<
                   ? { energy: player.energy + event.energyGained }
                   : {
                       blessings: [
-                        ...player.blessings.filter((blessing) => blessing.kind !== event.blessing),
+                        ...player.blessings,
                         {
                           kind: event.blessing,
                           turnsLeft: blessingTurns(player),

@@ -39,7 +39,7 @@ O menu principal, a tela de montar a partida (modo, jogadores, personagens) e as
 | `MistRuins` | Guardião das Sombras | Ruínas ao luar, colunas quebradas, névoa rasteira e fogos-fátuos |
 | `BurningShrine` | Kage Rubra | Pátio de santuário chamuscado com torii, lanternas de pedra, fogo negro e brasas subindo |
 | `BloodRoseGarden` | Encantadora Carmesim | Círculo de sangue sobre terra escura, roseiras, vinhas com espinhos, candelabros e pétalas caindo |
-| `MoonlitShore` | Nerissa | Praia ao luar, água rasa com espuma, santuário partido |
+| `MoonlitShore` | Têmis | Praia ao luar, água rasa com espuma, santuário partido |
 | `SunkenTemple` | Auric | Templo dourado submerso, corais, cáusticas e bolhas |
 | `GearWorks` | Cronos | Engrenagens engatadas girando no chão, anel de algarismos cujos ponteiros às vezes voltam |
 | `HangarBay` | Unidade Alva | Plataforma de lançamento hexagonal com varredura nas juntas e mira holográfica |

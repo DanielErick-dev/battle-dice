@@ -25,10 +25,10 @@ import {
 } from "three";
 import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { scatterAround } from "./sceneryKit";
+import { GROUND_RADIUS, scatterAround } from "./sceneryKit";
+import { withDressing, type GroundDressing } from "./groundDressing";
 import { useCanvasTexture, useNoiseTexture, type NoiseLook, type Painter } from "./textures";
 
-const GROUND_RADIUS = 1;
 /** The low parapet closing the terrace behind him: blocks along the back arc (angles in radians, -π/2 straight back). */
 const PARAPET = { radius: 0.9, from: -2.55, to: -0.59, blocks: 7, height: 0.11, depth: 0.08 };
 const BURNER = { x: -0.5, z: -0.48 };
@@ -54,7 +54,7 @@ const BOLT = new Color("#fff6c8").multiplyScalar(2);
  * censer smoking, a bronze bell in its frame, prayer flags, and lightning flickering in the sky. Origin on the floor.
  */
 export function StormTemple() {
-  const floor = useCanvasTexture({ size: 512, draw: paintTerraceSlabs, seed: 139, fadeFrom: 0.5 });
+  const floor = useCanvasTexture({ size: 512, draw: paintTerraceFloor, seed: 139, fadeFrom: 0.5 });
   const stone = useNoiseTexture(STONE);
   const materials = useMemo(
     () => ({
@@ -525,3 +525,12 @@ const paintTerraceSlabs: Painter = (context, size, random) => {
 };
 
 const STONE: NoiseLook = { base: [124, 118, 104], dark: [70, 66, 58], light: [168, 162, 146], fadeOut: false };
+
+/** A saffron prayer carpet across the terrace, marigold petals, and cracks still crackling from the storm. */
+const TERRACE_GROUND: GroundDressing = {
+  wash: { colour: "#facc15", alpha: 0.2 },
+  path: { kind: "runner", colour: "#b4531f", edge: "#f2c14e", width: [0.2, 0.2] },
+  litter: [{ shape: "petal", colours: ["#f59e0b", "#fbbf24", "#ea580c"], count: 90, size: 4 }],
+  glow: { colour: "#7dd3fc", count: 5 },
+};
+const paintTerraceFloor = withDressing(paintTerraceSlabs, TERRACE_GROUND);

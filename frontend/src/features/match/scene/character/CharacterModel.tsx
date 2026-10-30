@@ -23,6 +23,8 @@ const CROSSFADE_SECONDS = 0.25;
 const SETTLE_CROSSFADE_SECONDS = 0.8;
 /** Sitting down on the chair, and getting up off it: unhurried. */
 const SIT_CROSSFADE_SECONDS = 1.2;
+/** Straight from a run onto the chair: quick, or the legs keep running through it as it appears. */
+const RUN_TO_SIT_CROSSFADE_SECONDS = 0.3;
 /** Playback speed per clip: the run cycle is sped up to match how fast tokens cover a tile. */
 const CLIP_SPEED: Readonly<Record<CharacterClip, number>> = {
   idle: 1,
@@ -37,9 +39,25 @@ const CLIP_SPEED: Readonly<Record<CharacterClip, number>> = {
   knocked: 1,
   rest: 1,
   hop: 1,
+  brake: 1,
+  sit: 1,
+  guard: 1,
+  scoff: 1,
 };
 /** Clips played once, holding their last pose until the next clip takes over. */
-const ONE_SHOT_CLIPS: readonly CharacterClip[] = ["cast", "intro", "dash", "land", "shove", "knocked", "hop"];
+const ONE_SHOT_CLIPS: readonly CharacterClip[] = [
+  "cast",
+  "intro",
+  "dash",
+  "land",
+  "shove",
+  "knocked",
+  "hop",
+  "brake",
+  "sit",
+  "guard",
+  "scoff",
+];
 
 interface CharacterModelProps {
   url: string;
@@ -134,11 +152,15 @@ export function CharacterModel({
           .setEffectiveWeight(1)
           .play();
         const fade =
-          wanted === "rest" || playing.current === "rest"
-            ? SIT_CROSSFADE_SECONDS
-            : playing.current === "intro" || playing.current === "cast" || playing.current === "land"
-              ? SETTLE_CROSSFADE_SECONDS
-              : CROSSFADE_SECONDS;
+          wanted === "rest" && playing.current === "sit"
+            ? CROSSFADE_SECONDS
+            : wanted === "rest" && playing.current === "run"
+              ? RUN_TO_SIT_CROSSFADE_SECONDS
+              : wanted === "rest" || playing.current === "rest"
+                ? SIT_CROSSFADE_SECONDS
+                : playing.current === "intro" || playing.current === "cast" || playing.current === "land"
+                  ? SETTLE_CROSSFADE_SECONDS
+                  : CROSSFADE_SECONDS;
         if (previous) next.crossFadeFrom(previous, fade, false);
       }
       playing.current = wanted;

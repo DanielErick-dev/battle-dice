@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { BOARD_PRESETS, DEFAULT_BOARD_ID } from "../match/boards";
+import { DEFAULT_MAP_ID, MAP_PRESETS } from "../match/maps";
 import { DEFAULT_CHARACTER_ID } from "../match/characters";
 import type { EffectsQuality } from "../match/config";
 
@@ -83,6 +84,11 @@ export const preferences = {
     "battle-dice:board",
     DEFAULT_BOARD_ID,
     BOARD_PRESETS.map((preset) => preset.id),
+  ),
+  map: choicePreference<string>(
+    "battle-dice:map",
+    DEFAULT_MAP_ID,
+    MAP_PRESETS.map((preset) => preset.id),
   ),
 };
 

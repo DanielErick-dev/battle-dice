@@ -4,6 +4,8 @@ export interface PlaybackTimings {
   diceRollMs: number;
   diceRevealMs: number;
   stepMs: number;
+  /** The last tile of a walk: slowing from a run to a stop on it (see the brake clip). */
+  arriveMs: number;
   effectWarmupMs: number;
   effectTravelMs: number;
   /** A hidden trap bursting out of its tile before the player is thrown back. */
@@ -64,10 +66,16 @@ export interface PlaybackTimings {
   dragGrabMs: number;
   /** Hell's Drag: the hand sinks back with the victim, before they appear in hell. */
   dragSinkMs: number;
+  /** Silent Verdict: the scale rises over the board and weighs, swinging. */
+  verdictWeighMs: number;
+  /** Silent Verdict: the scale drops on the attacker's side and judgment strikes them. */
+  verdictTipMs: number;
   /** Fairy Bloom: she raises her wand and points it ahead before the snow flies. */
   frostAimMs: number;
   /** Fairy Bloom: the snow streams from her wand to one tile, and lands. */
   frostStreamMs: number;
+  /** Zarek's Void surfaces as a rift on a tile and does its work there. */
+  voidRiftMs: number;
   /** A turn's outcome stays in view this long before play (and the camera) moves on to the next player. */
   turnHandoffMs: number;
 }
@@ -76,6 +84,7 @@ export const DEFAULT_TIMINGS: PlaybackTimings = {
   diceRollMs: 1300,
   diceRevealMs: 250,
   stepMs: 520,
+  arriveMs: 1000,
   effectWarmupMs: 450,
   effectTravelMs: 750,
   hiddenTrapRevealMs: 900,
@@ -109,6 +118,9 @@ export const DEFAULT_TIMINGS: PlaybackTimings = {
   dragCastMs: 1400,
   dragGrabMs: 1500,
   dragSinkMs: 1100,
+  verdictWeighMs: 1900,
+  verdictTipMs: 1300,
   frostAimMs: 1500,
   frostStreamMs: 2300,
+  voidRiftMs: 1800,
 };

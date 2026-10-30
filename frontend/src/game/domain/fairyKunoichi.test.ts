@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   ARMOUR_TURNS,
+  ENCHANT_ADVANCE,
   ENCHANT_FREEZE,
   FLAME_TILES,
   FLAME_ENERGY,
@@ -8,11 +9,14 @@ import {
   FLAME_HITS,
   FLAME_TURNS,
   SUSANOO_PUSH,
+  WINTER_PICKS,
   WINTER_TILES,
   abilityCycle,
   type AbilityId,
 } from "./abilities";
 import { GameRuleError } from "./commands";
+import { frozenTiles } from "./fairy";
+import { flammableTiles } from "./kunoichi";
 import {
   HARM_AHEAD_BOARD,
   activate as activateFor,
@@ -242,7 +246,7 @@ describe("Eternal Winter", () => {
   const bloomed = () => activate(ready(withPlayer(duel("fairyBloom"), "hero", { position: 10 })));
   const winter = (state: GameState, frontier: number) => ({
     ...state,
-    winter: { owner: "hero", frontier },
+    winter: { owner: "hero", frontier, iced: [] },
   });
 
   it("sets in once no harm is left ahead of the fairy", () => {
@@ -250,6 +254,7 @@ describe("Eternal Winter", () => {
     expect(state.winter).toEqual({
       owner: "hero",
       frontier: state.board.startTile,
+      iced: [],
     });
     expect(events).toContainEqual({ type: "winterBegan", playerId: "hero" });
   });
@@ -278,14 +283,59 @@ describe("Eternal Winter", () => {
     });
   });
 
-  it("an opponent stopping on the ice is stuck in it; the fairy walks it freely", () => {
+  it("the ice is her snow: an opponent is stuck in it and charges her, the fairy is carried on from ice to ice", () => {
     const frozen = winter(duel("fairyBloom"), 40);
-    const rival = rivalRolls(frozen, 3, 2).state;
-    expect(playerOf(rival, "rival")).toMatchObject({
+    const rival = rivalRolls(frozen, 3, 2);
+    expect(playerOf(rival.state, "rival")).toMatchObject({
       skipTurns: ENCHANT_FREEZE,
       snowbound: { owner: "hero" },
     });
+    expect(rival.events).toContainEqual(expect.objectContaining({ type: "enchantmentStirred", charged: true }));
     const hero = roll(withPlayer(frozen, "hero", { position: 3 }), "hero", 2).state;
-    expect(playerOf(hero, "hero")).toMatchObject({ position: 5, skipTurns: 0 });
+    expect(playerOf(hero, "hero")).toMatchObject({ position: 40 + ENCHANT_ADVANCE, skipTurns: 0 });
+  });
+
+  it(`in winter her ability freezes ${WINTER_PICKS} tile of her choice, and it holds like the rest of the ice`, () => {
+    const frozen = ready(withPlayer(winter(duel("fairyBloom"), 4), "hero", { position: 10 }));
+    const { state, events } = activateFor(frozen, "hero", { frostTiles: [30] });
+    expect(state.winter?.iced).toEqual([30]);
+    expect(events).toContainEqual({ type: "tilesFrozen", playerId: "hero", tiles: [30] });
+    expect(state.enchantedTiles).toEqual(frozen.enchantedTiles);
+    expect(playerOf(rivalRolls(state, 28, 2).state, "rival")).toMatchObject({ skipTurns: ENCHANT_FREEZE });
+    expect(playerOf(roll(withPlayer(state, "hero", { position: 28 }), "hero", 2).state, "hero").position).toBe(
+      30 + ENCHANT_ADVANCE,
+    );
+  });
+
+  it("winter beats fire: she may freeze a burning tile, putting it out, and the ice can't be set alight", () => {
+    const burning = {
+      ...winter(duel("fairyBloom"), 4),
+      blackFlames: [{ tile: 30, owner: "rival", turnsLeft: 5, hits: 0 }],
+    };
+    const { state } = activateFor(ready(withPlayer(burning, "hero", { position: 10 })), "hero", { frostTiles: [30] });
+    expect(state.blackFlames).toEqual([]);
+    expect(playerOf(rivalRolls(state, 28, 2).state, "rival")).toMatchObject({ skipTurns: ENCHANT_FREEZE });
+    expect(flammableTiles(state.board, 10, frozenTiles(state.winter, state.board.startTile))).not.toContain(30);
+  });
+
+  it("an extra turn still owed is spent as the first round stuck in the ice, feeding the fairy", () => {
+    const frozen = { ...withPlayer(winter(duel("fairyBloom"), 40), "rival", { energy: 5 }), bonusTurn: true };
+    const { state, events } = rivalRolls(frozen, 3, 2);
+    expect(events).toContainEqual({ type: "snowDrained", playerId: "rival", owner: "hero", energy: 1 });
+    expect(playerOf(state, "rival")).toMatchObject({ energy: 4, skipTurns: ENCHANT_FREEZE - 1 });
+    expect(state.players[state.currentPlayerIndex].id).toBe("hero");
+  });
+
+  it("can't freeze more than its share, twice the same tile, or tiles already frozen", () => {
+    const frozen = ready(withPlayer(winter(duel("fairyBloom"), 4), "hero", { position: 10 }));
+    for (const frostTiles of [[30, 31], [30, 30], [3], []]) {
+      expect(() => activateFor(frozen, "hero", { frostTiles }), `${frostTiles}`).toThrow(GameRuleError);
+    }
+  });
+
+  it("the ice reaching her picks takes them in", () => {
+    const iced = { ...winter(duel("fairyBloom"), 1), winter: { owner: "hero", frontier: 1, iced: [3, 40] } };
+    const { state } = rivalRolls(iced, 30, 1);
+    expect(state.winter).toMatchObject({ frontier: 1 + WINTER_TILES, iced: [40] });
   });
 });
