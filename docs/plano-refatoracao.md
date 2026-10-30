@@ -2,6 +2,7 @@
 
 Começou em 17/10/2026. Cada etapa é pequena, mantém os testes verdes e vira um commit próprio.
 Marque com ✅ ao terminar e anote o porquê de cada decisão.
+O status de cada pasta (o que já foi organizado e o que falta) está em [refatoracao-status.md](refatoracao-status.md).
 
 ## Diagnóstico
 

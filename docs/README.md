@@ -6,6 +6,7 @@
 - [Arquitetura](arquitetura.md): camadas, o fluxo de uma jogada e o pipeline de assets
 - [Decisões (ADRs)](decisoes/README.md): o porquê das escolhas grandes
 - [Plano de refatoração](plano-refatoracao.md): diagnóstico, etapas e diário
+- [Status da refatoração](refatoracao-status.md): quais pastas já foram organizadas e quais faltam
 - [Assets 3D](assets.md): padrão de nomes e como gerar os modelos
 - [Checklist do MVP](mvp.md): o que falta antes de fechar o MVP
 - [Plano do backend](backend-plano.md): FastAPI em marcos, arquitetura e a decisão sobre o engine
