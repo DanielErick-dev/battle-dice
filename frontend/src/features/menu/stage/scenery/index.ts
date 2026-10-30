@@ -1,24 +1,24 @@
 import type { ComponentType, RefObject } from "react";
-import { AlchemyLab } from "./AlchemyLab";
-import { BloodRoseGarden } from "./BloodRoseGarden";
-import { BurningShrine } from "./BurningShrine";
-import { CardTable } from "./CardTable";
-import { CrystalGrove } from "./CrystalGrove";
-import { ElvenGlade } from "./ElvenGlade";
-import { FrozenWastes } from "./FrozenWastes";
-import { GearWorks } from "./GearWorks";
-import { Graveyard } from "./Graveyard";
-import { HangarBay } from "./HangarBay";
-import { MistRuins } from "./MistRuins";
-import { MoonlitShore } from "./MoonlitShore";
-import { SakuraCourtyard } from "./SakuraCourtyard";
-import { Sanctuary } from "./Sanctuary";
-import { Scriptorium } from "./Scriptorium";
-import { StormTemple } from "./StormTemple";
-import { SunkenTemple } from "./SunkenTemple";
-import { VoidRift } from "./VoidRift";
-import { WindPeak } from "./WindPeak";
-import { WitchHollow } from "./WitchHollow";
+import { AlchemyLab } from "./alchemyLab/AlchemyLab";
+import { BloodRoseGarden } from "./bloodRoseGarden/BloodRoseGarden";
+import { BurningShrine } from "./burningShrine/BurningShrine";
+import { CardTable } from "./cardTable/CardTable";
+import { CrystalGrove } from "./crystalGrove/CrystalGrove";
+import { ElvenGlade } from "./elvenGlade/ElvenGlade";
+import { FrozenWastes } from "./frozenWastes/FrozenWastes";
+import { GearWorks } from "./gearWorks/GearWorks";
+import { Graveyard } from "./graveyard/Graveyard";
+import { HangarBay } from "./hangarBay/HangarBay";
+import { MistRuins } from "./mistRuins/MistRuins";
+import { MoonlitShore } from "./moonlitShore/MoonlitShore";
+import { SakuraCourtyard } from "./sakuraCourtyard/SakuraCourtyard";
+import { Sanctuary } from "./sanctuary/Sanctuary";
+import { Scriptorium } from "./scriptorium/Scriptorium";
+import { StormTemple } from "./stormTemple/StormTemple";
+import { SunkenTemple } from "./sunkenTemple/SunkenTemple";
+import { VoidRift } from "./voidRift/VoidRift";
+import { WindPeak } from "./windPeak/WindPeak";
+import { WitchHollow } from "./witchHollow/WitchHollow";
 
 export interface SceneryProps {
   /** How hard the wind blows through the stage (0 to 1): Seraphiel's wingbeats. */

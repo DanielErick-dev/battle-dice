@@ -41,6 +41,9 @@ export function taperedTube(
 /** How far a habitat's ground reaches: past the figure's feet to the scenery round her, on the wide stage. */
 export const GROUND_RADIUS = 1.4;
 
+/** Side limit for what drifts about: the canvas bleeds past the stage's box (CANVAS_BLEED) and would spill over the page. */
+export const HALF_WIDTH = 0.8;
+
 /** Cuts what dips under the stage floor: the floor doesn't write depth, so buried parts would show through it. */
 export const ABOVE_FLOOR = [new Plane(new Vector3(0, 1, 0), -FLOOR_Y)];
 
