@@ -104,7 +104,9 @@ for (const [id, { file, vertices, texture = TEXTURE_SIZE, sloppy = false }] of O
     prune(),
     meshopt({ encoder: MeshoptEncoder, level: "medium" }),
   );
-  const output = path.join(OUTPUT_DIR, `${id}.glb`);
+  // Same layout as the source: one folder per character (props/<codeId>/<name>.glb).
+  const output = path.join(OUTPUT_DIR, file.replace("/props/", "/"));
+  await mkdir(path.dirname(output), { recursive: true });
   await io.write(output, document);
   const { size } = await stat(output);
   console.log(`${id}: ${(size / 1024).toFixed(0)} KB → ${path.relative(process.cwd(), output)}`);

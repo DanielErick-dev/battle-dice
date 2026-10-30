@@ -6,7 +6,7 @@
 |---|---|---|
 | `Downloads/battle-dice-personagens/` | Arquivos brutos do Meshy (pesados, ~3 GB) | Não |
 | `frontend/public/models/characters/` | Um GLB por personagem, com todos os clipes, comprimido (~1,5 MB) | Sim |
-| `frontend/public/models/props/` | Objetos estáticos comprimidos (~200–500 KB) | Sim |
+| `frontend/public/models/props/<codeId>/` | Objetos estáticos comprimidos (~200–500 KB), uma pasta por personagem com os mesmos nomes da fonte (`tideMaiden/chair.glb`) | Sim |
 
 ## Padrão da pasta de origem
 
