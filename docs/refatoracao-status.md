@@ -34,9 +34,10 @@ Linhas = código da própria pasta (sem subpastas e sem testes), contadas em 29/
 | `match/ui/abilities/` | ✅ | 433 | Registro `ABILITY_FLOWS` (etapa 2). | |
 | `match/ui/cards/` | ⬜ | 1416 | | Revisar. |
 | `match/ui/hud/` | ⬜ | 1423 | | Revisar. |
-| `match/scene/` (raiz) | 🔄 | 4710 | Efeitos fora do `PlayerToken`/`BoardScene` (etapa 4). | Agente refatorando o `PlayerToken.tsx` (571 linhas) e os sinais do boneco (29/10). |
+| `match/scene/` (raiz) | ✅ | 4380 | Efeitos fora do `PlayerToken`/`BoardScene` (etapa 4). `PlayerToken` 571 → 243 linhas: movimento e pose viraram funções puras e testadas em `token/` (29/10). | `token/pose.ts` importa constantes de `effects/berserker.tsx` (React): mover para um módulo puro. |
+| `match/scene/token/` | ✅ | 538 | Criada em 29/10: `motion.ts` (caminho e segmentos) e `pose.ts` (qual clipe toca), com 41 testes. | |
 | `match/scene/effects/` | ✅ | 801 | Registro de efeitos por lugar (etapa 4). | |
-| `match/scene/character/` | ⬜ | 9252 | | A maior bagunça: 48 arquivos misturando o genérico (`CharacterModel`, `props`, `worldPlacement`) com efeitos de cada personagem (`Susanoo`, `AlchemyVial`, `ScribeIntro`…). Separar em subpastas por personagem. |
+| `match/scene/character/` | ⬜ | 9252 | `clipPlayback.ts`: velocidade e "toca uma vez" de cada clipe numa tabela testada (29/10). | A maior bagunça: 48 arquivos misturando o genérico (`CharacterModel`, `props`, `worldPlacement`) com efeitos de cada personagem (`Susanoo`, `AlchemyVial`, `ScribeIntro`…). Separar em subpastas por personagem. |
 | `match/scene/environment/` | ⬜ | 2474 | Mapas escurecidos e sem figurantes (29/10, só visual). | Revisar a estrutura. |
 | `match/scene/realm/` | ⬜ | 1124 | | Revisar. |
 | `match/scene/vfx/` | ⬜ | 58 | | Revisar. |
