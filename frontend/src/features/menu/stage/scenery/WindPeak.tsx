@@ -17,7 +17,7 @@ import {
   type Mesh,
   type Sprite,
 } from "three";
-import { useSoftDisc } from "@/features/match/scene/character/softDisc";
+import { useSoftDisc } from "@/features/match/scene/character/shared/softDisc";
 import { seededRandom } from "@/game/domain/random";
 import { GROUND_RADIUS, grassTuft, scatterAround } from "./sceneryKit";
 import { withDressing, type GroundDressing } from "./groundDressing";

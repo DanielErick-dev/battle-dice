@@ -1,8 +1,8 @@
 /** Crimson Witch: Levitation's aura, burst and staff. */
 import type { Object3D } from "three";
-import { FIGURE_HEIGHT, LEVITATE_HEIGHT } from "../character/figure";
-import { LevitationAura, LevitationBurst } from "../character/Levitation";
-import { WitchStaff } from "../character/WitchStaff";
+import { FIGURE_HEIGHT, LEVITATE_HEIGHT } from "../character/core/figure";
+import { LevitationAura, LevitationBurst } from "../character/witch/Levitation";
+import { WitchStaff } from "../character/witch/WitchStaff";
 import type { TokenFx } from "./types";
 
 export function LevitationGlow({ token }: { token: TokenFx }) {

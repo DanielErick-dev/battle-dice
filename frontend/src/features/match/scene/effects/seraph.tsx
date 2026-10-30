@@ -1,9 +1,9 @@
 /** Seraphiel: the Fall, heaven's chains and Hell's Drag. */
 import { TILE_HEIGHT, type Vec3 } from "../boardLayout";
-import { DivineChains } from "../character/DivineChains";
-import { EFFECT_SCALE } from "../character/figure";
-import { HellHand } from "../character/HellHand";
-import { FallBurst } from "../character/SeraphCrown";
+import { DivineChains } from "../character/seraphiel/DivineChains";
+import { EFFECT_SCALE } from "../character/core/figure";
+import { HellHand } from "../character/seraphiel/HellHand";
+import { FallBurst } from "../character/seraphiel/FallBurst";
 import type { BoardFx, TokenFx } from "./types";
 
 /** Feathers burn off him and fire rolls out. */

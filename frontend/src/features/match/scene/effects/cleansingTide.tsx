@@ -1,7 +1,7 @@
 /** Auric: the Cleansing Tide's wave. */
 import { useMemo } from "react";
 import { playerColor } from "../../characters";
-import { TidalWave } from "../character/TidalWave";
+import { TidalWave } from "../character/auric/TidalWave";
 import type { BoardFx } from "./types";
 
 export function Tide({ fx: { view, layout } }: { fx: BoardFx }) {

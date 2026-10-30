@@ -1,7 +1,7 @@
 /** Emerald Alchemist: the vial held through the cast, then thrown. */
 import type { Object3D } from "three";
-import { HeldVial, VialShatter } from "../character/AlchemyVial";
-import { FIGURE_HEIGHT } from "../character/figure";
+import { HeldVial, VialShatter } from "../character/alchemist/AlchemyVial";
+import { FIGURE_HEIGHT } from "../character/core/figure";
 import { Delayed } from "../TrapSmash";
 import type { TokenFx } from "./types";
 

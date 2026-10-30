@@ -14,8 +14,8 @@ import {
   type Sprite,
   type Texture,
 } from "three";
-import { usePropMesh } from "@/features/match/scene/character/props";
-import { useSoftDisc } from "@/features/match/scene/character/softDisc";
+import { usePropMesh } from "@/features/match/scene/character/core/props";
+import { useSoftDisc } from "@/features/match/scene/character/shared/softDisc";
 import { seededRandom } from "@/game/domain/random";
 import { ABOVE_FLOOR, GROUND_RADIUS, taperedTube } from "./sceneryKit";
 import { withDressing, type GroundDressing } from "./groundDressing";

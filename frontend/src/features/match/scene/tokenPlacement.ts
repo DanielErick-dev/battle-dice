@@ -3,7 +3,7 @@ import { getTile } from "@/game/domain/board";
 import type { Board, Player } from "@/game/domain/types";
 import type { MatchView } from "../model/matchView";
 import { tileOffsetFor, TILE_SIZE, type BoardLayout, type Vec3 } from "./boardLayout";
-import { LEVITATE_HEIGHT } from "./character/figure";
+import { LEVITATE_HEIGHT } from "./character/core/figure";
 import { headingOf } from "./token/motion";
 
 /** How far ahead of the one he trampled the Berserker stands to shove them, face to face. */

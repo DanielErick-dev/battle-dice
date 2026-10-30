@@ -12,9 +12,9 @@ import {
   type Mesh,
   type MeshBasicMaterial,
 } from "three";
-import { useFeatherTexture } from "@/features/match/scene/character/HeavenDescent";
-import { useSoftDisc } from "@/features/match/scene/character/softDisc";
-import { useRuneTexture } from "@/features/match/scene/character/runeCircle";
+import { useFeatherTexture } from "@/features/match/scene/character/seraphiel/HeavenDescent";
+import { useSoftDisc } from "@/features/match/scene/character/shared/softDisc";
+import { useRuneTexture } from "@/features/match/scene/character/shared/runeCircle";
 import { seededRandom } from "@/game/domain/random";
 import { useNoiseTexture, type NoiseLook } from "./textures";
 import type { GroundDressing } from "./groundDressing";

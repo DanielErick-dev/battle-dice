@@ -3,10 +3,10 @@ import { useMemo } from "react";
 import type { Object3D } from "three";
 import { playerColor } from "../../characters";
 import { AbilityBurst } from "../AbilityBurst";
-import { ElectricField } from "../character/ElectricField";
-import { EFFECT_SCALE, FIGURE_HEIGHT } from "../character/figure";
-import { LightningDash } from "../character/LightningDash";
-import { LimbLightning } from "../character/LimbLightning";
+import { ElectricField } from "../character/monk/ElectricField";
+import { EFFECT_SCALE, FIGURE_HEIGHT } from "../character/core/figure";
+import { LightningDash } from "../character/monk/LightningDash";
+import { LimbLightning } from "../character/monk/LimbLightning";
 import { Delayed, SwordImpact } from "../TrapSmash";
 import type { BoardFx, TokenFx } from "./types";
 

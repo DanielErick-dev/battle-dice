@@ -1,4 +1,4 @@
-import { DESCENT_SECONDS } from "@/features/match/scene/character/HeavenDescent";
+import { DESCENT_SECONDS } from "@/features/match/scene/character/seraphiel/HeavenDescent";
 
 // Seraphiel's menu entrance, timed from the start of his descent: each downstroke sends a gust through
 // the sanctuary, stronger the nearer the ground; landed, the wind drops and his wings settle.

@@ -3,7 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import { AdditiveBlending, type Mesh } from "three";
-import { useRuneTexture } from "@/features/match/scene/character/runeCircle";
+import { useRuneTexture } from "@/features/match/scene/character/shared/runeCircle";
 import { FLOOR_Y } from "./layout";
 
 const PEDESTAL_RADIUS = 0.62;

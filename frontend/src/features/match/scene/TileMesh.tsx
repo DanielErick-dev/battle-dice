@@ -17,7 +17,7 @@ import { TILE_HEIGHT, TILE_PITCH, type BoardLayout, type Vec3 } from "./boardLay
 import { pickCursor, type PickCursor } from "./pickCursor";
 import { PortalVortex } from "./PortalVortex";
 import { RelicCard } from "./RelicCard";
-import { FIGURE_HEIGHT } from "./character/figure";
+import { FIGURE_HEIGHT } from "./character/core/figure";
 import { themeFor } from "./tileTheme";
 import { slabBody, slabShape, SQUARE_SLAB, type SlabOutline } from "./slab";
 import { useTileFaceTexture } from "./useTileFaceTexture";

@@ -3,8 +3,8 @@
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import { BufferAttribute, BufferGeometry, DodecahedronGeometry, MeshStandardMaterial, type Group } from "three";
-import { useSoftDisc } from "@/features/match/scene/character/softDisc";
-import { PROP_HEIGHT, usePropMesh } from "@/features/match/scene/character/props";
+import { useSoftDisc } from "@/features/match/scene/character/shared/softDisc";
+import { PROP_HEIGHT, usePropMesh } from "@/features/match/scene/character/core/props";
 import { seededRandom } from "@/game/domain/random";
 import type { GroundDressing } from "./groundDressing";
 import { GROUND_RADIUS } from "./sceneryKit";

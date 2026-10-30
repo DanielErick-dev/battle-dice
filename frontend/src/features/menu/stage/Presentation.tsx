@@ -10,27 +10,31 @@ import {
   type CharacterId,
   type ClipLengths,
 } from "@/features/match/characters";
-import { CharacterModel } from "@/features/match/scene/character/CharacterModel";
-import { HeldVial, PourStream, SmokeCloud } from "@/features/match/scene/character/AlchemyVial";
-import { Wings } from "@/features/match/scene/character/Wings";
-import { HeadCrown } from "@/features/match/scene/character/HeadCrown";
-import { FrostWand } from "@/features/match/scene/character/FrostWand";
-import { JusticeScale } from "@/features/match/scene/character/JusticeScale";
-import { EnergyBlades } from "@/features/match/scene/character/EnergyBlades";
-import { ArcherIntro } from "@/features/match/scene/character/ArcherIntro";
-import { BoneRise } from "@/features/match/scene/character/BoneRise";
-import { FrostSlam } from "@/features/match/scene/character/FrostSlam";
-import { DESCENT_SECONDS, HeavenDescent, descentHeight } from "@/features/match/scene/character/HeavenDescent";
-import { ScribeIntro } from "@/features/match/scene/character/ScribeIntro";
-import { JesterCards } from "@/features/match/scene/character/JesterCards";
-import { LimbLightning } from "@/features/match/scene/character/LimbLightning";
+import { CharacterModel } from "@/features/match/scene/character/core/CharacterModel";
+import { HeldVial, PourStream, SmokeCloud } from "@/features/match/scene/character/alchemist/AlchemyVial";
+import { Wings } from "@/features/match/scene/character/accessories/Wings";
+import { HeadCrown } from "@/features/match/scene/character/accessories/HeadCrown";
+import { FrostWand } from "@/features/match/scene/character/fairy/FrostWand";
+import { JusticeScale } from "@/features/match/scene/character/themis/JusticeScale";
+import { EnergyBlades } from "@/features/match/scene/character/zarek/EnergyBlades";
+import { ArcherIntro } from "@/features/match/scene/character/archer/ArcherIntro";
+import { BoneRise } from "@/features/match/scene/character/necromancer/BoneRise";
+import { FrostSlam } from "@/features/match/scene/character/bjorn/FrostSlam";
+import {
+  DESCENT_SECONDS,
+  HeavenDescent,
+  descentHeight,
+} from "@/features/match/scene/character/seraphiel/HeavenDescent";
+import { ScribeIntro } from "@/features/match/scene/character/scribe/ScribeIntro";
+import { JesterCards } from "@/features/match/scene/character/jester/JesterCards";
+import { LimbLightning } from "@/features/match/scene/character/monk/LimbLightning";
 import {
   LevitationAura,
   LevitationBurst,
   levitationLift,
   stepLevitation,
-} from "@/features/match/scene/character/Levitation";
-import { WitchStaff } from "@/features/match/scene/character/WitchStaff";
+} from "@/features/match/scene/character/witch/Levitation";
+import { WitchStaff } from "@/features/match/scene/character/witch/WitchStaff";
 import { useAge } from "@/features/match/scene/useAge";
 import type { StageSounds } from "../audio/stageSounds";
 import { FIGURE_HEIGHT, FLOOR_Y } from "./layout";

@@ -1,9 +1,9 @@
 import type { AbilityId } from "@/game/domain/abilities";
 import type { PlayerId } from "@/game/domain/types";
 import type { SceneryId } from "@/features/menu/stage/scenery";
-import type { CrownId } from "./scene/character/HeadCrown";
-import type { ChairId } from "./scene/character/RestChair";
-import type { WingsId } from "./scene/character/Wings";
+import type { CrownId } from "./scene/character/accessories/HeadCrown";
+import type { ChairId } from "./scene/character/accessories/RestChair";
+import type { WingsId } from "./scene/character/accessories/Wings";
 
 /**
  * Animation clips of a character model, built by scripts/characters/build-characters.mjs.
