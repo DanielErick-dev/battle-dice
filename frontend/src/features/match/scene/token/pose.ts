@@ -2,7 +2,7 @@
 import type { CharacterClip, CharacterDefinition, ClipLengths } from "../../characters";
 import { DEFAULT_TIMINGS } from "../../config";
 import type { Vec3 } from "../boardLayout";
-import { KNOCKED_LANDING_SECONDS, LUNGE_DISTANCE, LUNGE_SECONDS } from "../effects/berserker";
+import { KNOCKED_LANDING_SECONDS, LUNGE_DISTANCE, LUNGE_SECONDS } from "./trample";
 import type { TokenSignals } from "../effects/types";
 import { easeInOut, headingOf, type MotionFrame } from "./motion";
 

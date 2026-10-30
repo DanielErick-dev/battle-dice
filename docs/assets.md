@@ -111,6 +111,6 @@ node scripts/props/build-kits.mjs --source <Downloads>/battle-dice-personagens/i
 O mesmo script também monta:
 - `dungeon.glb`: **KayKit Dungeon Remastered** (paredes, pilares, tochas, barris, baús, moedas, estandartes), em `island/kaykit-extra/`.
 - `wasteland.glb`: **Kenney Retro Urban, Car, Graveyard e Survival** (ruínas, carros, árvores mortas, cercas, barracos, cestos de fogo), em `island/kenney/`.
-- `npcs/*.glb`: personagens animados dos **KayKit Character Packs** (aventureiros e esqueletos), só com as animações usadas (parado, andando, comemorando, mexendo em algo, sentado). Eram os moradores da ilha e os esqueletos dos mapas; **fora de uso desde 2026-10-29** (os mapas ficaram sem figurantes).
+- Os figurantes animados (`npcs/`, KayKit Character Packs) foram apagados em 2026-10-29: os mapas ficaram sem figurantes.
 
 Também estão baixados, ainda sem uso: Kenney Castle Kit, Fantasy Town Kit, Modular Dungeon Kit, Mini Dungeon e KayKit City Builder Bits.

@@ -1,16 +1,11 @@
 /** Bjorn: Untamed's frost aura and the trample's blows. */
 import { useState } from "react";
-import { DEFAULT_TIMINGS } from "../../config";
 import { AbilityBurst } from "../AbilityBurst";
 import { FrostAura } from "../FrostAura";
 import { Delayed, SwordImpact } from "../TrapSmash";
+import { KNOCKED_LANDING_SECONDS, LUNGE_SECONDS } from "../token/trample";
 import type { TokenFx } from "./types";
 
-/** Without a shove clip: a lunge this far forward and back, over this long. */
-export const LUNGE_DISTANCE = 0.45;
-export const LUNGE_SECONDS = 0.5;
-/** When the one sent flying comes down on its new tile (the flight's leap, roughly). */
-export const KNOCKED_LANDING_SECONDS = DEFAULT_TIMINGS.trampleFlightMs / 1000 - 0.1;
 /** When the blow lands without shoveImpactSeconds to time it. */
 const DEFAULT_SHOVE_IMPACT_SECONDS = 0.35;
 

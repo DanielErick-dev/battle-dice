@@ -6,16 +6,7 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { Document, NodeIO } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
-import {
-  dedup,
-  mergeDocuments,
-  meshopt,
-  prune,
-  resample,
-  textureCompress,
-  unpartition,
-  weld,
-} from "@gltf-transform/functions";
+import { dedup, mergeDocuments, meshopt, prune, textureCompress, unpartition, weld } from "@gltf-transform/functions";
 import { MeshoptEncoder } from "meshoptimizer";
 import sharp from "sharp";
 
@@ -130,7 +121,8 @@ const PACKS = {
   },
 };
 
-const DUNGEON = "KayKit-Dungeon-Remastered-1.0/KayKit-Dungeon-Remastered-1.0-main/addons/kaykit_dungeon_remastered/Assets/gltf";
+const DUNGEON =
+  "KayKit-Dungeon-Remastered-1.0/KayKit-Dungeon-Remastered-1.0-main/addons/kaykit_dungeon_remastered/Assets/gltf";
 PACKS.dungeon = {
   // KayKit Dungeon Remastered (CC0): the dungeon map.
   folder: "kaykit-extra",
@@ -225,21 +217,11 @@ PACKS.wasteland = {
   },
 };
 
-/** Animated figures for the maps (KayKit character packs, CC0): only the clips the maps play are kept. */
-const NPC_SOURCES = {
-  Knight: "KayKit-Character-Pack-Adventures-1.0/KayKit-Character-Pack-Adventures-1.0-main/addons/kaykit_character_pack_adventures/Characters/gltf/Knight.glb",
-  Barbarian: "KayKit-Character-Pack-Adventures-1.0/KayKit-Character-Pack-Adventures-1.0-main/addons/kaykit_character_pack_adventures/Characters/gltf/Barbarian.glb",
-  Mage: "KayKit-Character-Pack-Adventures-1.0/KayKit-Character-Pack-Adventures-1.0-main/addons/kaykit_character_pack_adventures/Characters/gltf/Mage.glb",
-  Rogue: "KayKit-Character-Pack-Adventures-1.0/KayKit-Character-Pack-Adventures-1.0-main/addons/kaykit_character_pack_adventures/Characters/gltf/Rogue_Hooded.glb",
-  SkeletonWarrior: "KayKit-Character-Pack-Skeletons-1.0/KayKit-Character-Pack-Skeletons-1.0-main/addons/kaykit_character_pack_skeletons/Characters/gltf/Skeleton_Warrior.glb",
-  SkeletonMinion: "KayKit-Character-Pack-Skeletons-1.0/KayKit-Character-Pack-Skeletons-1.0-main/addons/kaykit_character_pack_skeletons/Characters/gltf/Skeleton_Minion.glb",
-  SkeletonMage: "KayKit-Character-Pack-Skeletons-1.0/KayKit-Character-Pack-Skeletons-1.0-main/addons/kaykit_character_pack_skeletons/Characters/gltf/Skeleton_Mage.glb",
-};
-const NPC_CLIPS = new Set(["Idle", "Walking_A", "Cheer", "Interact", "Sit_Floor_Idle", "Idle_B", "Skeletons_Awaken_Floor"]);
-
 const { values } = parseArgs({ options: { source: { type: "string" }, only: { type: "string" } } });
 if (!values.source) {
-  console.error("Usage: build-kits.mjs --source <battle-dice-personagens/island> [--only kaykit|kenney|dungeon|wasteland|npcs]");
+  console.error(
+    "Usage: build-kits.mjs --source <battle-dice-personagens/island> [--only kaykit|kenney|dungeon|wasteland]",
+  );
   process.exit(1);
 }
 
@@ -277,28 +259,4 @@ for (const [id, pack] of Object.entries(PACKS)) {
   console.log(
     `${id}: ${scene.listChildren().length} pieces, ${(size / 1024).toFixed(0)} KB → ${path.relative(process.cwd(), output)}`,
   );
-}
-
-for (const [id, file] of Object.entries(NPC_SOURCES)) {
-  if (values.only && values.only !== "npcs") continue;
-  const document = await io.read(path.join(values.source, "kaykit-extra", file));
-  for (const animation of document.getRoot().listAnimations()) {
-    if (NPC_CLIPS.has(animation.getName())) continue;
-    // Its samplers outlive it otherwise, holding on to every keyframe.
-    animation.listChannels().forEach((channel) => channel.dispose());
-    animation.listSamplers().forEach((sampler) => sampler.dispose());
-    animation.dispose();
-  }
-  await document.transform(
-    dedup(),
-    resample(),
-    prune(),
-    textureCompress({ encoder: sharp, targetFormat: "webp", resize: [512, 512] }),
-    meshopt({ encoder: MeshoptEncoder, level: "medium" }),
-  );
-  const output = path.join(OUTPUT_DIR, "npcs", `${id}.glb`);
-  await mkdir(path.dirname(output), { recursive: true });
-  await io.write(output, document);
-  const { size } = await stat(output);
-  console.log(`npc ${id}: ${(size / 1024).toFixed(0)} KB`);
 }

@@ -16,7 +16,7 @@ Linhas = código da própria pasta (sem subpastas e sem testes), contadas em 29/
 
 | Pasta | Status | Linhas | Feito | Falta |
 |---|---|---|---|---|
-| `game/domain/` | 🟡 | 7678 | Testes por tema (etapa 7). `engine.ts` virou roteador (etapa 6). | Pasta plana com ~60 arquivos: agrupar por tema (ex.: `domain/characters/`, `domain/board/`, `domain/cards/`). |
+| `game/domain/` | 🔄 | 7678 | Testes por tema (etapa 7). `engine.ts` virou roteador (etapa 6). | Pasta plana com ~60 arquivos: agrupar por tema (ex.: `domain/characters/`, `domain/board/`, `domain/cards/`). |
 | `game/domain/handlers/` | ✅ | 492 | Mapa tipado por comando, registro `ABILITY_EFFECTS` (etapa 6). | |
 | `game/domain/testing/` | ✅ | 151 | Helpers de teste compartilhados (etapa 7). | |
 | `game/application/` | ✅ | 45 | `GameClient` e `LocalGameClient`, com README. | |
@@ -34,10 +34,10 @@ Linhas = código da própria pasta (sem subpastas e sem testes), contadas em 29/
 | `match/ui/abilities/` | ✅ | 433 | Registro `ABILITY_FLOWS` (etapa 2). | |
 | `match/ui/cards/` | ⬜ | 1416 | | Revisar. |
 | `match/ui/hud/` | ⬜ | 1423 | | Revisar. |
-| `match/scene/` (raiz) | ✅ | 4380 | Efeitos fora do `PlayerToken`/`BoardScene` (etapa 4). `PlayerToken` 571 → 243 linhas: movimento e pose viraram funções puras e testadas em `token/` (29/10). | `token/pose.ts` importa constantes de `effects/berserker.tsx` (React): mover para um módulo puro. |
+| `match/scene/` (raiz) | ✅ | 4380 | Efeitos fora do `PlayerToken`/`BoardScene` (etapa 4). `PlayerToken` 571 → 243 linhas: movimento e pose viraram funções puras e testadas em `token/` (29/10). | |
 | `match/scene/token/` | ✅ | 538 | Criada em 29/10: `motion.ts` (caminho e segmentos) e `pose.ts` (qual clipe toca), com 41 testes. | |
 | `match/scene/effects/` | ✅ | 801 | Registro de efeitos por lugar (etapa 4). | |
-| `match/scene/character/` | ⬜ | 9252 | `clipPlayback.ts`: velocidade e "toca uma vez" de cada clipe numa tabela testada (29/10). | A maior bagunça: 48 arquivos misturando o genérico (`CharacterModel`, `props`, `worldPlacement`) com efeitos de cada personagem (`Susanoo`, `AlchemyVial`, `ScribeIntro`…). Separar em subpastas por personagem. |
+| `match/scene/character/` | 🔄 | 9252 | `clipPlayback.ts`: velocidade e "toca uma vez" de cada clipe numa tabela testada (29/10). | A maior bagunça: 48 arquivos misturando o genérico (`CharacterModel`, `props`, `worldPlacement`) com efeitos de cada personagem (`Susanoo`, `AlchemyVial`, `ScribeIntro`…). Separar em subpastas por personagem. |
 | `match/scene/environment/` | ⬜ | 2474 | Mapas escurecidos e sem figurantes (29/10, só visual). | Revisar a estrutura. |
 | `match/scene/realm/` | ⬜ | 1124 | | Revisar. |
 | `match/scene/vfx/` | ⬜ | 58 | | Revisar. |
@@ -48,7 +48,7 @@ Linhas = código da própria pasta (sem subpastas e sem testes), contadas em 29/
 |---|---|---|---|---|
 | `features/menu/` (raiz) | ✅ | 0 | README. | |
 | `features/menu/stage/` | 🟡 | 839 | | Revisar. |
-| `features/menu/stage/scenery/` | 🟡 | 8665 | Helpers juntados em `textures.ts` e `sceneryKit.ts` (`9ccf2aa`). | Cada habitat ainda tem 450–540 linhas: extrair mais peças em comum. |
+| `features/menu/stage/scenery/` | 🔄 | 8665 | Helpers juntados em `textures.ts` e `sceneryKit.ts` (`9ccf2aa`). | Cada habitat ainda tem 450–540 linhas: extrair mais peças em comum. |
 | `features/menu/ui/` | ⬜ | 549 | | Revisar. |
 | `features/menu/audio/` | ⬜ | 85 | | Revisar. |
 | `features/lab/` | ⬜ | 381 | | Playground de VFX: decidir se fica ou sai. |
@@ -62,10 +62,10 @@ Linhas = código da própria pasta (sem subpastas e sem testes), contadas em 29/
 | Pasta | Status | Feito | Falta |
 |---|---|---|---|
 | `frontend/scripts/characters/` | ⬜ | | `build-characters.mjs` + `manifest.mjs` (554 linhas): revisar. |
-| `frontend/scripts/props/` | 🟡 | A saída segue a pasta de cada personagem (29/10). | `build-kits.mjs` ainda monta os NPCs, que saíram do jogo. |
+| `frontend/scripts/props/` | 🟡 | A saída segue a pasta de cada personagem (29/10). Passo dos NPCs removido do `build-kits.mjs` (29/10). | Revisar os dois scripts (443 linhas). |
 | `public/models/characters/` | ✅ | Um `.glb` por personagem, com o id do código. Ids renomeados para o nome do personagem (`themis`, `zarek`, `necromancer`…) em 29/10. | |
 | `public/models/props/` | ✅ | Uma pasta por personagem, com os mesmos nomes da fonte (29/10). | |
-| `public/models/island/` | 🟡 | Kits dos mapas. | `npcs/` (2,3 MB) não é mais usado desde 29/10: apagar. |
+| `public/models/island/` | ✅ | Kits dos mapas. `npcs/` (2,3 MB sem uso) apagado em 29/10. | |
 | `docs/` | ✅ | Docs em português, com índice no README. | Manter em dia a cada mudança. |
 
 ## Como usar
