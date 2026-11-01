@@ -7,6 +7,7 @@ import { MOUSE, PerspectiveCamera, TOUCH, Vector3 } from "three";
 import type { CardId } from "@/game/domain/cards/catalog";
 import type { CardCastView, TileEffectKind, TileEffectView } from "../model/matchView";
 import type { BoardLayout, Vec3 } from "./boardLayout";
+import { FIGURE_HEIGHT } from "./character/core/figure";
 
 const BASE_DIRECTION = new Vector3(0, 12, 12.5).normalize();
 const BASE_DISTANCE = Math.hypot(12, 12.5);
@@ -18,6 +19,11 @@ const BASE_DEPTH = 8.55;
 const FIT_ASPECT = 1.1;
 /** How quickly the camera catches up with its goal (higher = snappier). */
 const FOLLOW_RATE = 3;
+/** A spotlit figure is framed at its chest, from this far above the horizon (radians). */
+const SPOT_HEIGHT = FIGURE_HEIGHT * 0.55;
+const SPOT_ELEVATION = 0.42;
+/** How quickly the camera swings round to the front of a spotlit figure, and back after. */
+const SPOT_RATE = 3.5;
 
 /** How a tile effect is filmed: an optional close-up, a shake and/or a field-of-view kick. */
 interface Shot {
@@ -68,10 +74,10 @@ const SHOTS: Record<TileEffectKind, Shot> = {
   crown: { closeUp: { distance: 0.62, seconds: 1.2 }, fovKick: 0.5 },
   heavenBarred: { trauma: 0.3 },
   dragged: { closeUp: { distance: 0.62, seconds: 1.2 }, trauma: 0.5 },
-  // Pulled back so the scale fits over the one judged.
-  verdict: { closeUp: { distance: 1.1, seconds: 3 }, trauma: 0.35 },
+  // Pulled well back so the whole giant scale fits in, from Themis to the one judged.
+  verdict: { closeUp: { distance: 1.8, seconds: 4 }, trauma: 0.35 },
   disarmed: { fovKick: 0.3 },
-  weighed: { closeUp: { distance: 1.1, seconds: 3 }, trauma: 0.2 },
+  weighed: { closeUp: { distance: 1.8, seconds: 4 }, trauma: 0.2 },
 };
 
 /** Cards whose cast is filmed too (the rest are covered by the effects they cause). */
@@ -94,6 +100,18 @@ export function boardScaleFor(layout: BoardLayout): number {
   return Math.max(1, layout.width / BASE_WIDTH, layout.depth / BASE_DEPTH);
 }
 
+/** A figure playing one of its own moves, filmed from the front (see spotlightOf). */
+export interface CameraSpotlight {
+  key: string;
+  /** Where the figure stands. */
+  position: Vec3;
+  /** The way it faces: the camera comes round to stand in front of it. */
+  facing: Vec3;
+  /** Share of the follow distance to film it from. */
+  distance: number;
+  seconds: number;
+}
+
 /** Following the focus up close or from midway, or framing the whole board. */
 export type CameraFraming = "close" | "mid" | "board";
 
@@ -113,6 +131,8 @@ interface CameraRigProps {
   free: boolean;
   /** Called as the viewer drags the camera across the board. */
   onFreeLook: () => void;
+  /** A figure's move to swing round and film from the front. */
+  spotlight: CameraSpotlight | null;
 }
 
 /**
@@ -121,7 +141,17 @@ interface CameraRigProps {
  * and target together, so the player's chosen orbit angle is kept. The viewer can drag across the
  * board to look around: the camera then stays where they put it (`free`) until told to follow again.
  */
-export function CameraRig({ layout, focus, framing, effect, celebrating, cast, free, onFreeLook }: CameraRigProps) {
+export function CameraRig({
+  layout,
+  focus,
+  framing,
+  effect,
+  celebrating,
+  cast,
+  free,
+  onFreeLook,
+  spotlight,
+}: CameraRigProps) {
   const camera = useThree((state) => state.camera);
   const aspect = useThree((state) => state.size.width / state.size.height);
   const controls = useRef<ComponentRef<typeof OrbitControls>>(null);
@@ -138,6 +168,15 @@ export function CameraRig({ layout, focus, framing, effect, celebrating, cast, f
     fovKick: 0,
   });
   const appliedShake = useRef(new Vector3());
+  /** The front shot under way (until `until`), and the orbit direction to come back to after it. */
+  const spot = useRef({
+    key: null as string | null,
+    until: 0,
+    target: new Vector3(),
+    direction: new Vector3(),
+    distance: 0,
+    restore: null as Vector3 | null,
+  });
   const scratch = useRef({
     goal: new Vector3(),
     offset: new Vector3(),
@@ -200,19 +239,55 @@ export function CameraRig({ layout, focus, framing, effect, celebrating, cast, f
 
     const { goal, offset, step, beforeUpdate } = scratch.current;
     const k = 1 - Math.exp(-delta * FOLLOW_RATE * (closeUp ? 1.6 : 1));
-    // Up on a realm bridge the target rises with the player, so they stay framed. Left alone
-    // while the viewer looks around on their own.
-    goal.set(tracking ? focus[0] : 0, tracking ? focus[1] * 0.8 : 0, tracking ? focus[2] : 0);
-    step.subVectors(goal, orbit.target).multiplyScalar(free ? 0 : k);
-    orbit.target.add(step);
-    camera.position.add(step);
+    const front = spot.current;
+    if (spotlight && spotlight.key !== front.key) {
+      front.key = spotlight.key;
+      if (!free && !celebrating) {
+        front.until = now + spotlight.seconds;
+        // Chained moves come back to where the viewer had the camera before the first.
+        front.restore ??= new Vector3().subVectors(camera.position, orbit.target).normalize();
+        front.target.set(spotlight.position[0], spotlight.position[1] + SPOT_HEIGHT, spotlight.position[2]);
+        const [fx, , fz] = spotlight.facing;
+        const flat = Math.hypot(fx, fz) || 1;
+        front.direction
+          .set((fx / flat) * Math.cos(SPOT_ELEVATION), Math.sin(SPOT_ELEVATION), (fz / flat) * Math.cos(SPOT_ELEVATION))
+          .normalize();
+        front.distance = followDistance * spotlight.distance;
+      }
+    }
+    const spotting = now < front.until && !free && !celebrating;
+    if (spotting) {
+      const swing = 1 - Math.exp(-delta * SPOT_RATE);
+      orbit.target.lerp(front.target, swing);
+      goal.copy(front.target).addScaledVector(front.direction, front.distance);
+      camera.position.lerp(goal, swing);
+      zooming.current = true;
+    } else {
+      // Up on a realm bridge the target rises with the player, so they stay framed. Left alone
+      // while the viewer looks around on their own.
+      goal.set(tracking ? focus[0] : 0, tracking ? focus[1] * 0.8 : 0, tracking ? focus[2] : 0);
+      step.subVectors(goal, orbit.target).multiplyScalar(free ? 0 : k);
+      orbit.target.add(step);
+      camera.position.add(step);
 
-    if (zooming.current && !free) {
-      offset.subVectors(camera.position, orbit.target);
-      const distance = offset.length();
-      const next = distance + (goalDistance - distance) * k;
-      camera.position.copy(orbit.target).add(offset.setLength(next));
-      if (Math.abs(goalDistance - next) < 0.05) zooming.current = false;
+      if (zooming.current && !free) {
+        offset.subVectors(camera.position, orbit.target);
+        const distance = offset.length();
+        const next = distance + (goalDistance - distance) * k;
+        camera.position.copy(orbit.target).add(offset.setLength(next));
+        if (Math.abs(goalDistance - next) < 0.05) zooming.current = false;
+      }
+      // Back round to the angle the viewer had before the front shot.
+      if (front.restore && !free) {
+        offset.subVectors(camera.position, orbit.target);
+        const length = offset.length();
+        const direction = offset
+          .normalize()
+          .lerp(front.restore, 1 - Math.exp(-delta * SPOT_RATE))
+          .normalize();
+        camera.position.copy(orbit.target).addScaledVector(direction, length);
+        if (direction.angleTo(front.restore) < 0.01) front.restore = null;
+      } else if (free) front.restore = null;
     }
     beforeUpdate.copy(orbit.target);
     orbit.update();

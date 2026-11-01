@@ -21,6 +21,12 @@ export function focusPoint(view: MatchView, layout: BoardLayout): Vec3 {
     const points = volley.targets.map((tile) => layout.position(tile));
     return [0, 1, 2].map((axis) => points.reduce((sum, point) => sum + point[axis], 0) / points.length) as Vec3;
   }
+  // Themis's verdict is watched on her, the one it protects, not on whoever aimed at her.
+  const verdict = view.fx.verdict;
+  if (verdict && (view.effect?.kind === "verdict" || view.effect?.kind === "weighed")) {
+    const judge = view.players.find((player) => player.id === verdict.judgeId);
+    if (judge) return layout.position(judge.position);
+  }
   // Cronos bending an opponent's time: watched on them.
   if (view.effect?.kind === "timeBent") return layout.position(view.effect.from);
   // A rolling tide is watched from halfway along its reach.

@@ -13,7 +13,7 @@ import { characterFor, playerColor } from "../characters";
 import type { EffectsQuality } from "../config";
 import type { MatchView } from "../model/matchView";
 import { createBoardLayout, withRiftPositions, type BoardLayout, type Vec3 } from "./boardLayout";
-import { boardScaleFor, CameraRig, type CameraFraming } from "./CameraRig";
+import { boardScaleFor, CameraRig, type CameraFraming, type CameraSpotlight } from "./CameraRig";
 import { diceLanding, dieRoll, focusPoint, focusTile, realmAt } from "./cameraFocus";
 import { PickedTileMark } from "./character/shared/PickedTileMark";
 import { DiceThrow } from "./DiceThrow";
@@ -29,6 +29,7 @@ import { SceneWarmup } from "./SceneWarmup";
 import { TileLinks } from "./TileLinks";
 import { TileMesh } from "./TileMesh";
 import { pathColor } from "./tileTheme";
+import { spotlightOf } from "./spotlight";
 import { pathDirection, tokenTarget } from "./tokenPlacement";
 import { tokenSignals } from "./tokenSignals";
 import { HealingParticles } from "./vfx/healing";
@@ -254,6 +255,7 @@ export default function BoardScene({
             cast={view.fx.cast}
             free={freeLook}
             onFreeLook={onFreeLook}
+            spotlight={cameraSpotlight(view, board, layout)}
           />
         </RealmAtmosphere>
         <Preload all />
@@ -316,4 +318,16 @@ function watchContext(canvas: HTMLCanvasElement): void {
   canvas.addEventListener("webglcontextrestored", () =>
     console.warn(`[battle-dice] contexto WebGL restaurado ${new Date().toLocaleTimeString()}`),
   );
+}
+
+/** The move being filmed from the front, placed where its figure stands and facing the way it does. */
+function cameraSpotlight(view: MatchView, board: Board, layout: BoardLayout): CameraSpotlight | null {
+  const shot = spotlightOf(view);
+  const player = shot && view.players.find((candidate) => candidate.id === shot.playerId);
+  if (!shot || !player) return null;
+  return {
+    ...shot,
+    position: tokenTarget(player, view, board, layout),
+    facing: pathDirection(board, layout, player.position),
+  };
 }

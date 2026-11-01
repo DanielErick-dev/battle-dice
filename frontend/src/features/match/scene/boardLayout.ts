@@ -251,10 +251,15 @@ function corridorPositions(track: RealmTrack, width: number, lane: number): Vec3
 /** How much longer the start's slab is, reaching back: a little square where everyone lines up. */
 export const START_PLAZA = 1.6;
 
+/** On the start plaza: figures side by side across the path, rows of this many, this far apart. */
+const START_ROW = 4;
+const START_SPACING = 0.85;
+
 /**
  * Where a player stands on a tile they share, round its centre, `along` being the way the path runs
- * there. On the start they line up side by side across the plaza; elsewhere they stand staggered in
- * two ranks, so from above each one shows.
+ * there. On the start they line up side by side across the plaza in turn order (left to right), so
+ * nobody runs through another on their first move; elsewhere they stand staggered in two ranks, so
+ * from above each one shows.
  */
 export function tileOffsetFor(
   player: Player,
@@ -270,7 +275,15 @@ export function tileOffsetFor(
   const [ax, az] = [along[0] / length, along[1] / length];
   // Left of the way: (az, -ax).
   const [offsetAlong, offsetAcross] = onStart
-    ? [(slot - (count - 1) / 2) * 0.9 - START_PLAZA / 2, 0]
+    ? startSlot(slot, count)
     : [(slot - (count - 1) / 2) * (count > 2 ? 0.44 : 0.9), count > 2 ? (slot % 2 === 0 ? -0.32 : 0.32) : 0];
   return [ax * offsetAlong + az * offsetAcross, 0, az * offsetAlong - ax * offsetAcross];
+}
+
+/** [along, across] of the `slot`-th figure on the start plaza: a row across the path, more rows further back. */
+export function startSlot(slot: number, count: number): [number, number] {
+  const row = Math.floor(slot / START_ROW);
+  const inRow = Math.min(START_ROW, count - row * START_ROW);
+  const column = slot % START_ROW;
+  return [-START_PLAZA / 2 - row * START_SPACING, ((inRow - 1) / 2 - column) * START_SPACING];
 }

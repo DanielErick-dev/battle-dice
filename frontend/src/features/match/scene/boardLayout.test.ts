@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createBoard } from "@/game/domain/board/board";
 import { POWER_TOURNAMENT_BOARD, TRAINING_BOARD } from "@/game/domain/board/presets";
-import { createBoardLayout, TILE_PITCH, TILE_SIZE } from "./boardLayout";
+import { createBoardLayout, startSlot, TILE_PITCH, TILE_SIZE } from "./boardLayout";
 
 describe("the winding trail", () => {
   for (const [name, definition, columns] of [
@@ -24,4 +24,21 @@ describe("the winding trail", () => {
       });
     });
   }
+});
+
+describe("the start plaza", () => {
+  it("lines the players up side by side in turn order, none ahead of another", () => {
+    const slots = [0, 1, 2, 3].map((slot) => startSlot(slot, 4));
+    expect(new Set(slots.map(([along]) => along)).size).toBe(1);
+    const across = slots.map(([, side]) => side);
+    expect(across).toEqual([...across].sort((a, b) => b - a));
+    expect(across[0]).toBeCloseTo(-across[3]);
+  });
+
+  it("starts a second row further back past four players", () => {
+    const [frontAlong] = startSlot(0, 6);
+    const [backAlong, backAcross] = startSlot(4, 6);
+    expect(backAlong).toBeLessThan(frontAlong);
+    expect(backAcross).toBeGreaterThan(0);
+  });
 });
