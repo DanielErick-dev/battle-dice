@@ -1,5 +1,5 @@
 /** Shadow Warden: the spectral apparitions. */
-import { SPECTER_KINDS } from "@/game/domain/specters";
+import { SPECTER_KINDS } from "@/game/domain/characters/warden/specters";
 import { withPlayer } from "../matchView";
 import type { StepHandlers } from "./types";
 

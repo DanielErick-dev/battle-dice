@@ -1,6 +1,5 @@
 /** Flesh Scribe: the forbidden seals. */
-import { SILENCE_TURNS } from "@/game/domain/abilities";
-import { SEAL_KINDS } from "@/game/domain/seals";
+import { SILENCE_TURNS, SEAL_KINDS } from "@/game/domain/characters/scribe/seals";
 import { withPlayer } from "../matchView";
 import type { StepHandlers } from "./types";
 

@@ -1,6 +1,6 @@
-import { TRAP_DRAIN_ENERGY } from "@/game/domain/landing";
-import { WINGS_BONUS } from "@/game/domain/blessings";
-import { BLESSING_ENERGY } from "@/game/domain/realms";
+import { TRAP_DRAIN_ENERGY } from "@/game/domain/board/harm";
+import { WINGS_BONUS } from "@/game/domain/board/blessings";
+import { BLESSING_ENERGY } from "@/game/domain/board/realms";
 import type { Blessing, RealmKind, Rift, Tile, TrapCurse } from "@/game/domain/types";
 import { CARD_TEXT } from "../ui/cards/cardText";
 

@@ -1,5 +1,5 @@
 /** Zarek's Void: swallowing harm, opening rifts, setting spells down and taking them over. */
-import { abilityCycle } from "@/game/domain/abilities";
+import { abilityCycle } from "@/game/domain/abilities/charge";
 import type { PlayerId, TileId, VoidItem } from "@/game/domain/types";
 import { nextFxId, withFx, withPlayer, type MatchView, type TileEffectKind, type VoidRiftView } from "../matchView";
 import { playerTileEffect } from "./helpers";

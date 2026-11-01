@@ -1,0 +1,49 @@
+export type GameErrorCode =
+  | "NOT_YOUR_TURN"
+  | "GAME_FINISHED"
+  | "UNKNOWN_PLAYER"
+  | "DISCARD_PENDING"
+  | "NO_DISCARD_PENDING"
+  | "UNKNOWN_CARD"
+  | "CARD_ALREADY_PLAYED"
+  | "NOT_ENOUGH_ENERGY"
+  | "ALREADY_SHIELDED"
+  | "DICE_BOOST_ACTIVE"
+  | "INVALID_TARGET"
+  | "INVALID_VALUE"
+  | "NO_PORTAL_AHEAD"
+  | "NO_HELL"
+  | "WARD_PENDING"
+  | "NO_WARD_PENDING"
+  | "NO_ABILITY"
+  | "CANNOT_FUSE"
+  | "ABILITY_REACTIVE"
+  | "ABILITY_NOT_READY"
+  | "ENERGY_FULL"
+  | "ABILITY_ALREADY_READY"
+  | "EMPTY_HAND"
+  | "EMPTY_DISCARD"
+  | "HAND_FULL"
+  | "TOO_MANY_CARDS"
+  | "INVALID_SEALS"
+  | "SILENCED"
+  | "INVALID_SPECTERS"
+  | "INVALID_FLAMES"
+  | "INVALID_FROST"
+  | "PLUNDER_PENDING"
+  | "NO_PLUNDER_PENDING"
+  | "GRACE_PENDING"
+  | "NO_GRACE_PENDING"
+  | "INVALID_GRACE"
+  | "VOID_FULL"
+  | "INVALID_VOID"
+  | "VOID_EMPTY"
+  | "NO_HARM_AHEAD"
+  | "NOT_YOUR_CARD";
+
+export class GameRuleError extends Error {
+  constructor(readonly code: GameErrorCode) {
+    super(code);
+    this.name = "GameRuleError";
+  }
+}

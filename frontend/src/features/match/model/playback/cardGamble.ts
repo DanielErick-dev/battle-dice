@@ -1,5 +1,5 @@
 /** Card Jester: the gamble and its stolen cards. */
-import { throwOnPile } from "@/game/domain/deck";
+import { throwOnPile } from "@/game/domain/cards/decks";
 import { nextFxId, withFx, withPlayer, type MatchView } from "../matchView";
 import type { StepHandlers } from "./types";
 

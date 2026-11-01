@@ -1,8 +1,8 @@
 /** Turns each GameEvent into the steps the store plays in order; HANDLERS' type demands one per event (see README.md). */
-import { currentPlayer } from "@/game/domain/engine";
-import type { GameEvent } from "@/game/domain/events";
+import { currentPlayer } from "@/game/domain/handlers/shared";
+import type { GameEvent } from "@/game/domain/core/events";
 import type { GameState } from "@/game/domain/types";
-import { riftsOf } from "@/game/domain/void";
+import { riftsOf } from "@/game/domain/characters/zarek/void";
 import type { PlaybackTimings } from "../../config";
 import { sealViews, specterViews, type MatchView } from "../matchView";
 import { turnSteps } from "./turn";

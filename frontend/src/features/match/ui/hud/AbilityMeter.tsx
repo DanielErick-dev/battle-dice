@@ -1,5 +1,6 @@
 import { Sparkles } from "lucide-react";
-import { abilityBlocker, abilityCycle, isAbilityReady, isReactive } from "@/game/domain/abilities";
+import { abilityBlocker, isReactive } from "@/game/domain/abilities/ability";
+import { abilityCycle, isAbilityReady } from "@/game/domain/abilities/charge";
 import type { Player } from "@/game/domain/types";
 import { cn } from "@/lib/utils";
 import { ABILITY_TEXT } from "../abilityText";

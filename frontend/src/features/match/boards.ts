@@ -1,4 +1,5 @@
-import { POWER_TOURNAMENT_BOARD, TRAINING_BOARD, type BoardDefinition } from "@/game/domain/board";
+import { POWER_TOURNAMENT_BOARD, TRAINING_BOARD } from "@/game/domain/board/presets";
+import type { BoardDefinition } from "@/game/domain/board/board";
 
 export interface BoardPreset {
   id: string;

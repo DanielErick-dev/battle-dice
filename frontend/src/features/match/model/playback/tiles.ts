@@ -1,5 +1,5 @@
 /** What tiles do to whoever lands on them: realms, blessings, portals and traps. */
-import { blessingTurns } from "@/game/domain/blessings";
+import { blessingTurns } from "@/game/domain/board/blessings";
 import type { PlaybackTimings } from "../../config";
 import { withPlayer, withPlayerAt, type TileEffectView } from "../matchView";
 import { blessingTurnsOf } from "./helpers";

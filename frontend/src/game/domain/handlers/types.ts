@@ -1,6 +1,6 @@
-import type { GameCommand } from "../commands";
-import type { DiceRoller } from "../dice";
-import type { GameEvent } from "../events";
+import type { GameCommand } from "../core/commands";
+import type { DiceRoller } from "../core/dice";
+import type { GameEvent } from "../core/events";
 import type { RandomSource } from "../random";
 import type { GameState } from "../types";
 

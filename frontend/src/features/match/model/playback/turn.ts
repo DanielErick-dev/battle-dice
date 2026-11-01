@@ -1,5 +1,5 @@
 /** Dice, walking, pushes and the flow of turns. */
-import { DICE_SIDES } from "@/game/domain/dice";
+import { DICE_SIDES } from "@/game/domain/core/dice";
 import { nextFxId, withFx, withPlayer, withPlayerAt, type MatchView } from "../matchView";
 import { tileOf } from "./helpers";
 import type { StepHandlers } from "./types";

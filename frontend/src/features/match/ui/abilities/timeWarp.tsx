@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { TIME_ROUNDS } from "@/game/domain/abilities";
-import { timeTargets } from "@/game/domain/newcomerAbilities";
+import { TIME_ROUNDS, timeTargets } from "@/game/domain/characters/cronos/timeWarp";
 import { TargetPicker } from "../hud/TargetPicker";
 import { seated } from "./seated";
 import type { AbilityContext, AbilityFlow, AbilityScene } from "./types";

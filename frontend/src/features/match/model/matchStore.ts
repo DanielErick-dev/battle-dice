@@ -1,7 +1,8 @@
 import type { GameClient, GameUpdate } from "@/game/application/gameClient";
-import type { AbilityPower } from "@/game/domain/abilities";
-import type { CardId } from "@/game/domain/cards";
-import { GameRuleError, type GameCommand, type GameErrorCode } from "@/game/domain/commands";
+import type { AbilityPower } from "@/game/domain/abilities/ability";
+import type { CardId } from "@/game/domain/cards/catalog";
+import { GameRuleError, type GameErrorCode } from "@/game/domain/core/errors";
+import type { GameCommand } from "@/game/domain/core/commands";
 import type { Board, TimedBlessing } from "@/game/domain/types";
 import { DEFAULT_TIMINGS, type PlaybackTimings } from "../config";
 import { canActivateAbility, canPlayCard, canRoll, createInitialView, type MatchView } from "./matchView";

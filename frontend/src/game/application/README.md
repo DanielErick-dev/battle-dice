@@ -18,7 +18,8 @@ online:   tela → WebSocketGameClient ──→ servidor FastAPI ──→ regr
 ```
 
 Para o multiplayer, basta escrever um `WebSocketGameClient` que implemente os mesmos três métodos:
+
 - `send` vira uma mensagem JSON para o servidor;
 - `subscribe` escuta as mensagens que voltam.
 
-O resto do frontend não muda. Esse padrão se chama **porta e adaptador** (*ports and adapters*, ou arquitetura hexagonal).
+O resto do frontend não muda. Esse padrão se chama **porta e adaptador** (_ports and adapters_, ou arquitetura hexagonal).

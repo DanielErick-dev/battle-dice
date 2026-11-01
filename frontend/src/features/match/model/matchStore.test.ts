@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LocalGameClient } from "@/game/application/localGameClient";
-import { CLASSIC_BOARD } from "@/game/domain/board";
-import { HAND_LIMIT } from "@/game/domain/cards";
-import { sequenceDice } from "@/game/domain/dice";
+import { CLASSIC_BOARD } from "@/game/domain/board/presets";
+import { HAND_LIMIT } from "@/game/domain/cards/hand";
+import { sequenceDice } from "@/game/domain/core/dice";
 import { seededRandom } from "@/game/domain/random";
-import { createGame } from "@/game/domain/engine";
+import { createGame } from "@/game/domain/core/engine";
 import type { CardInstance, GameState } from "@/game/domain/types";
 import { DEFAULT_TIMINGS } from "../config";
 import { MatchStore } from "./matchStore";

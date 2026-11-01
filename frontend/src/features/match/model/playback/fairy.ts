@@ -1,5 +1,5 @@
 /** Crystal Fairy: snow on the traps and the Eternal Winter. */
-import { MAX_ENERGY } from "@/game/domain/cards";
+import { MAX_ENERGY } from "@/game/domain/core/energy";
 import { nextFxId, withFx, withPlayer, type MatchView } from "../matchView";
 import { playerTileEffect } from "./helpers";
 import type { StepHandlers } from "./types";

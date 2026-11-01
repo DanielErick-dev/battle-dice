@@ -1,10 +1,10 @@
-import { freezableTiles, frozenTiles } from "@/game/domain/fairy";
-import { flammableTiles } from "@/game/domain/kunoichi";
-import { sealableTiles, sealedTiles } from "@/game/domain/seals";
-import { hauntableTiles, takenForSpecters } from "@/game/domain/specters";
-import { getTile } from "@/game/domain/board";
+import { freezableTiles, frozenTiles } from "@/game/domain/characters/fairy/winter";
+import { flammableTiles } from "@/game/domain/characters/kage/flames";
+import { sealableTiles, sealedTiles } from "@/game/domain/characters/scribe/seals";
+import { hauntableTiles, takenForSpecters } from "@/game/domain/characters/warden/specters";
+import { getTile } from "@/game/domain/board/board";
 import type { TileId } from "@/game/domain/types";
-import { riftAnchors, spellGround, spellTiles } from "@/game/domain/void";
+import { riftAnchors, spellGround, spellTiles } from "@/game/domain/characters/zarek/void";
 import type { MatchStore } from "../../model/matchStore";
 import type { PickCursor } from "../../scene/pickCursor";
 import { isVoidHarm, voidItemName } from "../voidText";

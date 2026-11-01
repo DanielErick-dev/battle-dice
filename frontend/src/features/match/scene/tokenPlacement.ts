@@ -1,5 +1,5 @@
 /** Where figures stand on the board and which way they face. */
-import { getTile } from "@/game/domain/board";
+import { getTile } from "@/game/domain/board/board";
 import type { Board, Player } from "@/game/domain/types";
 import type { MatchView } from "../model/matchView";
 import { tileOffsetFor, TILE_SIZE, type BoardLayout, type Vec3 } from "./boardLayout";

@@ -1,5 +1,5 @@
 import type { PointerEvent } from "react";
-import { CARD_CATALOG, cardCost, RARITY_LEVEL, type CardId } from "@/game/domain/cards";
+import { CARD_CATALOG, cardCost, RARITY_LEVEL, type CardId } from "@/game/domain/cards/catalog";
 import { cn } from "@/lib/utils";
 import { CARD_PALETTE, CardArt } from "./CardArt";
 import { cardText, EXCLUSIVE_LABEL, FUSED_LABEL, RARITY_LABEL, RELIC_LABEL } from "./cardText";

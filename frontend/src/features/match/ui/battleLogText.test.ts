@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { CLASSIC_BOARD } from "@/game/domain/board";
-import { createGame } from "@/game/domain/engine";
+import { CLASSIC_BOARD } from "@/game/domain/board/presets";
+import { createGame } from "@/game/domain/core/engine";
 import { battleLogLine } from "./battleLogText";
 
 const { players } = createGame(CLASSIC_BOARD, [

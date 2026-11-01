@@ -1,8 +1,8 @@
 import { LocalGameClient } from "@/game/application/localGameClient";
-import { randomDice } from "@/game/domain/dice";
-import { abilityCycle } from "@/game/domain/abilities";
-import { createGame } from "@/game/domain/engine";
-import type { BoardDefinition } from "@/game/domain/board";
+import { randomDice } from "@/game/domain/core/dice";
+import { abilityCycle } from "@/game/domain/abilities/charge";
+import { createGame } from "@/game/domain/core/engine";
+import type { BoardDefinition } from "@/game/domain/board/board";
 import type { RosterEntry } from "../characters";
 import { MatchStore } from "./matchStore";
 

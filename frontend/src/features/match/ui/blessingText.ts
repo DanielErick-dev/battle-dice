@@ -1,4 +1,4 @@
-import { BLESSING_TURNS, SPRING_ENERGY, WINGS_BONUS } from "@/game/domain/blessings";
+import { BLESSING_TURNS, SPRING_ENERGY, WINGS_BONUS } from "@/game/domain/board/blessings";
 import type { TimedBlessing } from "@/game/domain/types";
 
 /** Player-facing names of heaven's timed blessings (pt-BR) and what each does. */

@@ -1,4 +1,4 @@
-import type { GameEvent } from "@/game/domain/events";
+import type { GameEvent } from "@/game/domain/core/events";
 import type { PlaybackTimings } from "../../config";
 import type { MatchView } from "../matchView";
 

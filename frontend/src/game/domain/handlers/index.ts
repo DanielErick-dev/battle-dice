@@ -1,4 +1,4 @@
-import type { GameCommand } from "../commands";
+import type { GameCommand } from "../core/commands";
 import { abilityCommands } from "./abilityCommands";
 import { cardCommands } from "./cardCommands";
 import { turnCommands } from "./turnCommands";

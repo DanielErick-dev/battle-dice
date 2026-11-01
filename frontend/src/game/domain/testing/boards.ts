@@ -1,4 +1,4 @@
-import type { BoardDefinition } from "../board";
+import type { BoardDefinition } from "../board/board";
 
 /** A draining trap at 12 (back to 8) and a discard curse at 20; everything else plain. */
 export const TRAP_AND_CURSE_BOARD: BoardDefinition = {

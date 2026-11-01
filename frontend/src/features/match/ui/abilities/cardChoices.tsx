@@ -1,5 +1,7 @@
-import { RESURRECTION_CARDS, TRANSMUTATION_CARDS } from "@/game/domain/abilities";
-import { HAND_LIMIT, MAX_RARITY_LEVEL } from "@/game/domain/cards";
+import { RESURRECTION_CARDS } from "@/game/domain/characters/necromancer/resurrection";
+import { TRANSMUTATION_CARDS } from "@/game/domain/characters/alchemist/transmutation";
+import { HAND_LIMIT } from "@/game/domain/cards/hand";
+import { MAX_RARITY_LEVEL } from "@/game/domain/cards/catalog";
 import { CardChoicePicker } from "../cards/CardChoicePicker";
 import type { AbilityFlow } from "./types";
 

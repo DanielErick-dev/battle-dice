@@ -1,8 +1,9 @@
-import { playCard } from "../cardPlay";
-import { GameRuleError } from "../commands";
-import { throwOnPile } from "../deck";
-import { giveCard, playerIn, startDraft, updatePlayer } from "../draft";
-import { fuseCards } from "../fusion";
+import { playCard } from "../cards/play";
+import { GameRuleError } from "../core/errors";
+import { throwOnPile } from "../cards/decks";
+import { giveCard } from "../cards/hand";
+import { playerIn, startDraft, updatePlayer } from "../core/draft";
+import { fuseCards } from "../cards/fusion";
 import { assertCanAct, currentPlayer, KEEPS_TURN, pendingAnswer, settle } from "./shared";
 import type { CommandHandlers } from "./types";
 

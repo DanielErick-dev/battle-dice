@@ -1,5 +1,5 @@
 import { Crown, Droplet, Feather, Sparkle, Sun, type LucideIcon } from "lucide-react";
-import { CROWN_BONUS } from "@/game/domain/seraph";
+import { CROWN_BONUS } from "@/game/domain/characters/seraphiel/seraph";
 import type { Player, TimedBlessing } from "@/game/domain/types";
 import { cn } from "@/lib/utils";
 import { BLESSING_TEXT } from "../blessingText";

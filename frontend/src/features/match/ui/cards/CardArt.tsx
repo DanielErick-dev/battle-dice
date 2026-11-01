@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { CardId } from "@/game/domain/cards";
+import type { CardId } from "@/game/domain/cards/catalog";
 
 /** Background gradient behind each card's artwork. */
 export const CARD_PALETTE: Readonly<Record<CardId, { from: string; to: string }>> = {

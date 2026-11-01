@@ -1,6 +1,6 @@
 /** Small builders the playback handlers share. */
-import { type AbilityId } from "@/game/domain/abilities";
-import { blessingTurns } from "@/game/domain/blessings";
+import type { AbilityId } from "@/game/domain/abilities/ability";
+import { blessingTurns } from "@/game/domain/board/blessings";
 import type { PlayerId, TileId } from "@/game/domain/types";
 import type { PlaybackTimings } from "../../config";
 import { type MatchView, type TileEffectView } from "../matchView";

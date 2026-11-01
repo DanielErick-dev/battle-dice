@@ -13,7 +13,7 @@ import {
   type Mesh,
   type ShaderMaterial,
 } from "three";
-import { getTile } from "@/game/domain/board";
+import { getTile } from "@/game/domain/board/board";
 import type { Board, RealmTrack } from "@/game/domain/types";
 import type { BoardPicking } from "../BoardScene";
 import { TILE_HEIGHT, TILE_SIZE, type BoardLayout, type Vec3 } from "../boardLayout";

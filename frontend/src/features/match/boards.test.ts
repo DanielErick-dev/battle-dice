@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createBoard, getTile } from "@/game/domain/board";
+import { createBoard, getTile } from "@/game/domain/board/board";
 import { BOARD_PRESETS } from "./boards";
 
 describe.each(BOARD_PRESETS)("board preset $name", ({ definition }) => {

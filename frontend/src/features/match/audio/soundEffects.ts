@@ -1,5 +1,5 @@
-import type { AbilityId } from "@/game/domain/abilities";
-import type { CardId } from "@/game/domain/cards";
+import type { AbilityId } from "@/game/domain/abilities/ability";
+import type { CardId } from "@/game/domain/cards/catalog";
 import type { RealmKind } from "@/game/domain/types";
 import type { AudioEngine } from "./audioEngine";
 import { playSfx, type Synth } from "./synth";

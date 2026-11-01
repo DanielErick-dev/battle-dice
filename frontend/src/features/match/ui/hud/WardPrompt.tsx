@@ -1,5 +1,5 @@
 import { ShieldAlert } from "lucide-react";
-import type { AbilityId } from "@/game/domain/abilities";
+import type { AbilityId } from "@/game/domain/abilities/ability";
 import type { Threat } from "@/game/domain/types";
 import { ABILITY_TEXT } from "../abilityText";
 

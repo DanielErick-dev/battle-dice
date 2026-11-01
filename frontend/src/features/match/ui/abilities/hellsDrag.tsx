@@ -1,4 +1,4 @@
-import { dragTargets } from "@/game/domain/seraph";
+import { dragTargets } from "@/game/domain/characters/seraphiel/seraph";
 import { TargetPicker } from "../hud/TargetPicker";
 import { seated } from "./seated";
 import type { AbilityFlow, AbilityScene } from "./types";
