@@ -4,7 +4,7 @@ import { Sparkles } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import { AdditiveBlending, BackSide, Color, PlaneGeometry, SpriteMaterial, type Sprite } from "three";
-import { useCanvasTexture, type Painter } from "@/features/menu/stage/scenery/textures";
+import { useCanvasTexture, type Painter } from "@/features/menu/stage/scenery/kit/textures";
 import type { Vec3 } from "../boardLayout";
 import { useSoftDisc } from "../character/shared/softDisc";
 import { planDungeon } from "./dungeon";
