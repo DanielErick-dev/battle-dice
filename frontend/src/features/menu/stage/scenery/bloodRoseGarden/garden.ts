@@ -1,4 +1,14 @@
-import { CatmullRomCurve3, LatheGeometry, Object3D, Quaternion, Shape, ShapeGeometry, SphereGeometry, Vector2, Vector3 } from "three";
+import {
+  CatmullRomCurve3,
+  LatheGeometry,
+  Object3D,
+  Quaternion,
+  Shape,
+  ShapeGeometry,
+  SphereGeometry,
+  Vector2,
+  Vector3,
+} from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { seededRandom } from "@/game/domain/random";
 

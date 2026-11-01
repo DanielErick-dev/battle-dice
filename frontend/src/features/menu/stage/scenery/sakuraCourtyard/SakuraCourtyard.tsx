@@ -4,26 +4,22 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import {
   AdditiveBlending,
-  BufferAttribute,
-  BufferGeometry,
   Color,
   DoubleSide,
   MeshBasicMaterial,
   MeshStandardMaterial,
-  NormalBlending,
-  Object3D,
-  ShapeGeometry,
-  Shape,
   SpriteMaterial,
   type Group,
-  type InstancedMesh,
   type Sprite,
 } from "three";
-import { useSoftDisc } from "@/features/match/scene/character/softDisc";
-import { seededRandom } from "@/game/domain/random";
 import { ABOVE_FLOOR, GROUND_RADIUS, taperedTube } from "../kit/geometry";
-import { withDressing, type GroundDressing } from "../kit/groundDressing";
-import { useCanvasTexture, useNoiseTexture, type NoiseLook, type Painter } from "../kit/textures";
+import { useCanvasTexture, useNoiseTexture } from "../kit/textures";
+import { Blossoms } from "./Blossoms";
+import { FallingPetals } from "./FallingPetals";
+import { Notebook } from "./Notebook";
+import { NOTEBOOK_SIZE } from "./layout";
+import { BARK, paintCourtyardFloor, paintNotebookPage, STONE } from "./textures";
+import { useSoftDisc } from "../kit/matchAssets";
 
 /** Thick end first. The trunk rises at the back left; the boughs reach over the figure's head. */
 const TRUNK: [number, number, number][] = [
@@ -32,6 +28,7 @@ const TRUNK: [number, number, number][] = [
   [-0.64, 0.85, -0.56],
   [-0.48, 1.22, -0.5],
 ];
+
 const BOUGHS: { points: [number, number, number][]; radius: number }[] = [
   {
     points: [
@@ -67,26 +64,10 @@ const BOUGHS: { points: [number, number, number][]; radius: number }[] = [
     radius: 0.022,
   },
 ];
-/** Clouds of blossom along the boughs: centre and half-size. */
-const BLOSSOMS = [
-  { at: [0.18, 1.14, -0.7], size: [0.22, 0.12, 0.16] },
-  { at: [-0.12, 1.1, -0.74], size: [0.2, 0.11, 0.15] },
-  { at: [-0.4, 0.96, -0.68], size: [0.16, 0.1, 0.14] },
-  { at: [-1.02, 1.34, -0.24], size: [0.2, 0.13, 0.18] },
-  { at: [-0.84, 1.2, -0.42], size: [0.16, 0.1, 0.14] },
-  { at: [0.1, 1.52, -0.55], size: [0.24, 0.12, 0.18] },
-  { at: [-0.2, 1.46, -0.46], size: [0.2, 0.12, 0.16] },
-  { at: [-0.5, 1.3, -0.5], size: [0.18, 0.12, 0.16] },
-  { at: [-1.1, 0.74, -0.92], size: [0.14, 0.09, 0.12] },
-] as const;
-const BLOSSOM_POINTS = 70;
-const PETALS = 70;
-const PETAL_SIZE = 0.02;
-/** Where petals drift down through: under the boughs and across the stage. */
-const PETAL_BOX = { minX: -1.1, maxX: 0.7, minZ: -0.95, maxZ: 0.6, top: 1.5 };
+
 const LANTERN = { x: 0.66, z: -0.6 };
+
 const CANDLE = new Color("#ffc27a").multiplyScalar(2.2);
-const NOTEBOOK_SIZE: [number, number] = [0.14, 0.19];
 
 /** Akane's stage: a stone courtyard at dusk under a cherry tree shedding petals, notebooks and a stone lantern. */
 export function SakuraCourtyard() {
@@ -230,228 +211,3 @@ export function SakuraCourtyard() {
     </group>
   );
 }
-
-/** A closed notebook lying flat, `level` notebooks up its pile. */
-function Notebook({
-  cover,
-  paper,
-  level,
-}: {
-  cover: MeshStandardMaterial;
-  paper: MeshStandardMaterial;
-  level: number;
-}) {
-  const thickness = 0.016;
-  return (
-    <group position-y={level * thickness + thickness / 2} rotation-y={level * 0.25}>
-      <mesh material={cover}>
-        <boxGeometry args={[NOTEBOOK_SIZE[0], thickness, NOTEBOOK_SIZE[1]]} />
-      </mesh>
-      <mesh material={paper} position-x={0.003}>
-        <boxGeometry args={[NOTEBOOK_SIZE[0] - 0.004, thickness * 0.7, NOTEBOOK_SIZE[1] + 0.002]} />
-      </mesh>
-    </group>
-  );
-}
-
-/** Soft pink clouds of blossom: points scattered through each cluster, in a few shades. */
-function Blossoms() {
-  const disc = useSoftDisc();
-  const geometry = useMemo(() => {
-    const random = seededRandom(37);
-    const count = BLOSSOMS.length * BLOSSOM_POINTS;
-    const positions = new Float32Array(count * 3);
-    const colours = new Float32Array(count * 3);
-    const shades = ["#ffd1e3", "#f9a8d4", "#f487b6", "#ffe4ef"].map((shade) => new Color(shade));
-    let index = 0;
-    for (const { at, size } of BLOSSOMS) {
-      for (let point = 0; point < BLOSSOM_POINTS; point++) {
-        // Denser towards each cloud's heart.
-        const radius = Math.cbrt(random());
-        const theta = random() * Math.PI * 2;
-        const phi = Math.acos(2 * random() - 1);
-        positions.set(
-          [
-            at[0] + Math.sin(phi) * Math.cos(theta) * radius * size[0],
-            at[1] + Math.cos(phi) * radius * size[1],
-            at[2] + Math.sin(phi) * Math.sin(theta) * radius * size[2],
-          ],
-          index * 3,
-        );
-        const shade = shades[Math.floor(random() * shades.length)];
-        colours.set([shade.r, shade.g, shade.b], index * 3);
-        index++;
-      }
-    }
-    const result = new BufferGeometry();
-    result.setAttribute("position", new BufferAttribute(positions, 3));
-    result.setAttribute("color", new BufferAttribute(colours, 3));
-    return result;
-  }, []);
-  useEffect(() => () => geometry.dispose(), [geometry]);
-
-  return (
-    <points geometry={geometry}>
-      <pointsMaterial
-        map={disc}
-        size={0.075}
-        vertexColors
-        transparent
-        opacity={0.9}
-        depthWrite={false}
-        blending={NormalBlending}
-      />
-    </points>
-  );
-}
-
-/** Petals drifting down and fluttering, one instanced mesh. */
-function FallingPetals() {
-  const geometry = useMemo(() => {
-    // A petal with the notch at its tip that cherry petals have.
-    const shape = new Shape();
-    shape.moveTo(0, -0.5);
-    shape.bezierCurveTo(0.45, -0.3, 0.45, 0.3, 0.14, 0.5);
-    shape.lineTo(0, 0.36);
-    shape.lineTo(-0.14, 0.5);
-    shape.bezierCurveTo(-0.45, 0.3, -0.45, -0.3, 0, -0.5);
-    return new ShapeGeometry(shape, 6);
-  }, []);
-  const material = useMemo(
-    () =>
-      new MeshStandardMaterial({
-        color: "#f9b8d6",
-        emissive: "#f487b6",
-        emissiveIntensity: 0.25,
-        roughness: 0.8,
-        side: DoubleSide,
-      }),
-    [],
-  );
-  useEffect(
-    () => () => {
-      geometry.dispose();
-      material.dispose();
-    },
-    [geometry, material],
-  );
-  const petals = useMemo(() => {
-    const random = seededRandom(43);
-    return Array.from({ length: PETALS }, () => ({
-      x: PETAL_BOX.minX + random() * (PETAL_BOX.maxX - PETAL_BOX.minX),
-      z: PETAL_BOX.minZ + random() * (PETAL_BOX.maxZ - PETAL_BOX.minZ),
-      height: random() * PETAL_BOX.top,
-      speed: 0.07 + random() * 0.07,
-      phase: random() * Math.PI * 2,
-      spin: 1 + random() * 2,
-    }));
-  }, []);
-  const mesh = useRef<InstancedMesh>(null);
-  const dummy = useMemo(() => new Object3D(), []);
-
-  useFrame(({ clock }, delta) => {
-    if (!mesh.current) return;
-    const t = clock.elapsedTime;
-    petals.forEach((petal, index) => {
-      petal.height -= petal.speed * delta;
-      if (petal.height < 0) petal.height += PETAL_BOX.top;
-      dummy.position.set(
-        petal.x + Math.sin(t * 0.7 + petal.phase) * 0.12,
-        petal.height,
-        petal.z + Math.cos(t * 0.5 + petal.phase) * 0.06,
-      );
-      dummy.rotation.set(t * petal.spin + petal.phase, petal.phase, Math.sin(t * 1.5 + petal.phase) * 0.8);
-      dummy.scale.setScalar(PETAL_SIZE);
-      dummy.updateMatrix();
-      mesh.current!.setMatrixAt(index, dummy.matrix);
-    });
-    mesh.current.instanceMatrix.needsUpdate = true;
-  });
-
-  return <instancedMesh ref={mesh} args={[geometry, material, PETALS]} frustumCulled={false} />;
-}
-
-/** Pale pavers in staggered rows, mossy joints, the odd fallen petal; tinted by the dusk. */
-const paintPaving: Painter = (context, size, random) => {
-  context.fillStyle = "#2a2b26";
-  context.fillRect(0, 0, size, size);
-  const row = 84;
-  for (let y = 0; y < size; y += row) {
-    const offset = (y / row) % 2 ? row * 0.5 : 0;
-    for (let x = -offset; x < size;) {
-      const width = row * (0.8 + random() * 0.7);
-      const shade = 92 + random() * 26;
-      context.fillStyle = `rgb(${shade + 8},${shade},${shade + 2})`;
-      context.fillRect(x + 3, y + 3, width - 6, row - 6);
-      x += width;
-    }
-  }
-  for (let fleck = 0; fleck < 3000; fleck++) {
-    context.fillStyle = random() < 0.55 ? "rgba(40,36,38,0.3)" : "rgba(220,210,214,0.18)";
-    context.fillRect(random() * size, random() * size, 1 + random() * 2, 1 + random() * 2);
-  }
-  for (let tuft = 0; tuft < 90; tuft++) {
-    const y = Math.floor(random() * (size / row)) * row + (random() < 0.5 ? 0 : row - 3);
-    context.fillStyle = `rgba(70,96,52,${0.4 + random() * 0.3})`;
-    context.fillRect(random() * size, y - 1, 4 + random() * 10, 4);
-  }
-  for (let petal = 0; petal < 120; petal++) {
-    context.fillStyle = random() < 0.5 ? "rgba(249,168,212,0.9)" : "rgba(255,214,230,0.85)";
-    context.beginPath();
-    context.ellipse(
-      random() * size,
-      random() * size,
-      2.5 + random() * 2,
-      1.5 + random(),
-      random() * Math.PI,
-      0,
-      Math.PI * 2,
-    );
-    context.fill();
-  }
-};
-
-/** A ruled exercise-book page with a margin and lines of tidy notes. */
-const paintNotebookPage: Painter = (context, size, random) => {
-  context.fillStyle = "#f6f2e8";
-  context.fillRect(0, 0, size, size);
-  context.strokeStyle = "rgba(110,150,210,0.55)";
-  context.lineWidth = 1;
-  for (let line = 14; line < size; line += 9) {
-    context.beginPath();
-    context.moveTo(0, line);
-    context.lineTo(size, line);
-    context.stroke();
-  }
-  context.strokeStyle = "rgba(230,110,140,0.7)";
-  context.beginPath();
-  context.moveTo(18, 0);
-  context.lineTo(18, size);
-  context.stroke();
-  context.strokeStyle = "rgba(40,40,70,0.75)";
-  for (let line = 14; line < size - 10; line += 9) {
-    let x = 22;
-    const end = 60 + random() * 62;
-    context.beginPath();
-    while (x < end) {
-      const word = 6 + random() * 14;
-      context.moveTo(x, line - 2);
-      for (let step = 0; step < word; step += 2) context.lineTo(x + step, line - 2 - random() * 4);
-      x += word + 4;
-    }
-    context.stroke();
-  }
-};
-
-const BARK: NoiseLook = { base: [58, 42, 40], dark: [26, 18, 18], light: [96, 78, 74], fadeOut: false };
-const STONE: NoiseLook = { base: [96, 94, 90], dark: [52, 50, 48], light: [138, 134, 126], fadeOut: false };
-
-/** A stepping-stone path across the courtyard, petals piling up under the cherry tree (back left). */
-const COURTYARD_GROUND: GroundDressing = {
-  wash: { colour: "#f9a8d4", alpha: 0.25 },
-  path: { kind: "slabs", colour: "#8e8577", edge: "#4d463d", width: [0.15, 0.24], wind: 0.04 },
-  litter: [
-    { shape: "petal", colours: ["#f9a8d4", "#fbcfe8", "#f472b6"], count: 260, size: 4, pile: [0, 0.5, 0, 0.55] },
-  ],
-};
-const paintCourtyardFloor = withDressing(paintPaving, COURTYARD_GROUND);

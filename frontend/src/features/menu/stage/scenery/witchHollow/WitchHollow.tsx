@@ -14,12 +14,11 @@ import {
   type Sprite,
   type Texture,
 } from "three";
-import { usePropMesh } from "@/features/match/scene/character/props";
-import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
 import { ABOVE_FLOOR, GROUND_RADIUS, taperedTube } from "../kit/geometry";
-import { withDressing, type GroundDressing } from "../kit/groundDressing";
-import { useCanvasTexture, useNoiseTexture, type NoiseLook, type Painter } from "../kit/textures";
+import { useCanvasTexture, useNoiseTexture } from "../kit/textures";
+import { BARK, paintHollowFloor, paintToadstoolCap, STONE } from "./textures";
+import { usePropMesh, useSoftDisc } from "../kit/matchAssets";
 
 /** Thick end first: they come out of the earth past the rim, arch and dive back in (cut at the floor). */
 const ROOTS: { points: [number, number, number][]; radius: number }[] = [
@@ -68,6 +67,7 @@ const ROOTS: { points: [number, number, number][]; radius: number }[] = [
     radius: 0.035,
   },
 ];
+
 const MUSHROOMS = [
   { x: -0.62, z: -0.05, cap: 0.045, height: 0.08, lean: 0.15 },
   { x: -0.55, z: -0.02, cap: 0.028, height: 0.05, lean: -0.2 },
@@ -78,6 +78,7 @@ const MUSHROOMS = [
   { x: 0.8, z: 0.08, cap: 0.022, height: 0.04, lean: 0.2 },
   { x: -0.85, z: 0.35, cap: 0.03, height: 0.05, lean: 0.1 },
 ];
+
 /** A faint glow over each clump of mushrooms. */
 const SPORE_GLOWS = [
   { x: -0.6, z: -0.01, size: 0.32 },
@@ -85,20 +86,32 @@ const SPORE_GLOWS = [
   { x: 0.76, z: 0.1, size: 0.24 },
   { x: -0.85, z: 0.35, size: 0.18 },
 ];
+
 const STONES = 15;
+
 const STONE_RING = 0.6;
+
 const CAULDRON = { x: 0.46, z: -0.76 };
+
 /** It stands on legs this high. */
 const POT_LIFT = 0.07;
+
 /** The cauldron (a Meshy prop) is 2 tall in its export: drawn at this scale, half its height. */
 const POT_SCALE = 0.11;
+
 /** Its brim, from the export: 0.96 above the bottom and 0.48 across inside. */
 const BREW_Y = POT_LIFT + 0.96 * POT_SCALE;
+
 const BREW_RADIUS = 0.48 * POT_SCALE;
+
 const BUBBLES = 5;
+
 const STEAM = 8;
+
 const STEAM_RISE = 0.75;
+
 const BREW = new Color("#ff2436").multiplyScalar(1.6);
+
 const FLAME = new Color("#ff9a3a").multiplyScalar(2.2);
 
 /** The Crimson Witch's stage: a forest clearing, roots, glowing toadstools, a ring of stones and a blood-red brew. */
@@ -339,67 +352,3 @@ function glowSprite(map: Texture, color: Color, opacity: number): SpriteMaterial
     toneMapped: false,
   });
 }
-
-/** Dark loam with moss patches, fallen leaves and grit. */
-const paintForestFloor: Painter = (context, size, random) => {
-  context.fillStyle = "#18120e";
-  context.fillRect(0, 0, size, size);
-  for (let patch = 0; patch < 34; patch++) {
-    const x = random() * size;
-    const y = random() * size;
-    const radius = 20 + random() * 55;
-    const moss = context.createRadialGradient(x, y, 0, x, y, radius);
-    moss.addColorStop(0, `rgba(${38 + random() * 14},${54 + random() * 18},${26 + random() * 8},0.55)`);
-    moss.addColorStop(1, "rgba(30,40,20,0)");
-    context.fillStyle = moss;
-    context.fillRect(x - radius, y - radius, radius * 2, radius * 2);
-  }
-  for (let fleck = 0; fleck < 2600; fleck++) {
-    context.fillStyle = random() < 0.6 ? "rgba(6,4,3,0.4)" : "rgba(70,56,42,0.3)";
-    context.fillRect(random() * size, random() * size, 1 + random() * 2, 1 + random() * 2);
-  }
-  const leaves = ["#4a2312", "#5c1a14", "#3a2a14", "#6b2a16", "#2e1f12"];
-  for (let leaf = 0; leaf < 170; leaf++) {
-    context.fillStyle = leaves[Math.floor(random() * leaves.length)];
-    context.globalAlpha = 0.55 + random() * 0.35;
-    context.beginPath();
-    context.ellipse(
-      random() * size,
-      random() * size,
-      3 + random() * 5,
-      1.5 + random() * 2.5,
-      random() * Math.PI,
-      0,
-      Math.PI * 2,
-    );
-    context.fill();
-  }
-  context.globalAlpha = 1;
-};
-
-/** Red with pale warts; on a hemisphere's UVs the top of the canvas is the cap's crown. */
-const paintToadstoolCap: Painter = (context, size, random) => {
-  const gradient = context.createLinearGradient(0, 0, 0, size / 2);
-  gradient.addColorStop(0, "#d9182a");
-  gradient.addColorStop(1, "#7a0a14");
-  context.fillStyle = gradient;
-  context.fillRect(0, 0, size, size);
-  context.fillStyle = "#f3e6d4";
-  for (let wart = 0; wart < 22; wart++) {
-    context.beginPath();
-    context.arc(random() * size, random() * size * 0.42, 2 + random() * 4, 0, Math.PI * 2);
-    context.fill();
-  }
-};
-
-const BARK: NoiseLook = { base: [52, 38, 28], dark: [22, 15, 10], light: [86, 68, 50], fadeOut: false };
-const STONE: NoiseLook = { base: [72, 70, 66], dark: [34, 33, 31], light: [108, 104, 96], fadeOut: false };
-
-/** A muddy trail through the hollow, red autumn leaves and the glow of spores. */
-const HOLLOW_GROUND: GroundDressing = {
-  wash: { colour: "#ef4444", alpha: 0.22 },
-  patches: { colours: ["rgba(140,255,120,0.16)", "rgba(200,60,255,0.12)"], count: 14, radius: [14, 34] },
-  path: { kind: "dirt", colour: "rgba(70,48,32,0.9)", edge: "rgba(30,20,12,0.6)", width: [0.12, 0.24], wind: 0.06 },
-  litter: [{ shape: "leaf", colours: ["#b91c1c", "#ea580c", "#7c2d12"], count: 160, size: 5 }],
-};
-const paintHollowFloor = withDressing(paintForestFloor, HOLLOW_GROUND);

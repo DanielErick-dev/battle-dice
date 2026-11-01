@@ -73,12 +73,7 @@ export function Shrine({
         <mesh material={stone} position-y={0.012}>
           <cylinderGeometry args={[0.014, 0.016, 0.024, 10]} />
         </mesh>
-        <FlickerSprite
-          material={materials.votive}
-          look={VOTIVE_FLICKER}
-          shape={VOTIVE_FLAME}
-          position={[0, 0.05, 0]}
-        />
+        <FlickerSprite material={materials.votive} look={VOTIVE_FLICKER} shape={VOTIVE_FLAME} position={[0, 0.05, 0]} />
         <sprite material={materials.halo} position-y={0.04} scale={0.35} />
       </group>
     </group>

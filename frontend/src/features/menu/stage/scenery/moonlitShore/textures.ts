@@ -24,7 +24,12 @@ function drawSand(context: CanvasRenderingContext2D, size: number) {
     for (let x = 0; x <= size; x += 8) context.lineTo(x, y + Math.sin(x * 0.05 + line) * 5);
     context.stroke();
   }
-  speckle(context, size, random, { count: 4000, odds: 0.55, colours: ["rgba(50,48,44,0.35)", "rgba(196,190,176,0.3)"], spread: 1.5 });
+  speckle(context, size, random, {
+    count: 4000,
+    odds: 0.55,
+    colours: ["rgba(50,48,44,0.35)", "rgba(196,190,176,0.3)"],
+    spread: 1.5,
+  });
 }
 
 /** Light crests over a mid-blue, tiling, scrolled shorewards. */

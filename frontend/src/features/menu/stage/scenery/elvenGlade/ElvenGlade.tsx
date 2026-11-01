@@ -1,29 +1,31 @@
 "use client";
 
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo } from "react";
 import {
   AdditiveBlending,
   BufferAttribute,
   BufferGeometry,
   CatmullRomCurve3,
   Color,
-  DoubleSide,
   MeshStandardMaterial,
-  PlaneGeometry,
   SpriteMaterial,
   TubeGeometry,
   Vector3,
-  type Group,
 } from "three";
-import { Prop, usePropMesh } from "@/features/match/scene/character/props";
-import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import { GROUND_RADIUS, grassTuft, scatterAround } from "../kit/geometry";
-import { withDressing, type GroundDressing } from "../kit/groundDressing";
-import { useCanvasTexture, useNoiseTexture, type NoiseLook, type Painter } from "../kit/textures";
+import { GROUND_RADIUS } from "../kit/geometry";
+import { useCanvasTexture, useNoiseTexture } from "../kit/textures";
+import { Ferns } from "./Ferns";
+import { Fireflies } from "./Fireflies";
+import { GrassTufts } from "./GrassTufts";
+import { Target } from "./Target";
+import { ARROW_LENGTH } from "./layout";
+import { BARK, LICHEN, paintGladeFloor } from "./textures";
+import { Prop, usePropMesh, useSoftDisc } from "../kit/matchAssets";
 
 const LOG = { x: -0.2, z: -0.78, turn: 0.2, length: 0.9, radius: 0.085 };
+
 /** Roots of an old tree just off the stage, thick end first, arching out of the moss and diving back in. */
 const ROOTS = [
   {
@@ -53,37 +55,22 @@ const ROOTS = [
     ],
   },
 ];
-/** The target she practises on, turned towards the middle; `height` is the whole easel's. */
-const TARGET = { x: 0.58, z: -0.4, turn: -0.6, height: 0.55 };
-/** Arrows in the target's face: offset on it and slant. */
-const TARGET_ARROWS = [
-  { x: 0.02, y: 0.03, tilt: [0.08, -0.1] },
-  { x: -0.06, y: -0.04, tilt: [-0.05, 0.12] },
-];
+
 /** Arrows stuck in the ground at the front sides, as if from a volley. */
 const GROUND_ARROWS = [
   { x: -0.46, z: 0.42, tilt: [0.25, 0.15] },
   { x: -0.36, z: 0.52, tilt: [0.18, -0.2] },
   { x: 0.44, z: 0.48, tilt: [0.22, -0.18] },
 ];
-const ARROW_LENGTH = 0.3;
-const FERNS = [
-  { x: -0.68, z: -0.48, size: 1 },
-  { x: -0.78, z: 0.1, size: 0.75 },
-  { x: 0.32, z: -0.9, size: 0.9 },
-  { x: 0.8, z: -0.08, size: 0.7 },
-];
-const FRONDS = 7;
+
 const MUSHROOM_CLUSTERS = [
   { x: -0.02, z: -0.66, count: 4 },
   { x: 0.44, z: -0.76, count: 3 },
   { x: -0.5, z: -0.06, count: 3 },
   { x: 0.56, z: 0.2, count: 2 },
 ];
+
 const SPORE = new Color("#7dffc4");
-const TUFTS = 18;
-const FIREFLIES = 26;
-const FIREFLY = new Color("#e4ff7a").multiplyScalar(1.8);
 
 /**
  * The Elven Archer's stage instead of the rune pedestal: a mossy forest glade, roots and a fallen log, ferns,
@@ -217,270 +204,3 @@ function taperedRoot(points: Vec3[], radius: number): BufferGeometry {
   geometry.computeVertexNormals();
   return geometry;
 }
-
-/** Her target on its easel (PROPS.archerTarget), with a couple of her arrows in it. */
-function Target({ arrow }: { arrow: ReturnType<typeof usePropMesh> }) {
-  const target = usePropMesh("archerTarget");
-  const { x, z, turn, height } = TARGET;
-  return (
-    <group position={[x, 0, z]} rotation-y={turn}>
-      <Prop geometry={target.geometry} material={target.material} height={height} standing />
-      {/* On the face: its middle at about two thirds up, leaning back a little. */}
-      <group position={[0, height * 0.68, height * 0.2]} rotation-x={-0.18}>
-        {TARGET_ARROWS.map(({ x: ax, y, tilt }) => (
-          <group
-            key={`${ax}:${y}`}
-            position={[ax, y, ARROW_LENGTH / 2 - 0.05]}
-            rotation={[-Math.PI / 2 + tilt[0], 0, tilt[1]]}
-          >
-            <Prop geometry={arrow.geometry} material={arrow.material} height={ARROW_LENGTH} />
-          </group>
-        ))}
-      </group>
-    </group>
-  );
-}
-
-function Ferns() {
-  const texture = useCanvasTexture({ size: 128, height: 384, draw: paintFrond, seed: 61 });
-  const geometry = useMemo(() => {
-    const result = new PlaneGeometry(0.1, 0.34, 1, 8);
-    result.translate(0, 0.17, 0);
-    // Arched: the frond curls over further the farther out it reaches.
-    const position = result.getAttribute("position") as BufferAttribute;
-    for (let index = 0; index < position.count; index++) {
-      const along = position.getY(index) / 0.34;
-      position.setZ(index, along * along * 0.12);
-    }
-    result.computeVertexNormals();
-    return result;
-  }, []);
-  useEffect(() => () => geometry.dispose(), [geometry]);
-  const ferns = useRef<(Group | null)[]>([]);
-  const fronds = useMemo(() => {
-    const random = seededRandom(59);
-    return FERNS.map(() =>
-      Array.from({ length: FRONDS }, (_, index) => ({
-        turn: (index / FRONDS) * Math.PI * 2 + random() * 0.5,
-        tilt: 0.45 + random() * 0.5,
-        size: 0.75 + random() * 0.4,
-      })),
-    );
-  }, []);
-
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime;
-    ferns.current.forEach((fern, index) => {
-      if (!fern) return;
-      fern.rotation.z = 0.04 * Math.sin(t * 0.9 + index * 1.7);
-      fern.rotation.x = 0.03 * Math.sin(t * 0.7 + index);
-    });
-  });
-
-  return (
-    <>
-      {FERNS.map(({ x, z, size }, fern) => (
-        <group
-          key={`${x}:${z}`}
-          ref={(group) => {
-            ferns.current[fern] = group;
-          }}
-          position={[x, 0, z]}
-          scale={size}
-        >
-          {fronds[fern].map(({ turn, tilt, size: frond }, index) => (
-            <group key={index} rotation-y={turn}>
-              <mesh geometry={geometry} rotation-x={tilt} scale={frond}>
-                <meshStandardMaterial map={texture} alphaTest={0.4} side={DoubleSide} roughness={0.9} />
-              </mesh>
-            </group>
-          ))}
-        </group>
-      ))}
-    </>
-  );
-}
-
-function GrassTufts() {
-  const { variants, tufts } = useMemo(() => {
-    const random = seededRandom(67);
-    const root = new Color("#1f3310");
-    const tip = new Color("#8fbf3a");
-    const variants = [0, 1, 2].map(() => grassTuft(random, 9, 0.13, root, tip));
-    const tufts = scatterAround(random, TUFTS, 0.32, 0.92).map(([x, z], index) => ({
-      x,
-      z,
-      variant: index % variants.length,
-      size: 0.7 + random() * 0.7,
-      turn: random() * Math.PI * 2,
-      phase: random() * Math.PI * 2,
-    }));
-    return { variants, tufts };
-  }, []);
-  useEffect(() => () => variants.forEach((variant) => variant.dispose()), [variants]);
-  const meshes = useRef<(Group | null)[]>([]);
-
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime;
-    tufts.forEach(({ phase }, index) => {
-      const tuft = meshes.current[index];
-      if (tuft) tuft.rotation.z = 0.06 * Math.sin(t * 1.1 + phase);
-    });
-  });
-
-  return (
-    <>
-      {tufts.map(({ x, z, variant, size, turn }, index) => (
-        <group
-          key={index}
-          ref={(group) => {
-            meshes.current[index] = group;
-          }}
-          position={[x, 0, z]}
-        >
-          <mesh geometry={variants[variant]} rotation-y={turn} scale={size}>
-            <meshStandardMaterial vertexColors side={DoubleSide} roughness={0.9} />
-          </mesh>
-        </group>
-      ))}
-    </>
-  );
-}
-
-/** Wandering sparks that glow and go dark in turn; dark ones add nothing, being additive. */
-function Fireflies() {
-  const disc = useSoftDisc();
-  const { geometry, flies } = useMemo(() => {
-    const random = seededRandom(71);
-    const flies = Array.from({ length: FIREFLIES }, () => ({
-      x: (random() - 0.5) * 1.5,
-      y: 0.12 + random() * 1.25,
-      z: -0.95 + random() * 1.25,
-      phase: random() * Math.PI * 2,
-      rate: 0.5 + random() * 0.9,
-      wander: 0.06 + random() * 0.1,
-    }));
-    const geometry = new BufferGeometry();
-    geometry.setAttribute("position", new BufferAttribute(new Float32Array(FIREFLIES * 3), 3));
-    geometry.setAttribute("color", new BufferAttribute(new Float32Array(FIREFLIES * 3), 3));
-    return { geometry, flies };
-  }, []);
-  useEffect(() => () => geometry.dispose(), [geometry]);
-
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime;
-    const positions = geometry.getAttribute("position") as BufferAttribute;
-    const colors = geometry.getAttribute("color") as BufferAttribute;
-    flies.forEach(({ x, y, z, phase, rate, wander }, index) => {
-      positions.setXYZ(
-        index,
-        x + Math.sin(t * 0.31 * rate + phase) * wander * 2,
-        y + Math.sin(t * 0.47 * rate + phase * 2) * wander,
-        z + Math.cos(t * 0.27 * rate + phase) * wander * 2,
-      );
-      const glow = Math.max(0, Math.sin(t * rate + phase)) ** 3;
-      colors.setXYZ(index, FIREFLY.r * glow, FIREFLY.g * glow, FIREFLY.b * glow);
-    });
-    positions.needsUpdate = true;
-    colors.needsUpdate = true;
-  });
-
-  return (
-    <points geometry={geometry}>
-      <pointsMaterial
-        map={disc}
-        vertexColors
-        size={0.055}
-        transparent
-        blending={AdditiveBlending}
-        depthWrite={false}
-        toneMapped={false}
-      />
-    </points>
-  );
-}
-
-/** Moss in mottled greens, bare earth showing through, blades of grass and a few fallen leaves. */
-const paintMossFloor: Painter = (context, size, random) => {
-  context.fillStyle = "#26361a";
-  context.fillRect(0, 0, size, size);
-  const blot = (x: number, y: number, radius: number, colour: string) => {
-    const gradient = context.createRadialGradient(x, y, 0, x, y, radius);
-    gradient.addColorStop(0, colour);
-    gradient.addColorStop(1, "rgba(0,0,0,0)");
-    context.fillStyle = gradient;
-    context.fillRect(x - radius, y - radius, radius * 2, radius * 2);
-  };
-  for (let index = 0; index < 40; index++)
-    blot(random() * size, random() * size, 14 + random() * 30, "rgba(58,40,24,0.7)");
-  for (let index = 0; index < 220; index++) {
-    const green = random() < 0.5 ? "rgba(84,124,40,0.55)" : "rgba(40,70,26,0.6)";
-    blot(random() * size, random() * size, 8 + random() * 26, green);
-  }
-  context.lineCap = "round";
-  for (let index = 0; index < 4200; index++) {
-    const x = random() * size;
-    const y = random() * size;
-    const angle = random() * Math.PI * 2;
-    const length = 2 + random() * 6;
-    const light = random();
-    context.strokeStyle =
-      light < 0.4 ? "rgba(140,190,70,0.45)" : light < 0.8 ? "rgba(60,96,32,0.5)" : "rgba(18,28,12,0.5)";
-    context.lineWidth = 0.8 + random();
-    context.beginPath();
-    context.moveTo(x, y);
-    context.lineTo(x + Math.cos(angle) * length, y + Math.sin(angle) * length);
-    context.stroke();
-  }
-  for (let index = 0; index < 90; index++) {
-    context.save();
-    context.translate(random() * size, random() * size);
-    context.rotate(random() * Math.PI);
-    context.fillStyle = ["rgba(176,140,48,0.75)", "rgba(140,92,36,0.7)", "rgba(156,170,60,0.7)"][index % 3];
-    context.beginPath();
-    context.ellipse(0, 0, 4 + random() * 3, 2 + random() * 1.5, 0, 0, Math.PI * 2);
-    context.fill();
-    context.restore();
-  }
-};
-
-/** A fern frond on transparent: a stalk with paired leaflets shrinking towards the tip. */
-const paintFrond: Painter = (context, size, random) => {
-  const width = 128;
-  const height = 384;
-  context.strokeStyle = "#3d5a1c";
-  context.lineWidth = 3;
-  context.beginPath();
-  context.moveTo(width / 2, height);
-  context.lineTo(width / 2, 6);
-  context.stroke();
-  for (let y = height - 20; y > 10; y -= 14) {
-    const along = 1 - y / height;
-    const reach = (width / 2 - 6) * Math.sin(Math.PI * Math.min(1, 0.25 + along * 0.85)) * (1 - along * 0.55);
-    for (const side of [-1, 1]) {
-      const shade = 90 + random() * 50;
-      context.fillStyle = `rgb(${shade * 0.45},${shade},${shade * 0.3})`;
-      context.save();
-      context.translate(width / 2, y);
-      context.rotate(side * -0.35);
-      context.beginPath();
-      context.ellipse((side * reach) / 2, 0, reach / 2, 5.5, 0, 0, Math.PI * 2);
-      context.fill();
-      context.restore();
-    }
-  }
-};
-
-const BARK: NoiseLook = { base: [62, 46, 32], dark: [30, 22, 16], light: [96, 78, 56], fadeOut: false };
-const LICHEN: NoiseLook = { base: [70, 104, 38], dark: [36, 58, 22], light: [124, 160, 66], fadeOut: false };
-
-/** A dirt trail worn by her steps through the moss, fallen leaves and pebbles. */
-const GLADE_GROUND: GroundDressing = {
-  wash: { colour: "#4ade80", alpha: 0.25 },
-  path: { kind: "dirt", colour: "rgba(110,84,52,0.9)", edge: "rgba(60,44,26,0.6)", width: [0.12, 0.24], wind: 0.06 },
-  litter: [
-    { shape: "leaf", colours: ["#c9a43a", "#8a5a24", "#6f9a2e"], count: 140, size: 5 },
-    { shape: "pebble", colours: ["#77705f", "#5a5547"], count: 40, size: 3 },
-  ],
-};
-const paintGladeFloor = withDressing(paintMossFloor, GLADE_GROUND);

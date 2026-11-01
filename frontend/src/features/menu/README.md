@@ -25,11 +25,23 @@ O menu principal, a tela de montar a partida (modo, jogadores, personagens) e as
 | `seraphEntrance.ts` | Os tempos da entrada do Seraphiel: batidas de asa e rajadas de vento (tem teste) |
 | `WindGusts.tsx` | Penas e brilhos que saem das pontas das asas a cada batida |
 | `layout.ts` | Altura do personagem e onde fica o chão |
-| `scenery/` | Os cenários próprios de cada personagem no lugar do pedestal (tabela abaixo). O `index.ts` é o registro (`SCENERY`): cenário novo = um arquivo + uma linha lá + `stage` na ficha do personagem. Cada entrada também diz se o palco fica escuro (`dim`), a cor da luz (`light`) e se tem clima próprio (`weather`, que desliga as partículas). `textures.ts` reúne todas as texturas de canvas: `useCanvasTexture` pinta uma textura a partir de uma função `Painter` de módulo (com semente, esmaecer até a borda, repetição e altura opcionais), `useCanvasTextures` faz várias de uma vez e `useNoiseTexture` desenha as granuladas (terra, neve, pedra, mármore); `sceneryKit.ts` reúne a geometria: tubos afunilados (raízes, troncos), rochas amassadas (`roughen`), tufos de grama, `scatterAround` (espalha objetos sem tapar os pés) e o plano que corta o que fica abaixo do chão |
+| `scenery/` | Os cenários próprios de cada personagem no lugar do pedestal (tabela abaixo). O `index.ts` é o registro (`SCENERY`): cenário novo = uma pasta + uma linha lá + `stage` na ficha do personagem. Cada entrada também diz se o palco fica escuro (`dim`), a cor da luz (`light`) e se tem clima próprio (`weather`, que desliga as partículas). |
 
 ### Cenários (`stage/scenery/`)
 
-| Arquivo | Personagem | O que tem |
+Cada cenário tem a **sua pasta** (`moonlitShore/`, `witchHollow/`…), sempre no mesmo formato:
+
+| Arquivo | O que tem |
+|---|---|
+| `<Cenario>.tsx` | O componente principal: materiais e a montagem da cena |
+| `textures.ts` | As texturas pintadas em canvas daquele cenário (funções `Painter` e os `CanvasLook`/`NoiseLook`) |
+| `layout.ts` | Posições e números usados por mais de uma peça (onde fica cada pedra, quantas bolhas…) |
+| `<Peca>.tsx` | Uma peça animada ou repetida (ex.: `Bubbles`, `Seaweed`, `Lightning`) |
+
+O que é comum a vários cenários fica em `kit/`: `textures.ts` (`useCanvasTexture`, `useNoiseTexture`), `geometry.ts` (tubos afunilados, rochas, o raio do chão), `Floor.tsx` (o chão pintado), `materials.ts`, `motion.ts` (balanços e pulsos), `groundDressing.ts` (pétalas e folhas espalhadas no chão), peças prontas (`GlowPoints`, `GroundMist`, `GrassTufts`, `FallingPetals`, `FlickerSprite`) e `dispose.ts`. A arte da partida que os cenários reaproveitam (props, disco suave, gelo, runas) entra **só** por `kit/matchAssets.ts`: se algo mudar de lugar lá, o conserto é em um arquivo.
+
+
+| Pasta | Personagem | O que tem |
 |---|---|---|
 | `Graveyard` | Necromante | Cemitério |
 | `FrozenWastes` | Bjorn | Neve, cristais de geleira, rochas e nevasca |
