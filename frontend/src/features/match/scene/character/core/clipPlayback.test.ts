@@ -5,7 +5,9 @@ import {
   CROSSFADE_SECONDS,
   crossfadeSeconds,
   RUN_TO_SIT_CROSSFADE_SECONDS,
+  HANDOVER_SECONDS,
   SETTLE_CROSSFADE_SECONDS,
+  shownSeconds,
   SIT_CROSSFADE_SECONDS,
 } from "./clipPlayback";
 
@@ -18,9 +20,20 @@ describe("blending clips", () => {
   });
 
   it("lets an intro, cast or landing settle into the next loop", () => {
-    for (const from of ["intro", "cast", "land"] as const)
+    for (const from of ["intro", "cast", "land", "guard"] as const)
       expect(crossfadeSeconds(from, "idle")).toBe(SETTLE_CROSSFADE_SECONDS);
     expect(crossfadeSeconds("idle", "run")).toBe(CROSSFADE_SECONDS);
+  });
+});
+
+describe("handing over to the next clip", () => {
+  it("hands a one-shot over before its end, while the body still moves", () => {
+    expect(shownSeconds("intro", 4)).toBeCloseTo(4 - HANDOVER_SECONDS);
+    expect(shownSeconds("guard", 1)).toBeCloseTo(0.85);
+  });
+
+  it("keeps loops whole", () => {
+    expect(shownSeconds("idle", 7.8)).toBe(7.8);
   });
 });
 

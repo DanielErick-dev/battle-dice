@@ -29,10 +29,22 @@ export const CLIP_PLAYBACK: Readonly<Record<CharacterClip, ClipPlayback>> = {
 
 export const CHARACTER_CLIPS = Object.keys(CLIP_PLAYBACK) as readonly CharacterClip[];
 
+/**
+ * A one-shot clip hands over to the next this long before its end (at most this share of it), so the blend
+ * starts while the body still moves instead of freezing on its last pose and then melting into the next.
+ */
+export const HANDOVER_SECONDS = 0.4;
+const HANDOVER_SHARE = 0.15;
+
+/** Seconds a clip of `duration` is shown before the next takes over (one-shots hand over early). */
+export function shownSeconds(clip: CharacterClip, duration: number): number {
+  return CLIP_PLAYBACK[clip].once ? duration - Math.min(HANDOVER_SECONDS, duration * HANDOVER_SHARE) : duration;
+}
+
 /** Seconds to blend from one clip into the next. */
 export const CROSSFADE_SECONDS = 0.25;
 /** Slower blend out of an intro, cast or landing, so its final pose settles into the next loop. */
-export const SETTLE_CROSSFADE_SECONDS = 0.8;
+export const SETTLE_CROSSFADE_SECONDS = 0.6;
 /** Sitting down on the chair, and getting up off it: unhurried. */
 export const SIT_CROSSFADE_SECONDS = 1.2;
 /** Straight from a run onto the chair: quick, or the legs keep running through it as it appears. */
@@ -43,7 +55,8 @@ export function crossfadeSeconds(previous: CharacterClip | null, next: Character
   if (next === "rest" && previous === "sit") return CROSSFADE_SECONDS;
   if (next === "rest" && previous === "run") return RUN_TO_SIT_CROSSFADE_SECONDS;
   if (next === "rest" || previous === "rest") return SIT_CROSSFADE_SECONDS;
-  if (previous === "intro" || previous === "cast" || previous === "land") return SETTLE_CROSSFADE_SECONDS;
+  if (previous === "intro" || previous === "cast" || previous === "land" || previous === "guard")
+    return SETTLE_CROSSFADE_SECONDS;
   return CROSSFADE_SECONDS;
 }
 

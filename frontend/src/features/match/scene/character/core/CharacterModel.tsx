@@ -5,7 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, type ReactNode, type RefObject } from "react";
 import { AnimationMixer, Box3, LoopOnce, Vector3, type AnimationAction, type Object3D } from "three";
 import type { CharacterClip, ClipLengths } from "../../../characters";
-import { CHARACTER_CLIPS, CLIP_PLAYBACK, clipToPlay, crossfadeSeconds } from "./clipPlayback";
+import { CHARACTER_CLIPS, CLIP_PLAYBACK, clipToPlay, crossfadeSeconds, shownSeconds } from "./clipPlayback";
 import { prepareFigure } from "./figureMaterials";
 
 interface CharacterModelProps {
@@ -67,8 +67,8 @@ export function CharacterModel({
     const lengths: ClipLengths = {};
     for (const name of CHARACTER_CLIPS) {
       const duration = clips.get(name)?.duration;
-      // As long as it lasts on screen, at this character's intro speed.
-      if (duration !== undefined) lengths[name] = duration / (name === "intro" ? introSpeed : 1);
+      // As long as it's shown on screen (one-shots hand over a little early), at this character's intro speed.
+      if (duration !== undefined) lengths[name] = shownSeconds(name, duration) / (name === "intro" ? introSpeed : 1);
     }
     onClipLengths?.(lengths);
   }, [clips, onClipLengths, introSpeed]);

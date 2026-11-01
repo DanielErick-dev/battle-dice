@@ -17,7 +17,8 @@ import { SmokeCloud } from "@/features/match/scene/character/alchemist/SmokeClou
 import { Wings } from "@/features/match/scene/character/accessories/Wings";
 import { HeadCrown } from "@/features/match/scene/character/accessories/HeadCrown";
 import { FrostWand } from "@/features/match/scene/character/fairy/FrostWand";
-import { JusticeScale } from "@/features/match/scene/character/themis/JusticeScale";
+import { JusticeSword } from "@/features/match/scene/character/themis/JusticeSword";
+import { ThemisIntro } from "@/features/match/scene/character/themis/ThemisIntro";
 import { EnergyBlades } from "@/features/match/scene/character/zarek/EnergyBlades";
 import { ArcherIntro } from "@/features/match/scene/character/archer/ArcherIntro";
 import { BoneRise } from "@/features/match/scene/character/necromancer/BoneRise";
@@ -40,8 +41,6 @@ import { FIGURE_HEIGHT, FLOOR_Y } from "./layout";
 import { GUSTS, gustAt, wingStroke } from "./seraphEntrance";
 import { WindGusts, type WingTips } from "./WindGusts";
 
-/** The intro's last pose is held this long before the showcase. */
-const INTRO_HOLD_MS = 700;
 /** A levitating character's hover over the pedestal (on top of its float clip's own lift) and bob. */
 const HOVER_HEIGHT = 0.36;
 const HOVER_BOB = 0.035;
@@ -68,6 +67,8 @@ export function Presentation({
   const frost = character.introFrost;
   const showcase: CharacterClip = character.levitates ? "float" : "showcase";
   const pourSeconds = character.introPourSeconds;
+  const sword = character.introSword;
+  const introVoice = character.introVoice;
   const clip = useRef<CharacterClip>("intro");
   const hovering = useRef(false);
   const hover = useRef<Group>(null);
@@ -115,6 +116,8 @@ export function Presentation({
     hover.current.position.y = lift * HOVER_HEIGHT + Math.sin(state.clock.elapsedTime * 1.6) * HOVER_BOB * lift;
   });
   const inIntro = useRef(false);
+  /** Themis's sword, planted in the ground through her intro instead of in her hand. */
+  const swordAway = useRef(false);
   /** A hand prop is out through the intro and the showcase, not the plain idle. */
   const propOut = useRef(false);
   const timers = useRef<number[]>([]);
@@ -137,10 +140,32 @@ export function Presentation({
             hovering.current = floats;
             if (floats) setBurst(performance.now());
           },
-          introMs > 0 ? introMs + INTRO_HOLD_MS : floats ? RISE_DELAY_MS : 0,
+          // Straight on from the intro (it hands over before its end, see shownSeconds): a held last pose looks frozen.
+          introMs > 0 ? introMs : floats ? RISE_DELAY_MS : 0,
         ),
       ];
       if (introMs > 0 && frost) timers.current.push(window.setTimeout(sounds.groundBreak, frost.impactSeconds * 1000));
+      swordAway.current = false;
+      if (introMs > 0 && introVoice)
+        timers.current.push(
+          window.setTimeout(
+            () => sounds.voice(introVoice.src),
+            (introVoice.seconds / (character.introSpeed ?? 1)) * 1000,
+          ),
+        );
+      if (introMs > 0 && sword) {
+        const speed = character.introSpeed ?? 1;
+        timers.current.push(
+          window.setTimeout(
+            () => {
+              swordAway.current = true;
+              sounds.groundBreak();
+            },
+            (sword.plantSeconds / speed) * 1000,
+          ),
+          window.setTimeout(() => (swordAway.current = false), (sword.catchSeconds / speed) * 1000),
+        );
+      }
       const pourAt = (pourSeconds ?? Infinity) * 1000;
       if (introMs > 0 && pourAt < introMs) {
         timers.current.push(
@@ -157,7 +182,7 @@ export function Presentation({
         );
       }
     },
-    [showcase, pourSeconds, frost, sounds],
+    [showcase, pourSeconds, frost, sounds, sword, character.introSpeed, introVoice],
   );
   useEffect(() => () => timers.current.forEach((timer) => window.clearTimeout(timer)), []);
 
@@ -242,7 +267,15 @@ export function Presentation({
                   <Wings figure={figure} wings={character.wings} stroke={stroke} tips={entrance ? tips : undefined} />
                 )}
                 {character.crown && <HeadCrown figure={figure} crown={character.crown} />}
-                {character.holdsScale && <JusticeScale figure={figure} />}
+                {character.holdsSword && <JusticeSword figure={figure} away={swordAway} />}
+                {character.introSword && (
+                  <ThemisIntro
+                    figure={figure}
+                    size={FIGURE_HEIGHT}
+                    beats={character.introSword}
+                    speed={character.introSpeed}
+                  />
+                )}
                 {character.handProp === "vial" && (
                   <HeldVial figure={figure} color={character.color} active={propOut} tilt={tilt} mouth={mouth} />
                 )}
