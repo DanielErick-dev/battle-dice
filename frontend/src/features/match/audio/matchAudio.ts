@@ -52,7 +52,9 @@ const EFFECT_SOUNDS: Record<TileEffectKind, (sounds: MatchSounds, effect: TileEf
   crown: (sounds, effect) => (effect.crown === "infernal" ? sounds.powerUp() : sounds.bonus()),
   heavenBarred: (sounds) => sounds.penalty(),
   dragged: (sounds) => sounds.realmGate("infernal"),
+  // Reactive, so no abilityUsed carries her line: the verdict itself does.
   verdict: (sounds) => {
+    sounds.abilityVoice("silentVerdict");
     sounds.shieldBlock();
     sounds.thunder(0.9);
   },

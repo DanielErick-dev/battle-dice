@@ -3,7 +3,7 @@ import type { CardId } from "@/game/domain/cards/catalog";
 import type { RealmKind } from "@/game/domain/types";
 import type { AudioEngine } from "./audioEngine";
 import { playSfx, type Synth } from "./synth";
-import { ABILITY_VOICES } from "./voices";
+import { ABILITY_VOICES, voiceTake } from "./voices";
 
 /** Sounds the match can play. Kept as an interface so tests and a future asset-based player can swap in. */
 export interface MatchSounds {
@@ -212,7 +212,7 @@ export class SynthSounds implements MatchSounds {
     const line = ABILITY_VOICES[ability];
     if (!line) return;
     // Until the recording is in, the Berserker roars all the same.
-    void this.engine.playSample(line.src, "voice", line.delay).then((played) => {
+    void this.engine.playSample(voiceTake(line), "voice", line.delay).then((played) => {
       if (!played && ability === "untamed") this.roar(line.delay);
     });
   };

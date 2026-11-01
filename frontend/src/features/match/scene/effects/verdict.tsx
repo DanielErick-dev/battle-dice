@@ -1,13 +1,13 @@
-/** Themis: the scales in her hand and the Silent Verdict's giant one. */
+/** Themis: the sword in her hand and the Silent Verdict's giant one. */
 import type { Object3D } from "three";
 import { TILE_HEIGHT } from "../boardLayout";
 import { EFFECT_SCALE } from "../character/core/figure";
-import { JusticeScale } from "../character/themis/JusticeScale";
+import { JusticeSword } from "../character/themis/JusticeSword";
 import { VerdictScale } from "../character/themis/VerdictScale";
 import type { BoardFx, TokenFx } from "./types";
 
-export function HeldScale({ token, figure }: { token: TokenFx; figure: Object3D }) {
-  return token.character?.holdsScale && <JusticeScale figure={figure} />;
+export function HeldSword({ token, figure }: { token: TokenFx; figure: Object3D }) {
+  return token.character?.holdsSword && <JusticeSword figure={figure} />;
 }
 
 /** Stands between the judge and the one judged, its arm pointing at them. */

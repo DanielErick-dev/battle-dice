@@ -19,8 +19,8 @@ export const OPTIONAL_CLIPS = [
   "scoff",
 ];
 
-// Clips borrowed by everyone without their own (one fall, one way of sitting and one of slowing to a stop fit every body).
-export const SHARED_CLIPS = { knocked: "zarek", rest: "auric", brake: "themis" };
+// Clips borrowed by everyone without their own (one fall and one way of sitting fit every body).
+export const SHARED_CLIPS = { knocked: "zarek", rest: "auric" };
 
 // `sequences` build a clip from files in parts/, played back to back (syntax: docs/assets.md).
 const MODELS = {
@@ -41,20 +41,14 @@ const MODELS = {
   kage: {},
   fairy: {},
   zephyr: {},
-  // Themis: one raised hand is both her intro and her pointing at the judged; she slows to a walk on
-  // arriving, turns and sits (resting on the sit's last pose); her verdict is a guard, the point and a scoff.
+  // Themis: her intro plants the sword in the ground, kneeling, then rises and gestures (the scale appears in
+  // her hand, see ThemisIntro); her verdict sweeps the attack aside with her arm. She sits and falls with the
+  // shared clips.
   themis: {
-    // Her parts were made on her first model; her idle and run are the Lady Justice one's.
+    // Her parts were made on the Blindfolded Oracle body; her idle and run are the Lady Justice one's.
     retargetParts: true,
-    sequences: {
-      intro: ["raise-hand"],
-      cast: ["raise-hand"],
-      brake: ["run-to-walk@1.2"],
-      sit: ["step-to-sit@2.2"],
-      rest: ["step-to-sit@4.7"],
-      guard: ["guard@1.2-2.6"],
-      scoff: ["scoff@0.4-3.2"],
-    },
+    // The sweep runs 0.4–2.1 s; the rest of the export just stands.
+    sequences: { intro: ["sword-plant"], guard: ["negation@0.3-2.4"] },
   },
   akane: {},
   // Only the first thrust: the export walks on into a second push.

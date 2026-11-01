@@ -27,6 +27,8 @@ const PROPS = {
   voidWraith: { file: "zarek/props/wraith.glb", vertices: 10_000, texture: 1024 },
   // Themis's scales of justice, hanging from her hand.
   justiceScale: { file: "themis/props/scale.glb", vertices: 8_000, texture: 1024 },
+  // Her sword, held point down at her right side.
+  justiceSword: { file: "themis/props/sword.glb", vertices: 6_000, texture: 1024 },
   // Her wings, flapped in code (Meshy can't rig a winged figure): see Wings.
   fairyWings: { file: "fairy/props/wings.glb", vertices: 8_000, texture: 1024 },
   seraphWings: { file: "seraphiel/props/wings.glb", vertices: 8_000, texture: 1024 },

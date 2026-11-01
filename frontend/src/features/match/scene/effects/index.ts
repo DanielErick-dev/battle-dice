@@ -16,7 +16,7 @@ import { Fall, HeavenChains, HellsDrag } from "./seraph";
 import { Apparitions } from "./specters";
 import { Gate, HiddenTrap } from "./tiles";
 import { HandVial, VialThrow } from "./transmutation";
-import { HeldScale, Verdict } from "./verdict";
+import { HeldSword, Verdict } from "./verdict";
 import { LightBlades, Rifts, SmashedTraps, TheVoid, VoidAtWork } from "./void";
 import type { BoardEffect, FigureEffect, TokenEffect } from "./types";
 import { BackWings, WornCrown } from "./wings";
@@ -50,7 +50,7 @@ export const TOKEN_EFFECTS: {
   ],
   ground: [FuryField, DashLanding, LevitationGlow, LevitationCast],
   body: [SusanooArmour, VialThrow],
-  figure: [LightBlades, LimbBolts, LevitationStaff, HandVial, FrostWandProp, HeldScale, BackWings, WornCrown, SlungBow],
+  figure: [LightBlades, LimbBolts, LevitationStaff, HandVial, FrostWandProp, HeldSword, BackWings, WornCrown, SlungBow],
 };
 
 /** On the board, mounted before the figures. */

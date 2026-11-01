@@ -56,8 +56,8 @@ export interface CharacterDefinition {
   castImpactSeconds?: number;
   /** Tint of their Arcane Shield bubble (cyan by default). */
   shieldColor?: string;
-  /** Holds the scales of justice in the left hand, always (see JusticeScale). */
-  holdsScale?: boolean;
+  /** Holds her sword in the right hand, always (see JusticeSword). */
+  holdsSword?: boolean;
   /** A prop made in code, held in the right hand in the moves that use it (see HeldVial). */
   handProp?: "vial";
   /** Carries her bow slung on her back, drawn for her ability (see BackBow). */
@@ -96,6 +96,10 @@ export interface CharacterDefinition {
   introCards?: IntroCardBeats;
   /** A bow of light is drawn and an arrow loosed into the sky through the intro (see ArcherIntro). */
   introArrows?: IntroArrowBeats;
+  /** She plants her sword in the ground through the intro and calls it back to her hand (see ThemisIntro). */
+  introSword?: IntroSwordBeats;
+  /** A line they say through their intro on the menu stage, `seconds` into it (a file in public/audio/voices). */
+  introVoice?: { src: string; seconds: number };
   /** Through the intro they write a sigil in the air that bursts into four scrolls (see ScribeIntro). */
   introSeals?: IntroSealBeats;
   /** Bones and skulls rise from the ground round them through the intro (see BoneRise). */
@@ -139,6 +143,18 @@ export interface IntroCardBeats {
   spinSeconds: number;
   /** Seconds into the intro when the pose is struck: the cards gather into the raised hand. */
   revealSeconds: number;
+}
+
+/** Beats of Themis's intro (see ThemisIntro). */
+export interface IntroSwordBeats {
+  /** Seconds into the intro clip when the sword strikes the ground and stays planted there. */
+  plantSeconds: number;
+  /** When it starts to tremble, called back by her gestures. */
+  trembleSeconds: number;
+  /** When it tears itself out of the ground. */
+  riseSeconds: number;
+  /** When it lands back in her fist. */
+  catchSeconds: number;
 }
 
 /** Beats of an intro the bow of light follows (see CharacterDefinition.introArrows). */
@@ -379,11 +395,14 @@ export const CHARACTERS = {
     model: model("themis"),
     ability: "silentVerdict",
     playable: true,
-    holdsScale: true,
-    shieldColor: "#2563eb",
+    holdsSword: true,
+    shieldColor: "#d4af37", // tribunal gold
     chair: "moonThrone",
-    // Her sit leaves the hips higher than the shared rest (0.69 of standing against 0.54), turned to her left.
-    seat: { scale: 1.28, turn: 1.52 },
+    // Her intro at a stately pace; the beats follow the clip (fist on the floor at 0.75 s, coming down to her side by 3 s).
+    introSpeed: 0.85,
+    introSword: { plantSeconds: 0.75, trembleSeconds: 1.6, riseSeconds: 2.45, catchSeconds: 3.0 },
+    // Her intro line, as the sword strikes the ground.
+    introVoice: { src: "/audio/voices/themis-intro.mp3", seconds: 0.75 },
     stage: "shore",
   },
   akane: {

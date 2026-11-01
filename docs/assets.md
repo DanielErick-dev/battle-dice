@@ -24,7 +24,7 @@ battle-dice-personagens/
 
 Regras:
 - Arquivos em **inglês, minúsculas, com hífen**: `stand-up.glb`, `arms-up.glb`.
-- Clipes que o jogo conhece: `idle`, `run`, `intro`, `showcase`, `cast`, `float`, `dash`, `land`, `shove`, `knocked`, `rest`, `hop`, `brake` (de correr para andar na última casa do trajeto; compartilhado por todos a partir da Têmis), `sit` (sentar no trono antes do `rest`), `guard` e `scoff` (reações da Têmis).
+- Clipes que o jogo conhece: `idle`, `run`, `intro`, `showcase`, `cast`, `float`, `dash`, `land`, `shove`, `knocked`, `rest`, `hop`, `brake` (de correr para andar na última casa do trajeto; desligado no jogo, sem fonte por enquanto), `sit` (sentar no trono antes do `rest`), `guard` e `scoff` (reações da Têmis).
 - Tudo o que o Daniel baixa cai solto em `Downloads/`; o Claude identifica cada arquivo (medindo o clipe), renomeia e guarda na pasta certa.
 - O que não é usado é apagado. Não deixamos pastas `extras/` ou `antigo/`.
 

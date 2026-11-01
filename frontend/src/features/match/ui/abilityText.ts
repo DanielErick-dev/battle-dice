@@ -12,7 +12,7 @@ import { RESURRECTION_CARDS } from "@/game/domain/characters/necromancer/resurre
 import { PLUNDER_CARDS, SPECTER_RANGE } from "@/game/domain/characters/warden/specters";
 import type { AbilityId } from "@/game/domain/abilities/ability";
 import { ARMOUR_TURNS, FLAME_ENERGY, FLAME_HITS, FLAME_PUSH, FLAME_TILES, FLAME_TURNS } from "@/game/domain/characters/kage/flames";
-import { VOID_CAPACITY, VOID_DOUBLE_ENERGY, VOID_IDLE_ROUNDS } from "@/game/domain/characters/zarek/void";
+import { VOID_CAPACITY, VOID_DOUBLE_ENERGY } from "@/game/domain/characters/zarek/void";
 import { ENCHANT_ADVANCE, ENCHANT_FREEZE, SNOW_DRAIN, ENCHANT_TILES, WINTER_PICKS, WINTER_TILES } from "@/game/domain/characters/fairy/winter";
 import { MAX_RARITY_LEVEL } from "@/game/domain/cards/catalog";
 import { BLESSING_TURNS, SERAPH_BLESSING_TURNS } from "@/game/domain/board/blessings";
@@ -31,7 +31,7 @@ export const ABILITY_TEXT: Readonly<Record<AbilityId, { name: string; descriptio
   },
   theVoid: {
     name: "O Vazio",
-    description: `Carrega em ${abilityCycle("theVoid")} turnos, e +1 a cada armadilha em que alguém cai ou que é destruída ou presa. Pronto, ao cair numa armadilha, maldição ou perde a vez, você escolhe se o Vazio a engole: ela some da casa e fica guardada (até ${VOID_CAPACITY}). Na sua vez, solte o que guardou: uma armadilha abre uma casa nova no caminho, logo depois da casa que você escolher, e pode ter a penalidade dobrada por ${VOID_DOUBLE_ENERGY} de energia. As suas fendas não te atingem. Depois de ${VOID_IDLE_ROUNDS} rodadas sem o Vazio agir, ele pode tomar fogo, neve, gelo, selo ou aparição de uma casa, que passa a ser seu ao soltar.`,
+    description: `Carrega em ${abilityCycle("theVoid")} turnos, e +1 a cada armadilha em que alguém cai ou que é destruída ou presa. Pronto, ao cair numa armadilha, maldição ou perde a vez, você escolhe se o Vazio a engole: ela some da casa e fica guardada (até ${VOID_CAPACITY}). Na sua vez, solte o que guardou: uma armadilha abre uma casa nova no caminho, logo depois da casa que você escolher, e pode ter a penalidade dobrada por ${VOID_DOUBLE_ENERGY} de energia. As suas fendas não te atingem. Pronto, também pode ser usado no botão para roubar uma casa de outro (fogo, neve, gelo, selo ou aparição): ela continua no lugar com o mesmo efeito, mas marcada pelo Vazio e agora sua. Sem limite de casas roubadas.`,
     active: "O Vazio agiu",
   },
   tailwind: {

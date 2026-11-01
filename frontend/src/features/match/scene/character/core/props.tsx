@@ -16,6 +16,7 @@ export const PROPS = {
   islandRockyTree: "/models/props/island/rockyTree.glb",
   frostWand: "/models/props/fairy/wand.glb",
   justiceScale: "/models/props/themis/scale.glb",
+  justiceSword: "/models/props/themis/sword.glb",
   voidWraith: "/models/props/zarek/wraith.glb",
   fairyWings: "/models/props/fairy/wings.glb",
   seraphWings: "/models/props/seraphiel/wings.glb",

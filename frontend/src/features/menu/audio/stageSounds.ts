@@ -5,6 +5,9 @@ import { playSfx, type Synth } from "@/features/match/audio/synth";
 export class StageSounds {
   constructor(private readonly engine: AudioEngine) {}
 
+  /** A recorded line from public/audio/voices. */
+  voice = (src: string): void => void this.engine.playSample(src, "voice");
+
   /** A fist breaking the ground: a heavy thud, a run of cracks, rubble settling under a rumble. */
   groundBreak = (): void =>
     this.play((synth, at) => {
