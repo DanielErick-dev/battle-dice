@@ -3,15 +3,15 @@
 import { Sparkles } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
-import { AdditiveBlending, DoubleSide, type Group, type Mesh, type MeshBasicMaterial } from "three";
+import { DoubleSide, type Group, type Mesh, type MeshBasicMaterial } from "three";
 import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "../../boardLayout";
 import { useAge } from "../../useAge";
-import { VOID_DARK, VOID_GLOW, VOID_VIOLET } from "./voidPalette";
+import { VOID_DARK, VOID_GLOW, VOID_BLACK } from "./voidPalette";
 
 /** Seconds the Void takes to come and work a rift open (the playback's voidRiftMs, roughly). */
 export const SURGE_SECONDS = 1.8;
 
-/** The Void at work on a tile: a black maw opens, wreathed in violet, a column of void rising, then it closes. */
+/** The Void at work on a tile: a black maw opens, wreathed in black smoke, a column of void rising, then it closes. */
 export function VoidSurge({ position, inward }: { position: Vec3; inward: boolean }) {
   const age = useAge();
   const maw = useRef<Group>(null);
@@ -40,16 +40,15 @@ export function VoidSurge({ position, inward }: { position: Vec3; inward: boolea
         </mesh>
         <mesh rotation-x={-Math.PI / 2} position-y={0.01}>
           <ringGeometry args={[TILE_SIZE * 0.58, TILE_SIZE * 0.78, 6, 1]} />
-          <meshBasicMaterial color={VOID_VIOLET} transparent blending={AdditiveBlending} depthWrite={false} />
+          <meshBasicMaterial color={VOID_BLACK} transparent depthWrite={false} />
         </mesh>
       </group>
       <mesh ref={column} position-y={1.1}>
         <cylinderGeometry args={[TILE_SIZE * 0.4, TILE_SIZE * 0.55, 2.2, 24, 1, true]} />
         <meshBasicMaterial
           ref={columnMaterial}
-          color={VOID_VIOLET}
+          color={VOID_BLACK}
           transparent
-          blending={AdditiveBlending}
           depthWrite={false}
           side={DoubleSide}
         />
@@ -67,10 +66,9 @@ export function VoidSurge({ position, inward }: { position: Vec3; inward: boolea
         <circleGeometry args={[TILE_SIZE * 1.6, 40]} />
         <meshBasicMaterial
           ref={glow}
-          color={VOID_VIOLET}
+          color={VOID_BLACK}
           transparent
           opacity={0}
-          blending={AdditiveBlending}
           depthWrite={false}
         />
       </mesh>

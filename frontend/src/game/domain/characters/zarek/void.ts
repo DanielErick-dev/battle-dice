@@ -15,8 +15,6 @@ import type { GameState, Player, PlayerId } from "../../core/state";
 export const VOID_CAPACITY = 4;
 /** Paid to set a harm down with its penalty doubled. */
 export const VOID_DOUBLE_ENERGY = 2;
-/** Own turns without the Void acting before it may take over another's spell on the board. */
-export const VOID_IDLE_ROUNDS = 4;
 
 /** Ready, with room left in the Void. */
 export function canSwallow(player: Player): boolean {
@@ -216,39 +214,44 @@ export function closeRifts(board: Board): Board {
   };
 }
 
-/** Idle long enough, the Void takes over the spell on `tile`, whoever cast it. */
+/** The Void steals the spell on `tile` where it stands: same effect, now Zarek's (no cap, that's the fun). */
 export function seize(draft: Draft, playerId: PlayerId, tile: TileId | undefined): void {
-  const item = tile === undefined ? null : takeSpell(draft, tile);
+  const item = tile === undefined ? null : stealSpell(draft, playerId, tile);
   if (tile === undefined || !item) throw new GameRuleError("INVALID_VOID");
-  updatePlayer(draft, playerId, (player) => ({ voidIdle: 0, voidHold: [...player.voidHold, item] }));
+  updatePlayer(draft, playerId, () => ({ voidIdle: 0 }));
   draft.events.push({ type: "voidSeized", playerId, tile, item });
 }
 
-function takeSpell(draft: Draft, tile: TileId): VoidItem | null {
-  const at = <T extends { tile: TileId }>(list: readonly T[]) => list.find((entry) => entry.tile === tile);
-  const flame = at(draft.blackFlames);
-  if (flame) {
-    draft.blackFlames = draft.blackFlames.filter((entry) => entry !== flame);
+function stealSpell(draft: Draft, owner: PlayerId, tile: TileId): VoidItem | null {
+  const steal = <T extends { tile: TileId; owner: PlayerId }>(list: readonly T[]) => {
+    const found = list.find((entry) => entry.tile === tile && entry.owner !== owner);
+    return { found, list: list.map((entry) => (entry === found ? { ...entry, owner } : entry)) };
+  };
+  const flame = steal(draft.blackFlames);
+  if (flame.found) {
+    draft.blackFlames = flame.list;
     return { kind: "flame" };
   }
-  const snow = at(draft.enchantedTiles);
-  if (snow) {
-    draft.enchantedTiles = draft.enchantedTiles.filter((entry) => entry !== snow);
+  const snow = steal(draft.enchantedTiles);
+  if (snow.found) {
+    draft.enchantedTiles = snow.list;
     return { kind: "snow" };
   }
-  if (draft.winter?.iced.includes(tile)) {
+  // The fairy's ice leaves her winter and stays on as Zarek's snow.
+  if (draft.winter && draft.winter.owner !== owner && draft.winter.iced.includes(tile)) {
     draft.winter = { ...draft.winter, iced: draft.winter.iced.filter((iced) => iced !== tile) };
+    draft.enchantedTiles = [...draft.enchantedTiles, { tile, owner }];
     return { kind: "snow" };
   }
-  const seal = at(draft.seals);
-  if (seal) {
-    draft.seals = draft.seals.filter((entry) => entry !== seal);
-    return { kind: "seal", seal: seal.kind };
+  const seal = steal(draft.seals);
+  if (seal.found) {
+    draft.seals = seal.list;
+    return { kind: "seal", seal: seal.found.kind };
   }
-  const specter = at(draft.specters);
-  if (specter) {
-    draft.specters = draft.specters.filter((entry) => entry !== specter);
-    return { kind: "specter", specter: specter.kind };
+  const specter = steal(draft.specters);
+  if (specter.found) {
+    draft.specters = specter.list;
+    return { kind: "specter", specter: specter.found.kind };
   }
   return null;
 }

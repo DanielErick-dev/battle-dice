@@ -34,7 +34,7 @@ Objetivo: cada personagem com uma habilidade **ativa** e uma **passiva**, todos 
   - nas próximas jogadas, ou na mesma, ele pode **colocar essa armadilha em qualquer lugar do mapa**. Ela é **adicionada** entre uma casa e outra, sem substituir nenhuma casa;
   - ao colocar, pode **dobrar a penalidade** da armadilha pagando **2 de energia**;
   - **recarga:** a cada 3 rodadas;
-  - se ficar **4 rodadas sem ativar** a habilidade, pode pegar uma casa alterada (fogo, neve ou algo do gênero) e guardá-la, para recolocar onde quiser.
+  - ~~se ficar 4 rodadas sem ativar, pega uma casa alterada e guarda~~ → **2026-10-30:** ele **rouba** a casa no lugar, sem ela perder a função (marcada pelo Vazio, efeito a favor dele), sem limite.
 - [x] **Visual:** a entidade Vazio aparece de vez em quando vagando pelo mapa como uma sombra. Durante as habilidades é ela quem manipula tudo, como uma fenda no mapa.
 - Pontos em aberto: ver a seção abaixo.
 

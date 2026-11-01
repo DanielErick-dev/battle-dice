@@ -64,10 +64,7 @@ describe("MatchStore", () => {
     const { store } = setup([4]);
 
     store.rollDice();
-    // The walk's last tile is slowed down onto (arriveMs).
-    vi.advanceTimersByTime(
-      DEFAULT_TIMINGS.diceRollMs + DEFAULT_TIMINGS.diceRevealMs + 3 * DEFAULT_TIMINGS.stepMs + DEFAULT_TIMINGS.arriveMs,
-    );
+    vi.advanceTimersByTime(DEFAULT_TIMINGS.diceRollMs + DEFAULT_TIMINGS.diceRevealMs + 4 * DEFAULT_TIMINGS.stepMs);
     expect(store.getSnapshot().effect).toMatchObject({ kind: "portal", from: 5, to: 10 });
     expect(positionOf(store, "p1")).toBe(5);
 
@@ -121,7 +118,7 @@ describe("MatchStore", () => {
       const deckSize = store.getSnapshot().players[0].deck.length;
 
       store.rollDice();
-      vi.advanceTimersByTime(DEFAULT_TIMINGS.diceRollMs + DEFAULT_TIMINGS.diceRevealMs + DEFAULT_TIMINGS.arriveMs);
+      vi.advanceTimersByTime(DEFAULT_TIMINGS.diceRollMs + DEFAULT_TIMINGS.diceRevealMs + DEFAULT_TIMINGS.stepMs);
       const revealing = store.getSnapshot();
       expect(revealing.fx.drawing).toMatchObject({ id: 1, playerId: "p1" });
       expect(revealing.players[0].hand).toEqual([]);

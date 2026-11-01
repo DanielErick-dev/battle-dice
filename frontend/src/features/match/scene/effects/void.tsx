@@ -9,8 +9,8 @@ import { VoidWraith } from "../character/zarek/VoidWraith";
 import { SmashedTrapMark } from "../TrapSmash";
 import type { BoardFx, TokenFx } from "./types";
 
-/** Zarek's void violet. */
-const SMASHED_TRAP_COLOR = "#8b5cf6";
+/** The Void is black. */
+const SMASHED_TRAP_COLOR = "#18181b";
 
 /** In his hands while the cast clip plays: his modelled swords can't move. */
 export function LightBlades({ token, figure }: { token: TokenFx; figure: Object3D }) {
@@ -27,8 +27,14 @@ export function SmashedTraps({ fx: { view, layout, shown } }: { fx: BoardFx }) {
     ));
 }
 
+/** Rifts, and the Void's seal on every spell Zarek stole (its effect stays, now his). */
 export function Rifts({ fx: { view, layout } }: { fx: BoardFx }) {
-  return view.rifts.map((tile) => <RiftMaw key={`rift${tile.id}`} position={layout.position(tile.id)} />);
+  const voids = new Set(view.players.filter((player) => player.ability === "theVoid").map((player) => player.id));
+  const stolen = [...view.blackFlames, ...view.enchantedTiles, ...view.seals, ...view.specters]
+    .filter((spell) => voids.has(spell.owner))
+    .map((spell) => spell.tile);
+  const tiles = [...new Set([...view.rifts.map((tile) => tile.id), ...stolen])];
+  return tiles.map((tile) => <RiftMaw key={`rift${tile}`} position={layout.position(tile)} />);
 }
 
 /** The Void opening on a tile: swallowing pulls in, setting down or opening pours out. */

@@ -1,6 +1,5 @@
 import { HAND_LIMIT } from "../cards/hand";
 import { isAbilityReady } from "./charge";
-import { VOID_CAPACITY, VOID_IDLE_ROUNDS } from "../characters/zarek/void";
 import type { Player } from "@/game/domain/types";
 import type { GameErrorCode } from "../core/errors";
 
@@ -35,7 +34,7 @@ export function needsDiscardChoice(ability: AbilityId | null): boolean {
   return ability === "resurrection";
 }
 
-/** Offered by the board rather than used from the button (the Void's seizing aside, see abilityBlocker). */
+/** Offered by the board rather than used from the button (the Void's stealing aside, see abilityBlocker). */
 export function isReactive(ability: AbilityId): boolean {
   return ability === "theVoid" || ability === "silentVerdict";
 }
@@ -43,9 +42,8 @@ export function isReactive(ability: AbilityId): boolean {
 /** Shared by the UI's button and the engine; charged again the same turn (Ascension), it can be reused. */
 export function abilityBlocker(player: Player): GameErrorCode | null {
   if (player.ability === null) return "NO_ABILITY";
-  // Idle long enough, the Void may also be used to take over a spell on the board.
-  if (isReactive(player.ability) && player.voidIdle < VOID_IDLE_ROUNDS) return "ABILITY_REACTIVE";
-  if (player.ability === "theVoid" && player.voidHold.length >= VOID_CAPACITY) return "VOID_FULL";
+  // From the button the Void steals a spell on the board; its swallowing is offered by the board.
+  if (player.ability === "silentVerdict") return "ABILITY_REACTIVE";
   if (!isAbilityReady(player)) return "ABILITY_NOT_READY";
   if (needsDiscardChoice(player.ability) && player.discard.length === 0) return "EMPTY_DISCARD";
   if (needsDiscardChoice(player.ability) && player.hand.length >= HAND_LIMIT) return "HAND_FULL";

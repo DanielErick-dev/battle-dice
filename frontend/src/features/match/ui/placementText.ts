@@ -84,10 +84,10 @@ export const FROST_STEPS: readonly PlacementStep[] = Array.from({ length: WINTER
   tag: `Gelo ${index + 1}`,
 }));
 
-/** Zarek's idle Void taking over a spell on the board. */
+/** Zarek's Void stealing a spell on the board. */
 export const VOID_SEIZE_STEP: PlacementStep = {
-  name: "Casa enfeitiçada",
-  effect: "O Vazio toma o fogo, a neve, o gelo, o selo ou a aparição dela",
+  name: "Casa a roubar",
+  effect: "Fogo, neve, gelo, selo ou aparição de outro: fica no lugar, agora seu",
   tone: "bg-violet-600",
   color: "#8b5cf6",
   tag: "Vazio",

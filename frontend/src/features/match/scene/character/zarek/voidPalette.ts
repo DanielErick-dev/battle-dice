@@ -1,4 +1,4 @@
-/** The Void's colours: its violet, the glow of its motes, and the black of its maw. */
-export const VOID_VIOLET = "#8b5cf6";
-export const VOID_GLOW = "#c4b5fd";
+/** The Void's colours: pure black (no additive glow), the grey of its motes, and the black of its maw. */
+export const VOID_BLACK = "#050507";
+export const VOID_GLOW = "#3f3f46";
 export const VOID_DARK = "#07030f";

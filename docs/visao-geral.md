@@ -355,7 +355,7 @@ Todos são jogáveis. Cada um tem: uma **cor** (anel no chão, HUD, menus, cor d
 ### 1. Cavaleiro do Vazio
 
 - **Estilo:** guerreiro sombrio de armadura escura, com duas espadas na cintura, ligado ao "vazio" (violeta). O autor o chama de "Guerreiro Sombrio".
-- **Habilidade, O Vazio (carga 3, reativa):** cada armadilha disparada, destruída ou presa dá +1 de carga. Pronto, ao cair numa armadilha, maldição ou perde a vez, ele pode engoli-la (até 4 guardadas). Na vez dele, solta o que guardou: uma armadilha abre uma **casa nova (fenda)** no caminho, com a penalidade dobrável por 2 de energia; as fendas não o atingem. Após 4 rodadas sem agir, o botão **Tomar** pega fogo, neve, gelo, selo ou aparição de uma casa, que vira dele ao soltar. A sombra do Vazio vaga pelo mapa. Regras completas em `regras.md`.
+- **Habilidade, O Vazio (carga 3, reativa):** cada armadilha disparada, destruída ou presa dá +1 de carga. Pronto, ao cair numa armadilha, maldição ou perde a vez, ele pode engoli-la (até 4 guardadas). Na vez dele, solta o que guardou: uma armadilha abre uma **casa nova (fenda)** no caminho, com a penalidade dobrável por 2 de energia; as fendas não o atingem. Pelo botão, **rouba** a casa de outro (fogo, neve, gelo, selo ou aparição): ela fica no lugar com o mesmo efeito, marcada pelo Vazio, mas agora a favor dele. Sem limite. A sombra do Vazio vaga pelo mapa. Regras completas em `regras.md`.
 - **Animações:** intro "Julgamento da Espada" (4,4 s, com **lâminas de luz** aparecendo nas mãos, porque as espadas do modelo não se mexem); cast: **crava as duas espadas no chão** ajoelhando, com impacto aos 0,95 s.
 - **Cenário:** Fenda do Vazio (obsidiana rachada com fendas violeta pulsando, lascas flutuando, vórtice de névoa). **Trono:** trono de ametista.
 

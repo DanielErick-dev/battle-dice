@@ -7,7 +7,7 @@ import { Vector3, type Group } from "three";
 import type { Vec3 } from "../../boardLayout";
 import { fadingMaterial, preloadProps, Prop, usePropMesh } from "../core/props";
 import { useDisposable } from "../shared/disposal";
-import { VOID_VIOLET } from "./voidPalette";
+import { VOID_BLACK } from "./voidPalette";
 import { SURGE_SECONDS } from "./VoidSurge";
 
 /** Seconds a wander leg lasts, and of each cycle the Void shows for (it only now and then comes out). */
@@ -36,11 +36,10 @@ interface VoidWraithProps {
  */
 export function VoidWraith({ roam, call }: VoidWraithProps) {
   const { geometry, material } = usePropMesh("voidWraith");
-  // Its texture reads grey under the moon: darkened to black smoke, with a faint violet glow from within.
+  // Its texture reads grey under the moon: darkened to black smoke, with no glow: the Void is pure black.
   const shade = useMemo(() => {
     const black = fadingMaterial(material, WRAITH_SHADE);
-    black.emissive.set(VOID_VIOLET);
-    black.emissiveIntensity = 0.12;
+    black.emissiveIntensity = 0;
     black.metalness = 0;
     black.roughness = 1;
     return black;
@@ -96,7 +95,7 @@ export function VoidWraith({ roam, call }: VoidWraithProps) {
   return (
     <group ref={body}>
       <Prop geometry={geometry} material={shade} height={WRAITH_HEIGHT} />
-      <Sparkles count={24} scale={[1.8, 2.6, 1.8]} position-y={-0.4} size={3} speed={0.6} color={VOID_VIOLET} />
+      <Sparkles count={24} scale={[1.8, 2.6, 1.8]} position-y={-0.4} size={3} speed={0.6} color={VOID_BLACK} />
     </group>
   );
 }

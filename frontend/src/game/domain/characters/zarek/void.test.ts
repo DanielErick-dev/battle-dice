@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ABILITY_CYCLE, abilityCycle } from "../../abilities/charge";
-import { FLAME_TURNS } from "../kage/flames";
-import { VOID_CAPACITY, VOID_DOUBLE_ENERGY, VOID_IDLE_ROUNDS } from "./void";
+import { VOID_CAPACITY, VOID_DOUBLE_ENERGY } from "./void";
 import { getTile } from "../../board/board";
 import { HIDDEN_TRAP_PUSH } from "../../board/hiddenTraps";
 import { TRAP_AND_CURSE_BOARD } from "../../testing/boards";
@@ -45,8 +44,8 @@ describe("Zarek's Void", () => {
     expect(abilityCycle("theVoid")).toBe(ABILITY_CYCLE);
   });
 
-  it("can't be used from the button until it has been idle a while: it answers the board", () => {
-    expectRuleError(() => activate(onTheWay(), "zarek"), "ABILITY_REACTIVE");
+  it("from the button it only steals: without a spell to take there's nothing to do", () => {
+    expectRuleError(() => activate(onTheWay(), "zarek"), "INVALID_VOID");
   });
 
   it("asks before a trap strikes, and holds the turn until answered", () => {
@@ -181,9 +180,9 @@ describe("Zarek's Void", () => {
     });
   });
 
-  describe(`idle for ${VOID_IDLE_ROUNDS} turns`, () => {
+  describe("stealing a spell", () => {
     const burning = () => ({
-      ...readyAbility(holding([], { voidIdle: VOID_IDLE_ROUNDS }), "zarek"),
+      ...readyAbility(holding([]), "zarek"),
       blackFlames: [{ tile: 20, owner: "rival", turnsLeft: 3, hits: 1 }],
     });
 
@@ -192,21 +191,31 @@ describe("Zarek's Void", () => {
       expect(zarek(once).voidIdle).toBe(1);
     });
 
-    it("takes over another's spell, then sets it down as his own", () => {
+    it("takes another's spell over where it stands, keeping its effect", () => {
       const { state, events } = activate(burning(), "zarek", { seizeTile: 20 });
       expect(events).toContainEqual({ type: "voidSeized", playerId: "zarek", tile: 20, item: { kind: "flame" } });
-      expect(state.blackFlames).toEqual([]);
-      expect(zarek(state)).toMatchObject({ voidIdle: 0, abilityCharge: 0, voidHold: [{ kind: "flame" }] });
-      const cast = place(state, 0, 33).state;
-      expect(cast.blackFlames).toEqual([{ tile: 33, owner: "zarek", turnsLeft: FLAME_TURNS, hits: 0 }]);
+      expect(state.blackFlames).toEqual([{ tile: 20, owner: "zarek", turnsLeft: 3, hits: 1 }]);
+      expect(zarek(state)).toMatchObject({ abilityCharge: 0, voidHold: [] });
     });
 
-    it("needs the idle turns, and a tile with a spell on it", () => {
+    it("turns the fairy's ice into his own snow", () => {
+      const iced = { ...burning(), winter: { owner: "rival", frontier: 1, iced: [25] } };
+      const { state } = activate(iced, "zarek", { seizeTile: 25 });
+      expect(state.winter?.iced).toEqual([]);
+      expect(state.enchantedTiles).toContainEqual({ tile: 25, owner: "zarek" });
+    });
+
+    it("has no cap, but needs the charge and someone else's spell on the tile", () => {
+      const full = holding([{ kind: "skipTurn" }, { kind: "skipTurn" }, { kind: "skipTurn" }, { kind: "skipTurn" }]);
+      const crowded = { ...readyAbility(full, "zarek"), blackFlames: burning().blackFlames };
+      expect(activate(crowded, "zarek", { seizeTile: 20 }).state.blackFlames[0].owner).toBe("zarek");
       expectRuleError(
-        () => activate(withPlayer(burning(), "zarek", { voidIdle: 1 }), "zarek", { seizeTile: 20 }),
-        "ABILITY_REACTIVE",
+        () => activate(withPlayer(burning(), "zarek", { abilityCharge: 0 }), "zarek", { seizeTile: 20 }),
+        "ABILITY_NOT_READY",
       );
       expectRuleError(() => activate(burning(), "zarek", { seizeTile: 21 }), "INVALID_VOID");
+      const own = { ...burning(), blackFlames: [{ tile: 20, owner: "zarek", turnsLeft: 3, hits: 1 }] };
+      expectRuleError(() => activate(own, "zarek", { seizeTile: 20 }), "INVALID_VOID");
     });
   });
 });

@@ -91,12 +91,9 @@ export const voidSteps: StepHandlers<
   voidSeized: (event, timings) => [
     {
       apply: (view) => {
-        const seized = withPlayer(view, event.playerId, (player) => ({
-          voidHold: [...player.voidHold, event.item],
-          voidIdle: 0,
-        }));
+        const seized = withPlayer(view, event.playerId, () => ({ voidIdle: 0 }));
         return surfaced(
-          withoutSpell(seized, event.tile),
+          stolen(seized, event.playerId, event.tile),
           event.playerId,
           event.tile,
           "seize",
@@ -151,14 +148,17 @@ function withSpell(view: MatchView, owner: PlayerId, tile: TileId, item: VoidIte
   }
 }
 
-function withoutSpell(view: MatchView, tile: TileId): MatchView {
-  const off = <T extends { tile: TileId }>(list: readonly T[]) => list.filter((entry) => entry.tile !== tile);
+/** Mirrors void.ts stealSpell: the spell stays put under a new owner, the fairy's ice becomes snow. */
+function stolen(view: MatchView, owner: PlayerId, tile: TileId): MatchView {
+  const take = <T extends { tile: TileId; owner: PlayerId }>(list: readonly T[]) =>
+    list.map((entry) => (entry.tile === tile ? { ...entry, owner } : entry));
+  const iced = view.winter?.iced.includes(tile) && !view.enchantedTiles.some((entry) => entry.tile === tile);
   return {
     ...view,
-    blackFlames: off(view.blackFlames),
-    enchantedTiles: off(view.enchantedTiles),
-    seals: off(view.seals),
-    specters: off(view.specters),
-    winter: view.winter && { ...view.winter, iced: view.winter.iced.filter((iced) => iced !== tile) },
+    blackFlames: take(view.blackFlames),
+    enchantedTiles: iced ? [...view.enchantedTiles, { tile, owner }] : take(view.enchantedTiles),
+    seals: take(view.seals),
+    specters: take(view.specters),
+    winter: view.winter && { ...view.winter, iced: view.winter.iced.filter((entry) => entry !== tile) },
   };
 }

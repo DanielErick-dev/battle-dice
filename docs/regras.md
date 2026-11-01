@@ -83,7 +83,7 @@ Energia paga as cartas. Também vem de casas de energia (+2), da Fonte de Luz (+
 | **6** | Despertar Ocular |
 | **7** | Arrastar ao Inferno, Engrenagem do Tempo |
 
-> no código: `abilities.ts` (ciclos e constantes), `turn.ts` (fim da vez), `handlers/turnCommands.ts` (rolagem), `cards.ts` (energia)
+> no código: `abilities/charge.ts` (ciclos), `abilities/basic.ts`, `core/turn.ts` (fim da vez), `handlers/turnCommands.ts` (rolagem), `core/energy.ts` (energia)
 
 ---
 
@@ -185,7 +185,7 @@ As 18 casas alternam as **quatro bênçãos** e as **três relíquias** (ver [Re
 - A vez em que você recebe a bênção não desconta.
 - Bênçãos iguais **se acumulam**: cada cópia conta o próprio tempo. Asas e Fonte de Luz somam por cópia (duas Asas dão +4 por rolagem).
 
-> no código: `board.ts`, `boardGenerator.ts`, `realms.ts`, `blessings.ts`, `hiddenTraps.ts`, `landing.ts`
+> no código: `board/` (`board.ts`, `generator.ts`, `realms.ts`, `blessings.ts`, `hiddenTraps.ts`, `traps.ts`, `landing.ts`)
 
 ### Ordem das coisas ao parar numa casa
 
@@ -313,7 +313,7 @@ Com **3 cópias** comuns (não fundidas) da mesma carta na mão, você pode fund
 
 Só as cartas dessa tabela fundem. O baralho tem 3 cópias de Passo do Vento, Erva e Amuleto, mas só 2 de Escudo, Pergaminho e Rajada: a terceira tem que vir de outro jeito (Transmutação, roubo, Ressurreição).
 
-> no código: `cards.ts` (catálogo e números), `cardPlay.ts` (efeitos), `fusion.ts`, `deck.ts`, `draft.ts` (compra e fila de descarte)
+> no código: `cards/catalog.ts` (catálogo), `cards/play.ts` (efeitos e números), `cards/fusion.ts`, `cards/decks.ts`, `cards/hand.ts` (compra e mão cheia)
 
 ---
 
@@ -347,7 +347,7 @@ Detalhes:
 5. Efeitos **em área**, que não escolhem alvo (Chuva de Flechas nos oponentes, o empurrão do Canhão de Plasma, o atropelo do Bjorn), simplesmente pulam os protegidos, sem BLOQUEADO.
 6. Exceção da Aposta do Coringa: sem ninguém para roubar no mesmo lugar, ela lista **todos** os oponentes e oferece o **Lance da Sorte** (ver a ficha do Coringa).
 
-> no código: `players.ts` (`aimWard`, `isUntouchable`, `inSusanoo`), `board.ts` (`opponentsInSpace`, `sameSpace`), `cardPlay.ts`
+> no código: `core/playerStatus.ts` (`aimWard`, `isUntouchable`, `inSusanoo`), `board/reach.ts` (`opponentsInSpace`, `sameSpace`), `cards/play.ts`
 
 ---
 
@@ -398,9 +398,10 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - Ao abrir, você pode **dobrar a penalidade** pagando **2 de energia**: volta o dobro de casas, a maldição atinge duas vezes, o perde a vez vale 2 rodadas.
 - As **suas fendas nunca te atingem**. Parando numa delas com o Vazio pronto, você pode engoli-la de novo.
 
-**Tomar (depois de 4 rodadas sem o Vazio agir)**
-- Com o Vazio pronto e **4 rodadas** sem ele engolir ou tomar nada, o botão **Tomar** aparece: escolha uma casa com **fogo negro, neve, gelo escolhido pela Fada, selo ou aparição** de qualquer jogador. O feitiço sai dali e vai para o Vazio (a carga zera).
-- Ao soltar, ele pousa numa casa livre do caminho e **passa a ser seu** (o fogo queima os outros, a neve te leva 5 casas e prende os outros, o selo e a aparição agem a seu favor).
+**Roubar (botão da habilidade)**
+- Com o Vazio pronto, o botão **rouba** uma casa de outro jogador: **fogo negro, neve, gelo escolhido pela Fada, selo ou aparição** (a carga zera).
+- A casa **fica no lugar e mantém o efeito**, marcada com o selo do Vazio, mas agora é **sua**: a neve te leva 5 casas e prende os outros (dando energia a você), o fogo queima os outros, o selo e a aparição agem a seu favor. O gelo da Fada vira neve sua.
+- **Sem limite** de casas roubadas.
 
 **Detalhes e exceções**
 - A pergunta vem **mesmo com o Escudo Arcano erguido**: engolindo, você guarda o escudo.
@@ -408,7 +409,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - Com o Vazio cheio (4), ele não engole: solte algo antes.
 - A sombra do Vazio aparece de vez em quando vagando pelo mapa, e é ela que abre as fendas.
 
-> no código: `void.ts` (`swallow`, `placeVoid`, `seize`, `feedTheVoid`), `board.ts` (`linkRift`), `landing.ts`
+> no código: `characters/zarek/void.ts` (`swallow`, `placeVoid`, `seize`, `feedTheVoid`), `board/board.ts` (`linkRift`), `board/landing.ts`
 
 ---
 
@@ -424,7 +425,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - Vale até o fim da vez em que foi usada, e cada carta ainda paga a sua energia.
 - As outras regras continuam valendo: só uma carta de lançamento esperando o dado, sem escudo duplo e assim por diante.
 
-> no código: `abilities.ts` (`cardsPerTurn`)
+> no código: `abilities/basic.ts` (`cardsPerTurn`)
 
 ---
 
@@ -446,7 +447,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - Os feitiços de chão dos outros nunca te atingem, mesmo sem levitar: a **neve** e o **gelo do Inverno Eterno** da Fada, e o **fogo negro** da Kage Rubra.
 - Parando numa casa dessas, nada acontece com você (nem o efeito original da casa).
 
-> no código: `abilityCommands.ts` (`levitation`), `landing.ts`, `players.ts` (`groundSpellsSpare`)
+> no código: `abilities/basic.ts` (`levitate`), `board/landing.ts`, `core/playerStatus.ts` (`groundSpellsSpare`)
 
 ---
 
@@ -466,7 +467,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - Sozinho, nunca sai carta que mira oponente. Se um nível só tiver cartas assim, o sorteio desce um nível.
 - **Com menos de 2 cartas na mão**, não há o que sacrificar: você ganha uma carta aleatória de **nível 3** (rara). Se a mão estiver cheia, ela vai direto para o descarte.
 
-> no código: `transmutation.ts`
+> no código: `characters/alchemist/transmutation.ts`
 
 ---
 
@@ -484,7 +485,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - Vale só para a vez em que foi usada.
 - Aparições e flechas no caminho agem normalmente.
 
-> no código: `abilities.ts` (`rollMultiplier`), `handlers/turnCommands.ts`
+> no código: `abilities/basic.ts` (`rollMultiplier`), `handlers/turnCommands.ts`
 
 ---
 
@@ -507,7 +508,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - Sozinha, ou se você não escolher, as flechas vão nas armadilhas.
 - A Maré Purificadora do Auric também tira as flechas.
 
-> no código: `arrowRain.ts`
+> no código: `characters/archer/arrowRain.ts`
 
 ---
 
@@ -533,7 +534,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - **Sem ninguém para roubar no mesmo lugar** (todos protegidos ou em outro reino), a lista mostra **todos** os oponentes. Nesse caso também existe o **Lance da Sorte**: você não aposta e só rola o dado, comprando **tantas cartas quanto ele mostrar** (1 a 6).
 - Sozinho, a Aposta segue a coluna "Sozinho" acima, e o jackpot nunca cria carta que mira oponente.
 
-> no código: `cardGamble.ts`
+> no código: `characters/jester/cardGamble.ts`
 
 ---
 
@@ -551,7 +552,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - Precisa ter algo no descarte e espaço na mão: não pode ser usada com a mão cheia, e só traz quantas couberem.
 - Uma carta fundida volta fundida.
 
-> no código: `resurrection.ts`, `deck.ts` (`throwOnPile`)
+> no código: `characters/necromancer/resurrection.ts`, `cards/decks.ts` (`throwOnPile`)
 
 ---
 
@@ -580,7 +581,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - **Protegido** (Armadura, Indomável…) não quebra o selo: ele fica para o próximo.
 - **Sozinho**, pisar nos seus selos te **recompensa**: Dízimo compra 1 carta, Ruína avança **3** casas, Silêncio dá **+1** de energia, Pacto dá **+2**.
 
-> no código: `seals.ts`
+> no código: `characters/scribe/seals.ts`
 
 ---
 
@@ -606,7 +607,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - Suas aparições não fazem nada com você enquanto houver oponentes.
 - **Sozinho**, passar por elas te **recompensa**: Pilhagem compra **2** cartas, Fome enche a energia.
 
-> no código: `specters.ts`
+> no código: `characters/warden/specters.ts`
 
 ---
 
@@ -636,7 +637,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - O fogo negro dos outros e a **armadilha escondida** atravessam o Susanoo. A Armadura comum, o Indomável e a Bruxa Carmesim ignoram o fogo.
 - A Maré Purificadora do Auric apaga o fogo.
 
-> no código: `kunoichi.ts`, `players.ts` (`inSusanoo`)
+> no código: `characters/kage/flames.ts`, `core/playerStatus.ts` (`inSusanoo`)
 
 ---
 
@@ -664,7 +665,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - A **Erva Curativa** (e a Aurora Divina) solta quem está preso.
 - O fogo negro derrete a neve. A **Maré Purificadora** também lava a neve, e aí a armadilha que estava debaixo **volta a funcionar** (uma escondida encantada, não: ela já tinha sumido). O gelo do Inverno não é lavado.
 
-> no código: `fairy.ts`
+> no código: `characters/fairy/winter.ts`
 
 ---
 
@@ -680,7 +681,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - Soma com os bônus de cartas, Asas e coroa.
 - Vale só para a vez em que foi usada.
 
-> no código: `abilities.ts` (`rollBonus`)
+> no código: `abilities/basic.ts` (`rollBonus`)
 
 ---
 
@@ -708,7 +709,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - As proteções de quem mirou (Indomável, armadura…) não o salvam do veredito.
 - Se ela já estiver protegida (armadura, Égide…), o ataque é só bloqueado e o veredito fica guardado.
 
-> no código: `newcomerAbilities.ts` (`sacredBulwark`)
+> no código: `characters/themis/verdict.ts` (`passVerdict`, `senseHiddenTraps`)
 
 ---
 
@@ -723,7 +724,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 **Detalhes e exceções**
 - Com a mão cheia, entra a fila de descarte.
 
-> no código: `handlers/abilityCommands.ts` (`studySession`)
+> no código: `abilities/basic.ts` (`studySession`)
 
 ---
 
@@ -749,7 +750,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 **Detalhes e exceções**
 - Enquanto o Indomável dura, a carga **não sobe**: ela recomeça só depois que ele acaba. A casa de habilidade ainda carrega.
 
-> no código: `berserker.ts`, `landing.ts`
+> no código: `characters/bjorn/untamed.ts`, `board/landing.ts`
 
 ---
 
@@ -772,7 +773,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - Uma armadilha solta da flecha ou da neve **volta a funcionar**. A escondida que estava presa muda de lugar.
 - O gelo do Inverno Eterno não é afetado, nem as armadilhas destruídas.
 
-> no código: `newcomerAbilities.ts` (`cleansingTide`)
+> no código: `characters/auric/cleansingTide.ts`
 
 ---
 
@@ -792,7 +793,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - **Coroa Seráfica:** ao **sair do céu**, você ganha a coroa: **+1** casa em **toda** rolagem até o fim da partida (uma vez só).
 - **Cuidado com o inferno:** se pisar no inferno, de qualquer jeito (portal, arrastado, Portal Místico), você **cai para sempre** e vira o Anjo Caído (abaixo).
 
-> no código: `seraph.ts`, `blessings.ts`, `newcomerAbilities.ts` (`seraphBlessing`)
+> no código: `characters/seraphiel/` (`seraph.ts`, `blessing.ts`), `board/blessings.ts`
 
 #### 18b. Anjo Caído (a Queda de Seraphiel)
 
@@ -818,7 +819,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - **O céu está fechado:** parando num portal do céu, ele não entra e fica **acorrentado por 3 rodadas** (perde 3 vezes, em pé). A Erva Curativa solta.
 - **Coroa Infernal:** +1 em toda rolagem.
 
-> no código: `seraph.ts` (`fallIfInHell`, `hellsDrag`, `dragIntoHell`), `landing.ts`
+> no código: `characters/seraphiel/seraph.ts` (`fallIfInHell`, `hellsDrag`, `dragIntoHell`), `board/landing.ts`
 
 ---
 
@@ -840,7 +841,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - Depois de parar ou inverter alguém, a carga fica **segurada** pelas suas **2** vezes seguintes, e só então volta a subir. A casa de habilidade ainda carrega.
 - O Indomável do Bjorn desfaz o tempo invertido.
 
-> no código: `newcomerAbilities.ts` (`timeWarp`), `turn.ts` (`chargeHeld`)
+> no código: `characters/cronos/timeWarp.ts`, `core/turn.ts` (`chargeHeld`)
 
 ---
 
@@ -857,7 +858,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - O empurrão é efeito em área: se o mais adiantado estiver protegido, o tiro vai no próximo mais adiantado sem proteção, e não há BLOQUEADO.
 - Sem oponente ao alcance, só as armadilhas são destruídas.
 
-> no código: `newcomerAbilities.ts` (`plasmaCannon`, `blastTrapsAhead`)
+> no código: `characters/alva/plasmaCannon.ts`, `board/traps.ts` (`blastTrapsAhead`)
 
 ---
 
