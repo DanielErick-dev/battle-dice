@@ -59,7 +59,7 @@ export function PlayerToken({
   nameTag,
   faceToward = null,
 }: PlayerTokenProps) {
-  const { isTeleporting, isArriving, isDashing, isFuryAwake, isActive } = signals;
+  const { isTeleporting, isDashing, isFuryAwake, isActive } = signals;
   const isLevitating = player.levitating > 0;
   const traits = actTraits(character);
   const fallen = isFallen(player);
@@ -102,7 +102,8 @@ export function PlayerToken({
     followTarget(way, node.position, target, pathDirection, {
       travel: isDashing ? "dash" : isTeleporting ? "teleport" : "walk",
       seated: seated.current,
-      arriving: isArriving,
+      // The run-to-stop brake is off until it looks right (it also broke Bjorn's shove).
+      arriving: false,
     });
     const travelled = advanceMotion(way, node.position, delta);
 
