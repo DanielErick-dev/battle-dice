@@ -3,8 +3,8 @@
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import { ExtrudeGeometry, MeshStandardMaterial, Shape, type Group } from "three";
-import { Prop, usePropMesh } from "@/features/match/scene/character/props";
-import { useSoftDisc } from "@/features/match/scene/character/softDisc";
+import { Prop, usePropMesh } from "@/features/match/scene/character/core/props";
+import { useSoftDisc } from "@/features/match/scene/character/shared/softDisc";
 import type { GroundDressing } from "./groundDressing";
 import { GROUND_RADIUS } from "./sceneryKit";
 import { useNoiseTexture, type NoiseLook } from "./textures";

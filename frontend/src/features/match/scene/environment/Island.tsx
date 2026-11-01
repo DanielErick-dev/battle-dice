@@ -17,8 +17,8 @@ import {
 } from "three";
 import { seededRandom } from "@/game/domain/random";
 import type { Vec3 } from "../boardLayout";
-import { PROP_HEIGHT, usePropMesh, type PropId } from "../character/props";
-import { useSoftDisc } from "../character/softDisc";
+import { PROP_HEIGHT, usePropMesh, type PropId } from "../character/core/props";
+import { useSoftDisc } from "../character/shared/softDisc";
 import { planCoast } from "./coast";
 import { paintDirtRoad, TrailRoad } from "./road";
 import { Instances, type Placed } from "./instances";

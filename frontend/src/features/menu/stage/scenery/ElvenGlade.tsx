@@ -16,8 +16,8 @@ import {
   Vector3,
   type Group,
 } from "three";
-import { Prop, usePropMesh } from "@/features/match/scene/character/props";
-import { useSoftDisc } from "@/features/match/scene/character/softDisc";
+import { Prop, usePropMesh } from "@/features/match/scene/character/core/props";
+import { useSoftDisc } from "@/features/match/scene/character/shared/softDisc";
 import { seededRandom } from "@/game/domain/random";
 import { GROUND_RADIUS, grassTuft, scatterAround } from "./sceneryKit";
 import { withDressing, type GroundDressing } from "./groundDressing";

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DESCENT_SECONDS } from "@/features/match/scene/character/HeavenDescent";
+import { DESCENT_SECONDS } from "@/features/match/scene/character/seraphiel/HeavenDescent";
 import { ENTRANCE_SECONDS, GUSTS, gustAt, wingStroke } from "./seraphEntrance";
 
 describe("Seraphiel's entrance", () => {

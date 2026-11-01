@@ -15,7 +15,7 @@ import {
   type InstancedMesh,
   type Sprite,
 } from "three";
-import { useSoftDisc } from "@/features/match/scene/character/softDisc";
+import { useSoftDisc } from "@/features/match/scene/character/shared/softDisc";
 import { seededRandom } from "@/game/domain/random";
 import { withDressing, type GroundDressing } from "./groundDressing";
 import { GROUND_RADIUS } from "./sceneryKit";

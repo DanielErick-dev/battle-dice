@@ -26,8 +26,8 @@ import {
   type Sprite,
 } from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import { PROP_HEIGHT, usePropMesh } from "@/features/match/scene/character/props";
-import { useSoftDisc } from "@/features/match/scene/character/softDisc";
+import { PROP_HEIGHT, usePropMesh } from "@/features/match/scene/character/core/props";
+import { useSoftDisc } from "@/features/match/scene/character/shared/softDisc";
 import { seededRandom } from "@/game/domain/random";
 import type { GroundDressing } from "./groundDressing";
 import { GROUND_RADIUS } from "./sceneryKit";

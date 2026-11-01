@@ -11,8 +11,8 @@ import {
   SpriteMaterial,
   type Sprite,
 } from "three";
-import { usePropMesh } from "@/features/match/scene/character/props";
-import { useSoftDisc } from "@/features/match/scene/character/softDisc";
+import { usePropMesh } from "@/features/match/scene/character/core/props";
+import { useSoftDisc } from "@/features/match/scene/character/shared/softDisc";
 import { seededRandom } from "@/game/domain/random";
 import { useCanvasTexture, type Painter } from "./textures";
 

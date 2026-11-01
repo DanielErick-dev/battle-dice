@@ -1,7 +1,7 @@
 /** Flesh Scribe: the forbidden seals on the board. */
 import { playerColor } from "../../characters";
 import { SEAL_TEXT } from "../../ui/placementText";
-import { SealScroll } from "../character/SealScroll";
+import { SealScroll } from "../character/scribe/SealScroll";
 import type { BoardFx } from "./types";
 
 /** A closed scroll for everyone; only its owner sees which seal it is. */

@@ -2,8 +2,9 @@
 import { useMemo } from "react";
 import type { Object3D } from "three";
 import { playerColor } from "../../characters";
-import { ArrowVolley, PinnedTrapMark } from "../character/ArrowRain";
-import { BackBow } from "../character/BackBow";
+import { ArrowVolley } from "../character/archer/ArrowVolley";
+import { PinnedTrapMark } from "../character/archer/PinnedTrapMark";
+import { BackBow } from "../character/archer/BackBow";
 import type { BoardFx, TokenFx } from "./types";
 
 /** The leaf green of the archer who shot them. */

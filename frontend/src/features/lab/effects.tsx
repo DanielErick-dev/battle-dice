@@ -2,7 +2,7 @@
 
 import { NormalBlending } from "three";
 import { AppearanceMode, RenderMode, VFXEmitter, VFXParticles } from "wawa-vfx";
-import { EFFECT_SCALE } from "@/features/match/scene/character/figure";
+import { EFFECT_SCALE } from "@/features/match/scene/character/core/figure";
 import { FrostAura } from "@/features/match/scene/FrostAura";
 import { HealingEmitter, HealingParticles } from "@/features/match/scene/vfx/healing";
 

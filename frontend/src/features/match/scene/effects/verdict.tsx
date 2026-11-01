@@ -1,9 +1,9 @@
 /** Themis: the scales in her hand and the Silent Verdict's giant one. */
 import type { Object3D } from "three";
 import { TILE_HEIGHT } from "../boardLayout";
-import { EFFECT_SCALE } from "../character/figure";
-import { JusticeScale } from "../character/JusticeScale";
-import { VerdictScale } from "../character/VerdictScale";
+import { EFFECT_SCALE } from "../character/core/figure";
+import { JusticeScale } from "../character/themis/JusticeScale";
+import { VerdictScale } from "../character/themis/VerdictScale";
 import type { BoardFx, TokenFx } from "./types";
 
 export function HeldScale({ token, figure }: { token: TokenFx; figure: Object3D }) {

@@ -11,8 +11,8 @@ import {
   SRGBColorSpace,
   type Sprite,
 } from "three";
-import { drawParchment, pageStrokes } from "@/features/match/scene/character/parchment";
-import { useSoftDisc } from "@/features/match/scene/character/softDisc";
+import { drawParchment, pageStrokes } from "@/features/match/scene/character/shared/parchment";
+import { useSoftDisc } from "@/features/match/scene/character/shared/softDisc";
 import { withDressing, type GroundDressing } from "./groundDressing";
 import { GROUND_RADIUS } from "./sceneryKit";
 import { useCanvasTexture, type Painter } from "./textures";

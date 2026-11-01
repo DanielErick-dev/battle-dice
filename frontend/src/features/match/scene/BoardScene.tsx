@@ -15,7 +15,7 @@ import type { MatchView } from "../model/matchView";
 import { createBoardLayout, withRiftPositions, type BoardLayout, type Vec3 } from "./boardLayout";
 import { boardScaleFor, CameraRig, type CameraFraming } from "./CameraRig";
 import { diceLanding, dieRoll, focusPoint, focusTile, realmAt } from "./cameraFocus";
-import { PickedTileMark } from "./character/PickedTileMark";
+import { PickedTileMark } from "./character/shared/PickedTileMark";
 import { DiceThrow } from "./DiceThrow";
 import { BOARD_EFFECTS, OVERLAY_EFFECTS, type BoardFx } from "./effects";
 import { ArenaEnvironment, HORIZON_COLOR } from "./environment/ArenaEnvironment";

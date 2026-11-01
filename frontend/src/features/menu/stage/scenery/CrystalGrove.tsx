@@ -18,8 +18,8 @@ import {
   SpriteMaterial,
   type Group,
 } from "three";
-import { iceShard } from "@/features/match/scene/character/ice";
-import { useSoftDisc } from "@/features/match/scene/character/softDisc";
+import { iceShard } from "@/features/match/scene/character/shared/ice";
+import { useSoftDisc } from "@/features/match/scene/character/shared/softDisc";
 import { seededRandom } from "@/game/domain/random";
 import { GROUND_RADIUS, grassTuft, scatterAround } from "./sceneryKit";
 import { withDressing, type GroundDressing } from "./groundDressing";
