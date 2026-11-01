@@ -10,15 +10,15 @@ O histórico detalhado de cada etapa (o porquê das decisões) fica em [plano-re
 - 🔄 em andamento: alguém (pessoa ou agente) está mexendo agora.
 - ⬜ não revisada: nunca passou por refatoração.
 
-Linhas = código da própria pasta (sem subpastas e sem testes), contadas em 29/10/2026.
+Linhas = código da própria pasta (sem subpastas e sem testes), contadas em 29/10/2026 (as linhas revisadas em 01/11 contam as subpastas).
 
 ## `frontend/src/game/` (regras, TypeScript puro)
 
 | Pasta | Status | Linhas | Feito | Falta |
 |---|---|---|---|---|
-| `game/domain/` | 🔄 | 7678 | Testes por tema (etapa 7). `engine.ts` virou roteador (etapa 6). | Pasta plana com ~60 arquivos: agrupar por tema (ex.: `domain/characters/`, `domain/board/`, `domain/cards/`). |
-| `game/domain/handlers/` | ✅ | 492 | Mapa tipado por comando, registro `ABILITY_EFFECTS` (etapa 6). | |
-| `game/domain/testing/` | ✅ | 151 | Helpers de teste compartilhados (etapa 7). | |
+| `game/domain/` | ✅ | 5316 | Testes por tema (etapa 7). `engine.ts` virou roteador (etapa 6). Agrupada por tema em 01/11: `core/`, `board/`, `cards/`, `abilities/` e `characters/<nome>/` (mecânica, números de balanceamento e tipos de cada personagem). `types.ts` virou só a vitrine de tipos para `features/`. | `cards/play.ts` (313) e `characters/zarek/void.ts` (~290) ainda passam um pouco das 250 linhas. |
+| `game/domain/handlers/` | ✅ | 501 | Mapa tipado por comando, registro `ABILITY_EFFECTS` (etapa 6). | |
+| `game/domain/testing/` | ✅ | 154 | Helpers de teste compartilhados (etapa 7). | |
 | `game/application/` | ✅ | 45 | `GameClient` e `LocalGameClient`, com README. | |
 
 ## `frontend/src/features/match/` (a partida)
@@ -37,7 +37,7 @@ Linhas = código da própria pasta (sem subpastas e sem testes), contadas em 29/
 | `match/scene/` (raiz) | ✅ | 4380 | Efeitos fora do `PlayerToken`/`BoardScene` (etapa 4). `PlayerToken` 571 → 243 linhas: movimento e pose viraram funções puras e testadas em `token/` (29/10). | |
 | `match/scene/token/` | ✅ | 538 | Criada em 29/10: `motion.ts` (caminho e segmentos) e `pose.ts` (qual clipe toca), com 41 testes. | |
 | `match/scene/effects/` | ✅ | 801 | Registro de efeitos por lugar (etapa 4). | |
-| `match/scene/character/` | 🔄 | 9252 | `clipPlayback.ts`: velocidade e "toca uma vez" de cada clipe numa tabela testada (29/10). | A maior bagunça: 48 arquivos misturando o genérico (`CharacterModel`, `props`, `worldPlacement`) com efeitos de cada personagem (`Susanoo`, `AlchemyVial`, `ScribeIntro`…). Separar em subpastas por personagem. |
+| `match/scene/character/` | ✅ | 9442 | `clipPlayback.ts` testado (29/10). Separada em 01/11: `core/` (modelo, ossos, props, mão), `accessories/` (asas, coroa, cadeira), `shared/` (texturas, hash, brilho) e uma pasta por personagem; contas puras com teste (`frostSlamLayout`, `limbBolts`, `levitation`, `verdictTimeline`). Tem README. | `ScribeIntro`, `SealScroll` e `TidalWave` ainda com ~340 linhas. |
 | `match/scene/environment/` | ⬜ | 2474 | Mapas escurecidos e sem figurantes (29/10, só visual). | Revisar a estrutura. |
 | `match/scene/realm/` | ⬜ | 1124 | | Revisar. |
 | `match/scene/vfx/` | ⬜ | 58 | | Revisar. |
@@ -48,7 +48,7 @@ Linhas = código da própria pasta (sem subpastas e sem testes), contadas em 29/
 |---|---|---|---|---|
 | `features/menu/` (raiz) | ✅ | 0 | README. | |
 | `features/menu/stage/` | 🟡 | 839 | | Revisar. |
-| `features/menu/stage/scenery/` | 🔄 | 8665 | Helpers juntados em `textures.ts` e `sceneryKit.ts` (`9ccf2aa`). | Cada habitat ainda tem 450–540 linhas: extrair mais peças em comum. |
+| `features/menu/stage/scenery/` | ✅ | 9404 | Kit em `kit/` (texturas, geometria, chão, movimento, peças prontas, com testes). Em 01/11 cada habitat virou uma pasta: componente principal + `textures.ts` + `layout.ts` + um arquivo por peça. A arte da partida entra só por `kit/matchAssets.ts`. | `WitchHollow.tsx` ainda com 355 linhas (uma cena grande num JSX só). |
 | `features/menu/ui/` | ⬜ | 549 | | Revisar. |
 | `features/menu/audio/` | ⬜ | 85 | | Revisar. |
 | `features/lab/` | ⬜ | 381 | | Playground de VFX: decidir se fica ou sai. |

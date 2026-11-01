@@ -55,21 +55,19 @@ flowchart LR
 
 O `GameState` diz **a verdade** (o jogador está na casa 42). A `MatchView` diz **o que o público vê agora** (o boneco ainda está andando, na casa 39). Sem essa separação, os bonecos se teletransportariam.
 
-## Domínio: um arquivo por mecânica
+## Domínio: uma pasta por tema
 
-| Arquivo | O que faz |
+| Pasta | O que tem |
 |---|---|
-| `types.ts` | `GameState`, `Player`, `Tile`… os tipos centrais |
-| `engine.ts` | `createGame`, `applyCommand`: o roteador de comandos |
-| `turn.ts` | fim de turno, rodadas, energia por turno |
-| `landing.ts` | o que acontece ao parar numa casa |
-| `board.ts`, `boardGenerator.ts` | tabuleiro e presets (Treino, Torneio do Poder 200 casas) |
-| `realms.ts`, `blessings.ts` | corredores do céu e do inferno, bênçãos |
-| `cards.ts`, `cardPlay.ts`, `deck.ts`, `draft.ts`, `fusion.ts`, `exclusiveCards.ts` | cartas, efeitos, compra, mão cheia, fusão, cartas exclusivas dos personagens |
-| `abilities.ts` | carga e ativação das habilidades |
-| `players.ts` | proteções (`aimWard`), oponentes no alcance |
-| `<personagem>.ts` | mecânicas próprias: `void`, `fairy`, `kunoichi`, `berserker`, `seraph`, `seals`, `specters`, `arrowRain`, `cardGamble`, `transmutation`, `resurrection`, `hiddenTraps`, `newcomerAbilities` |
-| `random.ts`, `dice.ts` | aleatoriedade injetável (para testes determinísticos) |
+| `core/` | `state.ts` (`GameState`, `Player`), `engine.ts` (`createGame`, `applyCommand`: o roteador), `commands.ts`, `events.ts`, `draft.ts`, `turn.ts` (fim de turno, rodadas), `energy.ts`, `playerStatus.ts` (proteções, `aimWard`), `random.ts`, `dice.ts` |
+| `handlers/` | um handler por comando |
+| `board/` | tabuleiro e presets (`board.ts`, `generator.ts`), andar e alcance (`paths.ts`, `reach.ts`), parar numa casa (`landing.ts`), armadilhas, céu e inferno (`realms.ts`), bênçãos |
+| `cards/` | catálogo, efeitos (`play.ts`), cartas exclusivas, mão, baralho, fusão |
+| `abilities/` | ids, carga e alvo das habilidades; as habilidades simples |
+| `characters/<nome>/` | a mecânica própria de cada personagem, com seus números e tipos (`zarek/void.ts`, `fairy/winter.ts`, `kage/flames.ts`…) |
+| `types.ts` | vitrine: reexporta os tipos para `features/` |
+
+Detalhes no README de `frontend/src/game/domain/`.
 
 A aleatoriedade entra por `GameDependencies` (injeção de dependência), então os testes passam um dado "viciado" e conferem o resultado exato.
 
