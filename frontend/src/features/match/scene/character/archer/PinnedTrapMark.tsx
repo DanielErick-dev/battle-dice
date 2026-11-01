@@ -31,7 +31,7 @@ const RUNE_TURN_RATE = 0.6;
  */
 export function PinnedTrapMark({ position, color }: { position: Vec3; color: string }) {
   const glow = useGlowColor(color, 1.3);
-  const arrows = useArrowMaterials(glow);
+  const arrows = useArrowMaterials();
   const ringMaterial = useGlowMaterial(glow);
   const columnMaterial = useGlowMaterial(useGlowColor(color, 0.7), true);
   const column = useDisposable(useMemo(() => fadingColumn(TILE_SIZE * 0.36, TILE_SIZE * 0.46, COLUMN_HEIGHT), []));

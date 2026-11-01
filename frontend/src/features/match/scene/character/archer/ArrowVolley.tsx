@@ -55,8 +55,8 @@ export function ArrowVolley({ from, targets, color }: { from: Vec3; targets: rea
   const waveMaterials = useRef<(MeshBasicMaterial | null)[]>([]);
   const sights = useRef<(Group | null)[]>([]);
   const glow = useGlowColor(color, 2.6);
-  const rise = useArrowMaterials(glow);
-  const fall = useArrowMaterials(glow);
+  const rise = useArrowMaterials();
+  const fall = useArrowMaterials();
   const trailMaterial = useGlowMaterial(glow);
   const sightMaterial = useGlowMaterial(glow);
   const age = useAge();

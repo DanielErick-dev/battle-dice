@@ -3,6 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef, type RefObject } from "react";
 import { CubicBezierCurve3, Matrix4, Quaternion, Vector3, type Group, type Mesh, type Object3D } from "three";
+import { fadingMaterial, preloadProps, PROP_HEIGHT, usePropMesh } from "../core/props";
 import type { IntroArrowBeats } from "../../../characters";
 import { useAge } from "../../useAge";
 import { findBone } from "../core/bones";
@@ -10,7 +11,6 @@ import { placeInWorld } from "../core/worldPlacement";
 import { useGlowMaterial } from "../shared/additive";
 import { useDisposable } from "../shared/disposal";
 import { approachLinear, clamp01 } from "../shared/easing";
-import { BOW_BULGE, BOW_HALF, bowGeometry, bowString, pullString, retrace } from "./bowString";
 import { ARROW_LENGTH, LightArrow, useArrowMaterials } from "./lightArrow";
 import { useGlowColor } from "../shared/glowColor";
 
@@ -26,13 +26,15 @@ const RING_RADIUS = 0.42;
 const RAIN_HEIGHT = 2.2;
 const RAIN_SECONDS = 0.22;
 const RAIN_STAGGER = 0.035;
-/** Points kept of the flying arrow's trail. */
-const TRAIL_POINTS = 24;
 /** Per second: how fast the bow fades once the intro is over. */
 const FADE_RATE = 2.5;
 /** The ring of arrows stays stuck this long after the burst (past the intro's end), then fades this long. */
 const RING_HOLD = 4;
 const RING_FADE = 1.2;
+/** The bow model tip to tip, as a share of her height (the in-game bow on her back: 1.05 of 1.7). */
+const BOW_LENGTH = 1.05 / 1.7;
+
+preloadProps(["elvenBow"]);
 
 const scratch = {
   left: new Vector3(),
@@ -40,6 +42,8 @@ const scratch = {
   aim: new Vector3(),
   up: new Vector3(),
   side: new Vector3(),
+  back: new Vector3(),
+  across: new Vector3(),
   point: new Vector3(),
   basis: new Matrix4(),
   quaternion: new Quaternion(),
@@ -49,9 +53,9 @@ const scratch = {
 const UP = new Vector3(0, 1, 0);
 
 /**
- * The Elven Archer's intro, all light: a bow appears in her left hand, its string drawn to her
- * right as she aims, an arrow nocked and brightening; at `releaseSeconds` it flies off the way
- * she aims, curls up into the sky trailing green and bursts, and a ring of arrows rains down
+ * The Elven Archer's intro: her bow (the 3D model) appears in her left hand as she aims, an arrow
+ * nocked and brightening; at `releaseSeconds` it flies off the way
+ * she aims, curls up into the sky and bursts, and a ring of arrows rains down
  * round her, stuck in the pedestal for a while after (the bow fades once the intro is over). Placed in world
  * space from her bones. Mounted fresh with every intro.
  */
@@ -72,14 +76,13 @@ export function ArcherIntro({
   const bow = useRef<Group>(null);
   const nocked = useRef<Group>(null);
   const flying = useRef<Group>(null);
-  const trail = useRef<Mesh>(null);
   const burst = useRef<Mesh>(null);
   const ring = useRef<(Group | null)[]>([]);
   const glow = useGlowColor(color, 2.4);
-  const arrows = useArrowMaterials(glow);
-  const ringArrows = useArrowMaterials(glow);
-  const bowMaterial = useGlowMaterial(glow);
-  const trailMaterial = useGlowMaterial(glow);
+  const arrows = useArrowMaterials();
+  const ringArrows = useArrowMaterials();
+  const bowMesh = usePropMesh("elvenBow");
+  const bowMaterial = useDisposable(useMemo(() => fadingMaterial(bowMesh.material), [bowMesh.material]));
   const burstMaterial = useGlowMaterial(glow);
   const hands = useMemo(
     () => ({
@@ -93,10 +96,6 @@ export function ArcherIntro({
   const presence = useRef(0);
   /** Where and which way the arrow left the bow; where its flight ends, over her. */
   const shot = useRef<{ from: Vector3; aim: Vector3; curve: CubicBezierCurve3 } | null>(null);
-  const trailPoints = useRef<Vector3[]>([]);
-
-  const bow3d = useDisposable(useMemo(() => bowGeometry(), []));
-  const string = useDisposable(useMemo(() => bowString(), []));
 
   useFrame(({ clock }, delta) => {
     const group = root.current;
@@ -114,32 +113,18 @@ export function ArcherIntro({
     scratch.side.crossVectors(scratch.aim, UP).normalize();
     scratch.up.crossVectors(scratch.side, scratch.aim).normalize();
 
-    // The bow, in her left hand from the draw on; its string pulled to the right hand until released.
+    // The bow, in her left hand from the draw on, its belly (the model's -x) towards the aim.
     const drawn = t >= beats.drawSeconds && t < beats.releaseSeconds;
     const shown = clamp01((t - beats.drawSeconds) / BOW_APPEAR) * fade;
     if (bow.current) {
       bow.current.visible = shown > 0.01;
-      scratch.basis.makeBasis(scratch.aim, scratch.up, scratch.side);
+      scratch.back.copy(scratch.aim).negate();
+      scratch.across.copy(scratch.side).negate();
+      scratch.basis.makeBasis(scratch.back, scratch.up, scratch.across);
       scratch.quaternion.setFromRotationMatrix(scratch.basis);
-      placeInWorld(bow.current, group, scratch.left, size * (0.6 + 0.4 * shown), scratch.quaternion);
+      placeInWorld(bow.current, group, scratch.left, size * (0.8 + 0.2 * shown), scratch.quaternion);
     }
     bowMaterial.setValues({ opacity: shown });
-    const tip = (sign: number) =>
-      scratch.point
-        .copy(scratch.left)
-        .addScaledVector(scratch.up, sign * BOW_HALF * size)
-        .addScaledVector(scratch.aim, -BOW_BULGE * size);
-    const top = tip(1).clone();
-    const bottom = tip(-1).clone();
-    // Drawn, the string meets at her right hand; loosed, it twangs back straight between the tips.
-    const twang = Math.sin((t - beats.releaseSeconds) * 60) * Math.max(0, 1 - (t - beats.releaseSeconds) * 4) * 0.02;
-    const nock = drawn
-      ? scratch.right.clone()
-      : top
-          .clone()
-          .lerp(bottom, 0.5)
-          .addScaledVector(scratch.aim, t >= beats.releaseSeconds ? twang * size : 0);
-    pullString(string, group, [top, nock, bottom], shown);
 
     // The nocked arrow, brightening as she holds the draw.
     if (nocked.current) {
@@ -166,7 +151,6 @@ export function ArcherIntro({
         over,
       );
       shot.current = { from, aim, curve };
-      trailPoints.current = [];
     }
     const flight = shot.current ? (t - beats.releaseSeconds) / FLIGHT_SECONDS : -1;
     if (flying.current) {
@@ -177,17 +161,7 @@ export function ArcherIntro({
         const heading = shot.current.curve.getTangentAt(Math.min(1, eased)).normalize();
         scratch.quaternion.setFromUnitVectors(UP, heading);
         placeInWorld(flying.current, group, at, size * ARROW_SCALE, scratch.quaternion);
-        trailPoints.current.unshift(at.clone());
-        if (trailPoints.current.length > TRAIL_POINTS) trailPoints.current.pop();
       }
-    }
-    if (trail.current) {
-      const points = trailPoints.current;
-      trail.current.visible = points.length > 2 && flight < 1.4;
-      if (trail.current.visible) {
-        retrace(trail.current, group, points, (0.012 * size) / (group.getWorldScale(scratch.point).x || 1));
-      }
-      trailMaterial.setValues({ opacity: Math.max(0, 1 - Math.max(0, flight - 0.8) * 2) * 0.8 });
     }
 
     // The burst high above her, then the ring of arrows raining down round her.
@@ -233,16 +207,14 @@ export function ArcherIntro({
   return (
     <group ref={root}>
       <group ref={bow} visible={false}>
-        <mesh geometry={bow3d} material={bowMaterial} />
+        <mesh geometry={bowMesh.geometry} material={bowMaterial} scale={BOW_LENGTH / PROP_HEIGHT} />
       </group>
-      <primitive object={string.line} />
       <group ref={nocked} visible={false}>
         <LightArrow materials={arrows} />
       </group>
       <group ref={flying} visible={false}>
         <LightArrow materials={arrows} />
       </group>
-      <mesh ref={trail} material={trailMaterial} visible={false} />
       <mesh ref={burst} material={burstMaterial} visible={false}>
         <ringGeometry args={[0.8, 1, 48]} />
       </mesh>
