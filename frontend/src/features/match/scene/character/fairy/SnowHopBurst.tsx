@@ -12,7 +12,7 @@ import {
   type InstancedMesh,
   type Mesh,
 } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { useAge } from "../../useAge";
 import { additiveMaterial } from "../shared/additive";
 import { useDisposable, useDisposables } from "../shared/disposal";

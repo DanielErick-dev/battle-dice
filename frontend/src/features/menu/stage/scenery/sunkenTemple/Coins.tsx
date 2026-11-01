@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useRef } from "react";
 import { MeshStandardMaterial, Object3D, type InstancedMesh } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 
 const COINS = 16;
 

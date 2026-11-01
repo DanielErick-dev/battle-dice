@@ -3,7 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { IcosahedronGeometry, MeshStandardMaterial, Object3D, type InstancedMesh, type Mesh } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { useDisposable, useDisposables } from "../shared/disposal";
 import { clamp01 } from "../shared/easing";
 import { iceShard } from "../shared/ice";

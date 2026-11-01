@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { MAX_ENERGY, TURNS_PER_ENERGY } from "@/game/domain/cards";
+import { MAX_ENERGY, TURNS_PER_ENERGY } from "@/game/domain/core/energy";
 import { cn } from "@/lib/utils";
 
 const ENERGY_HELP = `Energia é o que você gasta para usar cartas. Você ganha 1 a cada ${TURNS_PER_ENERGY} turnos (máximo ${MAX_ENERGY}).`;

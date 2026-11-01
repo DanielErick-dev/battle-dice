@@ -1,5 +1,5 @@
 import { Vector3 } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 
 /** Ice spikes bursting out of the floor round the fist: how many, how far out, how tall. */
 const SPIKES = 9;

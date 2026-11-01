@@ -1,4 +1,4 @@
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import type { Vec3 } from "../boardLayout";
 import {
   groundAt,

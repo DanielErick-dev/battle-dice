@@ -1,8 +1,10 @@
-import type { AbilityId } from "../abilities";
-import { STARTING_ENERGY, STARTING_HAND, type CardId } from "../cards";
-import { buildDeck } from "../deck";
-import { placeHiddenTraps } from "../hiddenTraps";
-import type { RandomSource } from "../random";
+import type { AbilityId } from "../abilities/ability";
+import { STARTING_ENERGY } from "../core/energy";
+import { STARTING_HAND } from "../cards/hand";
+import type { CardId } from "../cards/catalog";
+import { buildDeck } from "../cards/decks";
+import { placeHiddenTraps } from "../board/hiddenTraps";
+import type { RandomSource } from "../core/random";
 import type { Board, GameState, Player, PlayerId } from "../types";
 
 export interface NewPlayer {

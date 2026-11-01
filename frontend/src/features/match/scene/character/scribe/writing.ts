@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { CanvasTexture, PlaneGeometry, SRGBColorSpace } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { createWriting, drawParchment, drawStrokes, pageStrokes, ring, type Stroke } from "../shared/parchment";
 import { SCROLLS } from "./introLayout";
 

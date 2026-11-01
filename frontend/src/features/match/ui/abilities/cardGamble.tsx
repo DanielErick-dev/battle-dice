@@ -1,6 +1,6 @@
 import { Layers } from "lucide-react";
-import { opponentsInReach } from "@/game/domain/board";
-import { gambleTargets } from "@/game/domain/cardGamble";
+import { opponentsInReach } from "@/game/domain/board/reach";
+import { gambleTargets } from "@/game/domain/characters/jester/cardGamble";
 import { TargetPicker } from "../hud/TargetPicker";
 import { seated } from "./seated";
 import type { AbilityFlow, AbilityScene } from "./types";

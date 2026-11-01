@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { CanvasTexture, RepeatWrapping, SRGBColorSpace } from "three";
-import { seededRandom, type RandomSource } from "@/game/domain/random";
+import { seededRandom, type RandomSource } from "@/game/domain/core/random";
 import { dressGround, type GroundDressing } from "./groundDressing";
 
 /** Paints the canvas (`size` is its width); module-level so a texture is drawn once. */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { evenAngles, scatterAround } from "./geometry";
 import { petalPose, settle, type Petal } from "./petals";
 

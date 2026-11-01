@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { BufferGeometry, CanvasTexture, Color, Float32BufferAttribute } from "three";
-import { seededRandom, type RandomSource } from "@/game/domain/random";
+import { seededRandom, type RandomSource } from "@/game/domain/core/random";
 
 /** Pale ice and the deeper glacier blue under it. */
 export const ICE = new Color("#dff4ff");

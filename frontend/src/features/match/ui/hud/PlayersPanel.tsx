@@ -1,14 +1,14 @@
 import { Layers, Sparkles } from "lucide-react";
-import { abilityCycle, isAbilityReady } from "@/game/domain/abilities";
-import { getTile, trackOf } from "@/game/domain/board";
-import { MAX_ENERGY } from "@/game/domain/cards";
+import { abilityCycle, isAbilityReady } from "@/game/domain/abilities/charge";
+import { getTile, trackOf } from "@/game/domain/board/board";
+import { MAX_ENERGY } from "@/game/domain/core/energy";
 import type { Board, Player, PlayerId } from "@/game/domain/types";
 import { cn } from "@/lib/utils";
 import { playerColor } from "../../characters";
 import { ABILITY_TEXT } from "../abilityText";
 import { BlessingBadges } from "./BlessingBadges";
 import { EnergyOrbs, useShownEnergy } from "../cards/EnergyMeter";
-import { inHeaven } from "@/game/domain/blessings";
+import { inHeaven } from "@/game/domain/board/blessings";
 
 interface PlayersPanelProps {
   players: readonly Player[];

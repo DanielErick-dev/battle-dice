@@ -10,7 +10,7 @@ import {
   Vector3,
 } from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 
 /** Rose bushes around the circle: `radius` of the mound, how many `roses` bloom on it. */
 export const BUSHES = [

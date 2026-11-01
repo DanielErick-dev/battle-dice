@@ -1,5 +1,5 @@
-import type { GameEvent } from "@/game/domain/events";
-import type { AimWard } from "@/game/domain/players";
+import type { GameEvent } from "@/game/domain/core/events";
+import type { AimWard } from "@/game/domain/core/playerStatus";
 import type { Blessing, Player, PlayerId, TrapWard } from "@/game/domain/types";
 import { ABILITY_TEXT } from "./abilityText";
 import { BLESSING_TEXT } from "./blessingText";

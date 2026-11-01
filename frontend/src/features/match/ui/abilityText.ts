@@ -1,52 +1,23 @@
-import {
-  abilityCycle,
-  TRANSMUTATION_CARDS,
-  TRANSMUTATION_FALLBACK_LEVEL,
-  ARROW_RAIN_PINS,
-  BLOOD_PACT_ENERGY,
-  ARROW_RAIN_PUSH,
-  CARD_GAMBLE_DRAWS,
-  CARD_GAMBLE_EPICS,
-  CARD_GAMBLE_JACKPOT,
-  CARD_GAMBLE_LOSES_UP_TO,
-  CARD_GAMBLE_LOST,
-  CARD_GAMBLE_STOLEN,
-  DORMANT_FURY_MULTIPLIER,
-  PLASMA_PUSH,
-  PLASMA_TRAPS,
-  STUDY_DRAWS,
-  TAILWIND_BONUS,
-  TIDE_RANGE,
-  TRAMPLE_PUSH,
-  UNTAMED_TURNS,
-  TIME_ROUNDS,
-  LEVITATION_TURNS,
-  RESURRECTION_CARDS,
-  RUIN_PUSH,
-  SEAL_RANGE,
-  PLUNDER_CARDS,
-  SPECTER_RANGE,
-  type AbilityId,
-  ARMOUR_TURNS,
-  VOID_CAPACITY,
-  VOID_DOUBLE_ENERGY,
-  VOID_IDLE_ROUNDS,
-  ENCHANT_ADVANCE,
-  ENCHANT_FREEZE,
-  SNOW_DRAIN,
-  ENCHANT_TILES,
-  WINTER_PICKS,
-  WINTER_TILES,
-  FLAME_ENERGY,
-  FLAME_HITS,
-  FLAME_PUSH,
-  FLAME_TILES,
-  FLAME_TURNS,
-} from "@/game/domain/abilities";
-import { MAX_RARITY_LEVEL } from "@/game/domain/cards";
-import { BLESSING_TURNS, SERAPH_BLESSING_TURNS } from "@/game/domain/blessings";
-import { CROWN_BONUS, DRAG_TRAPS } from "@/game/domain/seraph";
-import { BLIND_SCALE_ENERGY } from "@/game/domain/verdict";
+import { abilityCycle } from "@/game/domain/abilities/charge";
+import { TRANSMUTATION_CARDS, TRANSMUTATION_FALLBACK_LEVEL } from "@/game/domain/characters/alchemist/transmutation";
+import { ARROW_RAIN_PINS, ARROW_RAIN_PUSH } from "@/game/domain/characters/archer/arrowRain";
+import { BLOOD_PACT_ENERGY, RUIN_PUSH, SEAL_RANGE } from "@/game/domain/characters/scribe/seals";
+import { CARD_GAMBLE_DRAWS, CARD_GAMBLE_EPICS, CARD_GAMBLE_JACKPOT, CARD_GAMBLE_LOSES_UP_TO, CARD_GAMBLE_LOST, CARD_GAMBLE_STOLEN } from "@/game/domain/characters/jester/cardGamble";
+import { DORMANT_FURY_MULTIPLIER, STUDY_DRAWS, TAILWIND_BONUS, LEVITATION_TURNS } from "@/game/domain/abilities/basic";
+import { PLASMA_PUSH, PLASMA_TRAPS } from "@/game/domain/characters/alva/plasmaCannon";
+import { TIDE_RANGE } from "@/game/domain/characters/auric/cleansingTide";
+import { TRAMPLE_PUSH, UNTAMED_TURNS } from "@/game/domain/characters/bjorn/untamed";
+import { TIME_ROUNDS } from "@/game/domain/characters/cronos/timeWarp";
+import { RESURRECTION_CARDS } from "@/game/domain/characters/necromancer/resurrection";
+import { PLUNDER_CARDS, SPECTER_RANGE } from "@/game/domain/characters/warden/specters";
+import type { AbilityId } from "@/game/domain/abilities/ability";
+import { ARMOUR_TURNS, FLAME_ENERGY, FLAME_HITS, FLAME_PUSH, FLAME_TILES, FLAME_TURNS } from "@/game/domain/characters/kage/flames";
+import { VOID_CAPACITY, VOID_DOUBLE_ENERGY, VOID_IDLE_ROUNDS } from "@/game/domain/characters/zarek/void";
+import { ENCHANT_ADVANCE, ENCHANT_FREEZE, SNOW_DRAIN, ENCHANT_TILES, WINTER_PICKS, WINTER_TILES } from "@/game/domain/characters/fairy/winter";
+import { MAX_RARITY_LEVEL } from "@/game/domain/cards/catalog";
+import { BLESSING_TURNS, SERAPH_BLESSING_TURNS } from "@/game/domain/board/blessings";
+import { CROWN_BONUS, DRAG_TRAPS } from "@/game/domain/characters/seraphiel/seraph";
+import { BLIND_SCALE_ENERGY } from "@/game/domain/characters/themis/verdict";
 
 /**
  * Player-facing ability copy (pt-BR). Rules live in the domain; this is only what the ability

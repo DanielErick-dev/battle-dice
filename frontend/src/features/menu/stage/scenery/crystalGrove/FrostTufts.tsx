@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { Color, DoubleSide } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { grassTuft, scatterAround } from "../kit/geometry";
 
 const TUFTS = 12;

@@ -3,7 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo } from "react";
 import { AdditiveBlending, BufferAttribute, BufferGeometry } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { useCanvasTexture } from "../kit/textures";
 import { CYAN, LILAC } from "./layout";
 import { paintStar } from "./textures";

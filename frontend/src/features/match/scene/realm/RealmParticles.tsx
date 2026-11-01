@@ -3,7 +3,7 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, DoubleSide, type ShaderMaterial } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { useRealmMix, type RealmMix } from "./RealmAtmosphere";
 
 const POINTS_VERTEX = /* glsl */ `

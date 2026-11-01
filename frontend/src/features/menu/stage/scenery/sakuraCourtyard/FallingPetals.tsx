@@ -3,7 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import { DoubleSide, MeshStandardMaterial, Object3D, ShapeGeometry, Shape, type InstancedMesh } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 
 const PETALS = 70;
 

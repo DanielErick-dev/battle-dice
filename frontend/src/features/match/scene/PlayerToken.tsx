@@ -3,7 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { Suspense, useCallback, useRef, useState } from "react";
 import type { Group, Mesh, Vector3 } from "three";
-import { isFallen } from "@/game/domain/seraph";
+import { isFallen } from "@/game/domain/characters/seraphiel/seraph";
 import type { Player } from "@/game/domain/types";
 import type { CharacterClip, CharacterDefinition, ClipLengths } from "../characters";
 import type { Vec3 } from "./boardLayout";

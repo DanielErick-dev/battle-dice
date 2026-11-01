@@ -1,5 +1,5 @@
 /** Kage Rubra: black fire and the Susanoo. */
-import { FLAME_TURNS } from "@/game/domain/abilities";
+import { FLAME_TURNS } from "@/game/domain/characters/kage/flames";
 import { nextFxId, withFx, withPlayer, withPlayerAt } from "../matchView";
 import type { StepHandlers } from "./types";
 

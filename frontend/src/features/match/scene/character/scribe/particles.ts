@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { BufferAttribute, BufferGeometry, Color, Vector3 } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { BURN_SECONDS, clamp01, EMBERS, SCROLLS, SHEET_HEIGHT, SHEET_WIDTH, SPARK_LIFE, SPARKS } from "./introLayout";
 
 /** The ink sparks: a ring of points shed at the fingertip, drifting and fading, some dripping. */

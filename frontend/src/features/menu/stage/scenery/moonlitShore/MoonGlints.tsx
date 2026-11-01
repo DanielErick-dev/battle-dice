@@ -2,7 +2,7 @@
 
 import { useFrame } from "@react-three/fiber";
 import { useMemo } from "react";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { useDisposal } from "../kit/dispose";
 import { GlowPoints, pointBuffers } from "../kit/GlowPoints";
 import { useSoftDisc } from "../kit/matchAssets";

@@ -1,6 +1,6 @@
 /** Drawing, playing, discarding and fusing cards. */
-import { cardCost } from "@/game/domain/cards";
-import { throwOnPile } from "@/game/domain/deck";
+import { cardCost } from "@/game/domain/cards/catalog";
+import { throwOnPile } from "@/game/domain/cards/decks";
 import type { CardInstance, Player, PlayerId } from "@/game/domain/types";
 import type { PlaybackTimings } from "../../config";
 import { nextFxId, withFx, withPlayer, withPlayerAt, type MatchView } from "../matchView";

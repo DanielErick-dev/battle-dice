@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { Color, CylinderGeometry, MeshStandardMaterial, SpriteMaterial } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { useDisposal } from "../kit/dispose";
 import { GroundDisc } from "../kit/Floor";
 import { roughen } from "../kit/geometry";

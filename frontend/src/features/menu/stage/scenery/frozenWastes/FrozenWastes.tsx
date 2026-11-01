@@ -3,7 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useMemo } from "react";
 import { DodecahedronGeometry, MeshStandardMaterial } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { useDisposal } from "../kit/dispose";
 import { GroundDisc } from "../kit/Floor";
 import { dome } from "../kit/geometry";

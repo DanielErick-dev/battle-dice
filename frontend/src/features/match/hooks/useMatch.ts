@@ -1,6 +1,6 @@
 "use client";
 
-import type { BoardDefinition } from "@/game/domain/board";
+import type { BoardDefinition } from "@/game/domain/board/board";
 import type { RosterEntry } from "../characters";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { createLocalMatch, type LocalMatchOptions } from "../model/createLocalMatch";

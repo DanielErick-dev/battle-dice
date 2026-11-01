@@ -14,7 +14,7 @@ import {
   type Group,
   type Mesh,
 } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "../../boardLayout";
 import { useAge } from "../../useAge";
 import { EFFECT_SCALE } from "../core/figure";

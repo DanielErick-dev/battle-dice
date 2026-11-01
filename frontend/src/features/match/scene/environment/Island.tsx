@@ -15,7 +15,7 @@ import {
   PlaneGeometry,
   SphereGeometry,
 } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import type { Vec3 } from "../boardLayout";
 import { PROP_HEIGHT, usePropMesh, type PropId } from "../character/core/props";
 import { useSoftDisc } from "../character/shared/softDisc";

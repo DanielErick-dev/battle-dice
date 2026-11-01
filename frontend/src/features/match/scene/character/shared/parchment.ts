@@ -1,5 +1,5 @@
 import { CanvasTexture } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 
 /** A pen stroke: points on a page whose sides run from 0 to 1. */
 export type Stroke = [number, number][];

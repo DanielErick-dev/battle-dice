@@ -3,7 +3,7 @@
  * tiles. The match screen only asks this registry what "Usar" does and which picker to show; a new
  * ability that asks something gets its own file here and one line below (see docs/arquitetura.md).
  */
-import type { AbilityId } from "@/game/domain/abilities";
+import type { AbilityId } from "@/game/domain/abilities/ability";
 import { arrowRain } from "./arrowRain";
 import { resurrection, transmutation } from "./cardChoices";
 import { cardGamble } from "./cardGamble";

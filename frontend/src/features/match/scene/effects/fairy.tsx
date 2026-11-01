@@ -1,7 +1,7 @@
 /** Crystal Fairy: her wand and snow, the tiles she enchants and the Eternal Winter. */
 import { useMemo } from "react";
 import { Vector3, type Object3D } from "three";
-import { frozenTiles } from "@/game/domain/fairy";
+import { frozenTiles } from "@/game/domain/characters/fairy/winter";
 import type { PlayerId } from "@/game/domain/types";
 import { playerColor } from "../../characters";
 import type { MatchView } from "../../model/matchView";

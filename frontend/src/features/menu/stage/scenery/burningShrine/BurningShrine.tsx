@@ -3,7 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useMemo } from "react";
 import { Color, MeshStandardMaterial, SpriteMaterial, type Sprite } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { useDisposal } from "../kit/dispose";
 import { GroundDisc } from "../kit/Floor";
 import { GlowPoints, usePointBuffers } from "../kit/GlowPoints";

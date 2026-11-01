@@ -1,5 +1,5 @@
-import type { GameCommand } from "../domain/commands";
-import type { GameEvent } from "../domain/events";
+import type { GameCommand } from "../domain/core/commands";
+import type { GameEvent } from "../domain/core/events";
 import type { GameState } from "../domain/types";
 
 export interface GameUpdate {

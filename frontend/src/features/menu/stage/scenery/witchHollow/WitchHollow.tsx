@@ -14,7 +14,7 @@ import {
   type Sprite,
   type Texture,
 } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { ABOVE_FLOOR, GROUND_RADIUS, taperedTube } from "../kit/geometry";
 import { useCanvasTexture, useNoiseTexture } from "../kit/textures";
 import { BARK, paintHollowFloor, paintToadstoolCap, STONE } from "./textures";

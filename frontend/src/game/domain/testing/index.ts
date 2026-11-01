@@ -1,12 +1,15 @@
 import { expect } from "vitest";
-import { abilityCycle, type AbilityId } from "../abilities";
-import type { BoardDefinition } from "../board";
-import type { CardId } from "../cards";
-import { GameRuleError, type GameCommand, type GameErrorCode } from "../commands";
-import { sequenceDice } from "../dice";
-import { applyCommand, createGame, type GameTransition } from "../engine";
-import type { GameEvent } from "../events";
-import { seededRandom } from "../random";
+import { abilityCycle } from "../abilities/charge";
+import type { AbilityId } from "../abilities/ability";
+import type { BoardDefinition } from "../board/board";
+import type { CardId } from "../cards/catalog";
+import { GameRuleError, type GameErrorCode } from "../core/errors";
+import type { GameCommand } from "../core/commands";
+import { sequenceDice } from "../core/dice";
+import { applyCommand, createGame } from "../core/engine";
+import type { GameTransition } from "../handlers/types";
+import type { GameEvent } from "../core/events";
+import { seededRandom } from "../core/random";
 import type { CardInstance, GameState, Player, PlayerId, TileEffect, TileId } from "../types";
 
 export * from "./boards";

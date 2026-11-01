@@ -1,21 +1,8 @@
-import {
-  FUSED_AEGIS_TURNS,
-  FUSED_BLAST_PUSH,
-  FUSED_LUCKY_BONUS,
-  FUSED_SCROLL_DRAWS,
-  FUSED_SHIELD_ARMOUR,
-  FUSED_WIND_STEP_TILES,
-} from "@/game/domain/fusion";
-import { AEGIS_TURNS, ARCANE_BLAST_PUSH, HEALING_HERB_ENERGY, type CardId, type Rarity } from "@/game/domain/cards";
-import {
-  BLINDFOLD_RANGE,
-  GUILT_DISCARDS,
-  HUNGRY_RIFT_RANGE,
-  SWORD_PUSH,
-  SWORD_PUSH_AHEAD,
-  VOID_HUNGER_CHARGE,
-} from "@/game/domain/exclusiveCards";
-import { BLIND_SCALE_ENERGY } from "@/game/domain/verdict";
+import { FUSED_AEGIS_TURNS, FUSED_BLAST_PUSH, FUSED_LUCKY_BONUS, FUSED_SCROLL_DRAWS, FUSED_SHIELD_ARMOUR, FUSED_WIND_STEP_TILES } from "@/game/domain/cards/fusion";
+import { AEGIS_TURNS, ARCANE_BLAST_PUSH, HEALING_HERB_ENERGY } from "@/game/domain/cards/play";
+import type { CardId, Rarity } from "@/game/domain/cards/catalog";
+import { BLINDFOLD_RANGE, GUILT_DISCARDS, HUNGRY_RIFT_RANGE, SWORD_PUSH, SWORD_PUSH_AHEAD, VOID_HUNGER_CHARGE } from "@/game/domain/cards/exclusive";
+import { BLIND_SCALE_ENERGY } from "@/game/domain/characters/themis/verdict";
 
 /** Player-facing card copy (pt-BR). Rules live in the domain; this is only what the card says. */
 export const CARD_TEXT: Readonly<Record<CardId, { name: string; description: string }>> = {

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { Color, DodecahedronGeometry, InstancedMesh, MeshStandardMaterial, Object3D } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { scatterAround } from "../kit/geometry";
 
 const PEBBLES = 36;

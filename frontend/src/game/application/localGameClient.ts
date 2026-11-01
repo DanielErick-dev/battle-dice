@@ -1,5 +1,5 @@
-import type { GameCommand } from "../domain/commands";
-import { applyCommand, type GameDependencies } from "../domain/engine";
+import type { GameCommand } from "../domain/core/commands";
+import { applyCommand, type GameDependencies } from "../domain/core/engine";
 import type { GameState } from "../domain/types";
 import type { GameClient, GameUpdateListener } from "./gameClient";
 

@@ -1,4 +1,4 @@
-import type { RandomSource } from "@/game/domain/random";
+import type { RandomSource } from "@/game/domain/core/random";
 import { blot, dot, shade } from "./painting";
 
 /** How a path runs from the front of the stage (canvas bottom) back to the scenery behind the figure (canvas top). */

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { BufferAttribute, BufferGeometry, Color, NormalBlending } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { useSoftDisc } from "../kit/matchAssets";
 
 /** Clouds of blossom along the boughs: centre and half-size. */

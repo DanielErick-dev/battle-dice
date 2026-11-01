@@ -1,19 +1,14 @@
 import type { TileEffectKind, TileEffectView } from "../../model/matchView";
-import {
-  CARD_GAMBLE_JACKPOT,
-  ENCHANT_ADVANCE,
-  FLAME_PUSH,
-  PLUNDER_CARDS,
-  RUIN_PUSH,
-  SOLO_RUIN_ADVANCE,
-  SUSANOO_PUSH,
-  WINTER_TILES,
-} from "@/game/domain/abilities";
+import { CARD_GAMBLE_JACKPOT } from "@/game/domain/characters/jester/cardGamble";
+import { ENCHANT_ADVANCE, WINTER_TILES } from "@/game/domain/characters/fairy/winter";
+import { FLAME_PUSH, SUSANOO_PUSH } from "@/game/domain/characters/kage/flames";
+import { PLUNDER_CARDS } from "@/game/domain/characters/warden/specters";
+import { RUIN_PUSH, SOLO_RUIN_ADVANCE } from "@/game/domain/characters/scribe/seals";
 import { ABILITY_TEXT } from "../abilityText";
 import { voidItemName } from "../voidText";
 import { CARD_TEXT } from "../cards/cardText";
 import { BLESSING_TEXT, blessingDuration } from "../blessingText";
-import { CROWN_BONUS, DIVINE_CHAINS_ROUNDS } from "@/game/domain/seraph";
+import { CROWN_BONUS, DIVINE_CHAINS_ROUNDS } from "@/game/domain/characters/seraphiel/seraph";
 
 interface EffectBannerProps {
   effect: TileEffectView | null;

@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { cardBlocker, cardTargets, type CardTable } from "@/game/domain/cardPlay";
-import { CARD_CATALOG, cardCost, HAND_LIMIT, type CardId } from "@/game/domain/cards";
-import { DICE_SIDES } from "@/game/domain/dice";
-import { FUSION_COPIES, fusibleInHand } from "@/game/domain/fusion";
+import { cardBlocker, cardTargets, type CardTable } from "@/game/domain/cards/play";
+import { CARD_CATALOG, cardCost, type CardId } from "@/game/domain/cards/catalog";
+import { HAND_LIMIT } from "@/game/domain/cards/hand";
+import { DICE_SIDES } from "@/game/domain/core/dice";
+import { FUSION_COPIES, fusibleInHand } from "@/game/domain/cards/fusion";
 import type { CardInstance, Player } from "@/game/domain/types";
 import { cn } from "@/lib/utils";
 import { CardBack } from "./CardBack";

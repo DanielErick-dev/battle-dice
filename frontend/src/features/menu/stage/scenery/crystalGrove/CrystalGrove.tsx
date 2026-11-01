@@ -11,7 +11,7 @@ import {
   SpriteMaterial,
   type Group,
 } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { GROUND_RADIUS } from "../kit/geometry";
 import { useCanvasTexture } from "../kit/textures";
 import { Flowers } from "./Flowers";

@@ -1,16 +1,7 @@
-import {
-  BLOOD_PACT_ENERGY,
-  FLAME_ENERGY,
-  FLAME_PUSH,
-  FLAME_TILES,
-  PLUNDER_CARDS,
-  RUIN_PUSH,
-  WINTER_PICKS,
-  ENCHANT_ADVANCE,
-  ENCHANT_FREEZE,
-} from "@/game/domain/abilities";
-import { SEAL_KINDS } from "@/game/domain/seals";
-import { SPECTER_KINDS } from "@/game/domain/specters";
+import { BLOOD_PACT_ENERGY, RUIN_PUSH, SEAL_KINDS } from "@/game/domain/characters/scribe/seals";
+import { FLAME_ENERGY, FLAME_PUSH, FLAME_TILES } from "@/game/domain/characters/kage/flames";
+import { PLUNDER_CARDS, SPECTER_KINDS } from "@/game/domain/characters/warden/specters";
+import { WINTER_PICKS, ENCHANT_ADVANCE, ENCHANT_FREEZE } from "@/game/domain/characters/fairy/winter";
 import type { SealKind, SpecterKind } from "@/game/domain/types";
 
 /** One thing to place on a tile: what it's called, what it does, its badge colour (class and hex), its tag on the board. */

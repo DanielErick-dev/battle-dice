@@ -1,4 +1,4 @@
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { START_PLAZA, TILE_PITCH, type Vec3 } from "../boardLayout";
 import { TRAIL_GROUND } from "./islandTerrain";
 import type { KitItem } from "./kits";

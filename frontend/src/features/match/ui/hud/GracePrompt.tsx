@@ -1,4 +1,4 @@
-import { GRACE_BLESSINGS } from "@/game/domain/seraph";
+import { GRACE_BLESSINGS } from "@/game/domain/characters/seraphiel/seraph";
 import type { TimedBlessing } from "@/game/domain/types";
 import { BLESSING_TEXT, blessingDuration } from "../blessingText";
 import { BLESSING_ICONS } from "./BlessingBadges";

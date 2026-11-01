@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { CylinderGeometry, MeshStandardMaterial, Object3D, type InstancedMesh } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { useChipTexture } from "./textures";
 
 const CHIP_RADIUS = 0.034;

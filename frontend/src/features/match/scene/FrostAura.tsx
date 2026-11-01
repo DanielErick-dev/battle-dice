@@ -17,7 +17,7 @@ import {
   type Mesh,
   type Sprite,
 } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { GLACIER, ICE, iceShard, useCrackTexture } from "./character/shared/ice";
 import { useSoftDisc } from "./character/shared/softDisc";
 

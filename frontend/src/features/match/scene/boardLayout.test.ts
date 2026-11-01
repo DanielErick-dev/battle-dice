@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createBoard, POWER_TOURNAMENT_BOARD, TRAINING_BOARD } from "@/game/domain/board";
+import { createBoard } from "@/game/domain/board/board";
+import { POWER_TOURNAMENT_BOARD, TRAINING_BOARD } from "@/game/domain/board/presets";
 import { createBoardLayout, TILE_PITCH, TILE_SIZE } from "./boardLayout";
 
 describe("the winding trail", () => {

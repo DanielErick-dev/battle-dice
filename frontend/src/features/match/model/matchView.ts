@@ -1,29 +1,11 @@
-import { abilityBlocker, cardsPerTurn, type AbilityId } from "@/game/domain/abilities";
-import { currentPlayer } from "@/game/domain/engine";
-import type { GameEvent } from "@/game/domain/events";
-import type { AimWard } from "@/game/domain/players";
-import type { CardId } from "@/game/domain/cards";
-import { riftsOf } from "@/game/domain/void";
-import type {
-  BlackFlame,
-  Crown,
-  EnchantedTile,
-  Winter,
-  Blessing,
-  CardInstance,
-  GameState,
-  Player,
-  PlayerId,
-  RealmKind,
-  SealKind,
-  SpecterKind,
-  Tile,
-  VoidItem,
-  Threat,
-  TileId,
-  TrapCurse,
-  TrapWard,
-} from "@/game/domain/types";
+import { abilityBlocker, type AbilityId } from "@/game/domain/abilities/ability";
+import { cardsPerTurn } from "@/game/domain/abilities/basic";
+import { currentPlayer } from "@/game/domain/handlers/shared";
+import type { GameEvent } from "@/game/domain/core/events";
+import type { AimWard } from "@/game/domain/core/playerStatus";
+import type { CardId } from "@/game/domain/cards/catalog";
+import { riftsOf } from "@/game/domain/characters/zarek/void";
+import type { BlackFlame, Crown, EnchantedTile, Winter, Blessing, CardInstance, GameState, Player, PlayerId, RealmKind, SealKind, SpecterKind, Tile, VoidItem, Threat, TileId, TrapCurse, TrapWard } from "@/game/domain/types";
 
 export type TileEffectKind =
   | "portal"

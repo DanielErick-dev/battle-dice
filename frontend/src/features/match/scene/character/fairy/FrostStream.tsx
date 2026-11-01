@@ -14,7 +14,7 @@ import {
   type InstancedMesh,
   type Mesh,
 } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { DEFAULT_TIMINGS } from "../../../config";
 import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "../../boardLayout";
 import { useAge } from "../../useAge";

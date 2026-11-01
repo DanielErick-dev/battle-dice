@@ -4,7 +4,7 @@ import { OrbitControls } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef, type ComponentRef } from "react";
 import { MOUSE, PerspectiveCamera, TOUCH, Vector3 } from "three";
-import type { CardId } from "@/game/domain/cards";
+import type { CardId } from "@/game/domain/cards/catalog";
 import type { CardCastView, TileEffectKind, TileEffectView } from "../model/matchView";
 import type { BoardLayout, Vec3 } from "./boardLayout";
 

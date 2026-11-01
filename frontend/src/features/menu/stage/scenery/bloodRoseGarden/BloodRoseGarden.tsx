@@ -15,7 +15,7 @@ import {
   type InstancedMesh,
   type Object3D,
 } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { useDisposal } from "../kit/dispose";
 import { FallingPetals } from "../kit/FallingPetals";
 import { FlickerSprite } from "../kit/FlickerSprite";

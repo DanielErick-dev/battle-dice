@@ -1,4 +1,4 @@
-import type { AbilityId } from "@/game/domain/abilities";
+import type { AbilityId } from "@/game/domain/abilities/ability";
 
 /** A line a character shouts: a recording in public/audio/voices, heard `delay` seconds after its cue. */
 export interface VoiceLine {

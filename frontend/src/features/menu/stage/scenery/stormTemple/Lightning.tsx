@@ -13,7 +13,7 @@ import {
   Vector3,
   type Mesh,
 } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { useSoftDisc } from "../kit/matchAssets";
 
 /** Seconds between lightning strikes; each strike flickers a few times. */

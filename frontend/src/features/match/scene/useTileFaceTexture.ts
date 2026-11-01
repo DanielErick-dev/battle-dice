@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { CanvasTexture, SRGBColorSpace } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import type { TileTheme } from "./tileTheme";
 
 /** Logical drawing size; the canvas itself may be smaller (see TileFace.resolution). */

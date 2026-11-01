@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LocalGameClient } from "@/game/application/localGameClient";
-import { CLASSIC_BOARD } from "@/game/domain/board";
-import { sequenceDice } from "@/game/domain/dice";
-import { seededRandom } from "@/game/domain/random";
-import { createGame } from "@/game/domain/engine";
+import { CLASSIC_BOARD } from "@/game/domain/board/presets";
+import { sequenceDice } from "@/game/domain/core/dice";
+import { seededRandom } from "@/game/domain/core/random";
+import { createGame } from "@/game/domain/core/engine";
 import { MatchStore } from "../model/matchStore";
 import { connectMatchAudio } from "./matchAudio";
 import type { MatchSounds } from "./soundEffects";

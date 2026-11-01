@@ -1,8 +1,8 @@
-import { GameRuleError, type GameErrorCode } from "../commands";
-import { draftState, playerIn, type Draft } from "../draft";
-import { crownAndFall } from "../seraph";
-import { endTurn } from "../turn";
-import { feedTheVoid } from "../void";
+import { GameRuleError, type GameErrorCode } from "../core/errors";
+import { draftState, playerIn, type Draft } from "../core/draft";
+import { crownAndFall } from "../characters/seraphiel/seraph";
+import { endTurn } from "../core/turn";
+import { feedTheVoid } from "../characters/zarek/void";
 import type { GameState, Player, PlayerId } from "../types";
 import type { GameTransition } from "./types";
 

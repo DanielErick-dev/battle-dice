@@ -3,7 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { MeshBasicMaterial, type Mesh } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { HALF_WIDTH } from "./layout";
 import { useSoftDisc } from "../kit/matchAssets";
 

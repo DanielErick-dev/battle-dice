@@ -22,9 +22,9 @@ import { cn } from "@/lib/utils";
 import { boardPresetFor, isLargeBoard, type BoardPreset } from "../boards";
 import type { MapId } from "../maps";
 import { CHARACTERS, rosterOf, type CharacterDefinition, type CharacterId, type RosterEntry } from "../characters";
-import { blessingTurns } from "@/game/domain/blessings";
-import { DIVINE_CARDS } from "@/game/domain/cards";
-import { PLUNDER_CARDS } from "@/game/domain/abilities";
+import { blessingTurns, inHeaven } from "@/game/domain/board/blessings";
+import { DIVINE_CARDS } from "@/game/domain/cards/catalog";
+import { PLUNDER_CARDS } from "@/game/domain/characters/warden/specters";
 import { activePlayerOf, canActivateAbility, canPlayCard, canRoll, cardsLeftThisTurn } from "../model/matchView";
 import { useMatch } from "../hooks/useMatch";
 import { useGameAudio, type GameAudio } from "../hooks/useGameAudio";
@@ -45,7 +45,6 @@ import { DicePanel } from "./hud/DicePanel";
 import { EffectBanner } from "./hud/EffectBanner";
 import { AbilityMeter } from "./hud/AbilityMeter";
 import { BlessingBadges } from "./hud/BlessingBadges";
-import { inHeaven } from "@/game/domain/blessings";
 import { ErrorToast } from "./hud/ErrorToast";
 import { LoadingCurtain } from "./hud/LoadingCurtain";
 import { PlayersPanel } from "./hud/PlayersPanel";
@@ -55,7 +54,7 @@ import { ABILITY_FLOWS, placementOf, type AbilityContext, type AbilityScene, typ
 import { GracePrompt } from "./hud/GracePrompt";
 import { WardPrompt } from "./hud/WardPrompt";
 import { VoidHold } from "./hud/VoidHold";
-import { withRifts } from "@/game/domain/void";
+import { withRifts } from "@/game/domain/characters/zarek/void";
 
 const NO_TILES: TileId[] = [];
 

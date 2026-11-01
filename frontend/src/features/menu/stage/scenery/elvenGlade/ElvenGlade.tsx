@@ -13,7 +13,7 @@ import {
   TubeGeometry,
   Vector3,
 } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { GROUND_RADIUS } from "../kit/geometry";
 import { useCanvasTexture, useNoiseTexture } from "../kit/textures";
 import { Ferns } from "./Ferns";

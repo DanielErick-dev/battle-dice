@@ -8,7 +8,7 @@ import {
   Vector3,
   type SphereGeometry,
 } from "three";
-import type { RandomSource } from "@/game/domain/random";
+import type { RandomSource } from "@/game/domain/core/random";
 import { FLOOR_Y } from "../../layout";
 
 /** A tube along `points` that thins towards its last point (roots, trunks, branches). */

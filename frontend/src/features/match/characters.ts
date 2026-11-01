@@ -1,4 +1,4 @@
-import type { AbilityId } from "@/game/domain/abilities";
+import type { AbilityId } from "@/game/domain/abilities/ability";
 import type { PlayerId } from "@/game/domain/types";
 import type { SceneryId } from "@/features/menu/stage/scenery";
 import type { CrownId } from "./scene/character/accessories/HeadCrown";

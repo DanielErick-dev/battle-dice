@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { VOID_CAPACITY, VOID_DOUBLE_ENERGY } from "@/game/domain/abilities";
+import { VOID_CAPACITY, VOID_DOUBLE_ENERGY } from "@/game/domain/characters/zarek/void";
 import type { Player } from "@/game/domain/types";
 import { cn } from "@/lib/utils";
 import { isVoidHarm, voidItemName } from "../voidText";

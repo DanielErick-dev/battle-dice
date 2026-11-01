@@ -3,7 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useMemo } from "react";
 import { Color, DoubleSide, type Group } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { useDisposal } from "./dispose";
 import { grassTuft, scatterAround } from "./geometry";
 import { useRefList } from "./refs";

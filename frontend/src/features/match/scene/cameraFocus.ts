@@ -1,5 +1,5 @@
 /** What the camera watches and where the dice land. */
-import { getTile } from "@/game/domain/board";
+import { getTile } from "@/game/domain/board/board";
 import type { Board, RealmKind } from "@/game/domain/types";
 import type { MatchView } from "../model/matchView";
 import { TILE_PITCH, type BoardLayout, type Vec3 } from "./boardLayout";

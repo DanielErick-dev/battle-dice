@@ -1,4 +1,4 @@
-import { ARMOUR_TURNS, FLAME_TILES, FLAME_TURNS } from "@/game/domain/abilities";
+import { ARMOUR_TURNS, FLAME_TILES, FLAME_TURNS } from "@/game/domain/characters/kage/flames";
 import { TargetPicker } from "../hud/TargetPicker";
 import type { AbilityFlow } from "./types";
 

@@ -1,5 +1,5 @@
-import { ARROW_RAIN_PINS, ARROW_RAIN_PUSH } from "@/game/domain/abilities";
-import { opponentsInReach } from "@/game/domain/board";
+import { ARROW_RAIN_PINS, ARROW_RAIN_PUSH } from "@/game/domain/characters/archer/arrowRain";
+import { opponentsInReach } from "@/game/domain/board/reach";
 import { TargetPicker } from "../hud/TargetPicker";
 import type { AbilityFlow, AbilityScene } from "./types";
 

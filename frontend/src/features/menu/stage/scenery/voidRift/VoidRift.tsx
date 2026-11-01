@@ -12,7 +12,7 @@ import {
   type Group,
   type Mesh,
 } from "three";
-import { seededRandom, type RandomSource } from "@/game/domain/random";
+import { seededRandom, type RandomSource } from "@/game/domain/core/random";
 import { useDisposal } from "../kit/dispose";
 import { FloorDecal, GroundDisc } from "../kit/Floor";
 import { roughen } from "../kit/geometry";

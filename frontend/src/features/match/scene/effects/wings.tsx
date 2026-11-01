@@ -1,6 +1,6 @@
 /** Wings on the back (Crystal Fairy, Seraphiel) and crowns on the head (the angels): the models are made without them. */
 import type { Object3D } from "three";
-import { isFallen } from "@/game/domain/seraph";
+import { isFallen } from "@/game/domain/characters/seraphiel/seraph";
 import { HeadCrown } from "../character/accessories/HeadCrown";
 import { Wings } from "../character/accessories/Wings";
 import type { TokenFx } from "./types";

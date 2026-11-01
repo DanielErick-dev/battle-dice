@@ -1,4 +1,4 @@
-import type { RandomSource } from "@/game/domain/random";
+import type { RandomSource } from "@/game/domain/core/random";
 import { paintPath, type PathLook } from "./groundPath";
 import { blot } from "./painting";
 import type { Painter } from "./textures";

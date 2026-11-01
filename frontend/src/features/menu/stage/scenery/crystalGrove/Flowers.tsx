@@ -15,7 +15,7 @@ import {
   Object3D,
   PlaneGeometry,
 } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { useCanvasTexture } from "../kit/textures";
 import { CLUSTERS } from "./layout";
 import { paintPetals } from "./textures";

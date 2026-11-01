@@ -1,4 +1,4 @@
-import type { RandomSource } from "@/game/domain/random";
+import type { RandomSource } from "@/game/domain/core/random";
 
 /** A soft round smudge fading to nothing at its rim. */
 export function blot(context: CanvasRenderingContext2D, x: number, y: number, radius: number, colour: string) {

@@ -1,4 +1,4 @@
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import type { GroundDressing } from "../kit/groundDressing";
 import type { NoiseLook } from "../kit/textures";
 

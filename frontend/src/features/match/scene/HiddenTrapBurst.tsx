@@ -3,7 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { AdditiveBlending, Color, type Group, type MeshBasicMaterial } from "three";
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "./boardLayout";
 import { useAge } from "./useAge";
 

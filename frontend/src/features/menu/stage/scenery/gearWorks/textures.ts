@@ -1,4 +1,4 @@
-import { seededRandom } from "@/game/domain/random";
+import { seededRandom } from "@/game/domain/core/random";
 import { withDressing, type GroundDressing } from "../kit/groundDressing";
 import { type CanvasLook, type NoiseLook } from "../kit/textures";
 import { CLOCK_BAND, CLOCK_RADIUS } from "./layout";
