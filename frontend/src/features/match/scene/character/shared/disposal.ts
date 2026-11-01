@@ -5,8 +5,7 @@ export interface Disposable {
 }
 
 type DisposableGroup =
-  | readonly (Disposable | readonly Disposable[])[]
-  | Readonly<Record<string, Disposable | readonly Disposable[]>>;
+  readonly (Disposable | readonly Disposable[])[] | Readonly<Record<string, Disposable | readonly Disposable[]>>;
 
 /** Frees a memoized GPU resource when it's replaced or the component unmounts; returns it for chaining. */
 export function useDisposable<T extends Disposable>(resource: T): T {

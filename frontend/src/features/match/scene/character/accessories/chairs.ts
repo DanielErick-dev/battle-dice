@@ -68,4 +68,3 @@ export type ChairId = keyof typeof CHAIRS;
 export function preloadChairs(chairs: readonly ChairId[]): void {
   preloadProps(chairs.map((chair) => CHAIRS[chair].prop));
 }
-

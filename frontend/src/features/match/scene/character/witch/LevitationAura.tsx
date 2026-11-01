@@ -88,7 +88,12 @@ export function LevitationAura({ size, color, progress, height }: AuraProps) {
       particle.climb = (particle.climb + delta * particle.speed * (1 + surge.current * 1.5)) % 1;
       particle.angle += delta * (2 + surge.current * 3);
       const radius = size * (0.34 - particle.climb * 0.2);
-      positions.setXYZ(index, Math.cos(particle.angle) * radius, particle.climb * top, Math.sin(particle.angle) * radius);
+      positions.setXYZ(
+        index,
+        Math.cos(particle.angle) * radius,
+        particle.climb * top,
+        Math.sin(particle.angle) * radius,
+      );
     });
     positions.needsUpdate = true;
   });

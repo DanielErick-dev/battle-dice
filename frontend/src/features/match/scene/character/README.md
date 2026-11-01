@@ -5,12 +5,12 @@ Só visual: as regras ficam em `game/domain/`, e quem decide **quando** cada efe
 
 ## Pastas
 
-| Pasta | O que tem |
-|---|---|
-| `core/` | O genérico, usado por todos: `CharacterModel` (carrega o `.glb` e toca os clipes), `clipPlayback` (velocidade e "toca uma vez" de cada clipe, testado), `bones` (achar um osso do rig Mixamo), `inHand` (prender um objeto na mão), `props` (registro dos objetos de cada personagem), `worldPlacement`, `figure`, `figureMaterials`. |
-| `accessories/` | Peças que vários personagens podem usar: asas (`Wings`), coroa (`HeadCrown`), cadeira de descanso (`RestChair`). |
-| `shared/` | Ferramentas de desenho sem personagem dono: texturas de canvas (`canvas`, `softDisc`, `parchment`, `runeCircle`, `ice`), números pseudoaleatórios estáveis (`hash`), `easing`, brilho aditivo (`additive`, `glowColor`), descarte de recursos (`disposal`), marcas no chão (`PickedTileMark`, `tileCover`), `NameTag`. |
-| `<personagem>/` | Uma pasta por personagem com tudo que só ele usa (ex.: `zarek/` com o Vazio, `scribe/` com a intro de sangue, `alchemist/` com o frasco). |
+| Pasta           | O que tem                                                                                                                                                                                                                                                                                                                             |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `core/`         | O genérico, usado por todos: `CharacterModel` (carrega o `.glb` e toca os clipes), `clipPlayback` (velocidade e "toca uma vez" de cada clipe, testado), `bones` (achar um osso do rig Mixamo), `inHand` (prender um objeto na mão), `props` (registro dos objetos de cada personagem), `worldPlacement`, `figure`, `figureMaterials`. |
+| `accessories/`  | Peças que vários personagens podem usar: asas (`Wings`), coroa (`HeadCrown`), cadeira de descanso (`RestChair`).                                                                                                                                                                                                                      |
+| `shared/`       | Ferramentas de desenho sem personagem dono: texturas de canvas (`canvas`, `softDisc`, `parchment`, `runeCircle`, `ice`), números pseudoaleatórios estáveis (`hash`), `easing`, brilho aditivo (`additive`, `glowColor`), descarte de recursos (`disposal`), marcas no chão (`PickedTileMark`, `tileCover`), `NameTag`.                |
+| `<personagem>/` | Uma pasta por personagem com tudo que só ele usa (ex.: `zarek/` com o Vazio, `scribe/` com a intro de sangue, `alchemist/` com o frasco).                                                                                                                                                                                             |
 
 ## Regras da pasta
 

@@ -36,7 +36,6 @@ const FADE_RATE = 0.8;
 
 const scratch = { hand: new Vector3(), point: new Vector3() };
 
-
 /**
  * Bjorn's intro: frost gathers round his raised fist, and as it slams the ground the floor
  * freezes over in a web of cracks, ice spikes burst out round the blow, a shockwave and a spray
@@ -166,11 +165,7 @@ export function FrostSlam({
         const { velocity, size: chunk, spin } = chunkPlan[index];
         const landsAt = (2 * velocity.y) / CHUNK_GRAVITY;
         const flight = Math.min(since, landsAt);
-        piece.position.set(
-          velocity.x * flight,
-          arcHeight(velocity.y, flight, CHUNK_GRAVITY),
-          velocity.z * flight,
-        );
+        piece.position.set(velocity.x * flight, arcHeight(velocity.y, flight, CHUNK_GRAVITY), velocity.z * flight);
         piece.rotation.set(spin.x * flight, spin.y * flight, spin.z * flight);
         piece.scale.setScalar(chunk);
         piece.visible = true;
