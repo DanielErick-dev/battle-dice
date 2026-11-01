@@ -1,15 +1,16 @@
 "use client";
 
 import { useFrame } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
-import { AdditiveBlending, Color, type Mesh } from "three";
+import { useRef } from "react";
+import { AdditiveBlending, type Mesh } from "three";
 import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "../../boardLayout";
 import { NameTag } from "./NameTag";
+import { useGlowColor } from "./glowColor";
 
 /** A tile picked for an ability, before it's confirmed: a ring in the pick's colour and its tag above. */
 export function PickedTileMark({ position, tag, color }: { position: Vec3; tag: string; color: string }) {
   const ring = useRef<Mesh>(null);
-  const glow = useMemo(() => new Color(color).multiplyScalar(2), [color]);
+  const glow = useGlowColor(color, 2);
 
   useFrame((_, delta) => {
     if (ring.current) ring.current.rotation.z += delta * 0.8;

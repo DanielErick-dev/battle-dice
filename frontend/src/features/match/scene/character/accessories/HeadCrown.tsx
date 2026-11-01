@@ -4,7 +4,7 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { Matrix4, Quaternion, Vector3, type Group, type Object3D, type SkinnedMesh } from "three";
 import { preloadProps, PROP_HEIGHT, usePropMesh, type PropId } from "../core/props";
-import { findBone } from "../core/worldPlacement";
+import { findBone } from "../core/bones";
 
 /** A crown worn on the head: which model, how big, and where it sits on the skull. */
 interface CrownLook {

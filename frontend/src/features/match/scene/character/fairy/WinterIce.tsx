@@ -14,7 +14,9 @@ import {
 import { TILE_HEIGHT, TILE_PITCH, TILE_SIZE, type Vec3 } from "../../boardLayout";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { slabBody, type SlabOutline } from "../../slab";
-import { COVER_GROW, COVER_HEIGHT, COVER_Y, CRYSTALS, DRIFTS, useSnowTexture } from "./TileSpells";
+import { useDisposables } from "../shared/disposal";
+import { COVER_GROW, COVER_HEIGHT, COVER_Y } from "../shared/tileCover";
+import { CRYSTALS, DRIFTS, useSnowTexture } from "./snowCover";
 
 const TILE_TOP = TILE_HEIGHT / 2;
 /** Just over the island's ground along the trail (see islandTerrain), where the frost spreads between tiles. */
@@ -77,13 +79,7 @@ export function WinterIce({
       }),
     };
   }, [snow, color]);
-  useEffect(
-    () => () => {
-      const { drift, crystal, frost, snowMaterial, frostMaterial, crystalMaterial } = assets;
-      [drift, crystal, frost, snowMaterial, frostMaterial, crystalMaterial].forEach((item) => item.dispose());
-    },
-    [assets],
-  );
+  useDisposables(assets);
 
   // Every cover in one mesh, rebuilt as the ice spreads.
   const covers = useMemo(() => {

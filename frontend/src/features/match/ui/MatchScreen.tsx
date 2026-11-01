@@ -33,7 +33,7 @@ import type { BoardPicking } from "../scene/BoardScene";
 import type { CameraFraming } from "../scene/CameraRig";
 import type { TileId } from "@/game/domain/types";
 import { preloadCharacterModel } from "../scene/character/core/CharacterModel";
-import { preloadChairs, type ChairId } from "../scene/character/accessories/RestChair";
+import { preloadChairs, type ChairId } from "../scene/character/accessories/chairs";
 import { CardHand } from "./cards/CardHand";
 import { CastOverlay } from "./cards/CastOverlay";
 import { DiscardPicker } from "./cards/DiscardPicker";

@@ -1,10 +1,10 @@
 "use client";
 
-import { createPortal, useFrame } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { Quaternion, Vector3, type Group, type Object3D } from "three";
+import { figureTurnInHand, handUnit, InHand } from "../core/inHand";
 import { preloadProps, Prop, usePropMesh } from "../core/props";
-import { findBone } from "../core/worldPlacement";
 
 /** In model units (Meshy figures stand 1.7): the scales hang this tall from the fingers. */
 const SCALE_HEIGHT = 0.38;
@@ -20,8 +20,11 @@ preloadProps(["justiceScale"]);
  * They stay upright whatever the hand does, as a hanging balance would, facing the way she does.
  */
 export function JusticeScale({ figure }: { figure: Object3D }) {
-  const hand = useMemo(() => findBone(figure, "LeftHand"), [figure]);
-  return hand ? createPortal(<Hanging figure={figure} hand={hand} />, hand) : null;
+  return (
+    <InHand figure={figure} bone="LeftHand">
+      {(hand) => <Hanging figure={figure} hand={hand} />}
+    </InHand>
+  );
 }
 
 function Hanging({ figure, hand }: { figure: Object3D; hand: Object3D }) {
@@ -29,9 +32,7 @@ function Hanging({ figure, hand }: { figure: Object3D; hand: Object3D }) {
   const group = useRef<Group>(null);
   const scratch = useMemo(
     () => ({
-      handScale: new Vector3(),
-      figureScale: new Vector3(),
-      handTurn: new Quaternion(),
+      scales: { hand: new Vector3(), figure: new Vector3() },
       figureTurn: new Quaternion(),
       spot: new Vector3(),
     }),
@@ -41,19 +42,12 @@ function Hanging({ figure, hand }: { figure: Object3D; hand: Object3D }) {
   useFrame(() => {
     const node = group.current;
     if (!node) return;
-    hand.getWorldScale(scratch.handScale);
-    figure.getWorldScale(scratch.figureScale);
-    // In the hand's frame: model units, undoing any scale the bone itself carries.
-    const unit = scratch.figureScale.x / scratch.handScale.x;
-    node.scale.setScalar(unit);
+    node.scale.setScalar(handUnit(hand, figure, scratch.scales));
     // At the hand, pushed out sideways from the body in the figure's own frame.
     const spot = figure.worldToLocal(hand.getWorldPosition(scratch.spot));
     spot.x += Math.sign(spot.x) * HELD_OUT;
     node.position.copy(hand.worldToLocal(figure.localToWorld(spot)));
-    // Upright in the world, turned as the figure is: undo the hand's own turn.
-    hand.getWorldQuaternion(scratch.handTurn);
-    figure.getWorldQuaternion(scratch.figureTurn);
-    node.quaternion.copy(scratch.handTurn.invert().multiply(scratch.figureTurn));
+    figureTurnInHand(hand, figure, node.quaternion, scratch.figureTurn);
   });
 
   return (

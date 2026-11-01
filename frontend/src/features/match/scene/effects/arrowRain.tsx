@@ -2,7 +2,8 @@
 import { useMemo } from "react";
 import type { Object3D } from "three";
 import { playerColor } from "../../characters";
-import { ArrowVolley, PinnedTrapMark } from "../character/archer/ArrowRain";
+import { ArrowVolley } from "../character/archer/ArrowVolley";
+import { PinnedTrapMark } from "../character/archer/PinnedTrapMark";
 import { BackBow } from "../character/archer/BackBow";
 import type { BoardFx, TokenFx } from "./types";
 

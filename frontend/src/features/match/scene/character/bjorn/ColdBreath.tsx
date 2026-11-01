@@ -1,11 +1,14 @@
 "use client";
 
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef, type RefObject } from "react";
+import { useMemo, useRef, type RefObject } from "react";
 import { SpriteMaterial, Vector3, type Group, type Object3D, type Sprite } from "three";
 import { useAge } from "../../useAge";
 import { useSoftDisc } from "../shared/softDisc";
-import { findBone, placeInWorld } from "../core/worldPlacement";
+import { useBone } from "../core/bones";
+import { placeInWorld } from "../core/worldPlacement";
+import { useDisposables } from "../shared/disposal";
+import { approachLinear, clamp01 } from "../shared/easing";
 
 /** Seconds between puffs, how long one drifts, and how many soft blobs make one up. */
 const BREATH_EVERY = 1.1;
@@ -22,7 +25,6 @@ const scratch = {
   forward: new Vector3(),
   lift: new Vector3(),
 };
-const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 
 /**
  * Cold breath steaming from the figure's mouth in regular puffs, out the way its face points and
@@ -44,8 +46,8 @@ export function ColdBreath({
 }) {
   const root = useRef<Group>(null);
   const puffs = useRef<(Sprite | null)[]>([]);
-  const head = useMemo(() => findBone(figure, "Head"), [figure]);
-  const muzzle = useMemo(() => findBone(figure, "headfront"), [figure]);
+  const head = useBone(figure, "Head");
+  const muzzle = useBone(figure, "headfront");
   const disc = useSoftDisc();
   // Each blob fades on its own, so each gets its own material.
   const materials = useMemo(
@@ -62,7 +64,7 @@ export function ColdBreath({
       ),
     [disc],
   );
-  useEffect(() => () => materials.forEach((material) => material.dispose()), [materials]);
+  useDisposables(materials);
   const age = useAge();
   const presence = useRef(active ? 0 : 1);
 
@@ -70,7 +72,7 @@ export function ColdBreath({
     const group = root.current;
     if (!group || !head) return;
     const t = age(clock.elapsedTime);
-    if (active) presence.current += ((active.current ? 1 : 0) - presence.current) * Math.min(1, delta * FADE_RATE);
+    if (active) presence.current = approachLinear(presence.current, active.current ? 1 : 0, FADE_RATE, delta);
     head.getWorldPosition(scratch.head);
     muzzle?.getWorldPosition(scratch.muzzle);
     scratch.forward.subVectors(scratch.muzzle, scratch.head).setY(0);

@@ -1,10 +1,9 @@
 "use client";
 
 import { Sparkles } from "@react-three/drei";
-import { createPortal, useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef, type RefObject } from "react";
+import { useFrame } from "@react-three/fiber";
+import { useMemo, useRef, type RefObject } from "react";
 import {
-  AdditiveBlending,
   Color,
   IcosahedronGeometry,
   MeshBasicMaterial,
@@ -15,8 +14,11 @@ import {
   type Object3D,
 } from "three";
 import { useAge } from "../../useAge";
+import { handUnit, InHand } from "../core/inHand";
 import { preloadProps, Prop, usePropMesh } from "../core/props";
-import { findBone } from "../core/worldPlacement";
+import { AdditiveMaterial } from "../shared/additive";
+import { useDisposable } from "../shared/disposal";
+import { approach, growOrFade } from "../shared/easing";
 
 /** The wand's length, in model units (Meshy figures stand 1.7), and how much of it is below the grip. */
 const WAND_LENGTH = 0.95;
@@ -60,29 +62,27 @@ interface FrostWandProps {
  * aims it ahead. Meshy figures can't hold props, so it's a separate model (PROPS.frostWand).
  */
 export function FrostWand(props: FrostWandProps) {
-  const hand = useMemo(() => findBone(props.figure, props.hand ?? "RightHand"), [props.figure, props.hand]);
-  return hand ? createPortal(<Held {...props} hand={hand} />, hand) : null;
+  return (
+    <InHand figure={props.figure} bone={props.hand ?? "RightHand"}>
+      {(hand) => <Held {...props} hand={hand} />}
+    </InHand>
+  );
 }
 
 function Held({ figure, hand, active, tip, flourish }: Omit<FrostWandProps, "hand"> & { hand: Object3D }) {
   const { geometry, material } = usePropMesh("frostWand");
   const group = useRef<Group>(null);
   const strength = useRef(0);
-  const scratch = useMemo(() => ({ handScale: new Vector3(), figureScale: new Vector3() }), []);
+  const scratch = useMemo(() => ({ hand: new Vector3(), figure: new Vector3() }), []);
 
   useFrame((_, delta) => {
     const node = group.current;
     if (!node) return;
-    const target = active.current ? 1 : 0;
-    const rate = target > strength.current ? GROW_RATE : FADE_RATE;
-    strength.current += (target - strength.current) * (1 - Math.exp(-rate * delta));
+    strength.current = growOrFade(strength.current, active.current, GROW_RATE, FADE_RATE, delta);
     node.visible = strength.current > 0.01;
     if (!node.visible) return;
 
-    hand.getWorldScale(scratch.handScale);
-    figure.getWorldScale(scratch.figureScale);
-    // In the hand's frame: model units, undoing any scale the bone itself carries.
-    const unit = scratch.figureScale.x / scratch.handScale.x;
+    const unit = handUnit(hand, figure, scratch);
     node.position.copy(HOLD_OFFSET).multiplyScalar(unit);
     node.scale.setScalar(strength.current * unit);
     if (tip) {
@@ -101,14 +101,7 @@ function Held({ figure, hand, active, tip, flourish }: Omit<FrostWandProps, "han
       <group position-y={WAND_LENGTH * (1 - GRIP) * 0.9}>
         <mesh>
           <sphereGeometry args={[0.035, 12, 12]} />
-          <meshBasicMaterial
-            color={TIP_GLOW}
-            transparent
-            opacity={0.8}
-            depthWrite={false}
-            blending={AdditiveBlending}
-            toneMapped={false}
-          />
+          <AdditiveMaterial color={TIP_GLOW} opacity={0.8} />
         </mesh>
         <Sparkles count={26} scale={0.32} size={3.5} speed={0.7} noise={0.6} color={TIP_SNOW} opacity={0.95} />
         {flourish && <Flourish {...flourish} />}
@@ -126,24 +119,15 @@ function Flourish({ from, to }: { from: number; to: number }) {
   const swirl = useRef<InstancedMesh>(null);
   const strength = useRef(0);
   const age = useAge();
-  const flakes = useMemo(() => new IcosahedronGeometry(0.016, 0), []);
-  const snow = useMemo(
-    () => new MeshBasicMaterial({ color: new Color(TIP_SNOW).multiplyScalar(1.8), toneMapped: false }),
-    [],
-  );
-  useEffect(
-    () => () => {
-      flakes.dispose();
-      snow.dispose();
-    },
-    [flakes, snow],
+  const flakes = useDisposable(useMemo(() => new IcosahedronGeometry(0.016, 0), []));
+  const snow = useDisposable(
+    useMemo(() => new MeshBasicMaterial({ color: new Color(TIP_SNOW).multiplyScalar(1.8), toneMapped: false }), []),
   );
   const dummy = useMemo(() => new Dummy(), []);
 
   useFrame(({ clock }, delta) => {
     const t = age(clock.elapsedTime);
-    const target = t >= from && t < to ? 1 : 0;
-    strength.current += (target - strength.current) * (1 - Math.exp(-FLOURISH_RATE * delta));
+    strength.current = approach(strength.current, t >= from && t < to ? 1 : 0, FLOURISH_RATE, delta);
     const node = root.current;
     if (!node) return;
     node.visible = strength.current > 0.02;
@@ -170,14 +154,7 @@ function Flourish({ from, to }: { from: number; to: number }) {
     <group ref={root} visible={false}>
       <mesh>
         <sphereGeometry args={[0.11, 16, 16]} />
-        <meshBasicMaterial
-          color={DUST}
-          transparent
-          opacity={0.45}
-          depthWrite={false}
-          blending={AdditiveBlending}
-          toneMapped={false}
-        />
+        <AdditiveMaterial color={DUST} opacity={0.45} />
       </mesh>
       <instancedMesh ref={swirl} args={[flakes, snow, SWIRL_FLAKES]} frustumCulled={false} />
       <Sparkles

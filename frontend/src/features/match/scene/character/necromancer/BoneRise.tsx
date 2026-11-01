@@ -16,7 +16,8 @@ import type { IntroBoneBeats } from "../../../characters";
 import { useAge } from "../../useAge";
 import { useSoftDisc } from "../shared/softDisc";
 import { fadingMaterial, preloadProps, Prop, propPoint, usePropMesh } from "../core/props";
-import { findBone, placeInWorld } from "../core/worldPlacement";
+import { findBone } from "../core/bones";
+import { placeInWorld } from "../core/worldPlacement";
 
 /** Skeletal hands clawing out of the ground round him: how many, how far out and how tall (shares of his height). */
 const HANDS = 5;

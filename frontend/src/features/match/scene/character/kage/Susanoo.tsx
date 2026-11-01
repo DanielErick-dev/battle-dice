@@ -1,9 +1,10 @@
 "use client";
 
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo, useRef } from "react";
 import { Color, FrontSide, LessEqualDepth, MeshBasicMaterial, type Group } from "three";
 import { preloadProps, usePropMesh } from "../core/props";
+import { useDisposable } from "../shared/disposal";
 import { withRim, type RimUniforms } from "../shared/rimGlow";
 
 /**
@@ -61,14 +62,8 @@ export function Susanoo({ active }: { active: boolean }) {
     copy.customProgramCacheKey = () => "susanooRim";
     return copy;
   }, [material]);
-  const depth = useMemo(() => new MeshBasicMaterial({ colorWrite: false, side: FrontSide }), []);
-  useEffect(
-    () => () => {
-      spirit.dispose();
-      depth.dispose();
-    },
-    [spirit, depth],
-  );
+  useDisposable(spirit);
+  const depth = useDisposable(useMemo(() => new MeshBasicMaterial({ colorWrite: false, side: FrontSide }), []));
 
   const root = useRef<Group>(null);
   const body = useRef<Group>(null);

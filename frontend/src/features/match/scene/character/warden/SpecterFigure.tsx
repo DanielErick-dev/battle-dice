@@ -2,13 +2,14 @@
 
 import { useFrame } from "@react-three/fiber";
 import { Suspense, useMemo, useRef } from "react";
-import { AdditiveBlending, Color, type Group, type MeshBasicMaterial } from "three";
+import { AdditiveBlending, type Group, type MeshBasicMaterial } from "three";
 import type { CharacterClip } from "../../../characters";
 import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "../../boardLayout";
 import { useAge } from "../../useAge";
 import { CharacterModel } from "../core/CharacterModel";
 import { EFFECT_SCALE, FIGURE_HEIGHT } from "../core/figure";
 import { NameTag } from "../shared/NameTag";
+import { useGlowColor } from "../shared/glowColor";
 
 /** How fast the owner's view of it rises in out of its pool of darkness. */
 const APPEAR_SECONDS = 0.8;
@@ -38,7 +39,7 @@ export function SpecterFigure({ model, position, color, disguised, facing, label
   const clip = useRef<CharacterClip>("idle");
   const body = useRef<Group>(null);
   const pool = useRef<MeshBasicMaterial>(null);
-  const glow = useMemo(() => new Color(color).multiplyScalar(1.4), [color]);
+  const glow = useGlowColor(color, 1.4);
   const age = useAge();
   const phase = useMemo(() => position[0] * 1.3 + position[2] * 2.1, [position]);
 

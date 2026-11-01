@@ -5,7 +5,6 @@ import { useEffect, useMemo, useRef, type RefObject } from "react";
 import {
   AdditiveBlending,
   CanvasTexture,
-  Color,
   DoubleSide,
   SRGBColorSpace,
   Vector3,
@@ -16,6 +15,7 @@ import {
 } from "three";
 import type { IntroCardBeats } from "../../../characters";
 import { useAge } from "../../useAge";
+import { useGlowColor } from "../shared/glowColor";
 
 const CARD_COUNT = 9;
 /** Playing card proportions, as a share of the figure's height. */
@@ -85,7 +85,7 @@ export function JesterCards({
   const flash = useRef<Mesh>(null);
   const flashMaterial = useRef<MeshBasicMaterial>(null);
   const textures = useCardTextures();
-  const glow = useMemo(() => new Color(color).multiplyScalar(2.2), [color]);
+  const glow = useGlowColor(color, 2.2);
   const hands = useMemo(() => [findBone(figure, "RightHand"), findBone(figure, "LeftHand")], [figure]);
   const hips = useMemo(() => findBone(figure, "Hips"), [figure]);
   const age = useAge();

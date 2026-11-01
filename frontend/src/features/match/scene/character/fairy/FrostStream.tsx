@@ -2,9 +2,8 @@
 
 import { Sparkles } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo, useRef } from "react";
 import {
-  AdditiveBlending,
   Color,
   IcosahedronGeometry,
   MeshBasicMaterial,
@@ -19,6 +18,9 @@ import { seededRandom } from "@/game/domain/random";
 import { DEFAULT_TIMINGS } from "../../../config";
 import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "../../boardLayout";
 import { useAge } from "../../useAge";
+import { additiveMaterial } from "../shared/additive";
+import { useDisposable, useDisposables } from "../shared/disposal";
+import { easeOutCubic } from "../shared/easing";
 
 /** Snowflakes and fairy dust in the stream, and how long the first takes to reach the tile. */
 const FLAKES = 200;
@@ -62,34 +64,16 @@ export function FrostStream({ from, to }: { from: Vector3; to: Vec3 }) {
       dust: index % 3 === 0,
     }));
   }, [curve]);
-  const geometry = useMemo(() => new IcosahedronGeometry(0.045, 0), []);
+  const geometry = useDisposable(useMemo(() => new IcosahedronGeometry(0.045, 0), []));
   const materials = useMemo(
     () => ({
       snow: new MeshBasicMaterial({ color: SNOW, transparent: true, depthWrite: false, toneMapped: false }),
-      dust: new MeshBasicMaterial({
-        color: DUST,
-        transparent: true,
-        depthWrite: false,
-        blending: AdditiveBlending,
-        toneMapped: false,
-      }),
-      puff: new MeshBasicMaterial({
-        color: DUST,
-        transparent: true,
-        depthWrite: false,
-        blending: AdditiveBlending,
-        toneMapped: false,
-      }),
+      dust: additiveMaterial({ color: DUST }),
+      puff: additiveMaterial({ color: DUST }),
     }),
     [],
   );
-  useEffect(
-    () => () => {
-      geometry.dispose();
-      Object.values(materials).forEach((material) => material.dispose());
-    },
-    [geometry, materials],
-  );
+  useDisposables(materials);
 
   const snow = useRef<InstancedMesh>(null);
   const dust = useRef<InstancedMesh>(null);
@@ -151,7 +135,7 @@ export function FrostStream({ from, to }: { from: Vector3; to: Vec3 }) {
     const landed = (t - TRAVEL_SECONDS) / PUFF_SECONDS;
     if (puff.current) puff.current.visible = landed > 0 && landed < 1;
     if (landed > 0 && landed < 1) {
-      ring.current?.scale.setScalar(0.3 + (1 - (1 - landed) ** 3) * 1.2);
+      ring.current?.scale.setScalar(0.3 + easeOutCubic(landed) * 1.2);
       materials.puff.opacity = 0.8 * (1 - landed);
     }
     materials.snow.opacity = t < TRAVEL_SECONDS + SPREAD_SECONDS ? 0.95 : 0;

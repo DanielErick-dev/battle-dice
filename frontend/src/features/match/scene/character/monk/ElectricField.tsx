@@ -1,9 +1,14 @@
 "use client";
 
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
-import { AdditiveBlending, Color, DoubleSide, Vector3, type Group, type MeshBasicMaterial } from "three";
-import { jag, noise, stripsGeometry, writeStrip } from "../shared/boltStrips";
+import { useMemo, useRef } from "react";
+import { DoubleSide, Vector3, type Group, type MeshBasicMaterial } from "three";
+import { AdditiveMaterial } from "../shared/additive";
+import { jag, stripsGeometry, writeStrip } from "../shared/boltStrips";
+import { useDisposables } from "../shared/disposal";
+import { approachLinear } from "../shared/easing";
+import { noise } from "../shared/hash";
+import { useGlowColor } from "../shared/glowColor";
 
 /** Arcs crawling over the field, each this many straight runs, and how far round the dome one reaches (radians). */
 const ARCS = 14;
@@ -46,22 +51,20 @@ export function ElectricField({ active, color, size }: { active: boolean; color:
   const root = useRef<Group>(null);
   const glowMaterial = useRef<MeshBasicMaterial>(null);
   const coreMaterial = useRef<MeshBasicMaterial>(null);
-  const glow = useMemo(() => new Color(color).multiplyScalar(1.5), [color]);
-  const { glowGeometry, coreGeometry } = useMemo(
+  const glow = useGlowColor(color, 1.5);
+  const strips = useMemo(
     () => ({ glowGeometry: stripsGeometry(STRIPS, STRIP_POINTS), coreGeometry: stripsGeometry(STRIPS, STRIP_POINTS) }),
     [],
   );
-  useEffect(
-    () => () => [glowGeometry, coreGeometry].forEach((geometry) => geometry.dispose()),
-    [glowGeometry, coreGeometry],
-  );
+  useDisposables(strips);
+  const { glowGeometry, coreGeometry } = strips;
   const power = useRef(0);
   const shape = useRef<{ seeds: (number | null)[]; at: number }>({ seeds: [], at: -1 });
 
   useFrame(({ clock, camera }, delta) => {
     const group = root.current;
     if (!group) return;
-    power.current += ((active ? 1 : 0) - power.current) * Math.min(1, delta * FADE_RATE);
+    power.current = approachLinear(power.current, active ? 1 : 0, FADE_RATE, delta);
     group.visible = power.current > 0.01;
     if (!group.visible) return;
 
@@ -128,26 +131,10 @@ export function ElectricField({ active, color, size }: { active: boolean; color:
   return (
     <group ref={root} visible={false}>
       <mesh geometry={glowGeometry} frustumCulled={false}>
-        <meshBasicMaterial
-          ref={glowMaterial}
-          color={glow}
-          side={DoubleSide}
-          transparent
-          depthWrite={false}
-          blending={AdditiveBlending}
-          toneMapped={false}
-        />
+        <AdditiveMaterial ref={glowMaterial} color={glow} side={DoubleSide} />
       </mesh>
       <mesh geometry={coreGeometry} frustumCulled={false}>
-        <meshBasicMaterial
-          ref={coreMaterial}
-          color="#fffbe6"
-          side={DoubleSide}
-          transparent
-          depthWrite={false}
-          blending={AdditiveBlending}
-          toneMapped={false}
-        />
+        <AdditiveMaterial ref={coreMaterial} color="#fffbe6" side={DoubleSide} />
       </mesh>
     </group>
   );

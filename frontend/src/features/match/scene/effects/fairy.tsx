@@ -11,7 +11,7 @@ import { FrostStream } from "../character/fairy/FrostStream";
 import { FrostWand } from "../character/fairy/FrostWand";
 import { SnowBind } from "../character/fairy/SnowBind";
 import { SnowHopBurst } from "../character/fairy/SnowHopBurst";
-import { EnchantedTileMark } from "../character/fairy/TileSpells";
+import { EnchantedTileMark } from "../character/fairy/EnchantedTileMark";
 import { SQUARE_SLAB } from "../slab";
 import { WinterIce } from "../character/fairy/WinterIce";
 import { Delayed } from "../TrapSmash";

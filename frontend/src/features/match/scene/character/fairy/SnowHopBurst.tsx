@@ -2,9 +2,8 @@
 
 import { Sparkles } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo, useRef } from "react";
 import {
-  AdditiveBlending,
   Color,
   IcosahedronGeometry,
   MeshBasicMaterial,
@@ -15,6 +14,9 @@ import {
 } from "three";
 import { seededRandom } from "@/game/domain/random";
 import { useAge } from "../../useAge";
+import { additiveMaterial } from "../shared/additive";
+import { useDisposable, useDisposables } from "../shared/disposal";
+import { clamp01, easeOutCubic } from "../shared/easing";
 
 /** How long the burst lasts, from the moment the feet leave the ground. */
 const BURST_SECONDS = 2.4;
@@ -44,28 +46,15 @@ export function SnowHopBurst() {
       delay: random() * 0.35,
     }));
   }, []);
-  const geometry = useMemo(() => new IcosahedronGeometry(0.035, 0), []);
+  const geometry = useDisposable(useMemo(() => new IcosahedronGeometry(0.035, 0), []));
   const materials = useMemo(
     () => ({
       snow: new MeshBasicMaterial({ color: SNOW, transparent: true, depthWrite: false, toneMapped: false }),
-      ring: new MeshBasicMaterial({
-        color: DUST,
-        transparent: true,
-        depthWrite: false,
-        blending: AdditiveBlending,
-        toneMapped: false,
-      }),
+      ring: additiveMaterial({ color: DUST }),
     }),
     [],
   );
-  useEffect(
-    () => () => {
-      geometry.dispose();
-      materials.snow.dispose();
-      materials.ring.dispose();
-    },
-    [geometry, materials],
-  );
+  useDisposables(materials);
 
   const root = useRef<Group>(null);
   const snow = useRef<InstancedMesh>(null);
@@ -82,8 +71,8 @@ export function SnowHopBurst() {
     const mesh = snow.current;
     if (mesh) {
       flakes.forEach((flake, index) => {
-        const u = Math.max(0, Math.min(1, (t - flake.delay) / (BURST_SECONDS - flake.delay)));
-        const out = 1 - (1 - u) ** 3;
+        const u = clamp01((t - flake.delay) / (BURST_SECONDS - flake.delay));
+        const out = easeOutCubic(u);
         // Up and out fast, then drifting down as they spread, swirling round her.
         const angle = flake.angle + u * SPIN * Math.PI;
         const height = flake.lift * Math.sin(Math.min(1, u * 1.6) * Math.PI * 0.5) - u * u * flake.lift * 0.6;
@@ -95,7 +84,7 @@ export function SnowHopBurst() {
       });
       mesh.instanceMatrix.needsUpdate = true;
     }
-    if (ring.current) ring.current.scale.setScalar(0.3 + (1 - (1 - Math.min(1, life * 2)) ** 3) * 2.2);
+    if (ring.current) ring.current.scale.setScalar(0.3 + easeOutCubic(Math.min(1, life * 2)) * 2.2);
     materials.ring.setValues({ opacity: 0.85 * Math.max(0, 1 - life * 2) });
     materials.snow.setValues({ opacity: 1 - life ** 4 });
   });

@@ -1,4 +1,5 @@
 import { BufferAttribute, BufferGeometry, Vector3, type Object3D } from "three";
+import { noise } from "./hash";
 
 /** How far a kink strays sideways, as a share of its segment's length, and at most (share of `size`). */
 const KINK = 0.7;
@@ -73,10 +74,4 @@ export function writeStrip(
       position.setXYZ(base + k * 2 + offset, scratch.point.x, scratch.point.y, scratch.point.z);
     }
   });
-}
-
-/** A repeatable pseudo-random number in [0, 1) for a given input. */
-export function noise(x: number): number {
-  const s = Math.sin(x * 12.9898) * 43758.5453;
-  return s - Math.floor(s);
 }

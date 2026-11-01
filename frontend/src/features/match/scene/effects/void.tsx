@@ -3,7 +3,9 @@ import { useMemo } from "react";
 import type { Object3D } from "three";
 import { TILE_HEIGHT, type Vec3 } from "../boardLayout";
 import { EnergyBlades } from "../character/zarek/EnergyBlades";
-import { RiftMaw, VoidSurge, VoidWraith } from "../character/zarek/VoidEntity";
+import { RiftMaw } from "../character/zarek/RiftMaw";
+import { VoidSurge } from "../character/zarek/VoidSurge";
+import { VoidWraith } from "../character/zarek/VoidWraith";
 import { SmashedTrapMark } from "../TrapSmash";
 import type { BoardFx, TokenFx } from "./types";
 

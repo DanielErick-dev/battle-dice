@@ -1,31 +1,19 @@
 "use client";
 
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef, type RefObject } from "react";
-import {
-  AdditiveBlending,
-  BufferGeometry,
-  Color,
-  CubicBezierCurve3,
-  Line,
-  LineBasicMaterial,
-  Matrix4,
-  Quaternion,
-  TubeGeometry,
-  Vector3,
-  CatmullRomCurve3,
-  type Group,
-  type Mesh,
-  type Object3D,
-} from "three";
+import { useMemo, useRef, type RefObject } from "react";
+import { CubicBezierCurve3, Matrix4, Quaternion, Vector3, type Group, type Mesh, type Object3D } from "three";
 import type { IntroArrowBeats } from "../../../characters";
 import { useAge } from "../../useAge";
-import { ARROW_LENGTH, LightArrow, useArrowMaterials, useGlowMaterial } from "./ArrowRain";
-import { findBone, placeInWorld } from "../core/worldPlacement";
+import { findBone } from "../core/bones";
+import { placeInWorld } from "../core/worldPlacement";
+import { useGlowMaterial } from "../shared/additive";
+import { useDisposable } from "../shared/disposal";
+import { approachLinear, clamp01 } from "../shared/easing";
+import { BOW_BULGE, BOW_HALF, bowGeometry, bowString, pullString, retrace } from "./bowString";
+import { ARROW_LENGTH, LightArrow, useArrowMaterials } from "./lightArrow";
+import { useGlowColor } from "../shared/glowColor";
 
-/** The bow, as shares of the figure's height: half its length, and how far its limbs bow forward. */
-const BOW_HALF = 0.28;
-const BOW_BULGE = 0.09;
 /** The arrows' size on the stage, against their size on the board (ARROW_LENGTH). */
 const ARROW_SCALE = 0.42;
 /** Seconds for the bow to appear, the arrow to fly up and burst, and the burst to spread. */
@@ -87,7 +75,7 @@ export function ArcherIntro({
   const trail = useRef<Mesh>(null);
   const burst = useRef<Mesh>(null);
   const ring = useRef<(Group | null)[]>([]);
-  const glow = useMemo(() => new Color(color).multiplyScalar(2.4), [color]);
+  const glow = useGlowColor(color, 2.4);
   const arrows = useArrowMaterials(glow);
   const ringArrows = useArrowMaterials(glow);
   const bowMaterial = useGlowMaterial(glow);
@@ -107,39 +95,15 @@ export function ArcherIntro({
   const shot = useRef<{ from: Vector3; aim: Vector3; curve: CubicBezierCurve3 } | null>(null);
   const trailPoints = useRef<Vector3[]>([]);
 
-  const bowGeometry = useMemo(() => {
-    // Grip at the origin, limbs bowing forward (+X) and back to the tips behind it.
-    const points = Array.from({ length: 17 }, (_, i) => {
-      const y = (i / 16 - 0.5) * 2 * BOW_HALF;
-      return new Vector3(BOW_BULGE * (1 - (y / BOW_HALF) ** 2) - BOW_BULGE, y, 0);
-    });
-    return new TubeGeometry(new CatmullRomCurve3(points), 32, 0.006, 6, false);
-  }, []);
-  const string = useMemo(() => {
-    const geometry = new BufferGeometry().setFromPoints([new Vector3(), new Vector3(), new Vector3()]);
-    const material = new LineBasicMaterial({
-      color: new Color("#f7fff0").multiplyScalar(1.5),
-      transparent: true,
-      blending: AdditiveBlending,
-      toneMapped: false,
-    });
-    return new Line(geometry, material);
-  }, []);
-  useEffect(
-    () => () => {
-      bowGeometry.dispose();
-      string.geometry.dispose();
-      (string.material as LineBasicMaterial).dispose();
-    },
-    [bowGeometry, string],
-  );
+  const bow3d = useDisposable(useMemo(() => bowGeometry(), []));
+  const string = useDisposable(useMemo(() => bowString(), []));
 
   useFrame(({ clock }, delta) => {
     const group = root.current;
     const { left, right, hips } = hands;
     if (!group || !left || !right || !hips) return;
     const t = age(clock.elapsedTime);
-    presence.current += ((active.current ? 1 : 0) - presence.current) * Math.min(1, delta * FADE_RATE);
+    presence.current = approachLinear(presence.current, active.current ? 1 : 0, FADE_RATE, delta);
     const fade = presence.current;
 
     left.getWorldPosition(scratch.left);
@@ -152,7 +116,7 @@ export function ArcherIntro({
 
     // The bow, in her left hand from the draw on; its string pulled to the right hand until released.
     const drawn = t >= beats.drawSeconds && t < beats.releaseSeconds;
-    const shown = Math.min(1, Math.max(0, (t - beats.drawSeconds) / BOW_APPEAR)) * fade;
+    const shown = clamp01((t - beats.drawSeconds) / BOW_APPEAR) * fade;
     if (bow.current) {
       bow.current.visible = shown > 0.01;
       scratch.basis.makeBasis(scratch.aim, scratch.up, scratch.side);
@@ -184,7 +148,7 @@ export function ArcherIntro({
       scratch.quaternion.setFromUnitVectors(UP, scratch.aim);
       placeInWorld(nocked.current, group, scratch.right.clone().add(along), size * ARROW_SCALE, scratch.quaternion);
     }
-    const hold = Math.min(1, Math.max(0, (t - beats.drawSeconds) / (beats.releaseSeconds - beats.drawSeconds)));
+    const hold = clamp01((t - beats.drawSeconds) / (beats.releaseSeconds - beats.drawSeconds));
     arrows.fade((0.4 + 0.6 * hold) * fade);
 
     // Loosed: off the way she aims, then curling up into the sky above her.
@@ -229,7 +193,7 @@ export function ArcherIntro({
     // The burst high above her, then the ring of arrows raining down round her.
     const sinceBurst = t - beats.releaseSeconds - FLIGHT_SECONDS;
     if (burst.current && shot.current) {
-      const spread = Math.min(1, Math.max(0, sinceBurst / BURST_SECONDS));
+      const spread = clamp01(sinceBurst / BURST_SECONDS);
       burst.current.visible = sinceBurst >= 0 && spread < 1;
       scratch.quaternion.setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2);
       placeInWorld(
@@ -242,7 +206,7 @@ export function ArcherIntro({
       burstMaterial.setValues({ opacity: 1 - spread });
     }
     // The ring outlasts the intro: it stays stuck round her a while, then fades on its own.
-    const ringFade = 1 - Math.min(1, Math.max(0, (sinceBurst - RING_HOLD) / RING_FADE));
+    const ringFade = 1 - clamp01((sinceBurst - RING_HOLD) / RING_FADE);
     ringArrows.fade(ringFade);
     ring.current.forEach((arrow, index) => {
       if (!arrow) return;
@@ -269,9 +233,9 @@ export function ArcherIntro({
   return (
     <group ref={root}>
       <group ref={bow} visible={false}>
-        <mesh geometry={bowGeometry} material={bowMaterial} />
+        <mesh geometry={bow3d} material={bowMaterial} />
       </group>
-      <primitive object={string} />
+      <primitive object={string.line} />
       <group ref={nocked} visible={false}>
         <LightArrow materials={arrows} />
       </group>
@@ -294,28 +258,5 @@ export function ArcherIntro({
         </group>
       ))}
     </group>
-  );
-}
-
-/** Lays the bowstring through `points` (world space: top tip, nock, bottom tip), at `opacity`. */
-function pullString(string: Line, group: Object3D, points: readonly Vector3[], opacity: number) {
-  const positions = string.geometry.attributes.position;
-  points.forEach((point, index) => {
-    const local = group.worldToLocal(point.clone());
-    positions.setXYZ(index, local.x, local.y, local.z);
-  });
-  positions.needsUpdate = true;
-  (string.material as LineBasicMaterial).opacity = opacity;
-}
-
-/** Swaps the trail's tube for one through `points` (world space), `radius` thick in `group`'s units. */
-function retrace(trail: Mesh, group: Object3D, points: readonly Vector3[], radius: number) {
-  trail.geometry.dispose();
-  trail.geometry = new TubeGeometry(
-    new CatmullRomCurve3(points.map((point) => group.worldToLocal(point.clone()))),
-    points.length * 2,
-    radius,
-    6,
-    false,
   );
 }

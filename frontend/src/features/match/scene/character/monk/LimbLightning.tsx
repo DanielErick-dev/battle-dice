@@ -1,11 +1,17 @@
 "use client";
 
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef, type RefObject } from "react";
-import { AdditiveBlending, Color, DoubleSide, Vector3, type Group, type MeshBasicMaterial, type Object3D } from "three";
+import { useMemo, useRef, type RefObject } from "react";
+import { Color, DoubleSide, Vector3, type Group, type MeshBasicMaterial, type Object3D } from "three";
 import { useAge } from "../../useAge";
-import { jag, noise, stripsGeometry, writeStrip } from "../shared/boltStrips";
-import { findBone, placeInWorld } from "../core/worldPlacement";
+import { findBone } from "../core/bones";
+import { placeInWorld } from "../core/worldPlacement";
+import { AdditiveMaterial } from "../shared/additive";
+import { jag, stripsGeometry, writeStrip } from "../shared/boltStrips";
+import { useDisposables } from "../shared/disposal";
+import { approachLinear } from "../shared/easing";
+import { branch, resample, spark } from "./limbBolts";
+import { useGlowColor } from "../shared/glowColor";
 
 /** Positions kept of each limb, one per frame at 60 fps: the bolt spans this much of its path. */
 const TRAIL_SAMPLES = 16;
@@ -13,9 +19,6 @@ const SAMPLE_SECONDS = 1 / 60;
 /** Straight runs a bolt is broken into, and a limb's path shorter than this (share of the figure's height) draws none. */
 const BOLT_SEGMENTS = 7;
 const MIN_BOLT_LENGTH = 0.05;
-/** A fork off every bolt: its length as a share of the bolt's, and how far it veers off. */
-const BRANCH_LENGTH = 0.4;
-const BRANCH_ANGLE = 0.9;
 /** Half-widths of the glow and the white-hot core, as shares of the figure's height. */
 const GLOW_WIDTH = 0.008;
 const CORE_WIDTH = 0.0025;
@@ -28,10 +31,8 @@ const FADE_RATE = 2.5;
 const ARC_EVERY = 0.35;
 const ARC_SECONDS = 0.09;
 
-/** Sparks crackling off each hand while charged, and how far they reach (share of the figure's height). */
+/** Sparks crackling off each hand while charged. */
 const SPARKS_PER_HAND = 3;
-const SPARK_MIN = 0.05;
-const SPARK_MAX = 0.13;
 
 /**
  * A strike from the sky (see `strikeSeconds`): how long it shows (at full strength for the first
@@ -54,13 +55,7 @@ const STRIPS = STRIKE_STRIP + 1;
 const POINTS = BOLT_SEGMENTS + 1;
 
 /** Working vectors for the frame loop (frames run one at a time, so instances can share them). */
-const scratch = {
-  point: new Vector3(),
-  side: new Vector3(),
-  toCamera: new Vector3(),
-  along: new Vector3(),
-  a: new Vector3(),
-};
+const scratch = { point: new Vector3(), a: new Vector3() };
 /** A bolt's points in world space, rebuilt for every strip. */
 const bolt = Array.from({ length: POINTS }, () => new Vector3());
 
@@ -100,15 +95,13 @@ export function LimbLightning({
   const flashMaterial = useRef<MeshBasicMaterial>(null);
   const columnMaterial = useRef<MeshBasicMaterial>(null);
   const age = useAge();
-  const glow = useMemo(() => new Color(color).multiplyScalar(1.4), [color]);
-  const { glowGeometry, coreGeometry } = useMemo(
+  const glow = useGlowColor(color, 1.4);
+  const strips = useMemo(
     () => ({ glowGeometry: stripsGeometry(STRIPS, POINTS), coreGeometry: stripsGeometry(STRIPS, POINTS) }),
     [],
   );
-  useEffect(
-    () => () => [glowGeometry, coreGeometry].forEach((geometry) => geometry.dispose()),
-    [glowGeometry, coreGeometry],
-  );
+  useDisposables(strips);
+  const { glowGeometry, coreGeometry } = strips;
   /** Each limb's recent world positions, newest first. */
   const trails = useMemo(() => LIMBS.map(() => [] as Vector3[]), []);
   const power = useRef(0);
@@ -122,9 +115,8 @@ export function LimbLightning({
     const group = root.current;
     if (!group) return;
     const t = clock.elapsedTime;
-    const fade = Math.min(1, delta * FADE_RATE);
-    power.current += ((active.current ? 1 : 0) - power.current) * fade;
-    charge.current += ((charged?.current ? 1 : 0) - charge.current) * fade;
+    power.current = approachLinear(power.current, active.current ? 1 : 0, FADE_RATE, delta);
+    charge.current = approachLinear(charge.current, charged?.current ? 1 : 0, FADE_RATE, delta);
 
     // Take the limbs' positions at a steady rate, so a bolt's length follows the limb's speed.
     sinceSample.current += delta;
@@ -174,7 +166,7 @@ export function LimbLightning({
         const strip = SPARK_STRIP + side * SPARKS_PER_HAND + k;
         const seed = seeds[strip];
         const lit = hand !== null && seed !== null && seed !== undefined && charge.current > 0.01;
-        if (lit) spark(hand.getWorldPosition(scratch.a), seed, size);
+        if (lit) spark(bolt, hand.getWorldPosition(scratch.a), seed, size);
         draw(strip, lit ? 0.8 * charge.current : 0);
       }
     });
@@ -223,16 +215,7 @@ export function LimbLightning({
   });
 
   const material = (ref: RefObject<MeshBasicMaterial | null>, tint: Color | string) => (
-    <meshBasicMaterial
-      ref={ref}
-      color={tint}
-      side={DoubleSide}
-      transparent
-      opacity={0}
-      depthWrite={false}
-      blending={AdditiveBlending}
-      toneMapped={false}
-    />
+    <AdditiveMaterial ref={ref} color={tint} side={DoubleSide} opacity={0} />
   );
 
   return (
@@ -257,52 +240,4 @@ export function LimbLightning({
       </group>
     </group>
   );
-}
-
-/**
- * Spreads `out` evenly along the trail's path (newest point first). False when the path is
- * shorter than `minLength`: the limb is barely moving.
- */
-function resample(trail: readonly Vector3[], out: Vector3[], minLength: number): boolean {
-  if (trail.length < 2) return false;
-  let total = 0;
-  for (let i = 1; i < trail.length; i++) total += trail[i].distanceTo(trail[i - 1]);
-  if (total < minLength) return false;
-  let i = 1;
-  let walked = 0;
-  out.forEach((point, k) => {
-    const target = (total * k) / (out.length - 1);
-    while (i < trail.length - 1 && walked + trail[i].distanceTo(trail[i - 1]) < target) {
-      walked += trail[i].distanceTo(trail[i - 1]);
-      i++;
-    }
-    const step = trail[i].distanceTo(trail[i - 1]) || 1;
-    point.lerpVectors(trail[i - 1], trail[i], Math.min(1, (target - walked) / step));
-  });
-  return true;
-}
-
-/** Lays the bolt out as a spark from `from`, off in a random direction, then jagged. */
-function spark(from: Vector3, seed: number, size: number) {
-  scratch.along
-    .set(noise(seed + 1) - 0.5, noise(seed + 2) - 0.5, noise(seed + 3) - 0.5)
-    .normalize()
-    .multiplyScalar(size * (SPARK_MIN + (SPARK_MAX - SPARK_MIN) * noise(seed + 4)));
-  bolt.forEach((point, k) => point.copy(from).addScaledVector(scratch.along, k / BOLT_SEGMENTS));
-  jag(bolt, seed + 5, size * 0.5);
-}
-
-/** Turns `points` (a lit bolt) into its fork: from a middle kink, off to one side, then jagged. */
-function branch(points: Vector3[], seed: number, cameraPosition: Vector3, size: number) {
-  const from = points[1 + Math.floor(noise(seed) * (points.length - 3))].clone();
-  scratch.along.subVectors(points.at(-1)!, points[0]);
-  const length = scratch.along.length() * BRANCH_LENGTH;
-  scratch.toCamera.subVectors(cameraPosition, from);
-  scratch.side.crossVectors(scratch.along, scratch.toCamera).normalize();
-  const direction = scratch.along
-    .normalize()
-    .addScaledVector(scratch.side, (noise(seed + 9) < 0.5 ? -1 : 1) * BRANCH_ANGLE)
-    .normalize();
-  points.forEach((point, k) => point.copy(from).addScaledVector(direction, (length * k) / (points.length - 1)));
-  jag(points, seed + 31, size * 0.6);
 }

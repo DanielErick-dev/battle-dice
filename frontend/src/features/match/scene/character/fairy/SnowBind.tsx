@@ -1,9 +1,11 @@
 "use client";
 
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo, useRef } from "react";
 import { IcosahedronGeometry, MeshStandardMaterial, Object3D, type InstancedMesh, type Mesh } from "three";
 import { seededRandom } from "@/game/domain/random";
+import { useDisposable, useDisposables } from "../shared/disposal";
+import { clamp01 } from "../shared/easing";
 import { iceShard } from "../shared/ice";
 
 /** Height the snow climbs to (effects units, a figure 1.9 tall): over the head, then down to the knees. */
@@ -71,7 +73,7 @@ export function SnowBind({ rounds }: { rounds: number }) {
       size: 0.16 + random() * 0.14,
     }));
   }, []);
-  const lumpGeometry = useMemo(() => new IcosahedronGeometry(1, 1), []);
+  const lumpGeometry = useDisposable(useMemo(() => new IcosahedronGeometry(1, 1), []));
   const materials = useMemo(
     () => ({
       snow: new MeshStandardMaterial({
@@ -92,14 +94,8 @@ export function SnowBind({ rounds }: { rounds: number }) {
     }),
     [],
   );
-  useEffect(
-    () => () => {
-      lumpGeometry.dispose();
-      Object.values(materials).forEach((material) => material.dispose());
-      shards.forEach(({ geometry }) => geometry.dispose());
-    },
-    [lumpGeometry, materials, shards],
-  );
+  useDisposables(materials);
+  useDisposables(useMemo(() => shards.map(({ geometry }) => geometry), [shards]));
 
   const mesh = useRef<InstancedMesh>(null);
   const shardMeshes = useRef<(Mesh | null)[]>([]);
@@ -118,7 +114,7 @@ export function SnowBind({ rounds }: { rounds: number }) {
       mesh.current.visible = top > 0.01;
       lumps.forEach((lump, index) => {
         // A lump packs in as the snow climbs past it, and crumbles as it slides away below it.
-        const grown = Math.min(1, Math.max(0, (top - lump.y) / 0.18));
+        const grown = clamp01((top - lump.y) / 0.18);
         // Not packed in yet: tucked away inside the body, never at zero scale (its normals would turn
         // to NaN, and the bloom would smear that over the whole screen).
         const radius = (bodyRadius(lump.y) * lump.out + lump.size * 0.35) * (0.4 + 0.6 * grown);
@@ -134,7 +130,7 @@ export function SnowBind({ rounds }: { rounds: number }) {
     shards.forEach((shard, index) => {
       const shardMesh = shardMeshes.current[index];
       if (!shardMesh) return;
-      const grown = Math.min(1, Math.max(0, (top - shard.y) / 0.25));
+      const grown = clamp01((top - shard.y) / 0.25);
       shardMesh.visible = grown > 0.02;
       const radius = bodyRadius(shard.y) + 0.06;
       shardMesh.position.set(Math.cos(shard.angle) * radius, shard.y, Math.sin(shard.angle) * radius);

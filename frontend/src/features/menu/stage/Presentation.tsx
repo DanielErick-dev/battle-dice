@@ -11,7 +11,9 @@ import {
   type ClipLengths,
 } from "@/features/match/characters";
 import { CharacterModel } from "@/features/match/scene/character/core/CharacterModel";
-import { HeldVial, PourStream, SmokeCloud } from "@/features/match/scene/character/alchemist/AlchemyVial";
+import { HeldVial } from "@/features/match/scene/character/alchemist/HeldVial";
+import { PourStream } from "@/features/match/scene/character/alchemist/PourStream";
+import { SmokeCloud } from "@/features/match/scene/character/alchemist/SmokeCloud";
 import { Wings } from "@/features/match/scene/character/accessories/Wings";
 import { HeadCrown } from "@/features/match/scene/character/accessories/HeadCrown";
 import { FrostWand } from "@/features/match/scene/character/fairy/FrostWand";
@@ -28,12 +30,9 @@ import {
 import { ScribeIntro } from "@/features/match/scene/character/scribe/ScribeIntro";
 import { JesterCards } from "@/features/match/scene/character/jester/JesterCards";
 import { LimbLightning } from "@/features/match/scene/character/monk/LimbLightning";
-import {
-  LevitationAura,
-  LevitationBurst,
-  levitationLift,
-  stepLevitation,
-} from "@/features/match/scene/character/witch/Levitation";
+import { levitationLift, stepLevitation } from "@/features/match/scene/character/witch/levitation";
+import { LevitationAura } from "@/features/match/scene/character/witch/LevitationAura";
+import { LevitationBurst } from "@/features/match/scene/character/witch/LevitationBurst";
 import { WitchStaff } from "@/features/match/scene/character/witch/WitchStaff";
 import { useAge } from "@/features/match/scene/useAge";
 import type { StageSounds } from "../audio/stageSounds";

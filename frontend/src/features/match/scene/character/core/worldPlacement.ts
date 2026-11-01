@@ -22,12 +22,3 @@ export function placeInWorld(
     object.quaternion.copy(scratch.quaternion).multiply(quaternion);
   }
 }
-
-/** The rig's bone ending in `name` (the loader drops the "mixamorig:" colon). */
-export function findBone(figure: Object3D, name: string): Object3D | null {
-  let bone: Object3D | null = null;
-  figure.traverse((node) => {
-    if (!bone && "isBone" in node && node.name.endsWith(name)) bone = node;
-  });
-  return bone;
-}

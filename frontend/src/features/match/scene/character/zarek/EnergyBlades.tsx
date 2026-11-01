@@ -1,8 +1,12 @@
 "use client";
 
-import { createPortal, useFrame } from "@react-three/fiber";
-import { Fragment, useMemo, useRef, type RefObject } from "react";
-import { AdditiveBlending, BackSide, Color, type Group, type MeshBasicMaterial, type Object3D } from "three";
+import { useFrame } from "@react-three/fiber";
+import { useRef, type RefObject } from "react";
+import { BackSide, type Group, type MeshBasicMaterial, type Object3D } from "three";
+import { InHand } from "../core/inHand";
+import { AdditiveMaterial } from "../shared/additive";
+import { growOrFade } from "../shared/easing";
+import { useGlowColor } from "../shared/glowColor";
 
 /** Blade length and where it starts past the wrist, in model units (Meshy figures stand 1.7). */
 const BLADE_LENGTH = 0.85;
@@ -12,6 +16,7 @@ const GROW_RATE = 7;
 const FADE_RATE = 2;
 /** Near-black violet, like the armour: the glow around it gives the blade its edge. */
 const BLADE_CORE = "#1c0f2e";
+const HANDS = ["RightHand", "LeftHand"] as const;
 
 /**
  * Two blades of light held in the figure's hands while `active` is on. Meshy animates only the
@@ -27,18 +32,15 @@ export function EnergyBlades({
   color: string;
   active: RefObject<boolean>;
 }) {
-  const hands = useMemo(() => ["RightHand", "LeftHand"].map((name) => findBone(figure, name)), [figure]);
   const strength = useRef(0);
   useFrame((_, delta) => {
-    const target = active.current ? 1 : 0;
-    const rate = target > strength.current ? GROW_RATE : FADE_RATE;
-    strength.current += (target - strength.current) * (1 - Math.exp(-rate * delta));
+    strength.current = growOrFade(strength.current, active.current, GROW_RATE, FADE_RATE, delta);
   });
 
-  return hands.map((hand, index) => (
-    <Fragment key={index}>
-      {hand && createPortal(<Blade color={color} strength={strength} seed={index * 1.7} />, hand)}
-    </Fragment>
+  return HANDS.map((bone, index) => (
+    <InHand key={bone} figure={figure} bone={bone}>
+      {() => <Blade color={color} strength={strength} seed={index * 1.7} />}
+    </InHand>
   ));
 }
 
@@ -46,7 +48,7 @@ export function EnergyBlades({
 function Blade({ color, strength, seed }: { color: string; strength: RefObject<number>; seed: number }) {
   const group = useRef<Group>(null);
   const glow = useRef<MeshBasicMaterial>(null);
-  const tint = useMemo(() => new Color(color).multiplyScalar(1.3), [color]);
+  const tint = useGlowColor(color, 1.3);
 
   useFrame((state) => {
     const node = group.current;
@@ -66,26 +68,9 @@ function Blade({ color, strength, seed }: { color: string; strength: RefObject<n
       </mesh>
       <mesh position-y={BLADE_LENGTH / 2}>
         <cylinderGeometry args={[0.024, 0.042, BLADE_LENGTH * 1.04, 14]} />
-        <meshBasicMaterial
-          ref={glow}
-          color={tint}
-          // Inner faces only: the dark core hides the middle, so the glow rims its edges.
-          side={BackSide}
-          transparent
-          blending={AdditiveBlending}
-          depthWrite={false}
-          toneMapped={false}
-        />
+        {/* Inner faces only: the dark core hides the middle, so the glow rims its edges. */}
+        <AdditiveMaterial ref={glow} color={tint} side={BackSide} />
       </mesh>
     </group>
   );
-}
-
-/** The rig's bone ending in `name` (the loader drops the "mixamorig:" colon). */
-function findBone(figure: Object3D, name: string): Object3D | null {
-  let bone: Object3D | null = null;
-  figure.traverse((node) => {
-    if (!bone && "isBone" in node && node.name.endsWith(name)) bone = node;
-  });
-  return bone;
 }

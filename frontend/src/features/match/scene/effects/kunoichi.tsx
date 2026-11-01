@@ -3,7 +3,7 @@ import { playerColor } from "../../characters";
 import { ShieldBubble } from "../CardEffects";
 import { hasGreatWings } from "./cards";
 import { Susanoo } from "../character/kage/Susanoo";
-import { BlackFlameMark } from "../character/fairy/TileSpells";
+import { BlackFlameMark } from "../character/kage/BlackFlameMark";
 import type { BoardFx, TokenFx } from "./types";
 
 /** Spectral Armour as a plain shell, for anyone without a look of their own. */

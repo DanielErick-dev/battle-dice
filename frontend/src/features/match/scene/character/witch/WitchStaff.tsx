@@ -1,8 +1,12 @@
 "use client";
 
-import { createPortal, useFrame } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef, type RefObject } from "react";
-import { AdditiveBlending, Color, Quaternion, Vector3, type Group, type MeshBasicMaterial, type Object3D } from "three";
+import { Quaternion, Vector3, type Group, type MeshBasicMaterial, type Object3D } from "three";
+import { figureTurnInHand, InHand } from "../core/inHand";
+import { AdditiveMaterial } from "../shared/additive";
+import { growOrFade } from "../shared/easing";
+import { useGlowColor } from "../shared/glowColor";
 
 /** Staff length, and how far below its middle the hand grips it, in model units (Meshy figures stand 1.7). */
 const STAFF_LENGTH = 1.25;
@@ -30,8 +34,11 @@ const SHARDS = 3;
  * hold props. No lights (they'd recompile the scene), only additive glow for the bloom.
  */
 export function WitchStaff({ figure, color, active }: { figure: Object3D; color: string; active: RefObject<boolean> }) {
-  const hand = useMemo(() => findBone(figure, "RightHand"), [figure]);
-  return hand ? createPortal(<Staff figure={figure} hand={hand} color={color} active={active} />, hand) : null;
+  return (
+    <InHand figure={figure} bone="RightHand">
+      {(hand) => <Staff figure={figure} hand={hand} color={color} active={active} />}
+    </InHand>
+  );
 }
 
 function Staff({
@@ -50,11 +57,11 @@ function Staff({
   const shards = useRef<Group>(null);
   const halo = useRef<MeshBasicMaterial>(null);
   const strength = useRef(0);
-  const glow = useMemo(() => new Color(color).multiplyScalar(1.7), [color]);
+  const glow = useGlowColor(color, 1.7);
   const scratch = useMemo(
     () => ({
-      hand: new Quaternion(),
       figure: new Quaternion(),
+      turn: new Quaternion(),
       lean: new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), -LEAN),
       handScale: new Vector3(),
       figureScale: new Vector3(),
@@ -66,9 +73,7 @@ function Staff({
   useFrame((state, delta) => {
     const node = group.current;
     if (!node) return;
-    const target = active.current ? 1 : 0;
-    const rate = target > strength.current ? GROW_RATE : FADE_RATE;
-    strength.current += (target - strength.current) * (1 - Math.exp(-rate * delta));
+    strength.current = growOrFade(strength.current, active.current, GROW_RATE, FADE_RATE, delta);
     const amount = strength.current;
     node.visible = amount > 0.01;
     if (!node.visible) return;
@@ -76,7 +81,6 @@ function Staff({
     const time = state.clock.elapsedTime;
     // Undo the hand's own turn and scale: upright and model-sized in the figure's frame, held
     // in front of the palm (the offset turned with the figure, then brought into the hand's space).
-    hand.getWorldQuaternion(scratch.hand);
     figure.getWorldQuaternion(scratch.figure);
     hand.getWorldScale(scratch.handScale);
     figure.getWorldScale(scratch.figureScale);
@@ -87,7 +91,7 @@ function Staff({
       .applyQuaternion(scratch.figure)
       .add(hand.getWorldPosition(node.position));
     node.position.copy(hand.worldToLocal(scratch.hold));
-    node.quaternion.copy(scratch.hand.invert()).multiply(scratch.figure).multiply(scratch.lean);
+    figureTurnInHand(hand, figure, node.quaternion, scratch.turn).multiply(scratch.lean);
     node.scale.setScalar((amount * scratch.figureScale.x) / scratch.handScale.x);
 
     if (crystal.current) {
@@ -129,14 +133,7 @@ function Staff({
         </mesh>
         <mesh>
           <sphereGeometry args={[0.1, 16, 12]} />
-          <meshBasicMaterial
-            ref={halo}
-            color={glow}
-            transparent
-            blending={AdditiveBlending}
-            depthWrite={false}
-            toneMapped={false}
-          />
+          <AdditiveMaterial ref={halo} color={glow} />
         </mesh>
         <group ref={shards}>
           {Array.from({ length: SHARDS }, (_, index) => {
@@ -156,13 +153,4 @@ function Staff({
       </group>
     </group>
   );
-}
-
-/** The rig's bone ending in `name` (the loader drops the "mixamorig:" colon). */
-function findBone(figure: Object3D, name: string): Object3D | null {
-  let bone: Object3D | null = null;
-  figure.traverse((node) => {
-    if (!bone && "isBone" in node && node.name.endsWith(name)) bone = node;
-  });
-  return bone;
 }

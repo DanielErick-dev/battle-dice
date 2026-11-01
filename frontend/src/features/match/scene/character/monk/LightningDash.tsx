@@ -17,6 +17,7 @@ import { DEFAULT_TIMINGS } from "../../../config";
 import { TILE_HEIGHT, TILE_PITCH, type Vec3 } from "../../boardLayout";
 import { useAge } from "../../useAge";
 import { CHEST_HEIGHT } from "../core/figure";
+import { useGlowColor } from "../shared/glowColor";
 
 /** Where the bolt runs along the path: through the figure's chest. */
 const BOLT_HEIGHT = TILE_HEIGHT / 2 + CHEST_HEIGHT * 0.8;
@@ -76,7 +77,7 @@ function GroundTrail({
   const shapes = useMemo(() => [newDrive(), newDrive()], []);
   const head = useRef<Mesh>(null);
   const headMaterial = useRef<MeshBasicMaterial>(null);
-  const glow = useMemo(() => new Color(color).multiplyScalar(2.2), [color]);
+  const glow = useGlowColor(color, 2.2);
 
   useFrame(({ clock }) => {
     const t = age(clock.elapsedTime) - from;
@@ -128,7 +129,7 @@ function SkyStrike({ position, color, at }: { position: Vec3; color: string; at:
   const ringMaterial = useRef<MeshBasicMaterial>(null);
   const flash = useRef<Mesh>(null);
   const flashMaterial = useRef<MeshBasicMaterial>(null);
-  const glow = useMemo(() => new Color(color).multiplyScalar(2.6), [color]);
+  const glow = useGlowColor(color, 2.6);
 
   useFrame(({ clock }) => {
     const t = age(clock.elapsedTime) - at;
@@ -243,7 +244,7 @@ function BoltMesh({
     [geometries],
   );
   const coreColor = useMemo(() => new Color("#ffffff").lerp(new Color(color), 0.25).multiplyScalar(3), [color]);
-  const haloColor = useMemo(() => new Color(color).multiplyScalar(1.8), [color]);
+  const haloColor = useGlowColor(color, 1.8);
 
   useFrame(() => {
     for (const mesh of [core.current, halo.current]) {

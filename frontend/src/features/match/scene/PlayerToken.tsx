@@ -9,7 +9,7 @@ import type { CharacterClip, CharacterDefinition, ClipLengths } from "../charact
 import type { Vec3 } from "./boardLayout";
 import { CharacterModel } from "./character/core/CharacterModel";
 import { EFFECT_SCALE, FIGURE_HEIGHT, LEVITATE_HEIGHT } from "./character/core/figure";
-import { levitationLift, stepLevitation } from "./character/witch/Levitation";
+import { levitationLift, stepLevitation } from "./character/witch/levitation";
 import { NameTag } from "./character/shared/NameTag";
 import { RestChair } from "./character/accessories/RestChair";
 import { TOKEN_EFFECTS } from "./effects";

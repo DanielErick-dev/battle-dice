@@ -5,7 +5,8 @@ import { useMemo, useRef, type RefObject } from "react";
 import { Euler, Quaternion, Vector3, type Group, type Object3D } from "three";
 import { DEFAULT_TIMINGS } from "../../../config";
 import { preloadProps, PROP_HEIGHT, usePropMesh } from "../core/props";
-import { findBone } from "../core/worldPlacement";
+import { findBone } from "../core/bones";
+import { approach } from "../shared/easing";
 
 /** The bow's length from tip to tip, in model units (Meshy figures stand 1.7). */
 const BOW_LENGTH = 1.05;
@@ -62,8 +63,8 @@ export function BackBow({
       if (cast !== null) drawnAt.current = now;
     }
     const drawing = drawnAt.current !== null && now - drawnAt.current < DRAWN_SECONDS;
-    drawn.current += ((drawing ? 1 : 0) - drawn.current) * (1 - Math.exp(-DRAW_RATE * delta));
-    shown.current += ((seated.current ? 0 : 1) - shown.current) * (1 - Math.exp(-HIDE_RATE * delta));
+    drawn.current = approach(drawn.current, drawing ? 1 : 0, DRAW_RATE, delta);
+    shown.current = approach(shown.current, seated.current ? 0 : 1, HIDE_RATE, delta);
     node.visible = shown.current > 0.02;
     if (!node.visible) return;
 

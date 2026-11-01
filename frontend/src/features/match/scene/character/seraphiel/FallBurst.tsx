@@ -6,6 +6,7 @@ import { useMemo, useRef } from "react";
 import { AdditiveBlending, Color, DoubleSide, type Group, type Mesh, type MeshBasicMaterial } from "three";
 import type { Crown } from "@/game/domain/types";
 import { useAge } from "../../useAge";
+import { useGlowColor } from "../shared/glowColor";
 
 /** Over the head, in the token effects' units (a figure stands 1.9 tall in them). */
 export const CROWN_HEIGHT = 2.02;
@@ -30,7 +31,7 @@ export function SeraphCrown({ crown }: { crown: Crown }) {
   const halo = useRef<MeshBasicMaterial>(null);
   const look = LOOKS[crown];
   const spikes = crown === "infernal" ? INFERNAL_SPIKES : SERAPHIC_SPIKES;
-  const glow = useMemo(() => new Color(look.glow).multiplyScalar(2.2), [look.glow]);
+  const glow = useGlowColor(look.glow, 2.2);
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
