@@ -1,84 +1,44 @@
 "use client";
 
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { useLayoutEffect, useMemo, useRef } from "react";
 import {
-  AdditiveBlending,
-  CatmullRomCurve3,
   Color,
   ConeGeometry,
   DoubleSide,
-  LatheGeometry,
   MeshBasicMaterial,
   MeshStandardMaterial,
-  Object3D,
   OctahedronGeometry,
-  Quaternion,
-  Shape,
-  ShapeGeometry,
-  SphereGeometry,
   SpriteMaterial,
   TubeGeometry,
-  Vector2,
-  Vector3,
-  type InstancedMesh,
   type Group,
-  type Sprite,
+  type InstancedMesh,
+  type Object3D,
 } from "three";
-import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import { PROP_HEIGHT, usePropMesh } from "@/features/match/scene/character/props";
-import { useSoftDisc } from "@/features/match/scene/character/softDisc";
 import { seededRandom } from "@/game/domain/random";
-import type { GroundDressing } from "../kit/groundDressing";
-import { GROUND_RADIUS } from "../kit/geometry";
-import { useCanvasTexture, useNoiseTexture, type NoiseLook } from "../kit/textures";
+import { useDisposal } from "../kit/dispose";
+import { FallingPetals } from "../kit/FallingPetals";
+import { FlickerSprite } from "../kit/FlickerSprite";
+import { GroundDisc } from "../kit/Floor";
+import { dome } from "../kit/geometry";
+import { PROP_HEIGHT, usePropMesh, useSoftDisc } from "../kit/matchAssets";
+import { HOT_GLOW } from "../kit/materials";
+import { spike, type FlameShape, type Flicker } from "../kit/motion";
+import type { Petal } from "../kit/petals";
+import { useCanvasTexture, useNoiseTexture } from "../kit/textures";
+import { useSpin } from "../kit/useSpin";
+import { BUSHES, gardenLayout, petalGeometry, roseGeometry, vineCurve, VINES } from "./garden";
+import { paintBloodCircle, SOIL } from "./textures";
 
 const CIRCLE_RADIUS = 0.8;
 const FLAME = new Color("#ffb066").multiplyScalar(2.1);
 const BLOOD_GLOW = "#ff2448";
-/** Rose bushes around the circle: `radius` of the mound, how many `roses` bloom on it. */
-const BUSHES = [
-  { x: -0.72, z: -0.42, radius: 0.15, roses: 4 },
-  { x: -0.36, z: -0.82, radius: 0.13, roses: 3 },
-  { x: 0.08, z: -0.92, radius: 0.1, roses: 2 },
-  { x: 0.38, z: -0.8, radius: 0.14, roses: 4 },
-  { x: 0.74, z: -0.36, radius: 0.13, roses: 3 },
-  { x: -0.84, z: 0.14, radius: 0.08, roses: 2 },
-  { x: 0.84, z: 0.18, radius: 0.07, roses: 1 },
-];
-const LEAVES_PER_RADIUS = 160;
-/** Thorny vines crawling out from the bushes over the soil, as [x, z] points. */
-const VINES: [number, number][][] = [
-  [
-    [-0.72, -0.42],
-    [-0.6, -0.22],
-    [-0.68, -0.02],
-    [-0.58, 0.14],
-    [-0.48, 0.1],
-  ],
-  [
-    [0.74, -0.36],
-    [0.6, -0.16],
-    [0.68, 0.02],
-    [0.56, 0.22],
-  ],
-  [
-    [-0.36, -0.82],
-    [-0.18, -0.68],
-    [-0.04, -0.74],
-    [0.08, -0.62],
-  ],
-  [
-    [0.38, -0.8],
-    [0.5, -0.58],
-    [0.36, -0.5],
-  ],
-];
-const THORNS_PER_VINE = 14;
 const CANDELABRA = [
   { x: -0.56, z: -0.64, height: 0.62 },
   { x: 0.58, z: -0.6, height: 0.5 },
 ];
+const CANDLE_FLICKER: Flicker = { slow: [0.12, 13], fast: [0.08, 29] };
+const CANDLE_HAZE: FlameShape = { kind: "uniform", size: 0.42 };
 const PETALS = 26;
 const PETAL_HEIGHT = 1.9;
 
@@ -91,12 +51,11 @@ export function BloodRoseGarden() {
   const soil = useNoiseTexture(SOIL);
   const circle = useCanvasTexture({ size: 512, draw: paintBloodCircle });
   const disc = useSoftDisc();
-  const materials = useMemo(() => {
-    const glow = { transparent: true, depthWrite: false, blending: AdditiveBlending, toneMapped: false };
-    return {
+  const materials = useMemo(
+    () => ({
       soil: new MeshStandardMaterial({ map: soil, transparent: true, roughness: 1, depthWrite: false }),
       circle: new MeshBasicMaterial({ map: circle, transparent: true, depthWrite: false }),
-      circleGlow: new MeshBasicMaterial({ map: circle, color: BLOOD_GLOW, ...glow }),
+      circleGlow: new MeshBasicMaterial({ map: circle, color: BLOOD_GLOW, ...HOT_GLOW }),
       bush: new MeshStandardMaterial({ color: "#0e160c", roughness: 1 }),
       leaf: new MeshStandardMaterial({ color: "#1d2c17", roughness: 0.7, flatShading: true }),
       rose: new MeshStandardMaterial({
@@ -108,11 +67,12 @@ export function BloodRoseGarden() {
         flatShading: true,
       }),
       vine: new MeshStandardMaterial({ color: "#24130e", roughness: 0.8 }),
-      halo: new SpriteMaterial({ map: disc, color: FLAME, opacity: 0.22, ...glow }),
+      halo: new SpriteMaterial({ map: disc, color: FLAME, opacity: 0.22, ...HOT_GLOW }),
       petal: new MeshStandardMaterial({ color: "#b3122f", roughness: 0.6, side: DoubleSide }),
-    };
-  }, [soil, circle, disc]);
-  useEffect(() => () => Object.values(materials).forEach((material) => material.dispose()), [materials]);
+    }),
+    [soil, circle, disc],
+  );
+  useDisposal(materials);
   const geometries = useMemo(
     () => ({
       rose: roseGeometry(),
@@ -123,13 +83,7 @@ export function BloodRoseGarden() {
     }),
     [],
   );
-  useEffect(
-    () => () =>
-      Object.values(geometries)
-        .flat()
-        .forEach((geometry) => geometry.dispose()),
-    [geometries],
-  );
+  useDisposal(geometries);
   const layout = useMemo(() => gardenLayout(), []);
   const leaves = useRef<InstancedMesh>(null);
   const roses = useRef<InstancedMesh>(null);
@@ -144,27 +98,30 @@ export function BloodRoseGarden() {
     fill(roses.current, layout.roses);
     fill(thorns.current, layout.thorns);
   }, [layout]);
-  const ring = useRef<Group>(null);
-  const flames = useRef<(Sprite | null)[]>([]);
+  const petals = useMemo(() => {
+    const random = seededRandom(113);
+    return Array.from({ length: PETALS }, (): Petal => {
+      const x = (random() - 0.5) * 1.7;
+      const z = -0.9 + random() * 1.3;
+      const height = random() * PETAL_HEIGHT;
+      const speed = 0.08 + random() * 0.08;
+      const phase = random() * Math.PI * 2;
+      const spin = 0.8 + random() * 1.6;
+      return { x, z, height, speed, phase, spin, flutter: { rate: spin, phase: 0 } };
+    });
+  }, []);
+  const ring = useSpin<Group>(0.025);
 
-  useFrame(({ clock }, delta) => {
+  useFrame(({ clock }) => {
     const t = clock.elapsedTime;
     // A slow heartbeat: two quick throbs, then rest.
-    const beat = Math.max(0, Math.sin(t * 2.4)) ** 6 + 0.6 * Math.max(0, Math.sin(t * 2.4 - 0.9)) ** 6;
+    const beat = spike(t, 2.4, 0, 6) + 0.6 * spike(t, 2.4, -0.9, 6);
     materials.circleGlow.setValues({ opacity: 0.12 + 0.35 * beat });
-    if (ring.current) ring.current.rotation.z += delta * 0.025;
-    flames.current.forEach((flame, index) => {
-      if (!flame) return;
-      const flicker = 1 + 0.12 * Math.sin(t * 13 + index * 2.1) + 0.08 * Math.sin(t * 29 + index);
-      flame.scale.setScalar(0.42 * flicker);
-    });
   });
 
   return (
     <group>
-      <mesh material={materials.soil} rotation-x={-Math.PI / 2} position-y={0.001} renderOrder={-1}>
-        <circleGeometry args={[GROUND_RADIUS, 64]} />
-      </mesh>
+      <GroundDisc material={materials.soil} />
       <group ref={ring} rotation-x={-Math.PI / 2} position-y={0.003}>
         <mesh material={materials.circle}>
           <planeGeometry args={[CIRCLE_RADIUS * 2, CIRCLE_RADIUS * 2]} />
@@ -180,7 +137,7 @@ export function BloodRoseGarden() {
           position={[x, -0.01, z]}
           scale={[radius, radius * 0.75, radius]}
         >
-          <sphereGeometry args={[1, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
+          <sphereGeometry args={dome(14, 8)} />
         </mesh>
       ))}
       <instancedMesh ref={leaves} args={[geometries.leaf, materials.leaf, layout.leaves.length]} />
@@ -198,239 +155,16 @@ export function BloodRoseGarden() {
             scale={height / PROP_HEIGHT}
           />
           {/* A warm haze round its candles, flickering. */}
-          <sprite
-            ref={(sprite) => {
-              flames.current[x > 0 ? 1 : 0] = sprite;
-            }}
+          <FlickerSprite
             material={materials.halo}
-            position-y={height * 0.9}
+            look={CANDLE_FLICKER}
+            shape={CANDLE_HAZE}
+            phases={x > 0 ? [2.1, 1] : [0, 0]}
+            position={[0, height * 0.9, 0]}
           />
         </group>
       ))}
-      <FallingPetals geometry={geometries.petal} material={materials.petal} />
+      <FallingPetals geometry={geometries.petal} material={materials.petal} petals={petals} top={PETAL_HEIGHT} />
     </group>
   );
 }
-
-function FallingPetals({ geometry, material }: { geometry: ShapeGeometry; material: MeshStandardMaterial }) {
-  const mesh = useRef<InstancedMesh>(null);
-  const { petals, dummy } = useMemo(() => {
-    const random = seededRandom(113);
-    return {
-      petals: Array.from({ length: PETALS }, () => ({
-        x: (random() - 0.5) * 1.7,
-        z: -0.9 + random() * 1.3,
-        height: random() * PETAL_HEIGHT,
-        speed: 0.08 + random() * 0.08,
-        phase: random() * Math.PI * 2,
-        spin: 0.8 + random() * 1.6,
-      })),
-      dummy: new Object3D(),
-    };
-  }, []);
-
-  useFrame(({ clock }, delta) => {
-    const instances = mesh.current;
-    if (!instances) return;
-    const t = clock.elapsedTime;
-    petals.forEach((petal, index) => {
-      petal.height -= petal.speed * delta;
-      if (petal.height < 0) petal.height += PETAL_HEIGHT;
-      dummy.position.set(
-        petal.x + Math.sin(t * 0.7 + petal.phase) * 0.12,
-        petal.height,
-        petal.z + Math.cos(t * 0.5 + petal.phase) * 0.06,
-      );
-      dummy.rotation.set(t * petal.spin + petal.phase, petal.phase, Math.sin(t * petal.spin) * 0.8);
-      dummy.updateMatrix();
-      instances.setMatrixAt(index, dummy.matrix);
-    });
-    instances.instanceMatrix.needsUpdate = true;
-  });
-
-  return <instancedMesh ref={mesh} args={[geometry, material, PETALS]} frustumCulled={false} />;
-}
-
-/** Where every leaf, rose and thorn goes; fixed by a seed so the garden never rearranges. */
-function gardenLayout() {
-  const random = seededRandom(101);
-  const place = (position: Vector3, rotation: [number, number, number], scale: [number, number, number]) => {
-    const placement = new Object3D();
-    placement.position.copy(position);
-    placement.rotation.set(...rotation);
-    placement.scale.set(...scale);
-    placement.updateMatrix();
-    return placement;
-  };
-  // A point on a bush's dome, `lift` keeping it off the bottom rim.
-  const onDome = (x: number, z: number, radius: number, lift: number) => {
-    const angle = random() * Math.PI * 2;
-    const rise = lift + random() * (1 - lift);
-    const out = Math.sqrt(1 - rise * rise);
-    return new Vector3(x + Math.cos(angle) * out * radius, rise * radius * 0.75, z + Math.sin(angle) * out * radius);
-  };
-  const leaves = BUSHES.flatMap(({ x, z, radius }) =>
-    Array.from({ length: Math.round(radius * LEAVES_PER_RADIUS) }, () =>
-      place(
-        onDome(x, z, radius * 1.02, 0.05),
-        [random() * Math.PI, random() * Math.PI * 2, random() * Math.PI],
-        [0.014, 0.004, 0.028].map((size) => size * (0.7 + random() * 0.6)) as [number, number, number],
-      ),
-    ),
-  );
-  const roses = BUSHES.flatMap(({ x, z, radius, roses }) =>
-    Array.from({ length: roses }, () => {
-      const at = onDome(x, z, radius * 1.05, 0.35);
-      // Blooms face out from the bush and up a little, towards the light.
-      const lean = Math.atan2(Math.hypot(at.x - x, at.z - z), radius * 0.6);
-      const heading = Math.atan2(at.x - x, at.z - z);
-      const size = 0.05 + random() * 0.025;
-      return place(at, [lean * Math.cos(heading), 0, -lean * Math.sin(heading)], [size, size, size]);
-    }),
-  );
-  const up = new Vector3(0, 1, 0);
-  const thorns = VINES.flatMap((points) => {
-    const curve = vineCurve(points);
-    return Array.from({ length: THORNS_PER_VINE }, (_, index) => {
-      const u = (index + 0.5) / THORNS_PER_VINE;
-      const tangent = curve.getTangentAt(u);
-      const side = tangent
-        .clone()
-        .cross(new Vector3(random() - 0.5, random() - 0.5, random() - 0.5))
-        .normalize();
-      const placement = new Object3D();
-      placement.position.copy(curve.getPointAt(u));
-      placement.quaternion.copy(new Quaternion().setFromUnitVectors(up, side));
-      placement.updateMatrix();
-      return placement;
-    });
-  });
-  return { leaves, roses, thorns };
-}
-
-/** A vine through its [x, z] points, crawling low and arching up a little between them. */
-function vineCurve(points: [number, number][]) {
-  return new CatmullRomCurve3(
-    points.map(([x, z], index) => new Vector3(x, index % 2 ? 0.035 : 0.01, z)),
-    false,
-    "catmullrom",
-    0.4,
-  );
-}
-
-/** A rose about 1 across: three cups of petals, scalloped and opening outwards, round a tight bud. */
-function roseGeometry() {
-  const cups = [
-    { radius: 0.5, height: 0.5, lobes: 5 },
-    { radius: 0.36, height: 0.6, lobes: 4 },
-    { radius: 0.22, height: 0.68, lobes: 3 },
-  ].map(({ radius, height, lobes }, layer) => {
-    const profile = [
-      new Vector2(0.03, 0),
-      new Vector2(radius * 0.55, height * 0.2),
-      new Vector2(radius * 0.92, height * 0.6),
-      new Vector2(radius, height),
-    ];
-    const cup = new LatheGeometry(profile, 15);
-    const position = cup.getAttribute("position");
-    for (let index = 0; index < position.count; index++) {
-      const [x, y, z] = [position.getX(index), position.getY(index), position.getZ(index)];
-      const petal = Math.cos(Math.atan2(z, x) * lobes + layer * 0.9);
-      // Petal tips rise and flare at the rim, the gaps between them dip.
-      const rim = y / height;
-      const flare = 1 + 0.18 * petal * rim;
-      position.setXYZ(index, x * flare, y * (1 + 0.15 * petal * rim), z * flare);
-    }
-    cup.computeVertexNormals();
-    return cup;
-  });
-  const bud = new SphereGeometry(0.12, 10, 8).scale(1, 1.4, 1).translate(0, 0.5, 0);
-  const merged = mergeGeometries([...cups, bud]);
-  [...cups, bud].forEach((part) => part.dispose());
-  return merged;
-}
-
-/** A small rounded petal, about 0.035 long. */
-function petalGeometry() {
-  const shape = new Shape();
-  shape.moveTo(0, -0.017);
-  shape.bezierCurveTo(0.016, -0.01, 0.014, 0.012, 0, 0.018);
-  shape.bezierCurveTo(-0.014, 0.012, -0.016, -0.01, 0, -0.017);
-  return new ShapeGeometry(shape, 6);
-}
-
-/** The ritual circle in blood: rings, a seven-pointed star, glyphs between the rings and drips around them. */
-function paintBloodCircle(context: CanvasRenderingContext2D, size: number) {
-  const random = seededRandom(107);
-  const centre = size / 2;
-  const blood = () =>
-    `rgba(${120 + random() * 50},${4 + random() * 10},${16 + random() * 14},${0.75 + random() * 0.2})`;
-  context.lineCap = context.lineJoin = "round";
-  const ring = (radius: number, width: number) => {
-    // Painted by hand: a few overlapping strokes, never a clean line.
-    for (let pass = 0; pass < 3; pass++) {
-      context.strokeStyle = blood();
-      context.lineWidth = width * (0.6 + random() * 0.6);
-      context.beginPath();
-      for (let step = 0; step <= 64; step++) {
-        const angle = (step / 64) * Math.PI * 2;
-        const wobble = radius + (random() - 0.5) * 2.5;
-        context.lineTo(centre + Math.cos(angle) * wobble, centre + Math.sin(angle) * wobble);
-      }
-      context.stroke();
-    }
-  };
-  ring(size * 0.46, 5);
-  ring(size * 0.4, 3);
-  ring(size * 0.2, 3);
-  const points = 7;
-  context.strokeStyle = blood();
-  context.lineWidth = 3;
-  context.beginPath();
-  for (let step = 0; step <= points; step++) {
-    const angle = ((step * 3) / points) * Math.PI * 2 - Math.PI / 2;
-    context.lineTo(centre + Math.cos(angle) * size * 0.4, centre + Math.sin(angle) * size * 0.4);
-  }
-  context.stroke();
-  for (let glyph = 0; glyph < 21; glyph++) {
-    const angle = (glyph / 21) * Math.PI * 2;
-    const x = centre + Math.cos(angle) * size * 0.43;
-    const y = centre + Math.sin(angle) * size * 0.43;
-    context.strokeStyle = blood();
-    context.lineWidth = 2;
-    context.beginPath();
-    for (let stroke = 0; stroke < 3; stroke++) {
-      context.moveTo(x + (random() - 0.5) * 10, y + (random() - 0.5) * 10);
-      context.lineTo(x + (random() - 0.5) * 10, y + (random() - 0.5) * 10);
-    }
-    context.stroke();
-  }
-  for (let drop = 0; drop < 70; drop++) {
-    const angle = random() * Math.PI * 2;
-    const radius = size * (0.15 + random() * 0.33);
-    context.fillStyle = blood();
-    context.beginPath();
-    context.arc(
-      centre + Math.cos(angle) * radius,
-      centre + Math.sin(angle) * radius,
-      1 + random() * 3.5,
-      0,
-      Math.PI * 2,
-    );
-    context.fill();
-  }
-}
-
-/** A garden path of dark earth, rose petals heaped round the bushes at the back. */
-const GARDEN_GROUND: GroundDressing = {
-  wash: { colour: "#f43f5e", alpha: 0.3 },
-  path: { kind: "dirt", colour: "rgba(66,24,22,0.9)", edge: "rgba(24,8,8,0.6)", width: [0.12, 0.24], wind: 0.05 },
-  litter: [{ shape: "petal", colours: ["#be123c", "#9f1239", "#e11d48"], count: 220, size: 4, pile: [0, 1, 0, 0.45] }],
-};
-const SOIL: NoiseLook = {
-  base: [30, 18, 17],
-  dark: [10, 6, 6],
-  light: [58, 36, 30],
-  fadeOut: true,
-  dress: GARDEN_GROUND,
-};
