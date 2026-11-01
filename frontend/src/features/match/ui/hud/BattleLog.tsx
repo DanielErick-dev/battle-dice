@@ -47,7 +47,7 @@ export function BattleLog({ log, players }: BattleLogProps) {
         <ChevronDown className={cn("size-3.5 transition-transform", !open && "-rotate-90")} />
       </button>
       {open && (
-        <ol ref={listRef} className="mt-1 flex max-h-56 flex-col gap-0.5 overflow-y-auto px-1 pb-1">
+        <ol ref={listRef} className="mt-1 flex max-h-56 flex-col gap-0.5 hud-scroll overflow-y-auto px-1 pb-1">
           {lines.length === 0 && <li className="text-[11px] text-zinc-500 italic">Nada aconteceu ainda.</li>}
           {lines.map(({ id, text, actor, divider }) =>
             divider ? (
