@@ -7,7 +7,8 @@ import { CHARACTERS, type CharacterDefinition, type CharacterId } from "@/featur
 import { preferences, usePreference } from "@/features/settings/preferences";
 import { cn } from "@/lib/utils";
 import { useStageSounds } from "../audio/useStageSounds";
-import { FLOOR_Y } from "./layout";
+import { GreekColumns } from "@/features/match/scene/character/themis/GreekColumns";
+import { FIGURE_HEIGHT, FLOOR_Y } from "./layout";
 import { Presentation } from "./Presentation";
 import { RisingMotes } from "./RisingMotes";
 import { RunePedestal } from "./RunePedestal";
@@ -32,7 +33,7 @@ const CAMERA_FOV = (2 * Math.atan((1 + 2 * CANVAS_BLEED) * Math.tan((16 * Math.P
  * the intro. One canvas for the whole menu page: the picker only swaps the model.
  */
 export function CharacterStage({ characterId, className }: { characterId: CharacterId; className?: string }) {
-  const { color: accent, stage, descends }: CharacterDefinition = CHARACTERS[characterId];
+  const { color: accent, stage, descends, introSword, introSpeed }: CharacterDefinition = CHARACTERS[characterId];
   const scenery: Scenery | undefined = stage && SCENERY[stage];
   const dim = scenery?.dim ?? false;
   const color = scenery?.light ?? accent;
@@ -91,6 +92,14 @@ export function CharacterStage({ characterId, className }: { characterId: Charac
             <group position-y={FLOOR_Y}>
               <Suspense fallback={null}>
                 <scenery.component gust={gust} />
+                {/* Part of the ground, so they stay put while the figure is turned; replayed with each intro. */}
+                {introSword && (
+                  <GreekColumns
+                    key={`${characterId}:${encore}`}
+                    size={FIGURE_HEIGHT}
+                    riseSeconds={introSword.plantSeconds / (introSpeed ?? 1)}
+                  />
+                )}
               </Suspense>
             </group>
           ) : (

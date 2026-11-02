@@ -10,11 +10,11 @@ import { GearWorks } from "./gearWorks/GearWorks";
 import { Graveyard } from "./graveyard/Graveyard";
 import { HangarBay } from "./hangarBay/HangarBay";
 import { MistRuins } from "./mistRuins/MistRuins";
-import { MoonlitShore } from "./moonlitShore/MoonlitShore";
 import { SakuraCourtyard } from "./sakuraCourtyard/SakuraCourtyard";
 import { Sanctuary } from "./sanctuary/Sanctuary";
 import { Scriptorium } from "./scriptorium/Scriptorium";
 import { StormTemple } from "./stormTemple/StormTemple";
+import { Tribunal } from "./tribunal/Tribunal";
 import { SunkenTemple } from "./sunkenTemple/SunkenTemple";
 import { VoidRift } from "./voidRift/VoidRift";
 import { WindPeak } from "./windPeak/WindPeak";
@@ -46,7 +46,8 @@ export const SCENERY = {
   mistRuins: { component: MistRuins, dim: true },
   burningShrine: { component: BurningShrine, weather: true },
   bloodRoseGarden: { component: BloodRoseGarden, weather: true },
-  shore: { component: MoonlitShore },
+  // Lit gold like her sacred fire, not the character's blue; no blue motes drifting over the stone either.
+  tribunal: { component: Tribunal, light: "#ffcf7a", weather: true },
   // Under the sea the gold is lit by a teal wash; the bubbles stand in for the motes.
   sunkenTemple: { component: SunkenTemple, light: "#3cc6c0", weather: true },
   gearworks: { component: GearWorks },

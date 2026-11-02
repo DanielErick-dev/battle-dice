@@ -98,7 +98,7 @@ export interface CharacterDefinition {
   introArrows?: IntroArrowBeats;
   /** She plants her sword in the ground through the intro and calls it back to her hand (see ThemisIntro). */
   introSword?: IntroSwordBeats;
-  /** A line they say through their intro on the menu stage, `seconds` into it (a file in public/audio/voices). */
+  /** A line they say through their intro on the menu stage, `seconds` into it (a file in public/audio/voices/<character>/). */
   introVoice?: { src: string; seconds: number };
   /** Through the intro they write a sigil in the air that bursts into four scrolls (see ScribeIntro). */
   introSeals?: IntroSealBeats;
@@ -402,8 +402,8 @@ export const CHARACTERS = {
     introSpeed: 0.85,
     introSword: { plantSeconds: 0.75, trembleSeconds: 1.6, riseSeconds: 2.45, catchSeconds: 3.0 },
     // Her intro line, as the sword strikes the ground.
-    introVoice: { src: "/audio/voices/themis-intro.mp3", seconds: 0.75 },
-    stage: "shore",
+    introVoice: { src: "/audio/voices/themis/themis-intro.mp3", seconds: 0.75 },
+    stage: "tribunal",
   },
   akane: {
     name: "Akane",
