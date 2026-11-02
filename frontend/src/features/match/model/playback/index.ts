@@ -4,7 +4,7 @@ import type { GameEvent } from "@/game/domain/core/events";
 import type { GameState } from "@/game/domain/types";
 import { riftsOf } from "@/game/domain/characters/zarek/void";
 import type { PlaybackTimings } from "../../config";
-import { sealViews, specterViews, type MatchView } from "../matchView";
+import { sealViews, specterViews, withPlayerAt, type MatchView } from "../matchView";
 import { turnSteps } from "./turn";
 import { tilesSteps } from "./tiles";
 import { cardsSteps } from "./cards";
@@ -52,15 +52,50 @@ export const LOG_LIMIT = 300;
 export function updateSteps(events: readonly GameEvent[], state: GameState, timings: PlaybackTimings): PlaybackStep[] {
   const steps: PlaybackStep[] = [];
   let unlogged: GameEvent[] = [];
-  for (const event of events) {
+  for (let index = 0; index < events.length; index++) {
+    const event = events[index];
     unlogged.push(event);
-    const [first, ...rest] = eventToSteps(event, timings);
+    const together = pushedTogether(events, index);
+    if (together.length > 1) {
+      unlogged.push(...together.slice(1));
+      index += together.length - 1;
+    }
+    const [first, ...rest] = together.length > 1 ? pushSteps(together, timings) : eventToSteps(event, timings);
     if (!first) continue;
     steps.push(logged(unlogged, first), ...rest);
     unlogged = [];
   }
   steps.push(logged(unlogged, syncStep(state)));
   return steps;
+}
+
+type PushedEvent = Extract<GameEvent, { type: "playerPushed" }>;
+
+/** The run of pushes by one player starting at `index` (an Arrow Rain's volley), knocked back side by side. */
+function pushedTogether(events: readonly GameEvent[], index: number): PushedEvent[] {
+  const first = events[index];
+  if (first.type !== "playerPushed") return [];
+  const run: PushedEvent[] = [first];
+  for (let next = index + 1; next < events.length; next++) {
+    const event = events[next];
+    if (event.type !== "playerPushed" || event.by !== first.by || run.some((push) => push.playerId === event.playerId))
+      break;
+    run.push(event);
+  }
+  return run;
+}
+
+/** Every pushed player takes their next tile on the same beat, instead of one after another. */
+function pushSteps(pushes: readonly PushedEvent[], timings: PlaybackTimings): PlaybackStep[] {
+  const longest = Math.max(...pushes.map((push) => push.path.length));
+  return Array.from({ length: longest }, (_, step) => ({
+    apply: (view: MatchView) =>
+      pushes.reduce((next, push) => {
+        const tile = push.path[step];
+        return tile === undefined ? next : withPlayerAt(next, push.playerId, tile);
+      }, view),
+    durationMs: timings.pushStepMs,
+  }));
 }
 
 /** `step`, writing `events` into the battle log first: the log never runs ahead of the board, nor slows it. */

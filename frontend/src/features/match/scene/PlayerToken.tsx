@@ -87,6 +87,8 @@ export function PlayerToken({
   const rise = useRef(0);
   const levitating = useRef(false);
   const seated = useRef(false);
+  /** The tile it sat down on: a seated figure only slides over to make room there, never onto another tile. */
+  const seatTile = useRef<number | null>(null);
   const bladesOut = useRef(false);
   const crackling = useRef(false);
   const charged = useRef(false);
@@ -101,7 +103,7 @@ export function PlayerToken({
     const way = motion.current;
     followTarget(way, node.position, target, pathDirection, {
       travel: isDashing ? "dash" : isTeleporting ? "teleport" : "walk",
-      seated: seated.current,
+      seated: seated.current && seatTile.current === player.position,
       // The run-to-stop brake is off until it looks right (it also broke Bjorn's shove).
       arriving: false,
     });
@@ -132,6 +134,7 @@ export function PlayerToken({
     if (pose.hopBurst !== null) setHopBurst(pose.hopBurst);
     clip.current = pose.clip;
     seated.current = pose.seated;
+    seatTile.current = pose.seated ? (seatTile.current ?? player.position) : null;
     crackling.current = pose.crackling;
     charged.current = isFuryAwake;
     bladesOut.current = pose.bladesOut;

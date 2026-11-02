@@ -15,8 +15,8 @@ O que fica para depois do MVP está em [ideias.md](ideias.md), seção "Pós-MVP
   - as casas congeladas pelo inverno (as escolhidas e as que congelam sozinhas do início rumo à chegada) funcionam **exatamente** como a neve normal da fada, inclusive o **pulo de +5** quando a própria fada para nelas.
 
 ### Novidades do MVP
-- [ ] **4 cartas exclusivas por personagem.** O baralho continua com as cartas comuns e aleatórias, e cada personagem soma 4 cartas próprias que combinam com o estilo da habilidade dele.
-  - *Em andamento (2026-10-29):* a regra do baralho e as cartas da **Têmis** e do **Zarek** estão feitas e testadas. Os outros personagens estão como proposta em [cartas-exclusivas.md](cartas-exclusivas.md), esperando a aprovação do Daniel.
+- [ ] **5 cartas exclusivas por personagem** (eram 4; o Daniel mudou para 5 em 01/11/2026, a 5ª pode ser um Triunfo). O baralho continua com as cartas comuns e aleatórias, e cada personagem soma as suas próprias.
+  - *Em andamento (2026-11-02):* **Têmis** pronta (5 cartas, todas com arte). **Zarek** tem 4, falta a 5ª. Os outros estão como proposta antiga de 4 cartas em [cartas-exclusivas.md](cartas-exclusivas.md), para repensar junto com o Daniel.
 - [x] **Log de batalha** para o jogador não se perder no caos visual. Exemplos:
   - "J1 (Bruxa) usou Levitação"
   - "J3 (Bjorn) atropelou J2 e o mandou 6 casas para trás"
@@ -57,3 +57,16 @@ Objetivo: cada personagem com uma habilidade **ativa** e uma **passiva**, todos 
 ### Correção extra (2026-10-26)
 - [x] **Preso antes de rolar:** se uma carta ou habilidade leva o jogador para um perde a vez, neve ou gelo antes da rolagem, a vez acaba na hora.
 - [x] A Kage **não** acende fogo no gelo do Inverno Eterno; na neve comum da fada ela continua acendendo (e derretendo a neve).
+
+## Situação em 2026-11-02
+
+### Feito nesta rodada
+- Têmis refeita: Marca da Justiça (passiva), Veredito que devolve em dobro e paga +2 de energia e +1 de carga, 5 cartas com arte, habitat Tribunal, balança de bronze. Detalhes em [regras.md](regras.md).
+- Até **8 jogadores** e **ampulheta** de 60 s por vez com 3 pausas por jogador (pode desligar na nova partida).
+- Correções de teste: escudo segura a neve, Portal Místico pula portal com neve, neve do Zarek roxa, câmera do Vazio volta ao personagem, empurrões da Chuva de Flechas ao mesmo tempo, boneco sentado não "corre sentado", botão do dado sempre visível.
+
+### Pendente
+- [ ] **Validar na tela:** HUD com 8 jogadores, ampulheta e pausa, posição do botão do dado, flechas sincronizadas, tamanho e brilho da balança do Veredito.
+- [ ] **Akane** (próximo foco): homem, estilo fogo, forte contra a Fada e fraco contra o Auric. O Daniel ainda está pensando no kit. Definir o que diferencia o fogo dele do fogo negro da Kage.
+- [ ] **5ª carta do Zarek.**
+- [ ] **Coringa:** ganhou o teste de 4 jogadores; observar se a Aposta está forte demais.
