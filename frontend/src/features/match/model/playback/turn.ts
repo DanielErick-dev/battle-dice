@@ -1,7 +1,7 @@
 /** Dice, walking, pushes and the flow of turns. */
 import { DICE_SIDES } from "@/game/domain/core/dice";
 import { nextFxId, withFx, withPlayer, withPlayerAt, type MatchView } from "../matchView";
-import { tileOf } from "./helpers";
+import { playerTileEffect, tileOf } from "./helpers";
 import type { StepHandlers } from "./types";
 
 export const turnSteps: StepHandlers<
@@ -13,6 +13,7 @@ export const turnSteps: StepHandlers<
   | "skipTurnGained"
   | "turnSkipped"
   | "turnChanged"
+  | "turnTimedOut"
   | "playerWon"
   | "gameRestarted"
 > = {
@@ -133,11 +134,17 @@ export const turnSteps: StepHandlers<
   playerWon: (event) => {
     return [{ apply: (view) => ({ ...view, winnerId: event.playerId }), durationMs: 0 }];
   },
+  turnTimedOut: (event, timings) => [
+    {
+      apply: (view) => ({ ...view, effect: playerTileEffect(view, event.playerId, "timedOut") }),
+      durationMs: timings.noticeMs,
+    },
+  ],
   turnChanged: (event, timings) => {
     // A beat on where the turn left things (a knock-back's last tile) before the camera moves on.
     return [
       { apply: (view) => view, durationMs: timings.turnHandoffMs },
-      { apply: (view) => ({ ...view, activePlayerId: event.playerId }), durationMs: 0 },
+      { apply: (view) => ({ ...view, activePlayerId: event.playerId, turnCount: view.turnCount + 1 }), durationMs: 0 },
     ];
   },
   gameRestarted: () => {

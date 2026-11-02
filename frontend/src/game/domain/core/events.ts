@@ -72,6 +72,8 @@ export type TurnEvent =
   | { type: "turnSkipped"; playerId: PlayerId }
   | { type: "playerWon"; playerId: PlayerId }
   | { type: "turnChanged"; playerId: PlayerId }
+  /** `playerId` ran out of time to play and lost the rest of the turn. */
+  | { type: "turnTimedOut"; playerId: PlayerId }
   | { type: "gameRestarted" };
 
 /** Charging, using and turning away abilities, and the armour that turns them away. */

@@ -81,6 +81,7 @@ const SHOTS: Record<TileEffectKind, Shot> = {
   verdict: { closeUp: { distance: 1.8, seconds: 4 }, trauma: 0.35 },
   marked: { closeUp: { distance: 0.7, seconds: 1.2 } },
   marched: { fovKick: 0.6 },
+  timedOut: { trauma: 0.2 },
   decree: { fovKick: 0.6, trauma: 0.2 },
   judgment: { closeUp: { distance: 0.62, seconds: 1.6 }, trauma: 0.5, fovKick: 1 },
 };

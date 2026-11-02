@@ -93,6 +93,12 @@ export class MatchStore {
     this.dispatch({ type: "rollDice", playerId: this.view.activePlayerId });
   };
 
+  /** The hourglass ran out on whoever is playing. */
+  forfeitTurn = (): void => {
+    if (!canRoll(this.view)) return;
+    this.dispatch({ type: "forfeitTurn", playerId: this.view.activePlayerId });
+  };
+
   playCard = (cardUid: string, choice: CardChoice = {}): void => {
     if (!canPlayCard(this.view)) return;
     this.dispatch({

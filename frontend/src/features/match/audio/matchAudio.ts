@@ -60,6 +60,7 @@ const EFFECT_SOUNDS: Record<TileEffectKind, (sounds: MatchSounds, effect: TileEf
   },
   marked: (sounds) => sounds.shieldBlock(),
   marched: (sounds) => sounds.boost(),
+  timedOut: (sounds) => sounds.penalty(),
   decree: (sounds) => sounds.penalty(),
   judgment: (sounds) => {
     sounds.thunder(0.7);

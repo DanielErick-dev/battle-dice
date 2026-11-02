@@ -1,5 +1,6 @@
 "use client";
 
+import { HourglassPanel, PAUSES_PER_PLAYER, PauseOverlay, useHourglass } from "./hud/Hourglass";
 import {
   ArrowLeft,
   LocateFixed,
@@ -78,10 +79,12 @@ export interface MatchScreenProps {
   characters: readonly CharacterId[];
   /** Test mode: every ability starts charged. */
   chargedAbilities: boolean;
+  /** Each turn has TURN_SECONDS to think, and players may pause (see Hourglass). */
+  hourglass: boolean;
 }
 
 /** A local match on the chosen board: everyone plays at this screen, taking turns. */
-export function MatchScreen({ boardId, mapId, characters, chargedAbilities }: MatchScreenProps) {
+export function MatchScreen({ boardId, mapId, characters, chargedAbilities, hourglass }: MatchScreenProps) {
   const preset = boardPresetFor(boardId);
   const [roster] = useState(() => rosterOf(characters));
   const audio = useGameAudio();
@@ -89,7 +92,16 @@ export function MatchScreen({ boardId, mapId, characters, chargedAbilities }: Ma
   useEffect(() => roster.flatMap(({ character }) => modelsOf(character)).forEach(preloadCharacterModel), [roster]);
   useEffect(() => preloadChairs(roster.flatMap(({ character }) => chairsOf(character))), [roster]);
 
-  return <Match preset={preset} mapId={mapId} roster={roster} chargedAbilities={chargedAbilities} audio={audio} />;
+  return (
+    <Match
+      preset={preset}
+      mapId={mapId}
+      roster={roster}
+      chargedAbilities={chargedAbilities}
+      hourglass={hourglass}
+      audio={audio}
+    />
+  );
 }
 
 interface MatchProps {
@@ -97,10 +109,11 @@ interface MatchProps {
   mapId: MapId;
   roster: readonly RosterEntry[];
   chargedAbilities: boolean;
+  hourglass: boolean;
   audio: GameAudio;
 }
 
-function Match({ preset, mapId, roster, chargedAbilities, audio }: MatchProps) {
+function Match({ preset, mapId, roster, chargedAbilities, hourglass, audio }: MatchProps) {
   const { store, view } = useMatch(preset.definition, roster, { chargedAbilities });
   const quality = usePreference(preferences.effectsQuality);
   const { sounds, muted, toggleMuted, musicOn, toggleMusic } = audio;
@@ -174,6 +187,23 @@ function Match({ preset, mapId, roster, chargedAbilities, audio }: MatchProps) {
     cursor: placement.cursor,
   };
   const AbilityPicker = flow?.Picker;
+  /** Who stopped the match, while it's stopped; pauses each player has spent. */
+  const [pausedBy, setPausedBy] = useState<string | null>(null);
+  const [pausesUsed, setPausesUsed] = useState<Readonly<Record<string, number>>>({});
+  const pausesLeft = (id: string) => PAUSES_PER_PLAYER - (pausesUsed[id] ?? 0);
+  const clockRunning = hourglass && ready && pausedBy === null && canRoll(view);
+  const seconds = useHourglass({
+    enabled: hourglass,
+    running: clockRunning,
+    turnKey: `${view.turnCount}:${view.activePlayerId}`,
+    onTimeout: store.forfeitTurn,
+  });
+  const pause = () => {
+    const id = view.activePlayerId;
+    if (pausesLeft(id) === 0) return;
+    setPausesUsed((used) => ({ ...used, [id]: (used[id] ?? 0) + 1 }));
+    setPausedBy(id);
+  };
 
   return (
     <main className="relative h-dvh w-full overflow-hidden bg-[#05060b] text-white select-none">
@@ -197,7 +227,7 @@ function Match({ preset, mapId, roster, chargedAbilities, audio }: MatchProps) {
       </div>
 
       <div className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-between p-4 sm:p-6">
-        <header className="flex flex-col items-start gap-3">
+        <header className="hud-scroll flex max-h-[calc(100%-5.5rem)] min-h-0 flex-col items-start gap-3 overflow-y-auto">
           <div className="hud-panel pointer-events-auto flex flex-col gap-3 px-4 py-3">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -256,6 +286,14 @@ function Match({ preset, mapId, roster, chargedAbilities, audio }: MatchProps) {
               </div>
             </div>
           </div>
+          {hourglass && view.winnerId === null && (
+            <HourglassPanel
+              seconds={seconds}
+              running={clockRunning}
+              pausesLeft={pausesLeft(view.activePlayerId)}
+              onPause={pause}
+            />
+          )}
           {/* Beside the board on the left, so the right column stays free for the hand. */}
           {view.players.length > 1 && (
             <div className="pointer-events-auto max-sm:hidden">
@@ -319,7 +357,8 @@ function Match({ preset, mapId, roster, chargedAbilities, audio }: MatchProps) {
           )}
         </div>
 
-        <footer className="relative flex items-end justify-center">
+        {/* Pinned to the bottom, so a tall left column (eight players and the log) never pushes the roll off screen. */}
+        <footer className="absolute inset-x-4 bottom-4 flex items-end justify-center sm:inset-x-6 sm:bottom-6">
           <div className="absolute bottom-0 left-0 flex flex-wrap items-end gap-2 max-sm:bottom-auto max-sm:-top-14">
             {canFollow && (
               <div role="radiogroup" aria-label="Câmera" className="hud-panel pointer-events-auto flex gap-1 p-1">
@@ -427,6 +466,13 @@ function Match({ preset, mapId, roster, chargedAbilities, audio }: MatchProps) {
         <DiscardPicker hand={discardingPlayer.hand} drawn={view.pendingDiscard.drawn} onDiscard={store.discardCard} />
       )}
       <LoadingCurtain ready={ready} />
+      {pausedBy !== null && (
+        <PauseOverlay
+          name={nameOf(pausedBy) ?? ""}
+          pausesLeft={pausesLeft(pausedBy)}
+          onResume={() => setPausedBy(null)}
+        />
+      )}
     </main>
   );
 }

@@ -16,7 +16,7 @@ import { openingState } from "./setup";
 import { assertCanAct, settle } from "./shared";
 import type { CommandHandlers } from "./types";
 
-export const turnCommands: CommandHandlers<"rollDice" | "restart"> = {
+export const turnCommands: CommandHandlers<"rollDice" | "forfeitTurn" | "restart"> = {
   rollDice: (state, { playerId }, deps) => {
     assertCanAct(state, playerId);
     const draft = startDraft(state, deps.random);
@@ -65,6 +65,14 @@ export const turnCommands: CommandHandlers<"rollDice" | "restart"> = {
 
     const extraTurn = draft.extraTurn || state.bonusTurn;
     return settle(draft, playerId, { endsTurn: true, extraTurn });
+  },
+
+  // Out of time: the turn ends where it stands, losing any extra turn it had earned.
+  forfeitTurn: (state, { playerId }, deps) => {
+    assertCanAct(state, playerId);
+    const draft = startDraft({ ...state, bonusTurn: false }, deps.random);
+    draft.events.push({ type: "turnTimedOut", playerId });
+    return settle(draft, playerId, { endsTurn: true, extraTurn: false });
   },
 
   restart: (state, _command, deps) => ({

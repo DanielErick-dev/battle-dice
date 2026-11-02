@@ -21,7 +21,7 @@ Tudo aqui foi conferido no código das regras (`frontend/src/game/domain/`, outu
 
 Todos começam na casa **1** (INÍCIO). Vence quem chegar primeiro à última casa (CHEGADA). Não é preciso tirar o número exato: quem passaria da chegada para nela. A partida acaba na hora, seja qual for o movimento que te levou até lá (dado, carta, avanço, a neve da Fada).
 
-Uma partida local tem de **1 a 4 jogadores**, e o mesmo personagem pode ser escolhido mais de uma vez. Jogando sozinho, várias habilidades mudam de comportamento (cada ficha diz como).
+Uma partida local tem de **1 a 8 jogadores**, e o mesmo personagem pode ser escolhido mais de uma vez. Jogando sozinho, várias habilidades mudam de comportamento (cada ficha diz como).
 
 ### Vez, turno e rodada
 
@@ -49,6 +49,15 @@ Antes de rolar o dado, em qualquer ordem e quantas vezes as regras deixarem:
 Por fim você **rola o dado**: anda, resolve a casa onde parou e a vez passa. **Rolar é o que encerra a vez.** Jogar uma carta ou usar a habilidade nunca encerra.
 
 Algumas escolhas pausam o jogo até serem respondidas: descartar com a mão cheia, decidir se o Vazio do Zarek engole a armadilha, a escolha de Seraphiel no céu, a escolha das cartas da Pilhagem.
+
+### Ampulheta e pausas
+
+- Cada vez tem uma **ampulheta de 60 segundos**. Ela só corre enquanto o jogador está **pensando**: para durante rolagens, movimentos, efeitos e escolhas pendentes (descarte, Vazio, graça…).
+- Se a areia acaba, o jogador **perde a vez** na hora, como se tivesse parado onde está (perde também um "jogue de novo" já ganho no turno).
+- Cada jogador pode **pausar a partida 3 vezes**. A pausa congela a ampulheta até alguém clicar em "Continuar".
+- A ampulheta pode ser desligada na tela de nova partida (opção "Ampulheta").
+
+> no código: comando `forfeitTurn` (`handlers/turnCommands.ts`); a contagem e as pausas ficam na tela (`features/match/ui/hud/Hourglass.tsx`)
 
 ### O dado
 

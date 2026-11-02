@@ -13,26 +13,29 @@ interface MatchPageProps {
     jogadores?: string;
     personagem?: string;
     carregadas?: string;
+    ampulheta?: string;
   }>;
 }
 
-// /partida?tabuleiro=training&mapa=dungeon&jogadores=witch,zarek&carregadas=1 (legacy `personagem` for one player).
+// /partida?tabuleiro=training&mapa=dungeon&jogadores=witch,zarek&carregadas=1&ampulheta=0 (legacy `personagem` for one player).
 // Unknown or locked values fall back to the defaults.
 export default async function MatchPage({ searchParams }: MatchPageProps) {
-  const { tabuleiro = "", mapa = "", jogadores, personagem = "", carregadas } = await searchParams;
+  const { tabuleiro = "", mapa = "", jogadores, personagem = "", carregadas, ampulheta } = await searchParams;
   const boardId = boardPresetFor(tabuleiro).id;
   const mapId = mapPresetFor(mapa).id;
   const characters = parseCharacterList(jogadores ?? personagem);
   const chargedAbilities = carregadas === "1";
+  const hourglass = ampulheta !== "0";
 
   // Keyed so that starting another match from the same page gets a fresh store.
   return (
     <ClientMatchScreen
-      key={`${boardId}:${mapId}:${characters.join(",")}:${chargedAbilities}`}
+      key={`${boardId}:${mapId}:${characters.join(",")}:${chargedAbilities}:${hourglass}`}
       boardId={boardId}
       mapId={mapId}
       characters={characters}
       chargedAbilities={chargedAbilities}
+      hourglass={hourglass}
     />
   );
 }

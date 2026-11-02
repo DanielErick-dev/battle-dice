@@ -49,8 +49,8 @@ Hoje há só 4 bênçãos fixas e 3 relíquias, sem decisões. Candidatas:
 
 ## Pós-MVP (pedidos de 2026-10-26)
 - **Mais perto do Yu-Gi-Oh** no estilo de jogo.
-- **Até 8 jogadores** por partida.
-- **Ampulheta de 1 minuto por jogada:**
+- ~~**Até 8 jogadores** por partida.~~ Feito em 02/11/2026.
+- ~~**Ampulheta de 1 minuto por jogada:**~~ Feito em 02/11/2026 (60 s por vez, 3 pausas, pode desligar na nova partida).
   - só desce enquanto **nada está acontecendo** (o jogador pensando). Para durante rolagens, movimentos e ativações de cartas;
   - passou de 1 minuto, o jogador **perde a vez automaticamente**;
   - cada jogador pode **pausar a partida 2 a 3 vezes** no máximo.

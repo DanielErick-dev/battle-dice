@@ -164,6 +164,11 @@ const COPY: Record<
           ? `${name} foi marcado (${count} de ${MARKS_TO_JUDGE})`
           : `${name} tem ${count} marcas: o próximo ataque dele vai a julgamento`,
   },
+  timedOut: {
+    title: "TEMPO ESGOTADO!",
+    tone: "text-red-300",
+    subtitle: (_, name) => `A ampulheta acabou: ${name} perdeu a vez`,
+  },
   marched: {
     title: "JUSTIÇA CEGA!",
     tone: "text-amber-200",

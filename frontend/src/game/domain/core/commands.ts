@@ -5,6 +5,8 @@ import type { TileId, TimedBlessing } from "../board/types";
 
 export type GameCommand =
   | { type: "rollDice"; playerId: PlayerId }
+  /** The turn's hourglass ran out: the turn is lost, as if they had rolled nothing. */
+  | { type: "forfeitTurn"; playerId: PlayerId }
   /** `targetId` for cards aimed at an opponent, `value` for cards that pick a die face. */
   | {
       type: "playCard";

@@ -502,7 +502,7 @@ export function isPlayableCharacter(id: string): id is CharacterId {
 }
 
 /** At most this many players share a local match. */
-export const MAX_LOCAL_PLAYERS = 4;
+export const MAX_LOCAL_PLAYERS = 8;
 
 /**
  * The characters in a comma-separated list (as kept in the URL and the preferences): the playable

@@ -11,7 +11,7 @@ import {
 describe("local players", () => {
   it("keeps the playable characters of a list, in order, at most MAX_LOCAL_PLAYERS", () => {
     expect(parseCharacterList("witch,nobody,eclipseQueen,jester")).toEqual(["witch", "jester"]);
-    expect(parseCharacterList(Array(6).fill("jester").join(","))).toHaveLength(MAX_LOCAL_PLAYERS);
+    expect(parseCharacterList(Array(10).fill("jester").join(","))).toHaveLength(MAX_LOCAL_PLAYERS);
     expect(parseCharacterList("")).toEqual([DEFAULT_CHARACTER_ID]);
   });
 

@@ -82,7 +82,9 @@ export type TileEffectKind =
   /** The Containment Decree caps the opponents' dice; shown over Themis. */
   | "decree"
   /** The Final Judgment's Die of Justice; shown over Themis, `count` the tiles she leaps. */
-  | "judgment";
+  | "judgment"
+  /** The hourglass ran out on the player: the turn is lost. */
+  | "timedOut";
 
 export interface LogEntry {
   id: number;
@@ -361,6 +363,8 @@ export interface MatchView {
   /** The battle log: events as their animation starts, the latest last (see logStep). */
   log: readonly LogEntry[];
   isAnimating: boolean;
+  /** Turns started so far: tells one turn from the next even when the same player plays again (the hourglass). */
+  turnCount: number;
   /** A refused move, shown briefly; the id lets a repeated refusal show again. */
   error: { id: number; message: string } | null;
 }
@@ -396,6 +400,7 @@ export function createInitialView(state: GameState): MatchView {
     walkEnd: null,
     log: [],
     isAnimating: false,
+    turnCount: 0,
     error: null,
   };
 }

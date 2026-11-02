@@ -80,6 +80,7 @@ export const preferences = {
   ),
   /** Test mode: every ability starts the match charged. */
   chargedAbilities: booleanPreference("battle-dice:charged-abilities", false),
+  hourglass: booleanPreference("battle-dice:hourglass", true),
   board: choicePreference(
     "battle-dice:board",
     DEFAULT_BOARD_ID,

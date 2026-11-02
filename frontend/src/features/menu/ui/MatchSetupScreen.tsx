@@ -1,12 +1,13 @@
 "use client";
 
-import { Lock, Play, Plus, Sparkles, X, Zap } from "lucide-react";
+import { Hourglass, Lock, Play, Plus, Sparkles, X, Zap } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { BOARD_PRESETS } from "@/features/match/boards";
 import { MAP_PRESETS } from "@/features/match/maps";
 import { CHARACTER_IDS, CHARACTERS, MAX_LOCAL_PLAYERS, parseCharacterList } from "@/features/match/characters";
 import { ABILITY_TEXT } from "@/features/match/ui/abilityText";
+import { PAUSES_PER_PLAYER, TURN_SECONDS } from "@/features/match/ui/hud/Hourglass";
 import { preferences, usePreference } from "@/features/settings/preferences";
 import { cn } from "@/lib/utils";
 import { LazyCharacterStage as CharacterStage } from "../stage/LazyCharacterStage";
@@ -21,6 +22,7 @@ export function MatchSetupScreen() {
   const mapId = usePreference(preferences.map);
   const seats = parseCharacterList(usePreference(preferences.players));
   const chargedAbilities = usePreference(preferences.chargedAbilities);
+  const hourglass = usePreference(preferences.hourglass);
   /** The seat the character picker fills. */
   const [picking, setPicking] = useState(0);
   const seat = Math.min(picking, seats.length - 1);
@@ -29,7 +31,8 @@ export function MatchSetupScreen() {
   const matchHref =
     `/partida?tabuleiro=${encodeURIComponent(boardId)}&mapa=${encodeURIComponent(mapId)}` +
     `&jogadores=${encodeURIComponent(seats.join(","))}` +
-    (chargedAbilities ? "&carregadas=1" : "");
+    (chargedAbilities ? "&carregadas=1" : "") +
+    (hourglass ? "" : "&ampulheta=0");
 
   return (
     <MenuPage title="Nova partida" subtitle="Escolha o modo, os jogadores e os personagens." wide>
@@ -156,33 +159,20 @@ export function MatchSetupScreen() {
               </button>
             )}
           </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={chargedAbilities}
-            onClick={() => preferences.chargedAbilities.set(!chargedAbilities)}
-            className="flex w-fit items-center gap-3 rounded-xl px-3 py-2 text-left ring-1 ring-white/10 hover:bg-white/[0.06]"
-          >
-            <span
-              className={cn(
-                "relative h-5 w-9 rounded-full transition-colors",
-                chargedAbilities ? "bg-amber-400" : "bg-white/15",
-              )}
-            >
-              <span
-                className={cn(
-                  "absolute top-0.5 size-4 rounded-full bg-white transition-all",
-                  chargedAbilities ? "left-[1.125rem]" : "left-0.5",
-                )}
-              />
-            </span>
-            <span className="flex flex-col">
-              <span className="flex items-center gap-1.5 text-sm font-bold">
-                <Zap className="size-3.5 text-amber-300" /> Habilidades carregadas
-              </span>
-              <span className="text-xs text-zinc-400">Modo teste: todos começam com a habilidade pronta.</span>
-            </span>
-          </button>
+          <Toggle
+            on={chargedAbilities}
+            onChange={preferences.chargedAbilities.set}
+            icon={<Zap className="size-3.5 text-amber-300" />}
+            label="Habilidades carregadas"
+            hint="Modo teste: todos começam com a habilidade pronta."
+          />
+          <Toggle
+            on={hourglass}
+            onChange={preferences.hourglass.set}
+            icon={<Hourglass className="size-3.5 text-amber-300" />}
+            label="Ampulheta"
+            hint={`${TURN_SECONDS} segundos para pensar a cada vez; ${PAUSES_PER_PLAYER} pausas por jogador.`}
+          />
         </section>
 
         <section aria-labelledby="character-title" className="flex flex-col gap-3 xl:contents">
@@ -270,5 +260,45 @@ function ColorDot({ color }: { color: string }) {
       className="size-2.5 shrink-0 rounded-full"
       style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}` }}
     />
+  );
+}
+
+/** An on/off switch with its label and a line saying what it does. */
+function Toggle({
+  on,
+  onChange,
+  icon,
+  label,
+  hint,
+}: {
+  on: boolean;
+  onChange: (on: boolean) => void;
+  icon: ReactNode;
+  label: string;
+  hint: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      onClick={() => onChange(!on)}
+      className="flex w-fit items-center gap-3 rounded-xl px-3 py-2 text-left ring-1 ring-white/10 hover:bg-white/[0.06]"
+    >
+      <span className={cn("relative h-5 w-9 rounded-full transition-colors", on ? "bg-amber-400" : "bg-white/15")}>
+        <span
+          className={cn(
+            "absolute top-0.5 size-4 rounded-full bg-white transition-all",
+            on ? "left-[1.125rem]" : "left-0.5",
+          )}
+        />
+      </span>
+      <span className="flex flex-col">
+        <span className="flex items-center gap-1.5 text-sm font-bold">
+          {icon} {label}
+        </span>
+        <span className="text-xs text-zinc-400">{hint}</span>
+      </span>
+    </button>
   );
 }

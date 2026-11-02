@@ -306,6 +306,8 @@ export function battleLogLine(event: GameEvent, players: readonly Player[]): Log
         event.by,
         `⚖ ${who(event.playerId)} recebeu a Marca da Justiça${event.marks > 1 ? ` (${event.marks} marcas)` : ""}`,
       );
+    case "turnTimedOut":
+      return line(event.playerId, `⌛ ${who(event.playerId)} ficou sem tempo e perdeu a vez`);
     case "justiceMarched":
       return line(event.playerId, `⚖ Justiça Cega: todos andam ${plural(event.tiles, "casa", "casas")}`);
     case "decreeIssued":
