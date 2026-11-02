@@ -5,7 +5,7 @@ import { fallIfInHell, inHell, isFallen } from "../characters/seraphiel/seraph";
 import { getTile } from "./board";
 import { inSusanoo } from "../core/playerStatus";
 import { isBlessed } from "./blessings";
-import { moveHiddenTrap, strike, threatAt } from "./harm";
+import { moveHiddenTrap, strike, strikeScar, threatAt } from "./harm";
 import { moveTo, playerIn, type Draft } from "../core/draft";
 import { repelledBySusanoo, scorch, sweptBySusanoo } from "../characters/kage/flames";
 import { stirEnchantment } from "../characters/fairy/winter";
@@ -39,6 +39,12 @@ export function resolveLanding(draft: Draft, playerId: PlayerId, landed: TileId)
   if (stirEnchantment(draft, playerId, landed)) return;
   // A seal written here breaks first; whatever else is on the tile (a hidden trap) waits.
   if (breakSeal(draft, playerId, landed)) return;
+  // The Void's purple mark has taken the tile over: only its harm is there, and never for Zarek.
+  const scar = draft.voidScars.find((candidate) => candidate.tile === landed);
+  if (scar) {
+    strikeScar(draft, playerId, scar);
+    return;
+  }
 
   const threat = threatAt(draft, landed);
   const skipping = effect.kind === "skipTurn" && !draft.destroyedTraps.includes(landed);

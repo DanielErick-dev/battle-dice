@@ -2,9 +2,8 @@ import { freezableTiles, frozenTiles } from "@/game/domain/characters/fairy/wint
 import { flammableTiles } from "@/game/domain/characters/kage/flames";
 import { sealableTiles, sealedTiles } from "@/game/domain/characters/scribe/seals";
 import { hauntableTiles, takenForSpecters } from "@/game/domain/characters/warden/specters";
-import { getTile } from "@/game/domain/board/board";
 import type { TileId } from "@/game/domain/types";
-import { riftAnchors, spellGround, spellTiles } from "@/game/domain/characters/zarek/void";
+import { harmGround, seizableTiles, spellGround } from "@/game/domain/characters/zarek/void";
 import type { MatchStore } from "../../model/matchStore";
 import type { PickCursor } from "../../scene/pickCursor";
 import { isVoidHarm, voidItemName } from "../voidText";
@@ -93,7 +92,8 @@ export function placementOf(placement: Placement, scene: AbilityScene): Placemen
         title: "O Vazio toma",
         tone: "text-violet-300",
         steps: [VOID_SEIZE_STEP],
-        tiles: spellTiles(view).filter((tile) => getTile(board, tile).role === "regular"),
+        // Another's spell, on the main path or in hell (Zarek's own aren't his to absorb).
+        tiles: seizableTiles({ ...view, board }, player.id),
         confirmLabel: "Tomar",
         cursor: "void",
         send: activating(([seizeTile]) => ({ seizeTile })),
@@ -111,7 +111,7 @@ function releaseOf({ release, doubled }: { release: number; doubled: boolean }, 
     title: harm ? "Abrir fenda" : "Soltar do Vazio",
     tone: "text-violet-300",
     steps: [voidReleaseStep(name, harm, doubled)],
-    tiles: !item ? [] : harm ? riftAnchors(board) : spellGround({ ...view, board }),
+    tiles: !item ? [] : harm ? harmGround({ ...view, board }) : spellGround({ ...view, board }),
     confirmLabel: harm ? "Abrir fenda" : "Soltar",
     cursor: "void",
     send: (store, [tile]) => store.placeVoid(release, tile, doubled),

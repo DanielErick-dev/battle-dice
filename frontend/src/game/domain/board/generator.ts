@@ -14,6 +14,8 @@ export interface BoardRecipe {
   trapZones?: { count: number; length: number; traps: number };
   /** Everyone has to play through the opening. */
   portalsFrom?: number;
+  /** Extra card tiles spread over the stretch from `from` (a fraction of the board) to the end, when hands run dry. */
+  lateCards?: { count: number; from: number };
 }
 
 /** [min, max] tiles; traps go back, the others forward. */
@@ -30,6 +32,7 @@ export function generateBoard({
   density,
   trapZones: zoneRecipe,
   portalsFrom = 2,
+  lateCards,
 }: BoardRecipe): BoardDefinition {
   const random = seededRandom(seed);
   const effects: Record<TileId, TileEffect> = {};
@@ -71,6 +74,19 @@ export function generateBoard({
       return;
     }
   });
+
+  if (lateCards) {
+    // Its own stream, so adding late cards leaves everything laid out above where it was.
+    const lateRandom = seededRandom(seed ^ 0xca4d);
+    const start = Math.round(size * lateCards.from);
+    const span = (size - 1 - start) / lateCards.count;
+    for (let index = 0; index < lateCards.count; index++) {
+      const first = start + Math.floor(index * span);
+      const tiles = shuffle(range(first, Math.min(size - 1, start + Math.floor((index + 1) * span) - 1)), lateRandom);
+      const tile = tiles.find(isFree);
+      if (tile !== undefined) effects[tile] = { kind: "card" };
+    }
+  }
 
   return { size, effects: openRealms(curseTraps(effects, seed)), trapZones };
 }

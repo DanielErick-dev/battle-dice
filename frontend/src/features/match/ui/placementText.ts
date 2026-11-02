@@ -86,8 +86,8 @@ export const FROST_STEPS: readonly PlacementStep[] = Array.from({ length: WINTER
 
 /** Zarek's Void stealing a spell on the board. */
 export const VOID_SEIZE_STEP: PlacementStep = {
-  name: "Casa a roubar",
-  effect: "Fogo, neve, gelo, selo ou aparição de outro: fica no lugar, agora seu",
+  name: "Casa a absorver",
+  effect: "Fogo, neve, gelo, selo ou aparição de outro: vai para o Vazio e a casa vira armadilha roxa",
   tone: "bg-violet-600",
   color: "#8b5cf6",
   tag: "Vazio",
@@ -98,7 +98,7 @@ export function voidReleaseStep(name: string, harm: boolean, doubled: boolean): 
   return {
     name: harm ? "Fenda" : "Casa",
     effect: harm
-      ? `Uma casa nova (${name}${doubled ? ", dobrada" : ""}) abre logo depois desta`
+      ? `Uma casa nova (${name}${doubled ? ", dobrada" : ""}) abre logo depois desta; no inferno, marca esta casa`
       : `${name[0]?.toUpperCase() ?? ""}${name.slice(1)} pousa aqui e passa a ser seu`,
     tone: "bg-violet-600",
     color: "#8b5cf6",

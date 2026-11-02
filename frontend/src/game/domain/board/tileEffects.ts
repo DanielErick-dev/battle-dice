@@ -7,7 +7,6 @@ import { gainEnergy } from "../core/energy";
 import { grantBlessing } from "./blessings";
 import { loseTurns } from "./harm";
 import { moveTo, playerIn, updatePlayer, type Draft } from "../core/draft";
-import { senseHiddenTraps } from "../characters/themis/verdict";
 import { unpinPassed } from "../characters/archer/arrowRain";
 import { walkPath } from "./paths";
 import type { Blessing, PlayerId, TileEffect, TileId } from "@/game/domain/types";
@@ -65,7 +64,6 @@ export function applyTileEffect(
         { type: "playerMoved", playerId, path },
       );
       crossSpecters(draft, playerId, path);
-      senseHiddenTraps(draft, playerId, path);
       moveTo(draft, playerId, effect.to);
       unpinPassed(draft, path);
       break;

@@ -10,6 +10,7 @@ import type {
   Specter,
   Threat,
   TileId,
+  VoidScar,
   Winter,
 } from "@/game/domain/types";
 import type { RandomSource } from "./random";
@@ -34,6 +35,7 @@ export interface Draft {
   enchantedTiles: EnchantedTile[];
   blackFlames: BlackFlame[];
   winter: Winter | null;
+  voidScars: VoidScar[];
   /** A Plunder specter caught someone this command; settle turns it into a PendingPlunder. */
   plunder: { owner: PlayerId; victim: PlayerId } | null;
   /** For reshuffles and moving sprung hidden traps. */
@@ -62,6 +64,7 @@ export function startDraft(state: GameState, random: RandomSource): Draft {
     enchantedTiles: [...state.enchantedTiles],
     blackFlames: [...state.blackFlames],
     winter: state.winter,
+    voidScars: [...state.voidScars],
     plunder: null,
     random,
   };
@@ -80,6 +83,7 @@ export function draftState(draft: Draft): GameState {
     enchantedTiles: draft.enchantedTiles,
     blackFlames: draft.blackFlames,
     winter: draft.winter,
+    voidScars: draft.voidScars,
   };
 }
 

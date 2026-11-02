@@ -29,6 +29,15 @@ const PROPS = {
   justiceScale: { file: "themis/props/scale.glb", vertices: 8_000, texture: 1024 },
   // Her sword, held point down at her right side.
   justiceSword: { file: "themis/props/sword.glb", vertices: 6_000, texture: 1024 },
+  // Ivy-crowned Greek column, one either side of her in her intro.
+  greekColumn: { file: "themis/props/column.glb", vertices: 30_000, texture: 1024, sloppy: true },
+  // The Silent Verdict's giant scale, in parts so code can tilt the beam and swing the pans.
+  scaleBeam: { file: "themis/props/scale-beam.glb", vertices: 8_000, texture: 1024, sloppy: true },
+  scalePan: { file: "themis/props/scale-pan.glb", vertices: 8_000, texture: 1024, sloppy: true },
+  // Her menu habitat, the tribunal: a stone arena floor, an ivy archway behind her and an offering basin.
+  tribunalArena: { file: "themis/props/arena.glb", vertices: 12_000, texture: 2048, sloppy: true },
+  tribunalArch: { file: "themis/props/archway.glb", vertices: 14_000, texture: 1024, sloppy: true },
+  offeringBasin: { file: "themis/props/basin.glb", vertices: 8_000, texture: 1024, sloppy: true },
   // Her wings, flapped in code (Meshy can't rig a winged figure): see Wings.
   fairyWings: { file: "fairy/props/wings.glb", vertices: 8_000, texture: 1024 },
   seraphWings: { file: "seraphiel/props/wings.glb", vertices: 8_000, texture: 1024 },

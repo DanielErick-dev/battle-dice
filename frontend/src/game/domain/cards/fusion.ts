@@ -17,13 +17,16 @@ export const FUSIBLE_CARDS: readonly CardId[] = [
   "heavenlyAegis",
   "ascension",
 ];
-export const FUSED_WIND_STEP_TILES = 9;
-export const FUSED_LUCKY_BONUS = 10;
-export const FUSED_SCROLL_DRAWS = 5;
-export const FUSED_BLAST_PUSH = 15;
+// Three cards in one must beat playing the three apart: roughly twice their sum.
+export const FUSED_WIND_STEP_TILES = 18;
+export const FUSED_LUCKY_BONUS = 12;
+export const FUSED_SCROLL_DRAWS = 6;
+export const FUSED_BLAST_PUSH = 30;
 /** Own turns of Spectral Armour on top of the shield. */
-export const FUSED_SHIELD_ARMOUR = 2;
-export const FUSED_AEGIS_TURNS = 6;
+export const FUSED_SHIELD_ARMOUR = 4;
+export const FUSED_AEGIS_TURNS = 9;
+/** The Elixir of Life's charge on top of the full energy. */
+export const FUSED_HERB_CHARGE = 2;
 
 export function fusibleInHand(hand: readonly CardInstance[]): CardId[] {
   return FUSIBLE_CARDS.filter(

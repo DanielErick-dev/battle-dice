@@ -1,17 +1,17 @@
 # Cartas exclusivas por personagem
 
-Item do MVP: cada personagem soma **4 cartas próprias** ao baralho, no estilo da habilidade dele.
-**Feitas e testadas no código:** Têmis e Zarek. Os outros personagens ainda são **proposta**, esperando a aprovação do Daniel antes de serem implementados.
+Item do MVP: cada personagem soma **5 cartas próprias** ao baralho, no estilo da habilidade dele (decisão do Daniel em 01/11/2026: eram 4, passaram a 5). A 5ª pode ser um **Triunfo**: forte, cara, com custo extra.
+**Feitas e testadas no código:** Têmis (5) e Zarek (4, falta a 5ª). Os outros personagens ainda são **proposta**, esperando a aprovação do Daniel antes de serem implementados.
 
 ## Regras gerais
 
-- **Baralho:** o baralho comum continua igual (26 cartas com oponentes, 20 sozinho). As 4 exclusivas entram **1 cópia de cada**, embaralhadas junto, só no baralho de quem escolheu o personagem (30 cartas no total).
+- **Baralho:** o baralho comum continua igual (26 cartas com oponentes, 20 sozinho). As 5 exclusivas entram **1 cópia de cada**, embaralhadas junto, só no baralho de quem escolheu o personagem (31 cartas no total).
 - **Jogando sozinho**, as exclusivas que miram oponentes ficam de fora, como as comuns.
 - **Dono:** só quem tem a habilidade do personagem joga a carta. Se outro jogador pegar uma exclusiva (por exemplo, roubada pela Aposta do Coringa), ela fica **morta** na mão dele ("Carta de outro personagem"). Ainda serve como ingrediente da Transmutação ou para descartar.
 - **Fora dos sorteios:** a Transmutação e o jackpot da Aposta nunca criam uma carta exclusiva.
 - **Fusão:** como só existe 1 cópia de cada, as exclusivas não se fundem.
-- **Custo e raridade:** seguem a tabela comum (Comum 1, Incomum 2, Rara 2, Épica 3, Lendária 4). O rodapé da carta mostra "Rara · Exclusiva".
-- **Mira:** as exclusivas que miram seguem as regras de sempre. Um oponente protegido gasta a carta ("BLOQUEADO"). Com o **Veredito Silencioso** armado, a Têmis devolve a carta para quem a jogou.
+- **Custo e raridade:** seguem a tabela comum (Comum 1, Incomum 2, Rara 2, Épica 3, Lendária 4), salvo quando a carta define outro custo. Um Triunfo pode pedir também **cartas queimadas** da mão. O rodapé da carta mostra "Rara · Exclusiva".
+- **Mira:** as exclusivas que miram seguem as regras de sempre. Um oponente protegido gasta a carta ("BLOQUEADO"). Se quem jogou já tem a Marca da Justiça e o **Veredito Silencioso** está armado, a carta vai para a Têmis e volta dobrada para quem a jogou.
 - **Visual:** nenhuma carta pede asset novo do Meshy. Elas usam a arte procedural das cartas e os efeitos que já existem (empurrão, teletransporte, Vazio, balança do Veredito, desarme).
 
 ## Implementadas
@@ -20,10 +20,11 @@ Item do MVP: cada personagem soma **4 cartas próprias** ao baralho, no estilo d
 
 | Carta | Raridade · custo | Efeito | Interações |
 |---|---|---|---|
-| **Balança da Justiça** | Épica · 3 | Mira: soma a sua energia com a de um oponente e divide igual. A sobra (total ímpar) fica com ela. | A balança gigante do Veredito aparece entre as duas e pende para o oponente. Com mais energia que ele, ela perde: é uma escolha. |
-| **Espada da Lei** | Rara · 2 | Mira: empurra o oponente **4** casas para trás, ou **8** se ele estiver à frente dela. | Pune quem está ganhando. "À frente" segue o caminho (fendas do Zarek incluídas). |
-| **Peso da Culpa** | Incomum · 2 | Mira: o oponente descarta **2** cartas da mão, ao acaso. | Com a mão vazia, não acontece nada. |
-| **Venda Sagrada** | Comum · 1 | A Balança Cega à distância: desarma as armadilhas escondidas nas próximas **12** casas, com **+1** de energia cada. | Se não houver nenhuma, não acontece nada; a carta não avisa antes, para não entregar o segredo. Cada armadilha desarmada também enche o Vazio do Zarek. |
+| **Justiça Cega** | Comum · 1 | Todos andam **4** casas, um depois do outro, sem dado. A casa onde cada um parar tem efeito. | Começa por ela e segue a ordem dos turnos. Ninguém joga carta no meio. Os outros não ganham "jogue de novo" nem prompts (o Zarek não engole, o Seraphiel não escolhe). Se alguém cruzar a chegada assim, vence. |
+| **Confisco de Bens** | Incomum · 2 | Mira: pega **2** cartas aleatórias da mão do oponente para a dela (menos, se ele tiver menos). | Exclusiva de outro personagem fica morta na mão dela. Oponente protegido: BLOQUEADO. |
+| **Marca da Justiça** | Incomum · 2 | Todos os oponentes recebem **1** Marca da Justiça. | Prepara o Veredito: o próximo ataque mirado de qualquer um deles já pode ser redirecionado. |
+| **Decreto de Contenção** | Rara · 3 | Nas próximas **3** rolagens de cada oponente, o dado não passa de **3**. | 4–6 viram 1–3 (cada face continua igualmente provável). Runa do Destino vale no máximo 3. Bônus de cartas, asas e coroa somam por cima. |
+| **Julgamento Final** (Triunfo) | Épica · 5 + queimar 1 carta | Mira um oponente: ela anda (distância ÷ **3**, para cima) × um **Dado da Justiça** (1–6). O alvo fica parado. | Não é ataque: nada bloqueia nem marca. Vale com o alvo à frente ou atrás. Sem teto (decisão do Daniel); se ficar forte demais, a ideia é pedir 2 cartas queimadas. |
 
 ### Zarek, o Cavaleiro do Vazio (o Vazio)
 

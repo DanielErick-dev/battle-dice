@@ -1,15 +1,25 @@
-import type { AbilityId, CardId, PlayerId, TileId } from "@/game/domain/types";
+import type { AbilityId, CardId, PlayerId } from "@/game/domain/types";
 
 export type ThemisEvent =
-  /** Themis's Blind Scale found the hidden trap on `tile` and took it apart. */
-  | { type: "hiddenTrapDisarmed"; playerId: PlayerId; tile: TileId; energyGained: number }
-  /** Themis's Silent Verdict caught `attackerId` aiming at her: what they aimed follows, turned on them. */
+  /** `playerId` attacked an opponent (or was branded by her card) and now carries `marks` Marks of Justice (0: wiped). */
+  | { type: "justiceMarked"; playerId: PlayerId; by: PlayerId; marks: number }
+  /**
+   * Themis's Silent Verdict caught the marked `attackerId`: what they aimed (at `defendedId`, or at her when
+   * absent) follows, turned on them.
+   */
   | {
       type: "verdictPassed";
       playerId: PlayerId;
       attackerId: PlayerId;
+      /** What judging paid her (her charge restarts at VERDICT_CHARGE). */
+      energyGained: number;
+      defendedId?: PlayerId;
       cardId?: CardId;
       ability?: AbilityId;
     }
-  /** The Scales of Justice: both players' energy after it was split evenly. */
-  | { type: "energyWeighed"; playerId: PlayerId; targetId: PlayerId; energy: number; targetEnergy: number };
+  /** Blind Justice: everyone walks `tiles` ahead, one after another, from `order[0]`. */
+  | { type: "justiceMarched"; playerId: PlayerId; tiles: number; order: readonly PlayerId[] }
+  /** The Containment Decree: the dice of `targetIds` can't go above `cap` for their next `rolls` rolls. */
+  | { type: "decreeIssued"; playerId: PlayerId; targetIds: readonly PlayerId[]; rolls: number; cap: number }
+  /** The Final Judgment: `ceil(distance / 3) × die` tiles ahead for Themis; the target stays put. */
+  | { type: "finalJudgment"; playerId: PlayerId; targetId: PlayerId; distance: number; die: number; tiles: number };

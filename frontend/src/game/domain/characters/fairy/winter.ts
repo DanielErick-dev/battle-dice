@@ -19,6 +19,11 @@ export const WINTER_TILES = 6;
 export const WINTER_PICKS = 1;
 /** Energy drained into the fairy per round stuck in her snow. */
 export const SNOW_DRAIN = 1;
+/** Rounds hell's fire takes to melt the fairy's ice there. */
+export const HELL_ICE_ROUNDS = 10;
+/** Half melted, hell ice only carries her this far. */
+export const HELL_ICE_WEAK_AT = 5;
+export const HELL_ICE_WEAK_ADVANCE = 3;
 
 /** Enchants the harm ahead for good; once none is left ahead, Eternal Winter begins. */
 export function bloom(draft: Draft, playerId: PlayerId): void {
@@ -33,8 +38,9 @@ export function bloom(draft: Draft, playerId: PlayerId): void {
   }
 }
 
-/** Once per round, never freezing the finish itself. */
+/** Once per round, never freezing the finish itself; hell melts its ice a round more. */
 export function spreadWinter(draft: Draft): void {
+  meltHellIce(draft);
   const { winter } = draft;
   const { finishTile } = draft.state.board;
   if (!winter || winter.frontier >= finishTile - 1) return;
@@ -45,19 +51,34 @@ export function spreadWinter(draft: Draft): void {
   draft.blackFlames = draft.blackFlames.filter((flame) => flame.tile <= winter.frontier || flame.tile > to);
 }
 
-/** Main path only, never the start or finish. */
-export function isFrozen(winter: Winter | null, startTile: TileId, tile: TileId): boolean {
-  return winter !== null && tile > startTile && (tile <= winter.frontier || winter.iced.includes(tile));
+function meltHellIce(draft: Draft): void {
+  const { winter } = draft;
+  if (!winter?.melting?.length) return;
+  const melting = winter.melting
+    .map((ice) => ({ ...ice, rounds: ice.rounds + 1 }))
+    .filter((ice) => ice.rounds < HELL_ICE_ROUNDS);
+  draft.winter = { ...winter, melting };
 }
 
-/** Every frozen tile, along the path then the fairy's picks beyond it. */
+/** The main path up to the frontier, her picks beyond it, and her ice in hell; never the start or finish. */
+export function isFrozen(winter: Winter | null, startTile: TileId, tile: TileId): boolean {
+  if (winter === null) return false;
+  if (winter.melting?.some((ice) => ice.tile === tile)) return true;
+  return tile > startTile && (tile <= winter.frontier || winter.iced.includes(tile));
+}
+
+/** Every frozen tile, along the path then the fairy's picks beyond it and in hell. */
 export function frozenTiles(winter: Winter | null, startTile: TileId): TileId[] {
   if (!winter) return [];
   const path = Array.from({ length: Math.max(0, winter.frontier - startTile) }, (_, index) => startTile + 1 + index);
-  return [...path, ...winter.iced];
+  return [...path, ...winter.iced, ...(winter.melting ?? []).map(({ tile }) => tile)];
 }
 
-/** Any main-path tile not frozen or snowed yet, burning ones too, nearest first; never the start or finish. */
+function inHellTrack(board: Board, tile: TileId): boolean {
+  return getTile(board, tile).track?.realm === "infernal";
+}
+
+/** Any main-path or hell tile not frozen or snowed yet, burning ones too, nearest first; never the start or finish. */
 export function freezableTiles(
   board: Board,
   position: TileId,
@@ -65,10 +86,10 @@ export function freezableTiles(
   snowed: readonly EnchantedTile[],
 ): TileId[] {
   const taken = new Set(snowed.map(({ tile }) => tile));
+  const ground = ({ id, role, track }: Board["tiles"][number]) =>
+    (role === "regular" && !track) || inHellTrack(board, id);
   return board.tiles
-    .filter(
-      ({ id, role, track }) => role === "regular" && !track && !taken.has(id) && !isFrozen(winter, board.startTile, id),
-    )
+    .filter((tile) => ground(tile) && !taken.has(tile.id) && !isFrozen(winter, board.startTile, tile.id))
     .map(({ id }) => id)
     .sort((a, b) => Math.abs(a - position) - Math.abs(b - position) || a - b);
 }
@@ -86,7 +107,13 @@ export function freezeTiles(draft: Draft, playerId: PlayerId, tiles: readonly Ti
   ) {
     throw new GameRuleError("INVALID_FROST");
   }
-  draft.winter = { ...winter, iced: [...winter.iced, ...tiles] };
+  const { board } = draft.state;
+  const hell = tiles.filter((tile) => inHellTrack(board, tile));
+  draft.winter = {
+    ...winter,
+    iced: [...winter.iced, ...tiles.filter((tile) => !hell.includes(tile))],
+    ...(hell.length > 0 && { melting: [...(winter.melting ?? []), ...hell.map((tile) => ({ tile, rounds: 0 }))] }),
+  };
   draft.blackFlames = draft.blackFlames.filter((flame) => !tiles.includes(flame.tile));
   draft.events.push({ type: "tilesFrozen", playerId, tiles: [...tiles] });
 }
@@ -133,6 +160,12 @@ export function stirEnchantment(draft: Draft, playerId: PlayerId, tile: TileId):
     draft.events.push({ type: "armourHeld", playerId, tile });
     return true;
   }
+  // An Arcane Shield keeps them out of the snow and is spent; the snow stays for the next.
+  if (!own && playerIn(draft, playerId).shielded) {
+    updatePlayer(draft, playerId, () => ({ shielded: false }));
+    draft.events.push({ type: "trapBlocked", playerId, tile, ward: "shield", hidden: false });
+    return true;
+  }
 
   const frozen = own ? 0 : ENCHANT_FREEZE;
   if (!own) snowIn(draft, playerId, owner, frozen);
@@ -141,11 +174,18 @@ export function stirEnchantment(draft: Draft, playerId: PlayerId, tile: TileId):
   return true;
 }
 
+/** How far her snow carries her from `tile`: less off hell ice the fire has half melted. */
+function carry(winter: Winter | null, tile: TileId): number {
+  const ice = winter?.melting?.find((candidate) => candidate.tile === tile);
+  return ice && ice.rounds >= HELL_ICE_WEAK_AT ? HELL_ICE_WEAK_ADVANCE : ENCHANT_ADVANCE;
+}
+
 /** Only stopping on more of their own snow carries them on again; wherever else they stop does nothing. */
 function carryOnSnow(draft: Draft, playerId: PlayerId, from: TileId): void {
   let tile = from;
   for (;;) {
-    const path = walkPath(draft.state.board, tile, ENCHANT_ADVANCE);
+    const { realmEntry } = playerIn(draft, playerId);
+    const path = walkPath(draft.state.board, tile, carry(draft.winter, tile), realmEntry);
     if (path.length === 0) return;
     draft.events.push({ type: "playerMoved", playerId, path });
     tile = path.at(-1) ?? tile;

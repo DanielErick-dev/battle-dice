@@ -27,13 +27,14 @@ export function SmashedTraps({ fx: { view, layout, shown } }: { fx: BoardFx }) {
     ));
 }
 
-/** Rifts, and the Void's seal on every spell Zarek stole (its effect stays, now his). */
+/** Rifts, the purple traps the Void marked, and its seal on every spell Zarek let out. */
 export function Rifts({ fx: { view, layout } }: { fx: BoardFx }) {
   const voids = new Set(view.players.filter((player) => player.ability === "theVoid").map((player) => player.id));
-  const stolen = [...view.blackFlames, ...view.enchantedTiles, ...view.seals, ...view.specters]
+  const released = [...view.blackFlames, ...view.enchantedTiles, ...view.seals, ...view.specters]
     .filter((spell) => voids.has(spell.owner))
     .map((spell) => spell.tile);
-  const tiles = [...new Set([...view.rifts.map((tile) => tile.id), ...stolen])];
+  const scars = view.voidScars.map((scar) => scar.tile);
+  const tiles = [...new Set([...view.rifts.map((tile) => tile.id), ...scars, ...released])];
   return tiles.map((tile) => <RiftMaw key={`rift${tile}`} position={layout.position(tile)} />);
 }
 

@@ -5,7 +5,7 @@ import { moveTo, playerIn, updatePlayer, type Draft } from "../core/draft";
 import { pushPath } from "./paths";
 import { swallow } from "../characters/zarek/void";
 import { takeRandomCard } from "../cards/hand";
-import type { PlayerId, Threat, TileId, TrapCurse } from "@/game/domain/types";
+import type { PlayerId, Threat, TileId, TrapCurse, VoidScar } from "@/game/domain/types";
 
 export const TRAP_DRAIN_ENERGY = 2;
 
@@ -61,6 +61,32 @@ export function strike(draft: Draft, playerId: PlayerId, tile: TileId, threat: T
   draft.events.push({ type: "trapTriggered", playerId, from: tile, to: effect.to });
   moveTo(draft, playerId, effect.to);
   if (effect.curse) for (let curse = 0; curse < curses; curse++) applyCurse(draft, playerId, effect.curse);
+}
+
+/** A tile the Void marked purple: its harm strikes all but Zarek, doubled if he paid for it; the Arcane Shield stops a trap. */
+export function strikeScar(draft: Draft, playerId: PlayerId, scar: VoidScar): void {
+  if (scar.owner === playerId) return;
+  const times = scar.doubled ? 2 : 1;
+  const { harm, tile } = scar;
+  if (harm.kind === "skipTurn") {
+    draft.events.push({ type: "skipTurnGained", playerId, tile, ...(times > 1 && { turns: times }) });
+    updatePlayer(draft, playerId, (player) => ({ skipTurns: player.skipTurns + times }));
+    return;
+  }
+  if (harm.kind === "curse") {
+    for (let curse = 0; curse < times; curse++) applyCurse(draft, playerId, harm.curse);
+    return;
+  }
+  if (playerIn(draft, playerId).shielded) {
+    updatePlayer(draft, playerId, () => ({ shielded: false }));
+    draft.events.push({ type: "trapBlocked", playerId, tile, ward: "shield", hidden: false });
+    return;
+  }
+  const { realmEntry } = playerIn(draft, playerId);
+  const to = pushPath(draft.state.board, tile, harm.back * times, realmEntry).at(-1) ?? tile;
+  draft.events.push({ type: "trapTriggered", playerId, from: tile, to });
+  moveTo(draft, playerId, to);
+  if (harm.curse) for (let curse = 0; curse < times; curse++) applyCurse(draft, playerId, harm.curse);
 }
 
 /** Found, the hidden trap on `tile` moves elsewhere in its zone. */

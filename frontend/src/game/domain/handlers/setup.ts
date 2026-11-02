@@ -44,6 +44,7 @@ export function openingState(
     specters: [],
     enchantedTiles: [],
     blackFlames: [],
+    voidScars: [],
     winter: null,
     pendingPlunder: null,
   };
@@ -88,5 +89,7 @@ function dealPlayer({ id, name, ability = null }: NewPlayer, { startTile, cards,
     chained: 0,
     voidHold: [],
     voidIdle: 0,
+    justiceMarks: 0,
+    containedRolls: 0,
   };
 }

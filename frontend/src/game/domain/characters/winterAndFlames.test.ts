@@ -108,6 +108,16 @@ describe("Fairy Bloom", () => {
   });
 });
 
+describe("Fairy snow against an Arcane Shield", () => {
+  it("is kept off by the shield, which is spent; the snow stays", () => {
+    const snowy = { ...duel("fairyBloom"), enchantedTiles: [{ tile: 12, owner: "hero" }] };
+    const { state, events } = rivalRolls(withPlayer(snowy, "rival", { shielded: true }), 10, 2);
+    expect(playerOf(state, "rival")).toMatchObject({ position: 12, shielded: false, snowbound: null, skipTurns: 0 });
+    expect(eventsOfType(events, "trapBlocked")).toHaveLength(1);
+    expect(state.enchantedTiles).toEqual([{ tile: 12, owner: "hero" }]);
+  });
+});
+
 describe("Ocular Awakening", () => {
   const kunoichi = () => ready(withPlayer(duel("ocularAwakening"), "hero", { position: 20 }));
 
@@ -128,6 +138,13 @@ describe("Ocular Awakening", () => {
     const { state } = rivalRolls(withPlayer(lit, "rival", { energy: 5 }), 22, 2);
     expect(playerOf(state, "rival").energy).toBe(5 - FLAME_ENERGY);
     expect(playerOf(state, "rival").position).toBe(24 - FLAME_PUSH);
+  });
+
+  it("never burns Kage Rubra herself, whoever holds the fire", () => {
+    const zareks = { ...duel("ocularAwakening"), blackFlames: [{ tile: 24, owner: "rival", turnsLeft: 3, hits: 0 }] };
+    const { state, events } = roll(withPlayer(zareks, "hero", { position: 22, energy: 5 }), "hero", 2);
+    expect(playerOf(state, "hero")).toMatchObject({ energy: 5, position: 24 });
+    expect(eventsOfType(events, "flamesScorched")).toEqual([]);
   });
 
   it("every scorch charges her ability by a turn", () => {

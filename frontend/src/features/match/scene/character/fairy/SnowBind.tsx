@@ -9,14 +9,14 @@ import { clamp01 } from "../shared/easing";
 import { iceShard } from "../shared/ice";
 
 /** Height the snow climbs to (effects units, a figure 1.9 tall): over the head, then down to the knees. */
-const WHOLE = 2.05;
+const WHOLE = 2.15;
 const LEGS = 0.62;
 /** Per second the snow climbs up the body, and slides back down it. */
 const CLIMB_RATE = 1.6;
 const SLIDE_RATE = 1.1;
 /** Rings of lumps hugging the body, every this high, and lumps per ring. */
 const RING_STEP = 0.11;
-const LUMPS_PER_RING = 9;
+const LUMPS_PER_RING = 12;
 /** Ice shards jutting out of the snow. */
 const SHARDS = 10;
 
@@ -54,8 +54,9 @@ export function SnowBind({ rounds }: { rounds: number }) {
         list.push({
           y: y + (random() - 0.5) * RING_STEP * 0.8,
           angle: ((index + random() * 0.6) / LUMPS_PER_RING) * Math.PI * 2 + y * 2.1,
-          out: 0.92 + random() * 0.2,
-          size: 0.09 + random() * 0.07,
+          // Fat and well out from the body, so no gap shows the figure (or what it holds) through the snow.
+          out: 1.08 + random() * 0.22,
+          size: 0.13 + random() * 0.08,
           squash: 0.6 + random() * 0.3,
           spin: random() * Math.PI * 2,
         });

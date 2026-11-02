@@ -1,5 +1,6 @@
 /** Zarek's Void: swallowing harm, opening rifts, setting spells down and taking them over. */
 import { abilityCycle } from "@/game/domain/abilities/charge";
+import { VOID_SCAR_BACK, isHarm as isVoidHarm } from "@/game/domain/characters/zarek/void";
 import type { PlayerId, TileId, VoidItem } from "@/game/domain/types";
 import { nextFxId, withFx, withPlayer, type MatchView, type TileEffectKind, type VoidRiftView } from "../matchView";
 import { playerTileEffect } from "./helpers";
@@ -76,8 +77,18 @@ export const voidSteps: StepHandlers<
         const cast = withPlayer(view, event.playerId, (player) => ({
           voidHold: released(player.voidHold, event.item),
         }));
+        // A harm let out in hell marks the tile (doubling shows once the state syncs).
+        const marked = isVoidHarm(event.item)
+          ? {
+              ...cast,
+              voidScars: [
+                ...cast.voidScars,
+                { tile: event.tile, owner: event.playerId, harm: event.item, doubled: false },
+              ],
+            }
+          : cast;
         return surfaced(
-          withSpell(cast, event.playerId, event.tile, event.item),
+          withSpell(marked, event.playerId, event.tile, event.item),
           event.playerId,
           event.tile,
           "cast",
@@ -91,9 +102,12 @@ export const voidSteps: StepHandlers<
   voidSeized: (event, timings) => [
     {
       apply: (view) => {
-        const seized = withPlayer(view, event.playerId, () => ({ voidIdle: 0 }));
+        const seized = withPlayer(view, event.playerId, (player) => ({
+          voidIdle: 0,
+          voidHold: [...player.voidHold, event.item],
+        }));
         return surfaced(
-          stolen(seized, event.playerId, event.tile),
+          absorbed(seized, event.playerId, event.tile),
           event.playerId,
           event.tile,
           "seize",
@@ -148,17 +162,16 @@ function withSpell(view: MatchView, owner: PlayerId, tile: TileId, item: VoidIte
   }
 }
 
-/** Mirrors void.ts stealSpell: the spell stays put under a new owner, the fairy's ice becomes snow. */
-function stolen(view: MatchView, owner: PlayerId, tile: TileId): MatchView {
-  const take = <T extends { tile: TileId; owner: PlayerId }>(list: readonly T[]) =>
-    list.map((entry) => (entry.tile === tile ? { ...entry, owner } : entry));
-  const iced = view.winter?.iced.includes(tile) && !view.enchantedTiles.some((entry) => entry.tile === tile);
+/** Mirrors void.ts absorbSpell: the spell leaves the tile for the Void, a purple trap of Zarek's stays. */
+function absorbed(view: MatchView, owner: PlayerId, tile: TileId): MatchView {
+  const take = <T extends { tile: TileId }>(list: readonly T[]) => list.filter((entry) => entry.tile !== tile);
   return {
     ...view,
     blackFlames: take(view.blackFlames),
-    enchantedTiles: iced ? [...view.enchantedTiles, { tile, owner }] : take(view.enchantedTiles),
+    enchantedTiles: take(view.enchantedTiles),
     seals: take(view.seals),
     specters: take(view.specters),
     winter: view.winter && { ...view.winter, iced: view.winter.iced.filter((entry) => entry !== tile) },
+    voidScars: [...view.voidScars, { tile, owner, harm: { kind: "trap", back: VOID_SCAR_BACK }, doubled: false }],
   };
 }

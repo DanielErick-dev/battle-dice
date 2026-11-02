@@ -471,7 +471,7 @@ Todos são jogáveis. Cada um tem: uma **cor** (anel no chão, HUD, menus, cor d
 
 - **Estilo:** a **Juíza Vendada**, a deusa grega da justiça: balanças pendendo de um lado para o outro. Azul profundo.
 - **Habilidade, Veredito Silencioso (carga 4, reativa e secreta):** armado, o próximo ataque mirado nela se volta contra quem mirou. Na partida, uma **balança gigante** desce entre os dois, pesa e pende para o lado do culpado, e o castigo cai sobre ele.
-- **Passiva, Balança Cega:** desarma armadilhas escondidas no caminho (+1 de energia cada). Com o veredito desarmado, sofre tudo normalmente.
+- **Passiva, Marca da Justiça:** quem ataca outro jogador ganha marcas; com 2, o 3º ataque vai a julgamento (volta dobrado se o veredito estiver armado, ou apaga as marcas se não estiver). Com o veredito desarmado, ela sofre tudo normalmente.
 - **Animações:** intro e cast (ergue a mão direita: no jogo, aponta para quem o veredito julga), defesa (`guard`, antes de apontar), "não, não" sarcástico (`scoff`, depois de apontar, enquanto o castigo cai no atacante), freada de correr para andar (`brake`) e sentar no trono (`sit`, o trono aparece enquanto ela senta).
 - **Cenário:** ainda a Praia ao Luar; vai virar um tribunal grego. **Trono:** trono da lua.
 

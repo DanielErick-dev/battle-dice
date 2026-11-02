@@ -5,7 +5,27 @@ import type { GameEvent } from "@/game/domain/core/events";
 import type { AimWard } from "@/game/domain/core/playerStatus";
 import type { CardId } from "@/game/domain/cards/catalog";
 import { riftsOf } from "@/game/domain/characters/zarek/void";
-import type { BlackFlame, Crown, EnchantedTile, Winter, Blessing, CardInstance, GameState, Player, PlayerId, RealmKind, SealKind, SpecterKind, Tile, VoidItem, Threat, TileId, TrapCurse, TrapWard } from "@/game/domain/types";
+import type {
+  BlackFlame,
+  Crown,
+  EnchantedTile,
+  Winter,
+  Blessing,
+  CardInstance,
+  GameState,
+  Player,
+  PlayerId,
+  RealmKind,
+  SealKind,
+  SpecterKind,
+  Tile,
+  VoidItem,
+  VoidScar,
+  Threat,
+  TileId,
+  TrapCurse,
+  TrapWard,
+} from "@/game/domain/types";
 
 export type TileEffectKind =
   | "portal"
@@ -55,10 +75,14 @@ export type TileEffectKind =
   | "abilityBlocked"
   /** Themis's Silent Verdict, shown over the one judged. */
   | "verdict"
-  /** Themis's Blind Scale took a hidden trap apart. */
-  | "disarmed"
-  /** Themis's Scales of Justice split two players' energy; shown over the one weighed against her. */
-  | "weighed";
+  /** A Mark of Justice on whoever attacked (or was branded by her card). */
+  | "marked"
+  /** Blind Justice sets everyone walking; shown over Themis. */
+  | "marched"
+  /** The Containment Decree caps the opponents' dice; shown over Themis. */
+  | "decree"
+  /** The Final Judgment's Die of Justice; shown over Themis, `count` the tiles she leaps. */
+  | "judgment";
 
 export interface LogEntry {
   id: number;
@@ -251,6 +275,10 @@ export interface TileEffectView {
   crown?: Crown;
   time?: "halt" | "reverse";
   enchanted?: { owner: PlayerId; frozen: number };
+  /** Struck by an opponent's card, not a tile: the camera turns to watch them sit down. */
+  aimed?: boolean;
+  /** Who the snow's energy went to (the fairy, or Zarek on snow he took). */
+  drainedBy?: string;
   flames?: { energyLost: number };
   seal?: { kind: SealKind; owner: PlayerId; energyLost: number; energyGained: number };
   /** `kind` null: the Warden's apparitions were dispelled. */
@@ -263,10 +291,10 @@ export interface TileEffectView {
   };
   /** What the Void swallowed, opened, set down or took; `doubled` for a rift. */
   void?: { item: VoidItem | null; doubled?: boolean };
-  /** The judge, and what the one judged had aimed at her. */
-  verdict?: { judgeName: string; cardId?: CardId; ability?: AbilityId };
-  /** Energy Themis's Blind Scale gained. */
-  energyGained?: number;
+  /** The judge, what the one judged aimed, and at whom when not at her. */
+  verdict?: { judgeName: string; defendedName?: string; cardId?: CardId; ability?: AbilityId };
+  /** The Final Judgment: the Die of Justice and the distance it was multiplied by. */
+  judgment?: { die: number; distance: number };
 }
 
 /** A Shadow Warden's apparition; only its owner is shown its `kind`, others see the Warden himself. */
@@ -324,6 +352,8 @@ export interface MatchView {
   winter: Winter | null;
   /** Tiles Zarek's Void opened into the path, in the order they opened (see linkRift). */
   rifts: readonly Tile[];
+  /** Tiles the Void marked purple: a harm for everyone but Zarek. */
+  voidScars: readonly VoidScar[];
   /** A Warden picking the cards their Plunder apparition takes from `victim`. */
   pendingPlunder: { owner: PlayerId; victim: PlayerId } | null;
   /** The tile a walk ends on: the figure slows to a stop on its way there. */
@@ -361,6 +391,7 @@ export function createInitialView(state: GameState): MatchView {
     blackFlames: state.blackFlames,
     winter: state.winter,
     rifts: riftsOf(state.board),
+    voidScars: state.voidScars,
     pendingPlunder: state.pendingPlunder,
     walkEnd: null,
     log: [],

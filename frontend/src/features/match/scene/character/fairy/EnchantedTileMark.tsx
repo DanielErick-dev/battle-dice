@@ -13,6 +13,12 @@ import { useGlowColor } from "../shared/glowColor";
 
 const TILE_TOP = TILE_HEIGHT / 2;
 
+/** The fairy's fresh white snow, or the violet snow of the Void when Zarek has taken it over. */
+const LOOKS = {
+  fairy: { slab: "#f4fbff", drift: "#f8fdff", shine: "#9fd8ff", crystal: "#e0fbff", dust: "#e0f7ff" },
+  void: { slab: "#c7b2f2", drift: "#cdb9f5", shine: "#6d28d9", crystal: "#d9c8ff", dust: "#b794ff" },
+} as const;
+
 /**
  * A tile the Crystal Fairy enchanted: buried for good under fresh snow, a smooth white slab with
  * drifts heaped where the spikes were and a couple of ice crystals, so nothing of what it was
@@ -22,9 +28,11 @@ export function EnchantedTileMark({
   position,
   color,
   outline = SQUARE_SLAB,
+  look = "fairy",
 }: {
   position: Vec3;
   color: string;
+  look?: keyof typeof LOOKS;
   /** The slab it covers (see BoardLayout.slab): the snow takes its shape. */
   outline?: SlabOutline;
 }) {
@@ -33,6 +41,7 @@ export function EnchantedTileMark({
   const snow = useSnowTexture();
   const glow = useGlowColor(color, 1.4);
   const age = useAge();
+  const tint = LOOKS[look];
 
   useFrame(({ clock }) => {
     const t = age(clock.elapsedTime);
@@ -45,7 +54,13 @@ export function EnchantedTileMark({
   return (
     <group ref={root} position={[position[0], position[1] + TILE_TOP, position[2]]}>
       <mesh geometry={cover} position-y={COVER_Y - COVER_HEIGHT / 2} receiveShadow>
-        <meshStandardMaterial color="#f4fbff" map={snow} roughness={0.95} emissive="#9fd8ff" emissiveIntensity={0.12} />
+        <meshStandardMaterial
+          color={tint.slab}
+          map={snow}
+          roughness={0.95}
+          emissive={tint.shine}
+          emissiveIntensity={look === "void" ? 0.25 : 0.12}
+        />
       </mesh>
       {DRIFTS.map(({ x, z, radius }) => (
         <mesh
@@ -56,7 +71,13 @@ export function EnchantedTileMark({
           receiveShadow
         >
           <sphereGeometry args={[1, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2]} />
-          <meshStandardMaterial color="#f8fdff" map={snow} roughness={0.9} emissive="#9fd8ff" emissiveIntensity={0.1} />
+          <meshStandardMaterial
+            color={tint.drift}
+            map={snow}
+            roughness={0.9}
+            emissive={tint.shine}
+            emissiveIntensity={look === "void" ? 0.2 : 0.1}
+          />
         </mesh>
       ))}
       {CRYSTALS.map(({ x, z, height, turn }) => (
@@ -69,7 +90,7 @@ export function EnchantedTileMark({
         >
           <octahedronGeometry args={[1, 0]} />
           <meshStandardMaterial
-            color="#e0fbff"
+            color={tint.crystal}
             emissive={glow}
             emissiveIntensity={0.8}
             metalness={0.1}
@@ -85,7 +106,7 @@ export function EnchantedTileMark({
         position-y={0.45}
         size={2.5}
         speed={0.3}
-        color="#e0f7ff"
+        color={tint.dust}
       />
     </group>
   );

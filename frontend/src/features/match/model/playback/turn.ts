@@ -99,7 +99,7 @@ export const turnSteps: StepHandlers<
       {
         apply: (view) => ({
           ...withPlayer(view, event.playerId, (player) => ({ skipTurns: player.skipTurns + (event.turns ?? 1) })),
-          effect: { kind: "skipTurn", ...tileOf(event) },
+          effect: { kind: "skipTurn", ...tileOf(event), ...(event.by && { aimed: true }) },
         }),
         durationMs: timings.noticeMs,
       },

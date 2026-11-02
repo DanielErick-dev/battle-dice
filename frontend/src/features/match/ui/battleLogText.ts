@@ -256,15 +256,10 @@ export function battleLogLine(event: GameEvent, players: readonly Player[]): Log
     case "voidSeized":
       return line(
         event.playerId,
-        `O Vazio de ${who(event.playerId)} tomou: ${voidItemName(event.item)}, da casa ${event.tile}`,
+        `O Vazio de ${who(event.playerId)} absorveu: ${voidItemName(event.item)}, da casa ${event.tile} (virou armadilha roxa)`,
       );
     case "voidEchoed":
       return line(event.playerId, `O Vazio de ${who(event.playerId)} duplicou: ${voidItemName(event.item)}`);
-    case "energyWeighed":
-      return line(
-        event.playerId,
-        `⚖ ${who(event.playerId)} pesou a energia com ${who(event.targetId)}: ficou com ${event.energy}, e o outro com ${event.targetEnergy}`,
-      );
     case "susanooRepelled":
       return line(event.by, `O Susanoo de ${who(event.by)} repeliu ${who(event.playerId)}`);
     case "cardTransmuted":
@@ -300,13 +295,31 @@ export function battleLogLine(event: GameEvent, players: readonly Player[]): Log
     case "verdictPassed":
       return line(
         event.playerId,
-        `⚖ ${who(event.playerId)} julgou ${who(event.attackerId)}: o ataque se voltou contra ele`,
+        event.defendedId
+          ? `⚖ ${who(event.playerId)} tomou para si o ataque de ${who(event.attackerId)} contra ${who(event.defendedId)}: voltou dobrado contra ele`
+          : `⚖ ${who(event.playerId)} julgou ${who(event.attackerId)}: o ataque voltou dobrado contra ele`,
       );
-    case "hiddenTrapDisarmed":
+    case "justiceMarked":
+      if (event.marks === 0)
+        return line(event.by, `⚖ ${who(event.playerId)} escapou do Veredito: as marcas dele se apagaram`);
+      return line(
+        event.by,
+        `⚖ ${who(event.playerId)} recebeu a Marca da Justiça${event.marks > 1 ? ` (${event.marks} marcas)` : ""}`,
+      );
+    case "justiceMarched":
+      return line(event.playerId, `⚖ Justiça Cega: todos andam ${plural(event.tiles, "casa", "casas")}`);
+    case "decreeIssued":
       return line(
         event.playerId,
-        `${who(event.playerId)} desarmou uma armadilha escondida${event.energyGained > 0 ? ` (+${event.energyGained} de energia)` : ""}`,
+        `⚖ Decreto de Contenção: nas próximas ${event.rolls} rolagens, o dado dos oponentes não passa de ${event.cap}`,
       );
+    case "finalJudgment":
+      return line(
+        event.playerId,
+        `⚖ Julgamento Final: ${event.distance} de distância de ${who(event.targetId)}, Dado da Justiça ${event.die} → ${who(event.playerId)} avança ${plural(event.tiles, "casa", "casas")}`,
+      );
+    case "energySacrificed":
+      return line(event.playerId, `${who(event.playerId)} sacrificou ${event.energy} de energia por uma carta`);
     case "playerMoved":
     case "cardDrawn":
     case "deckReshuffled":

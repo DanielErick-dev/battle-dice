@@ -37,8 +37,8 @@ describe("card fusion", () => {
   });
 
   it("a fused Wind Step carries the player much further", () => {
-    const start = withPlayer(duo(), "p1", { position: 13, hand: triple("windStep"), energy: 3 });
+    const start = withPlayer(duo(), "p1", { position: 5, hand: triple("windStep"), energy: 3 });
     const { state } = play(fuse(start, "windStep").state, "p1", "a:fused");
-    expect(aria(state).position).toBe(13 + FUSED_WIND_STEP_TILES);
+    expect(aria(state).position).toBe(5 + FUSED_WIND_STEP_TILES);
   });
 });

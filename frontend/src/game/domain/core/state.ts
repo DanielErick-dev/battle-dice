@@ -11,6 +11,7 @@ import type {
   Seal,
   Specter,
   Threat,
+  VoidScar,
   TileId,
   VoidItem,
   Winter,
@@ -68,6 +69,10 @@ export interface Player {
   voidHold: readonly VoidItem[];
   /** Own turns ended since the Void last swallowed or took something. */
   voidIdle: number;
+  /** Themis's Marks of Justice: one per attack aimed at an opponent; a marked one's next may be turned. */
+  justiceMarks: number;
+  /** Rolls left whose die can't go above CONTAINED_DIE (Themis's Containment Decree). */
+  containedRolls: number;
 }
 
 /** One physical copy of a card; `uid` tells copies of the same card apart. */
@@ -160,5 +165,7 @@ export interface GameState {
   enchantedTiles: readonly EnchantedTile[];
   blackFlames: readonly BlackFlame[];
   winter: Winter | null;
+  /** Tiles Zarek's Void marked purple (see VoidScar). */
+  voidScars: readonly VoidScar[];
   pendingPlunder: PendingPlunder | null;
 }

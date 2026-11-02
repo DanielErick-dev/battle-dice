@@ -1,8 +1,22 @@
-import { FUSED_AEGIS_TURNS, FUSED_BLAST_PUSH, FUSED_LUCKY_BONUS, FUSED_SCROLL_DRAWS, FUSED_SHIELD_ARMOUR, FUSED_WIND_STEP_TILES } from "@/game/domain/cards/fusion";
+import {
+  FUSED_AEGIS_TURNS,
+  FUSED_BLAST_PUSH,
+  FUSED_HERB_CHARGE,
+  FUSED_LUCKY_BONUS,
+  FUSED_SCROLL_DRAWS,
+  FUSED_SHIELD_ARMOUR,
+  FUSED_WIND_STEP_TILES,
+} from "@/game/domain/cards/fusion";
 import { AEGIS_TURNS, ARCANE_BLAST_PUSH, HEALING_HERB_ENERGY } from "@/game/domain/cards/play";
 import type { CardId, Rarity } from "@/game/domain/cards/catalog";
-import { BLINDFOLD_RANGE, GUILT_DISCARDS, HUNGRY_RIFT_RANGE, SWORD_PUSH, SWORD_PUSH_AHEAD, VOID_HUNGER_CHARGE } from "@/game/domain/cards/exclusive";
-import { BLIND_SCALE_ENERGY } from "@/game/domain/characters/themis/verdict";
+import { HUNGRY_RIFT_RANGE, VOID_HUNGER_CHARGE } from "@/game/domain/cards/exclusive";
+import {
+  CONFISCATED_CARDS,
+  CONTAINED_DIE,
+  DECREE_ROLLS,
+  JUDGMENT_SPAN,
+  JUSTICE_MARCH,
+} from "@/game/domain/characters/themis/cards";
 
 /** Player-facing card copy (pt-BR). Rules live in the domain; this is only what the card says. */
 export const CARD_TEXT: Readonly<Record<CardId, { name: string; description: string }>> = {
@@ -69,21 +83,25 @@ export const CARD_TEXT: Readonly<Record<CardId, { name: string; description: str
   },
   ascension: { name: "Ascensão", description: "Sua habilidade fica pronta na hora." },
 
-  scalesOfJustice: {
-    name: "Balança da Justiça",
-    description: "Pese sua energia com a de um oponente: cada um fica com metade do total (a sobra é sua).",
+  blindJustice: {
+    name: "Justiça Cega",
+    description: `Todos os jogadores andam ${JUSTICE_MARCH} casas, um depois do outro, sem dado. A casa onde cada um parar tem efeito.`,
   },
-  swordOfLaw: {
-    name: "Espada da Lei",
-    description: `Empurre um oponente ${SWORD_PUSH} casas para trás, ou ${SWORD_PUSH_AHEAD} se ele estiver à sua frente.`,
+  confiscation: {
+    name: "Confisco de Bens",
+    description: `Pegue ${CONFISCATED_CARDS} cartas aleatórias da mão de um oponente para a sua.`,
   },
-  weightOfGuilt: {
-    name: "Peso da Culpa",
-    description: `Um oponente descarta ${GUILT_DISCARDS} cartas da mão, ao acaso.`,
+  justiceMark: {
+    name: "Marca da Justiça",
+    description: "Todos os oponentes recebem a Marca da Justiça: o próximo ataque deles pode cair no seu Veredito.",
   },
-  sacredBlindfold: {
-    name: "Venda Sagrada",
-    description: `Desarme as armadilhas escondidas nas próximas ${BLINDFOLD_RANGE} casas (+${BLIND_SCALE_ENERGY} de energia cada).`,
+  containmentDecree: {
+    name: "Decreto de Contenção",
+    description: `Nas próximas ${DECREE_ROLLS} rolagens de cada oponente, o dado não passa de ${CONTAINED_DIE}.`,
+  },
+  finalJudgment: {
+    name: "Julgamento Final",
+    description: `Triunfo. Queime outra carta da mão. Escolha um oponente: você anda (distância entre vocês ÷ ${JUDGMENT_SPAN}, para cima) × um Dado da Justiça. Ele fica onde está.`,
   },
   voidHunger: { name: "Fome do Vazio", description: `O Vazio ganha +${VOID_HUNGER_CHARGE} de carga.` },
   hungryRift: {
@@ -119,7 +137,7 @@ export const FUSED_TEXT: Readonly<Partial<Record<CardId, { name: string; descrip
   },
   healingHerb: {
     name: "Elixir da Vida",
-    description: "Sua energia enche até o máximo e cancela o “perde a vez”.",
+    description: `Sua energia enche até o máximo, a habilidade carrega +${FUSED_HERB_CHARGE} e cancela o “perde a vez”.`,
   },
   luckyCharm: {
     name: "Trevo Dourado",

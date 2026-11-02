@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { ABILITY_CYCLE, abilityCycle } from "../../abilities/charge";
-import { VOID_CAPACITY, VOID_DOUBLE_ENERGY } from "./void";
+import { VOID_CYCLE, abilityCycle } from "../../abilities/charge";
+import { VOID_CAPACITY, VOID_DOUBLE_ENERGY, VOID_SCAR_BACK } from "./void";
 import { getTile } from "../../board/board";
 import { HIDDEN_TRAP_PUSH } from "../../board/hiddenTraps";
 import { TRAP_AND_CURSE_BOARD } from "../../testing/boards";
+import { TRAINING_BOARD } from "../../board/presets";
 import {
   activate,
   cards,
@@ -38,10 +39,10 @@ const rivalRolls = (state: GameState, from: number, die: number) =>
   roll(onTurnOf(withPlayer(state, "rival", { position: from }), "rival"), "rival", die);
 
 describe("Zarek's Void", () => {
-  it(`charges in ${ABILITY_CYCLE} turns, counting the first`, () => {
+  it(`charges in ${VOID_CYCLE} turns, counting the first`, () => {
     const { readyAt } = turnsAbilityReady(newGame(TRAP_AND_CURSE_BOARD, { zarek: "theVoid" }), "zarek", 8);
-    expect(readyAt).toEqual([ABILITY_CYCLE]);
-    expect(abilityCycle("theVoid")).toBe(ABILITY_CYCLE);
+    expect(readyAt).toEqual([VOID_CYCLE]);
+    expect(abilityCycle("theVoid")).toBe(VOID_CYCLE);
   });
 
   it("from the button it only steals: without a spell to take there's nothing to do", () => {
@@ -91,7 +92,7 @@ describe("Zarek's Void", () => {
 
     it("declined, lets the harm strike and stays charged", () => {
       const { state } = answer(roll(onTheWay(), "zarek", 1).state, false);
-      expect(zarek(state)).toMatchObject({ position: 8, energy: 1, abilityCharge: ABILITY_CYCLE, voidHold: [] });
+      expect(zarek(state)).toMatchObject({ position: 8, energy: 1, abilityCharge: VOID_CYCLE, voidHold: [] });
       const skipped = answer(roll(onTheWay({ position: 24 }), "zarek", 1).state, false).state;
       expect(zarek(skipped).skipTurns).toBe(1);
     });
@@ -191,24 +192,38 @@ describe("Zarek's Void", () => {
       expect(zarek(once).voidIdle).toBe(1);
     });
 
-    it("takes another's spell over where it stands, keeping its effect", () => {
+    it("absorbs another's spell into the Void and leaves a purple trap of his own behind", () => {
       const { state, events } = activate(burning(), "zarek", { seizeTile: 20 });
       expect(events).toContainEqual({ type: "voidSeized", playerId: "zarek", tile: 20, item: { kind: "flame" } });
-      expect(state.blackFlames).toEqual([{ tile: 20, owner: "zarek", turnsLeft: 3, hits: 1 }]);
-      expect(zarek(state)).toMatchObject({ abilityCharge: 0, voidHold: [] });
+      expect(state.blackFlames).toEqual([]);
+      expect(state.voidScars).toEqual([
+        { tile: 20, owner: "zarek", harm: { kind: "trap", back: VOID_SCAR_BACK }, doubled: false },
+      ]);
+      expect(zarek(state)).toMatchObject({ abilityCharge: 0, voidHold: [{ kind: "flame" }] });
     });
 
-    it("turns the fairy's ice into his own snow", () => {
+    it("lets him set the absorbed spell down anywhere, and the purple trap strikes all but him", () => {
+      const seized = activate(burning(), "zarek", { seizeTile: 20 }).state;
+      expect(place(seized, 0, 33).state.blackFlames).toMatchObject([{ tile: 33, owner: "zarek" }]);
+
+      const rivalOn = (state: GameState) => playerOf(rivalRolls(state, 18, 2).state, "rival").position;
+      expect(rivalOn(seized)).toBe(20 - VOID_SCAR_BACK);
+      const zarekOn = roll(withPlayer(seized, "zarek", { position: 18 }), "zarek", 2).state;
+      expect(zarek(zarekOn).position).toBe(20);
+    });
+
+    it("takes the fairy's ice in as snow", () => {
       const iced = { ...burning(), winter: { owner: "rival", frontier: 1, iced: [25] } };
       const { state } = activate(iced, "zarek", { seizeTile: 25 });
       expect(state.winter?.iced).toEqual([]);
-      expect(state.enchantedTiles).toContainEqual({ tile: 25, owner: "zarek" });
+      expect(state.enchantedTiles).toEqual([]);
+      expect(zarek(state).voidHold).toEqual([{ kind: "snow" }]);
     });
 
-    it("has no cap, but needs the charge and someone else's spell on the tile", () => {
+    it("needs the charge, room in the Void and someone else's spell on the tile", () => {
       const full = holding([{ kind: "skipTurn" }, { kind: "skipTurn" }, { kind: "skipTurn" }, { kind: "skipTurn" }]);
       const crowded = { ...readyAbility(full, "zarek"), blackFlames: burning().blackFlames };
-      expect(activate(crowded, "zarek", { seizeTile: 20 }).state.blackFlames[0].owner).toBe("zarek");
+      expectRuleError(() => activate(crowded, "zarek", { seizeTile: 20 }), "VOID_FULL");
       expectRuleError(
         () => activate(withPlayer(burning(), "zarek", { abilityCharge: 0 }), "zarek", { seizeTile: 20 }),
         "ABILITY_NOT_READY",
@@ -217,5 +232,27 @@ describe("Zarek's Void", () => {
       const own = { ...burning(), blackFlames: [{ tile: 20, owner: "zarek", turnsLeft: 3, hits: 1 }] };
       expectRuleError(() => activate(own, "zarek", { seizeTile: 20 }), "INVALID_VOID");
     });
+  });
+});
+
+describe("the Void in the realms", () => {
+  const realms = () => withPlayer(newGame(TRAINING_BOARD, { zarek: "theVoid", rival: null }), "zarek", { energy: 5 });
+  const track = (state: GameState, realm: "infernal" | "celestial") =>
+    state.board.tracks.find((candidate) => candidate.realm === realm)?.tiles ?? [];
+
+  it("sets harms and spells down in hell, marking a tile there instead of opening one", () => {
+    const start = withPlayer(realms(), "zarek", { voidHold: [{ kind: "skipTurn" }, { kind: "snow" }] });
+    const [first, second] = track(start, "infernal");
+    const marked = place(start, 0, first).state;
+    expect(marked.board.tiles).toHaveLength(start.board.tiles.length);
+    expect(marked.voidScars).toEqual([{ tile: first, owner: "zarek", harm: { kind: "skipTurn" }, doubled: false }]);
+    expect(place(marked, 0, second).state.enchantedTiles).toContainEqual({ tile: second, owner: "zarek" });
+  });
+
+  it("never in heaven: no impurity gets in", () => {
+    const start = withPlayer(realms(), "zarek", { voidHold: [{ kind: "skipTurn" }, { kind: "snow" }] });
+    const [heaven] = track(start, "celestial");
+    expectRuleError(() => place(start, 0, heaven), "INVALID_VOID");
+    expectRuleError(() => place(start, 1, heaven), "INVALID_VOID");
   });
 });

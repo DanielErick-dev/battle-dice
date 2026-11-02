@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { cardBlocker, cardTargets, type CardTable } from "@/game/domain/cards/play";
+import { cardBlocker, cardTargets, type CardChoice, type CardTable } from "@/game/domain/cards/play";
 import { CARD_CATALOG, cardCost, type CardId } from "@/game/domain/cards/catalog";
-import { HAND_LIMIT } from "@/game/domain/cards/hand";
+import { HAND_LIMIT, SACRIFICE_ENERGY } from "@/game/domain/cards/hand";
 import { DICE_SIDES } from "@/game/domain/core/dice";
 import { FUSION_COPIES, fusibleInHand } from "@/game/domain/cards/fusion";
 import type { CardInstance, Player } from "@/game/domain/types";
@@ -24,9 +24,11 @@ interface CardHandProps {
   /** Cards the player may still play this turn (two on a Double Cast turn). */
   cardsLeft: number;
   lastDrawnUid: string | null;
-  onPlay: (cardUid: string, choice: { targetId?: string; value?: number }) => void;
+  onPlay: (cardUid: string, choice: CardChoice) => void;
   /** Fuses three plain copies of a card in hand into one (see fusion.ts); null when it isn't their moment. */
   onFuse: ((cardId: CardId) => void) | null;
+  /** Gives up SACRIFICE_ENERGY for a card off the deck; null when it isn't their moment. */
+  onSacrifice: (() => void) | null;
   /** Extra player status shown under the energy (the character's ability). */
   status?: ReactNode;
 }
@@ -45,8 +47,14 @@ export function CardHand({
   lastDrawnUid,
   onPlay,
   onFuse,
+  onSacrifice,
   status,
 }: CardHandProps) {
+  const canSacrifice =
+    onSacrifice !== null &&
+    player.energy >= SACRIFICE_ENERGY &&
+    player.hand.length < HAND_LIMIT &&
+    player.deck.length + player.discard.length > 0;
   const fusible = onFuse ? fusibleInHand(player.hand) : [];
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
 
@@ -78,6 +86,8 @@ export function CardHand({
         return "O Vazio está vazio";
       case "NO_HARM_AHEAD":
         return "Nenhuma armadilha à vista à frente";
+      case "NO_SACRIFICE":
+        return "Precisa de outra carta na mão para queimar";
     }
     if (CARD_CATALOG[card.cardId].targetsOpponent && targetsFor(card).length === 0) {
       if (card.cardId === "abyssCall") return "Ninguém fora do céu ou do inferno ao seu alcance";
@@ -88,7 +98,7 @@ export function CardHand({
 
   const targetsFor = (card: CardInstance) => cardTargets(table.board, players, player.id, card.cardId);
 
-  const play = (card: CardInstance, choice: { targetId?: string; value?: number } = {}) => {
+  const play = (card: CardInstance, choice: CardChoice = {}) => {
     setSelectedUid(null);
     onPlay(card.uid, choice);
   };
@@ -123,6 +133,17 @@ export function CardHand({
           )}
         </div>
       </div>
+
+      {canSacrifice && (
+        <button
+          type="button"
+          onClick={() => onSacrifice?.()}
+          title={`Gaste ${SACRIFICE_ENERGY} de energia para comprar uma carta do seu baralho.`}
+          className="hud-panel px-3 py-1.5 text-[10px] font-black tracking-wider text-amber-200 uppercase transition hover:brightness-125 active:scale-95"
+        >
+          Sacrificar {SACRIFICE_ENERGY} de energia → 1 carta
+        </button>
+      )}
 
       {player.hand.length === 0 && (
         <p className="hud-panel max-w-40 px-3 py-2 text-right text-[11px] text-zinc-400">
@@ -197,6 +218,7 @@ export function CardHand({
                   card={card}
                   reason={reason}
                   opponents={targetsFor(card)}
+                  hand={player.hand}
                   onPlay={(choice) => play(card, choice)}
                   onClose={() => setSelectedUid(null)}
                 />
@@ -213,7 +235,9 @@ interface CardActionProps {
   card: CardInstance;
   reason: string | null;
   opponents: readonly Player[];
-  onPlay: (choice: { targetId?: string; value?: number }) => void;
+  /** For cards that burn others to be played (see CardDefinition.sacrifices). */
+  hand: readonly CardInstance[];
+  onPlay: (choice: CardChoice) => void;
   onClose: () => void;
 }
 
@@ -221,8 +245,10 @@ interface CardActionProps {
  * Beside the pulled-out card, where it stays in view: why it can't be played, the choice it
  * needs, or a reminder that a second click plays it.
  */
-function CardAction({ card, reason, opponents, onPlay, onClose }: CardActionProps) {
+function CardAction({ card, reason, opponents, hand, onPlay, onClose }: CardActionProps) {
   const definition = CARD_CATALOG[card.cardId];
+  // A card that burns another asks for its target first, then for the card to burn.
+  const [targetId, setTargetId] = useState<string | null>(null);
   const button =
     "rounded-lg bg-orange-600 px-3 py-2 text-xs font-black tracking-wider text-white uppercase transition hover:bg-orange-500 active:scale-95";
 
@@ -249,6 +275,22 @@ function CardAction({ card, reason, opponents, onPlay, onClose }: CardActionProp
             ))}
           </div>
         </>
+      ) : targetId !== null ? (
+        <>
+          <p className="text-[11px] font-bold tracking-wider text-zinc-300 uppercase">Escolha a carta a queimar</p>
+          {hand
+            .filter((held) => held.uid !== card.uid)
+            .map((held) => (
+              <button
+                key={held.uid}
+                type="button"
+                onClick={() => onPlay({ targetId, sacrificeUids: [held.uid] })}
+                className={cn(button, "bg-red-800 hover:bg-red-700")}
+              >
+                {cardText(held.cardId, held.fused).name}
+              </button>
+            ))}
+        </>
       ) : definition.targetsOpponent ? (
         <>
           <p className="text-[11px] font-bold tracking-wider text-zinc-300 uppercase">Escolha o alvo</p>
@@ -256,7 +298,7 @@ function CardAction({ card, reason, opponents, onPlay, onClose }: CardActionProp
             <button
               key={opponent.id}
               type="button"
-              onClick={() => onPlay({ targetId: opponent.id })}
+              onClick={() => (definition.sacrifices ? setTargetId(opponent.id) : onPlay({ targetId: opponent.id }))}
               className={button}
             >
               {opponent.name}

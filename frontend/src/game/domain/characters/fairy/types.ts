@@ -13,6 +13,13 @@ export interface Winter {
   frontier: TileId;
   /** Frozen beyond the frontier by the fairy's own hand (WINTER_PICKS at a time). */
   iced: readonly TileId[];
+  /** Ice she laid in hell, and the rounds the fire has been melting it (see HELL_ICE_ROUNDS). */
+  melting?: readonly MeltingIce[];
+}
+
+export interface MeltingIce {
+  tile: TileId;
+  rounds: number;
 }
 
 export type FairyEvent =

@@ -1,3 +1,4 @@
+import type { CardChoice } from "@/game/domain/cards/play";
 import type { GameClient, GameUpdate } from "@/game/application/gameClient";
 import type { AbilityPower } from "@/game/domain/abilities/ability";
 import type { CardId } from "@/game/domain/cards/catalog";
@@ -33,6 +34,7 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   EMPTY_HAND: "Você não tem cartas na mão.",
   EMPTY_DISCARD: "Nenhuma carta foi jogada ainda.",
   HAND_FULL: "Sua mão está cheia.",
+  NO_CARDS_LEFT: "Não há mais cartas no seu baralho nem no descarte.",
   TOO_MANY_CARDS: "Escolha menos cartas.",
   INVALID_SEALS: "Escolha 4 casas diferentes dentro do alcance.",
   SILENCED: "Você está silenciado: não pode jogar cartas.",
@@ -50,6 +52,8 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   VOID_EMPTY: "O Vazio está vazio.",
   NO_HARM_AHEAD: "Nenhuma armadilha à vista à frente.",
   NOT_YOUR_CARD: "Essa carta é de outro personagem.",
+  NO_SACRIFICE: "Você precisa de outra carta na mão para queimar.",
+  INVALID_SACRIFICE: "Escolha a carta que vai ser queimada.",
 };
 
 /** Sends commands to the GameClient and replays the resulting events step by step (see model/README.md). */
@@ -89,7 +93,7 @@ export class MatchStore {
     this.dispatch({ type: "rollDice", playerId: this.view.activePlayerId });
   };
 
-  playCard = (cardUid: string, choice: { targetId?: string; value?: number } = {}): void => {
+  playCard = (cardUid: string, choice: CardChoice = {}): void => {
     if (!canPlayCard(this.view)) return;
     this.dispatch({
       type: "playCard",
@@ -106,6 +110,11 @@ export class MatchStore {
       playerId: this.view.activePlayerId,
       cardId,
     });
+  };
+
+  sacrificeEnergy = (): void => {
+    if (!canRoll(this.view)) return;
+    this.dispatch({ type: "sacrificeEnergy", playerId: this.view.activePlayerId });
   };
 
   discardCard = (cardUid: string): void => {

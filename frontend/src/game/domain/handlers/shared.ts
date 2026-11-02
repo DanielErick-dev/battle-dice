@@ -51,13 +51,16 @@ export function settle(
     events: draft.events,
   });
 
-  if (playerIn(draft, playerId).position === state.board.finishTile) {
-    draft.events.push({ type: "playerWon", playerId });
+  // Whoever acted wins first; anyone else may have been walked over the line by a card (Blind Justice).
+  const atFinish = (player: Player) => player.position === state.board.finishTile;
+  const winner = atFinish(playerIn(draft, playerId)) ? playerId : draft.players.find(atFinish)?.id;
+  if (winner) {
+    draft.events.push({ type: "playerWon", playerId: winner });
     return {
       state: {
         ...draftState(draft),
         status: "finished",
-        winnerId: playerId,
+        winnerId: winner,
         pendingDiscard: null,
         pendingWard: null,
         pendingGrace: null,

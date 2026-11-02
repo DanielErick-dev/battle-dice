@@ -18,13 +18,7 @@ export function RiftMaw({ position }: { position: Vec3 }) {
     <group position={[position[0], top, position[2]]}>
       <mesh rotation-x={-Math.PI / 2}>
         <ringGeometry args={[TILE_SIZE * 0.5, TILE_SIZE * 0.68, 48]} />
-        <meshBasicMaterial
-          ref={rim}
-          color={VOID_BLACK}
-          transparent
-          depthWrite={false}
-          side={DoubleSide}
-        />
+        <meshBasicMaterial ref={rim} color={VOID_BLACK} transparent depthWrite={false} side={DoubleSide} />
       </mesh>
       <Sparkles
         count={14}

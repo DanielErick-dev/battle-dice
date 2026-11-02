@@ -72,6 +72,8 @@ describe("movement cards", () => {
     expect(cardBlocker(burning, aria(burning), "mysticGate")).toBe("NO_PORTAL_AHEAD");
     const frozen = { ...holding("mysticGate"), winter: { owner: "p2", frontier: 1, iced: [10] } };
     expect(cardBlocker(frozen, aria(frozen), "mysticGate")).toBe("NO_PORTAL_AHEAD");
+    const snowed = { ...holding("mysticGate"), enchantedTiles: [{ tile: 10, owner: "p2" }] };
+    expect(cardBlocker(snowed, aria(snowed), "mysticGate")).toBe("NO_PORTAL_AHEAD");
   });
 });
 

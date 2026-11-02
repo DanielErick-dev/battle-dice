@@ -3,7 +3,9 @@ import { VOID_CAPACITY } from "../characters/zarek/void";
 import type { BoardDefinition } from "../board/board";
 import { cardsOfLevel, MAX_RARITY_LEVEL } from "./catalog";
 import { characterDeck, standardDeck } from "./decks";
-import { BLINDFOLD_RANGE, GUILT_DISCARDS, SWORD_PUSH, SWORD_PUSH_AHEAD, VOID_HUNGER_CHARGE } from "./exclusive";
+import { VOID_HUNGER_CHARGE } from "./exclusive";
+import { VERDICT_CHARGE } from "../characters/themis/verdict";
+import { CONFISCATED_CARDS, CONTAINED_DIE, DECREE_ROLLS, JUSTICE_MARCH } from "../characters/themis/cards";
 import {
   card,
   cards,
@@ -13,13 +15,13 @@ import {
   play,
   playerOf,
   readyAbility,
+  roll,
   send,
   withPlayer,
   withPlayers,
 } from "../testing";
 import type { GameState, Player, PlayerId } from "../core/state";
 import type { VoidItem } from "../characters/zarek/types";
-import { BLIND_SCALE_ENERGY } from "../characters/themis/verdict";
 
 /** A trap at 12 (back to 8), a lost turn at 20; everything else plain. */
 const BOARD: BoardDefinition = { size: 60, effects: { 12: { kind: "trap", to: 8 }, 20: { kind: "skipTurn" } } };
@@ -30,16 +32,16 @@ const holding = (state: GameState, playerId: PlayerId, ...ids: Parameters<typeof
 describe("characters' own cards", () => {
   it("join only their owner's deck, one copy each, and the aimed ones only with opponents", () => {
     const duel = characterDeck("silentVerdict", { withOpponents: true });
-    expect(duel).toHaveLength(standardDeck({ withOpponents: true }).length + 4);
-    expect(duel.filter((id) => id === "swordOfLaw")).toHaveLength(1);
-    expect(characterDeck("silentVerdict", { withOpponents: false })).toContain("sacredBlindfold");
-    expect(characterDeck("silentVerdict", { withOpponents: false })).not.toContain("swordOfLaw");
-    expect(characterDeck("theVoid", { withOpponents: true })).not.toContain("swordOfLaw");
+    expect(duel).toHaveLength(standardDeck({ withOpponents: true }).length + 5);
+    expect(duel.filter((id) => id === "confiscation")).toHaveLength(1);
+    expect(characterDeck("silentVerdict", { withOpponents: false })).toContain("blindJustice");
+    expect(characterDeck("silentVerdict", { withOpponents: false })).not.toContain("confiscation");
+    expect(characterDeck("theVoid", { withOpponents: true })).not.toContain("confiscation");
     expect(characterDeck(null, { withOpponents: true })).toEqual(standardDeck({ withOpponents: true }));
 
     const game = newGame(BOARD, { judge: "silentVerdict", zarek: "theVoid" });
     const owned = (player: Player) => [...player.hand, ...player.deck].map(({ cardId }) => cardId);
-    expect(owned(playerOf(game, "judge"))).toContain("scalesOfJustice");
+    expect(owned(playerOf(game, "judge"))).toContain("finalJudgment");
     expect(owned(playerOf(game, "judge"))).not.toContain("voidEcho");
     expect(owned(playerOf(game, "zarek"))).toContain("voidEcho");
   });
@@ -47,14 +49,14 @@ describe("characters' own cards", () => {
   it("never come out of transmutation or a gamble's pool", () => {
     for (let level = 1; level <= MAX_RARITY_LEVEL; level++) {
       const pool = cardsOfLevel(level, { withOpponents: true });
-      expect(pool).not.toContain("scalesOfJustice");
+      expect(pool).not.toContain("finalJudgment");
       expect(pool).not.toContain("riftCall");
     }
   });
 
   it("are dead in anyone else's hand", () => {
-    const start = holding(newGame(BOARD, { thief: null, judge: "silentVerdict" }), "thief", "sacredBlindfold");
-    expectRuleError(() => play(withPlayer(start, "thief", { energy: 5 }), "thief", "sacredBlindfold"), "NOT_YOUR_CARD");
+    const start = holding(newGame(BOARD, { thief: null, judge: "silentVerdict" }), "thief", "blindJustice");
+    expectRuleError(() => play(withPlayer(start, "thief", { energy: 5 }), "thief", "blindJustice"), "NOT_YOUR_CARD");
   });
 });
 
@@ -65,41 +67,78 @@ describe("Themis's cards", () => {
       rival: { position: 40, ...rival },
     });
 
-  it("Scales of Justice splits both energies evenly, the odd one hers", () => {
-    const start = holding(court({ energy: 9 }, { energy: 2 }), "judge", "scalesOfJustice");
-    const { state, events } = play(start, "judge", "scalesOfJustice", { targetId: "rival" });
-    // She pays 3 first: 6 + 2 = 8, four each.
-    expect(playerOf(state, "judge").energy).toBe(4);
-    expect(playerOf(state, "rival").energy).toBe(4);
-    expect(eventsOfType(events, "energyWeighed")).toEqual([
-      { type: "energyWeighed", playerId: "judge", targetId: "rival", energy: 4, targetEnergy: 4 },
+  it("Blind Justice walks everyone ahead from her on, each landing resolved, with no roll", () => {
+    const start = holding(court({ position: 8 }, { position: 16 }), "judge", "blindJustice");
+    const { state, events } = play(start, "judge", "blindJustice");
+    // The rival lands on the lost turn at 20; she lands on the trap at 12 and is sent back to 8.
+    expect(playerOf(state, "judge").position).toBe(8);
+    expect(playerOf(state, "rival")).toMatchObject({ position: 8 + 12, skipTurns: 1 });
+    expect(eventsOfType(events, "justiceMarched")).toEqual([
+      { type: "justiceMarched", playerId: "judge", tiles: JUSTICE_MARCH, order: ["judge", "rival"] },
     ]);
+    expect(state.currentPlayerIndex).toBe(0);
   });
 
-  it("Sword of Law strikes harder at whoever is ahead of her", () => {
-    const ahead = play(holding(court(), "judge", "swordOfLaw"), "judge", "swordOfLaw", { targetId: "rival" });
-    expect(playerOf(ahead.state, "rival").position).toBe(40 - SWORD_PUSH_AHEAD);
-
-    const behind = court({}, { position: 25 });
-    const struck = play(holding(behind, "judge", "swordOfLaw"), "judge", "swordOfLaw", { targetId: "rival" });
-    expect(playerOf(struck.state, "rival").position).toBe(25 - SWORD_PUSH);
+  it("Blind Justice walking someone over the line makes them the winner", () => {
+    const start = holding(court({}, { position: 58 }), "judge", "blindJustice");
+    const { state } = play(start, "judge", "blindJustice");
+    expect(state).toMatchObject({ status: "finished", winnerId: "rival" });
   });
 
-  it("Weight of Guilt makes an opponent drop random cards", () => {
-    const start = holding(court({}, { hand: cards("windStep", "luckyCharm", "oracleEye") }), "judge", "weightOfGuilt");
-    const { state, events } = play(start, "judge", "weightOfGuilt", { targetId: "rival" });
-    expect(playerOf(state, "rival").hand).toHaveLength(3 - GUILT_DISCARDS);
-    expect(playerOf(state, "rival").discard).toHaveLength(GUILT_DISCARDS);
-    expect(eventsOfType(events, "cardDiscarded")).toHaveLength(GUILT_DISCARDS);
+  it("Confiscation takes random cards of the target's into her hand", () => {
+    const start = holding(court({}, { hand: cards("oracleEye", "windStep", "luckyCharm") }), "judge", "confiscation");
+    const { state, events } = play(start, "judge", "confiscation", { targetId: "rival" });
+    expect(playerOf(state, "rival").hand).toHaveLength(3 - CONFISCATED_CARDS);
+    expect(playerOf(state, "judge").hand).toHaveLength(CONFISCATED_CARDS);
+    expect(eventsOfType(events, "cardsStolen")).toHaveLength(1);
   });
 
-  it("Sacred Blindfold takes apart the hidden traps up ahead, for energy", () => {
-    const start = { ...holding(court({ energy: 3 }), "judge", "sacredBlindfold"), hiddenTraps: [33, 40, 50] };
-    const { state, events } = play(start, "judge", "sacredBlindfold");
-    expect(30 + BLINDFOLD_RANGE).toBeLessThan(50);
-    expect(state.hiddenTraps).toEqual([50]);
-    expect(playerOf(state, "judge").energy).toBe(3 - 1 + 2 * BLIND_SCALE_ENERGY);
-    expect(eventsOfType(events, "hiddenTrapDisarmed")).toHaveLength(2);
+  it("Mark of Justice marks every opponent, readying her verdict for their next attack", () => {
+    const { state } = play(holding(court(), "judge", "justiceMark"), "judge", "justiceMark");
+    expect(playerOf(state, "rival").justiceMarks).toBe(1);
+    expect(playerOf(state, "judge").justiceMarks).toBe(0);
+  });
+
+  it("the Containment Decree keeps opponents' dice at 3 or under for a few rolls", () => {
+    const start = holding(court(), "judge", "containmentDecree");
+    const decreed = play(start, "judge", "containmentDecree");
+    expect(playerOf(decreed.state, "judge").energy).toBe(10 - 3);
+    expect(playerOf(decreed.state, "rival").containedRolls).toBe(DECREE_ROLLS);
+    const rolled = roll({ ...decreed.state, currentPlayerIndex: 1 }, "rival", 6);
+    expect(eventsOfType(rolled.events, "diceRolled")[0].value).toBe(CONTAINED_DIE);
+    expect(playerOf(rolled.state, "rival").containedRolls).toBe(DECREE_ROLLS - 1);
+  });
+
+  it("the Final Judgment leaps her a die of tiles per three between them, burning another card", () => {
+    const start = withPlayer(
+      holding(court({ position: 22 }, { position: 30 }), "judge", "finalJudgment", "windStep"),
+      "judge",
+      {
+        energy: 6,
+      },
+    );
+    // 8 tiles apart: ceil(8 / 3) = 3 dice of a 4.
+    const command = {
+      type: "playCard",
+      playerId: "judge",
+      cardUid: "finalJudgment",
+      targetId: "rival",
+      sacrificeUids: ["windStep"],
+    } as const;
+    const { state, events } = send(start, command, [4]);
+    expect(eventsOfType(events, "finalJudgment")).toEqual([
+      { type: "finalJudgment", playerId: "judge", targetId: "rival", distance: 8, die: 4, tiles: 12 },
+    ]);
+    expect(playerOf(state, "judge")).toMatchObject({ position: 34, energy: 1, hand: [] });
+    expect(playerOf(state, "rival").position).toBe(30);
+  });
+
+  it("the Final Judgment needs another card to burn", () => {
+    const start = holding(court(), "judge", "finalJudgment");
+    expectRuleError(
+      () => play(start, "judge", "finalJudgment", { targetId: "rival", sacrificeUids: [] }),
+      "NO_SACRIFICE",
+    );
   });
 });
 
@@ -173,7 +212,7 @@ describe("Zarek's cards", () => {
     const opened = send(game, { type: "placeVoid", playerId: "zarek", index: 0, tile: 30 });
     const armed = readyAbility(holding(opened.state, "zarek", "riftCall"), "judge");
     const { state, events } = play(armed, "zarek", "riftCall", { targetId: "judge" });
-    expect(playerOf(state, "judge")).toMatchObject({ position: 45, abilityCharge: 0 });
+    expect(playerOf(state, "judge")).toMatchObject({ position: 45, abilityCharge: VERDICT_CHARGE });
     expect(playerOf(state, "zarek").position).toBe(5);
     expect(eventsOfType(events, "verdictPassed")).toHaveLength(1);
   });

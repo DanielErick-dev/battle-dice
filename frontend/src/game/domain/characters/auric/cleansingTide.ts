@@ -26,6 +26,7 @@ export function cleansingTide(draft: Draft, playerId: PlayerId): void {
     ...draft.enchantedTiles.map((enchanted) => enchanted.tile),
     ...draft.specters.map((specter) => specter.tile),
     ...draft.seals.map((seal) => seal.tile),
+    ...draft.voidScars.map((scar) => scar.tile),
     ...draft.pinnedTraps,
   ].filter(swept);
   for (const tile of draft.pinnedTraps.filter(swept)) {
@@ -38,6 +39,7 @@ export function cleansingTide(draft: Draft, playerId: PlayerId): void {
   draft.enchantedTiles = draft.enchantedTiles.filter((enchanted) => !swept(enchanted.tile));
   draft.specters = draft.specters.filter((specter) => !swept(specter.tile));
   draft.seals = draft.seals.filter((seal) => !swept(seal.tile));
+  draft.voidScars = draft.voidScars.filter((scar) => !swept(scar.tile));
   draft.pinnedTraps = draft.pinnedTraps.filter((tile) => !swept(tile));
   draft.events.push({ type: "boardCleansed", playerId, reach: path, tiles: [...new Set(tiles)] });
 }

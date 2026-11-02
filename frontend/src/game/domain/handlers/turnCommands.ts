@@ -9,7 +9,7 @@ import type { GameEvent } from "../core/events";
 import { resolveLanding } from "../board/landing";
 import { CROWN_BONUS } from "../characters/seraphiel/seraph";
 import { crossSpecters } from "../characters/warden/specters";
-import { senseHiddenTraps } from "../characters/themis/verdict";
+import { CONTAINED_DIE, containedFace } from "../characters/themis/cards";
 import { closeRifts } from "../characters/zarek/void";
 import type { DiceBoost, PlayerId } from "../types";
 import { openingState } from "./setup";
@@ -23,6 +23,9 @@ export const turnCommands: CommandHandlers<"rollDice" | "restart"> = {
     const player = playerIn(draft, playerId);
 
     const { diceBonuses } = player;
+    // Under Themis's Containment Decree the die never shows more than CONTAINED_DIE.
+    const contained = player.containedRolls > 0;
+    const rollDie = contained ? () => containedFace(deps.rollDice()) : deps.rollDice;
     const rolled = throwDice(
       playerId,
       player.diceBoost,
@@ -34,9 +37,11 @@ export const turnCommands: CommandHandlers<"rollDice" | "restart"> = {
           (player.crown ? CROWN_BONUS : 0),
         multiplier: rollMultiplier(state.abilityInUse),
       },
-      deps.rollDice,
+      rollDie,
+      contained,
     );
-    updatePlayer(draft, playerId, () => ({
+    updatePlayer(draft, playerId, (current) => ({
+      containedRolls: Math.max(0, current.containedRolls - 1),
       diceBoost: null, // every boost is spent by a single roll
       diceBonuses: diceBonuses.filter(({ rolls }) => rolls > 1).map((bonus) => ({ ...bonus, rolls: bonus.rolls - 1 })),
     }));
@@ -55,7 +60,6 @@ export const turnCommands: CommandHandlers<"rollDice" | "restart"> = {
       walkTrampling(draft, playerId, path, dash);
     }
     crossSpecters(draft, playerId, path);
-    if (!reversed) senseHiddenTraps(draft, playerId, path);
     resolveLanding(draft, playerId, path.at(-1) ?? player.position);
     unpinPassed(draft, path);
 
@@ -77,8 +81,11 @@ function throwDice(
   boost: DiceBoost | null,
   ability: { extra: number; multiplier: number },
   rollDie: DiceRoller,
+  contained: boolean,
 ): DiceRolledEvent {
-  const thrown = throwBoostedDice(playerId, boost, rollDie);
+  const fixed =
+    boost?.kind === "fixed" && contained ? { ...boost, value: Math.min(boost.value, CONTAINED_DIE) } : boost;
+  const thrown = throwBoostedDice(playerId, fixed, rollDie);
   const { extra, multiplier } = ability;
   const event = extra === 0 ? thrown : { ...thrown, value: thrown.value + extra, bonus: (thrown.bonus ?? 0) + extra };
   return multiplier === 1 ? event : { ...event, value: event.value * multiplier, multiplier };

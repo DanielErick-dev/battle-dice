@@ -5,6 +5,7 @@ import { FLAME_PUSH, SUSANOO_PUSH } from "@/game/domain/characters/kage/flames";
 import { PLUNDER_CARDS } from "@/game/domain/characters/warden/specters";
 import { RUIN_PUSH, SOLO_RUIN_ADVANCE } from "@/game/domain/characters/scribe/seals";
 import { ABILITY_TEXT } from "../abilityText";
+import { MARKS_TO_JUDGE } from "@/game/domain/characters/themis/verdict";
 import { voidItemName } from "../voidText";
 import { CARD_TEXT } from "../cards/cardText";
 import { BLESSING_TEXT, blessingDuration } from "../blessingText";
@@ -64,7 +65,7 @@ const COPY: Record<
   voidSeized: {
     title: "O VAZIO TOMOU!",
     tone: "text-violet-300",
-    subtitle: (effect, name) => `${name} tomou ${voidName(effect)} para o Vazio`,
+    subtitle: (effect, name) => `${name} absorveu ${voidName(effect)}: a casa virou armadilha roxa`,
   },
   voidEchoed: {
     title: "ECO DO VAZIO!",
@@ -74,8 +75,8 @@ const COPY: Record<
   snowDrained: {
     title: "PRESO NA NEVE",
     tone: "text-sky-200",
-    subtitle: ({ count }, name) =>
-      count ? `${name} perde ${count} de energia para a fada` : `${name} não tem energia para a fada sugar`,
+    subtitle: ({ count, drainedBy }, name) =>
+      count ? `${name} perde ${count} de energia para ${drainedBy}` : `${name} não tem energia para ${drainedBy} sugar`,
   },
   trapBlocked: { title: "BLOQUEADO!", tone: "text-cyan-200", subtitle: blockedSubtitle },
   trapCurse: { title: "MALDIÇÃO!", tone: "text-fuchsia-400", subtitle: curseSubtitle },
@@ -140,28 +141,44 @@ const COPY: Record<
   },
   verdict: {
     title: "VEREDITO!",
-    tone: "text-blue-300",
+    tone: "text-amber-300",
     subtitle: ({ verdict }, name) => {
       const thrown = verdict?.cardId
         ? CARD_TEXT[verdict.cardId].name
         : verdict?.ability
           ? ABILITY_TEXT[verdict.ability].name
           : "o ataque";
-      return `${verdict?.judgeName ?? ""} julgou ${name}: ${thrown} se volta contra quem mirou`;
+      const judge = verdict?.judgeName ?? "";
+      if (verdict?.defendedName)
+        return `${name} já estava marcado: ${thrown} contra ${verdict.defendedName} foi para ${judge} e volta dobrado`;
+      return `${judge} julgou ${name}: ${thrown} volta dobrado contra quem mirou`;
     },
   },
-  disarmed: {
-    title: "ARMADILHA DESARMADA!",
-    tone: "text-blue-200",
-    subtitle: ({ energyGained }) =>
-      energyGained
-        ? `A Balança Cega a sentiu: +${energyGained} de energia`
-        : "A Balança Cega a sentiu (energia no máximo)",
+  marked: {
+    title: "MARCA DA JUSTIÇA!",
+    tone: "text-amber-300",
+    subtitle: ({ count = 0 }, name) =>
+      count === 0
+        ? `${name} escapou do julgamento: as marcas se apagaram`
+        : count < MARKS_TO_JUDGE
+          ? `${name} foi marcado (${count} de ${MARKS_TO_JUDGE})`
+          : `${name} tem ${count} marcas: o próximo ataque dele vai a julgamento`,
   },
-  weighed: {
-    title: "BALANÇA DA JUSTIÇA!",
-    tone: "text-blue-300",
-    subtitle: ({ count }, name) => `As energias foram pesadas: ${name} fica com ${count ?? 0}`,
+  marched: {
+    title: "JUSTIÇA CEGA!",
+    tone: "text-amber-200",
+    subtitle: ({ count }) => `Todos andam ${count ?? 0} casas, um depois do outro`,
+  },
+  decree: {
+    title: "DECRETO DE CONTENÇÃO!",
+    tone: "text-stone-200",
+    subtitle: ({ count }) => `Nas próximas ${count ?? 0} rolagens, o dado dos oponentes não passa de 3`,
+  },
+  judgment: {
+    title: "JULGAMENTO FINAL!",
+    tone: "text-amber-300",
+    subtitle: ({ count, judgment }, name) =>
+      `Dado da Justiça: ${judgment?.die ?? 0} · ${name} avança ${count ?? 0} casas`,
   },
   dragged: {
     title: "ARRASTADO AO INFERNO!",

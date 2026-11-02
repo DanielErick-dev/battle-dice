@@ -28,6 +28,8 @@ export interface FrozenTile {
   position: Vec3;
   /** The slab it covers (see BoardLayout.slab). */
   outline: SlabOutline;
+  /** 0 fresh, towards 1 as hell's fire melts it away. */
+  melt?: number;
 }
 
 /**
@@ -85,9 +87,10 @@ export function WinterIce({
   const covers = useMemo(() => {
     if (tiles.length === 0) return null;
     return mergeGeometries(
-      tiles.map(({ outline, position: [x, y, z] }) =>
-        slabBody(outline, COVER_HEIGHT, 0.04, COVER_GROW).translate(x, y + TILE_TOP + COVER_Y - COVER_HEIGHT / 2, z),
-      ),
+      tiles.map(({ outline, position: [x, y, z], melt = 0 }) => {
+        const height = COVER_HEIGHT * (1 - melt * 0.8);
+        return slabBody(outline, height, 0.04, COVER_GROW).translate(x, y + TILE_TOP + COVER_Y - height / 2, z);
+      }),
     );
   }, [tiles]);
   useEffect(() => () => covers?.dispose(), [covers]);
@@ -110,12 +113,13 @@ export function WinterIce({
     if (settled.current) return;
     const now = clock.elapsedTime;
     let growing = false;
-    tiles.forEach(({ tile, position: [x, y, z] }, index) => {
+    tiles.forEach(({ tile, position: [x, y, z], melt = 0 }, index) => {
       // Already frozen when the board first shows (a reload mid-winter): no snowing in.
       if (!born.current.has(tile)) born.current.set(tile, primed.current ? now : -1);
       const start = born.current.get(tile)!;
-      const rise = start < 0 ? 1 : Math.min(1, 0.05 + ((now - start) / GROW_SECONDS) * 0.95);
-      if (rise < 1) growing = true;
+      const grown = start < 0 ? 1 : Math.min(1, 0.05 + ((now - start) / GROW_SECONDS) * 0.95);
+      const rise = grown * (1 - melt * 0.85);
+      if (grown < 1) growing = true;
       const top = y + TILE_TOP;
 
       DRIFTS.forEach(({ x: dx, z: dz, radius }, drift) => {

@@ -118,13 +118,15 @@ export function withRiftPositions(layout: BoardLayout, board: Board): BoardLayou
     const end = to === null ? start : layout.position(to);
     const [dx, dz] = [end[0] - start[0], end[2] - start[2]];
     const length = Math.hypot(dx, dz) || 1;
+    // A tile apart along the road, centred on the gap, so a run never squeezes into one tile's room.
     run.forEach((id, index) => {
-      const along = (index + 1) / (run.length + 1);
-      const bulge = RIFT_OFFSET * (run.length > 1 ? 0.6 + Math.sin(along * Math.PI) * 0.6 : 1);
+      const along = length / 2 + (index - (run.length - 1) / 2) * TILE_PITCH;
+      const arc = run.length > 1 ? Math.sin(((index + 1) / (run.length + 1)) * Math.PI) * 0.3 : 0;
+      const bulge = RIFT_OFFSET * (1 + arc);
       rifts.set(id, [
-        start[0] + dx * along - (dz / length) * bulge,
+        start[0] + (dx / length) * along - (dz / length) * bulge,
         (start[1] + end[1]) / 2,
-        start[2] + dz * along + (dx / length) * bulge,
+        start[2] + (dz / length) * along + (dx / length) * bulge,
       ]);
     });
   }

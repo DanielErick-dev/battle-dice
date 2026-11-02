@@ -2,8 +2,8 @@ import type { AbilityPower } from "../../abilities/ability";
 import { GameRuleError } from "../../core/errors";
 import { opponentsInSpace } from "../../board/reach";
 import { playerIn, updatePlayer, type Draft } from "../../core/draft";
-import { aimWard } from "../../core/playerStatus";
-import { passVerdict, verdictArmed } from "../themis/verdict";
+import { aimAbility } from "../../abilities/aim";
+import { VERDICT_MULTIPLIER } from "../themis/verdict";
 import type { Board, Player, PlayerId } from "../../types";
 
 export const TIME_ROUNDS = 2;
@@ -23,15 +23,11 @@ export function timeWarp(draft: Draft, playerId: PlayerId, power?: AbilityPower,
   }
   const target = targets.find((candidate) => candidate.id === targetId);
   if (!target || (power !== "halt" && power !== "reverse")) throw new GameRuleError("INVALID_TARGET");
-  const ward = aimWard(target);
-  if (ward) {
-    draft.events.push({ type: "abilityBlocked", playerId, targetId: target.id, ability: "timeWarp", ward });
-    return;
-  }
+  const aim = aimAbility(draft, playerId, target, "timeWarp");
+  if (!aim) return;
   // Themis's verdict bends Cronos's own time instead.
-  if (verdictArmed(target)) {
-    passVerdict(draft, target.id, playerId, { ability: "timeWarp" });
-    bendTime(draft, target.id, playerId, power);
+  if (aim.turned) {
+    bendTime(draft, aim.by, aim.at, power, TIME_ROUNDS * VERDICT_MULTIPLIER);
     return;
   }
   bendTime(draft, playerId, target.id, power);
@@ -39,11 +35,15 @@ export function timeWarp(draft: Draft, playerId: PlayerId, power?: AbilityPower,
   updatePlayer(draft, playerId, () => ({ chargeHeld: TIME_ROUNDS }));
 }
 
-function bendTime(draft: Draft, playerId: PlayerId, targetId: PlayerId, power: "halt" | "reverse"): void {
+function bendTime(
+  draft: Draft,
+  playerId: PlayerId,
+  targetId: PlayerId,
+  power: "halt" | "reverse",
+  rounds = TIME_ROUNDS,
+): void {
   updatePlayer(draft, targetId, (player) =>
-    power === "halt"
-      ? { skipTurns: player.skipTurns + TIME_ROUNDS }
-      : { reversedRolls: player.reversedRolls + TIME_ROUNDS },
+    power === "halt" ? { skipTurns: player.skipTurns + rounds } : { reversedRolls: player.reversedRolls + rounds },
   );
-  draft.events.push({ type: "timeBent", playerId, targetId, power, rounds: TIME_ROUNDS });
+  draft.events.push({ type: "timeBent", playerId, targetId, power, rounds });
 }

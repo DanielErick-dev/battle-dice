@@ -45,13 +45,7 @@ export function VoidSurge({ position, inward }: { position: Vec3; inward: boolea
       </group>
       <mesh ref={column} position-y={1.1}>
         <cylinderGeometry args={[TILE_SIZE * 0.4, TILE_SIZE * 0.55, 2.2, 24, 1, true]} />
-        <meshBasicMaterial
-          ref={columnMaterial}
-          color={VOID_BLACK}
-          transparent
-          depthWrite={false}
-          side={DoubleSide}
-        />
+        <meshBasicMaterial ref={columnMaterial} color={VOID_BLACK} transparent depthWrite={false} side={DoubleSide} />
       </mesh>
       <Sparkles
         count={40}
@@ -64,13 +58,7 @@ export function VoidSurge({ position, inward }: { position: Vec3; inward: boolea
       {/* A glow on the ground instead of a light: adding lights recompiles every material and stalls the game. */}
       <mesh rotation-x={-Math.PI / 2} position-y={-0.01}>
         <circleGeometry args={[TILE_SIZE * 1.6, 40]} />
-        <meshBasicMaterial
-          ref={glow}
-          color={VOID_BLACK}
-          transparent
-          opacity={0}
-          depthWrite={false}
-        />
+        <meshBasicMaterial ref={glow} color={VOID_BLACK} transparent opacity={0} depthWrite={false} />
       </mesh>
     </group>
   );

@@ -24,6 +24,7 @@ export type GameErrorCode =
   | "EMPTY_HAND"
   | "EMPTY_DISCARD"
   | "HAND_FULL"
+  | "NO_CARDS_LEFT"
   | "TOO_MANY_CARDS"
   | "INVALID_SEALS"
   | "SILENCED"
@@ -39,7 +40,9 @@ export type GameErrorCode =
   | "INVALID_VOID"
   | "VOID_EMPTY"
   | "NO_HARM_AHEAD"
-  | "NOT_YOUR_CARD";
+  | "NOT_YOUR_CARD"
+  | "NO_SACRIFICE"
+  | "INVALID_SACRIFICE";
 
 export class GameRuleError extends Error {
   constructor(readonly code: GameErrorCode) {

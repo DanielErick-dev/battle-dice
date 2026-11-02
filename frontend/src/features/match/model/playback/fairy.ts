@@ -25,7 +25,14 @@ export const fairySteps: StepHandlers<
           const tile = fed.players.find((player) => player.id === event.playerId)?.position ?? 0;
           return {
             ...fed,
-            effect: { kind: "snowDrained", playerId: event.playerId, from: tile, to: tile, count: event.energy },
+            effect: {
+              kind: "snowDrained",
+              playerId: event.playerId,
+              from: tile,
+              to: tile,
+              count: event.energy,
+              drainedBy: fed.players.find((player) => player.id === event.owner)?.name ?? "",
+            },
           };
         },
         durationMs: timings.noticeMs,

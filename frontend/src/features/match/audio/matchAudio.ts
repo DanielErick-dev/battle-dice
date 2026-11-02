@@ -58,8 +58,13 @@ const EFFECT_SOUNDS: Record<TileEffectKind, (sounds: MatchSounds, effect: TileEf
     sounds.shieldBlock();
     sounds.thunder(0.9);
   },
-  disarmed: (sounds) => sounds.bonus(),
-  weighed: (sounds) => sounds.penalty(),
+  marked: (sounds) => sounds.shieldBlock(),
+  marched: (sounds) => sounds.boost(),
+  decree: (sounds) => sounds.penalty(),
+  judgment: (sounds) => {
+    sounds.thunder(0.7);
+    sounds.powerUp();
+  },
   gamble: (sounds, effect) => (effect.gamble?.won ? sounds.bonus() : sounds.penalty()),
   // Breaking one's own seal (alone on the board) pays out; anyone else's strikes.
   seal: (sounds, effect) => (effect.seal?.owner === effect.playerId ? sounds.bonus() : sounds.trap()),

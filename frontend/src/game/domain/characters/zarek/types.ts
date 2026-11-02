@@ -12,6 +12,14 @@ export type VoidItem =
 export type VoidHarm = Extract<VoidItem, { kind: "trap" | "curse" | "skipTurn" }>;
 export type VoidSpell = Exclude<VoidItem, VoidHarm>;
 
+/** A tile marked by the Void: the harm strikes everyone but its owner (left where a spell was taken, or set in hell). */
+export interface VoidScar {
+  tile: TileId;
+  owner: PlayerId;
+  harm: VoidHarm;
+  doubled: boolean;
+}
+
 export type ZarekEvent =
   /** Zarek's Void took the harm on `tile` in (a `hidden` trap leaves the board): the tile is harmless for good. */
   | { type: "voidSwallowed"; playerId: PlayerId; tile: TileId; item: VoidItem; hidden: boolean }

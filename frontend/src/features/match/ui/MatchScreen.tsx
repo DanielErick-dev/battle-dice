@@ -297,6 +297,7 @@ function Match({ preset, mapId, roster, chargedAbilities, audio }: MatchProps) {
                 lastDrawnUid={view.lastDrawnUid}
                 onPlay={store.playCard}
                 onFuse={canRoll(view) ? store.fuseCards : null}
+                onSacrifice={canRoll(view) ? store.sacrificeEnergy : null}
                 status={
                   <>
                     <AbilityMeter

@@ -5,8 +5,7 @@ import { giveCard } from "../../cards/hand";
 import { playerIn, updatePlayer, type Draft } from "../../core/draft";
 import { grantBlessing, TIMED_BLESSINGS } from "../../board/blessings";
 import { blastTrapsAhead } from "../../board/traps";
-import { aimWard } from "../../core/playerStatus";
-import { passVerdict, verdictArmed } from "../themis/verdict";
+import { aimAbility } from "../../abilities/aim";
 import type { Board, TileId, TimedBlessing } from "../../board/types";
 import type { Player, PlayerId } from "../../core/state";
 
@@ -100,18 +99,8 @@ export function hellsDrag(draft: Draft, playerId: PlayerId, targetId: PlayerId |
   const target = targets.find((candidate) => candidate.id === targetId);
   const hell = board.tracks.find((track) => track.realm === "infernal");
   if (!target || !hell) throw new GameRuleError("INVALID_TARGET");
-  const ward = aimWard(target);
-  if (ward) {
-    draft.events.push({ type: "abilityBlocked", playerId, targetId: target.id, ability: "hellsDrag", ward });
-    return;
-  }
-  if (verdictArmed(target)) {
-    passVerdict(draft, target.id, playerId, { ability: "hellsDrag" });
-    dragIntoHell(draft, target.id, playerId);
-    return;
-  }
-
-  dragIntoHell(draft, playerId, target.id);
+  const aim = aimAbility(draft, playerId, target, "hellsDrag");
+  if (aim) dragIntoHell(draft, aim.by, aim.at);
 }
 
 /** Hell's Drag and the Call of the Abyss: its way in and out is the very tile they were taken from. */

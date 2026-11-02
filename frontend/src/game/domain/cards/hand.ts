@@ -1,10 +1,13 @@
 import { playerIn, updatePlayer, type Draft } from "../core/draft";
 import { shuffle } from "../core/random";
 import { throwOnPile } from "./decks";
+import { GameRuleError } from "../core/errors";
 import type { CardInstance, PlayerId } from "@/game/domain/types";
 
 export const HAND_LIMIT = 8;
 export const STARTING_HAND = 6;
+/** Energy given up for a card off the deck, so hands don't run dry late in the race. */
+export const SACRIFICE_ENERGY = 5;
 
 /** An empty deck is first rebuilt from the shuffled discard pile. */
 export function drawCard(draft: Draft, playerId: PlayerId): void {
@@ -14,6 +17,17 @@ export function drawCard(draft: Draft, playerId: PlayerId): void {
   if (!card) return;
   updatePlayer(draft, playerId, () => ({ deck }));
   giveCard(draft, playerId, card);
+}
+
+/** Energy for a card: never into a discard prompt, and only while the deck or discard pile has one. */
+export function sacrificeEnergy(draft: Draft, playerId: PlayerId): void {
+  const { energy, hand, deck, discard } = playerIn(draft, playerId);
+  if (energy < SACRIFICE_ENERGY) throw new GameRuleError("NOT_ENOUGH_ENERGY");
+  if (hand.length >= HAND_LIMIT) throw new GameRuleError("HAND_FULL");
+  if (deck.length === 0 && discard.length === 0) throw new GameRuleError("NO_CARDS_LEFT");
+  updatePlayer(draft, playerId, (player) => ({ energy: player.energy - SACRIFICE_ENERGY }));
+  draft.events.push({ type: "energySacrificed", playerId, energy: SACRIFICE_ENERGY });
+  drawCard(draft, playerId);
 }
 
 /** A full hand queues the card as overflow, so none is ever lost without the player's choice. */

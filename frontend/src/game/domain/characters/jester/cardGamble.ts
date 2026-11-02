@@ -7,7 +7,7 @@ import { conjureCard, drawCard, handOverCards } from "../../cards/hand";
 import { playerIn, updatePlayer, type Draft } from "../../core/draft";
 import { GameRuleError } from "../../core/errors";
 import { aimWard } from "../../core/playerStatus";
-import { passVerdict, verdictArmed } from "../themis/verdict";
+import { VERDICT_MULTIPLIER, judgeAim } from "../themis/verdict";
 import type { Board } from "../../board/types";
 import type { CardInstance, Player, PlayerId } from "../../core/state";
 
@@ -72,10 +72,9 @@ export function playCardGamble(
     const holding = reachable.filter((opponent) => opponent.hand.length > 0);
     const withEpics = holding.filter((opponent) => opponent.hand.some(isEpic));
     const victim = chosen ?? pick(draft, jackpot && withEpics.length > 0 ? withEpics : holding);
-    if (victim && verdictArmed(victim)) {
-      passVerdict(draft, victim.id, playerId, { ability: "cardGamble" });
-      moveCards(draft, playerId, victim.id, CARD_GAMBLE_STOLEN, jackpot);
-    } else if (victim) moveCards(draft, victim.id, playerId, CARD_GAMBLE_STOLEN, jackpot);
+    const judgeId = victim && judgeAim(draft, playerId, victim.id, { ability: "cardGamble" });
+    if (judgeId) moveCards(draft, playerId, judgeId, CARD_GAMBLE_STOLEN * VERDICT_MULTIPLIER, jackpot);
+    else if (victim) moveCards(draft, victim.id, playerId, CARD_GAMBLE_STOLEN, jackpot);
     return;
   }
   const taker = chosen ?? pick(draft, reachable);

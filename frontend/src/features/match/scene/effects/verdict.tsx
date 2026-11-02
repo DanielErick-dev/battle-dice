@@ -1,13 +1,21 @@
-/** Themis: the sword in her hand and the Silent Verdict's giant one. */
+/** Themis: the sword in her hand, the marks she hands out and the Silent Verdict's giant scale. */
 import type { Object3D } from "three";
 import { TILE_HEIGHT } from "../boardLayout";
 import { EFFECT_SCALE } from "../character/core/figure";
 import { JusticeSword } from "../character/themis/JusticeSword";
+import { JusticeMarkRing } from "../character/themis/JusticeMarkRing";
 import { VerdictScale } from "../character/themis/VerdictScale";
 import type { BoardFx, TokenFx } from "./types";
 
 export function HeldSword({ token, figure }: { token: TokenFx; figure: Object3D }) {
-  return token.character?.holdsSword && <JusticeSword figure={figure} />;
+  // Wrapped head to toe in the fairy's snow, the sword would poke out of it.
+  const buried = (token.player.snowbound?.rounds ?? 0) >= 2;
+  return token.character?.holdsSword && !buried && <JusticeSword figure={figure} />;
+}
+
+export function JusticeMark({ token }: { token: TokenFx }) {
+  const { justiceMarks } = token.player;
+  return justiceMarks > 0 && <JusticeMarkRing marks={justiceMarks} />;
 }
 
 /** Stands between the judge and the one judged, its arm pointing at them. */

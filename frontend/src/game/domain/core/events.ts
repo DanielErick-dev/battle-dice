@@ -67,8 +67,8 @@ export type TurnEvent =
       path: readonly TileId[];
     }
   | { type: "extraTurnGranted"; playerId: PlayerId; tile: TileId }
-  /** `turns` when more than one (a doubled rift). */
-  | { type: "skipTurnGained"; playerId: PlayerId; tile: TileId; turns?: number }
+  /** `turns` when more than one (a doubled rift); `by` when an opponent's card or turned verdict did it. */
+  | { type: "skipTurnGained"; playerId: PlayerId; tile: TileId; turns?: number; by?: PlayerId }
   | { type: "turnSkipped"; playerId: PlayerId }
   | { type: "playerWon"; playerId: PlayerId }
   | { type: "turnChanged"; playerId: PlayerId }

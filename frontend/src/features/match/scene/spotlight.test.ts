@@ -34,6 +34,11 @@ describe("the camera's spotlight", () => {
     expect(spotlightOf(viewWith({ fx: { trample: { ...trample, susanoo: true } } as never }))).toBeNull();
   });
 
+  it("films whoever a card made lose a turn, but not a lost-turn tile", () => {
+    expect(spotlightOf(viewWith({ effect: { ...effect("skipTurn", "p1"), aimed: true } }))?.playerId).toBe("p1");
+    expect(spotlightOf(viewWith({ effect: effect("skipTurn", "p1") }))).toBeNull();
+  });
+
   it("leaves the camera alone for moves that aren't a figure's own", () => {
     expect(spotlightOf(viewWith({ effect: effect("trap", "p1") }))).toBeNull();
   });

@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { createBoard } from "@/game/domain/board/board";
 import { POWER_TOURNAMENT_BOARD, TRAINING_BOARD } from "@/game/domain/board/presets";
-import { createBoardLayout, startSlot, TILE_PITCH, TILE_SIZE } from "./boardLayout";
+import { createBoard, linkRift } from "@/game/domain/board/board";
+import { openRift, riftsOf, withRifts } from "@/game/domain/characters/zarek/void";
+import type { Board, TileId } from "@/game/domain/types";
+import { createBoardLayout, startSlot, TILE_PITCH, TILE_SIZE, withRiftPositions } from "./boardLayout";
 
 describe("the winding trail", () => {
   for (const [name, definition, columns] of [
@@ -40,5 +42,28 @@ describe("the start plaza", () => {
     const [backAlong, backAcross] = startSlot(4, 6);
     expect(backAlong).toBeLessThan(frontAlong);
     expect(backAcross).toBeGreaterThan(0);
+  });
+});
+
+describe("Zarek's rifts", () => {
+  const trap = { kind: "trap", back: 4 } as const;
+  const open = (board: Board, after: TileId) => linkRift(board, openRift(board, after, "zarek", trap, false));
+
+  it("spreads rifts opened at the same spot, so none sits on another", () => {
+    const plain = createBoard(TRAINING_BOARD);
+    for (const anchors of [
+      [10, 10],
+      [10, 10, 10],
+    ]) {
+      const board = anchors.reduce(open, plain);
+      const rifted = withRifts(plain, riftsOf(board));
+      const layout = withRiftPositions(createBoardLayout(rifted, 5), rifted);
+      const rifts = riftsOf(rifted).map(({ id }) => layout.position(id));
+      const neighbours = [layout.position(10), layout.position(11)];
+      rifts.forEach(([x, , z], index) => {
+        for (const [ox, , oz] of [...rifts.slice(index + 1), ...neighbours])
+          expect(Math.hypot(x - ox, z - oz)).toBeGreaterThan(TILE_SIZE * 0.9);
+      });
+    }
   });
 });

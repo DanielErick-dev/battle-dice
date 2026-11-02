@@ -1,3 +1,4 @@
+import { CONTAINED_DIE } from "@/game/domain/characters/themis/cards";
 import { Layers, Sparkles } from "lucide-react";
 import { abilityCycle, isAbilityReady } from "@/game/domain/abilities/charge";
 import { getTile, trackOf } from "@/game/domain/board/board";
@@ -67,6 +68,22 @@ export function PlayersPanel({ players, activePlayerId, board }: PlayersPanelPro
                   <span className="rounded-full bg-amber-500/20 px-1.5 text-[9px] font-bold text-amber-300 uppercase">
                     Tempo invertido
                     {player.reversedRolls > 1 && ` ×${player.reversedRolls}`}
+                  </span>
+                )}
+                {player.justiceMarks > 0 && (
+                  <span
+                    title="Marca da Justiça: o próximo ataque dele pode ir para o Veredito da Têmis"
+                    className="rounded-full bg-amber-400/20 px-1.5 text-[9px] font-bold text-amber-200 uppercase"
+                  >
+                    ⚖ Marcado{player.justiceMarks > 1 && ` ×${player.justiceMarks}`}
+                  </span>
+                )}
+                {player.containedRolls > 0 && (
+                  <span
+                    title={`Decreto de Contenção: o dado não passa de ${CONTAINED_DIE}`}
+                    className="rounded-full bg-stone-400/20 px-1.5 text-[9px] font-bold text-stone-200 uppercase"
+                  >
+                    Dado ≤{CONTAINED_DIE} ×{player.containedRolls}
                   </span>
                 )}
                 {track ? (

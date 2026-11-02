@@ -1,7 +1,7 @@
 /** Crystal Fairy: her wand and snow, the tiles she enchants and the Eternal Winter. */
 import { useMemo } from "react";
 import { Vector3, type Object3D } from "three";
-import { frozenTiles } from "@/game/domain/characters/fairy/winter";
+import { HELL_ICE_ROUNDS, frozenTiles } from "@/game/domain/characters/fairy/winter";
 import type { PlayerId } from "@/game/domain/types";
 import { playerColor } from "../../characters";
 import type { MatchView } from "../../model/matchView";
@@ -45,6 +45,8 @@ export function EnchantedTiles({ fx: { view, layout, shown } }: { fx: BoardFx })
         position={layout.position(tile)}
         outline={layout.slab(tile)?.outline}
         color={playerColor(owner)}
+        // Snow Zarek's Void took over turns violet, so nobody mistakes it for the fairy's.
+        look={view.players.find((player) => player.id === owner)?.ability === "theVoid" ? "void" : "fairy"}
       />
     ));
 }
@@ -53,15 +55,22 @@ export function EnchantedTiles({ fx: { view, layout, shown } }: { fx: BoardFx })
 export function EternalWinter({ fx: { view, board, layout } }: { fx: BoardFx }) {
   const tiles = useMemo(() => {
     const covered = new Set([...view.enchantedTiles, ...view.blackFlames].map(({ tile }) => tile));
+    // Hell's fire eats its ice round by round (see HELL_ICE_ROUNDS): it sinks as it melts.
+    const melting = new Map((view.winter?.melting ?? []).map(({ tile, rounds }) => [tile, rounds / HELL_ICE_ROUNDS]));
     return frozenTiles(view.winter, board.startTile)
       .filter((tile) => !covered.has(tile))
-      .map((tile) => ({ tile, position: layout.position(tile), outline: layout.slab(tile)?.outline ?? SQUARE_SLAB }));
+      .map((tile) => ({
+        tile,
+        position: layout.position(tile),
+        outline: layout.slab(tile)?.outline ?? SQUARE_SLAB,
+        melt: melting.get(tile) ?? 0,
+      }));
   }, [view.winter, view.enchantedTiles, view.blackFlames, board, layout]);
   return (
     <WinterIce
       tiles={tiles}
       color={view.winter ? playerColor(view.winter.owner) : "#7dd3fc"}
-      capacity={board.finishTile}
+      capacity={board.tiles.length}
     />
   );
 }

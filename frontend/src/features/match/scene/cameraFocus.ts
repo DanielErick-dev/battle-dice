@@ -23,7 +23,7 @@ export function focusPoint(view: MatchView, layout: BoardLayout): Vec3 {
   }
   // Themis's verdict is watched on her, the one it protects, not on whoever aimed at her.
   const verdict = view.fx.verdict;
-  if (verdict && (view.effect?.kind === "verdict" || view.effect?.kind === "weighed")) {
+  if (verdict && view.effect?.kind === "verdict") {
     const judge = view.players.find((player) => player.id === verdict.judgeId);
     if (judge) return layout.position(judge.position);
   }

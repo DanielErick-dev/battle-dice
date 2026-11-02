@@ -42,7 +42,14 @@ export const cardsSteps: StepHandlers<
   | "cardTeleported"
   | "cardTransmuted"
   | "cardsResurrected"
+  | "energySacrificed"
 > = {
+  energySacrificed: (event, timings) => [
+    {
+      apply: (view) => withPlayer(view, event.playerId, (player) => ({ energy: player.energy - event.energy })),
+      durationMs: timings.drawMs,
+    },
+  ],
   cardTeleported: (event, timings) => {
     return [
       {

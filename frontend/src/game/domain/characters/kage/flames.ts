@@ -58,6 +58,8 @@ export function raiseArmour(draft: Draft, playerId: PlayerId): void {
 export function scorch(draft: Draft, playerId: PlayerId, tile: TileId): void {
   const flame = draft.blackFlames.find((candidate) => candidate.owner !== playerId && candidate.tile === tile);
   if (!flame || groundSpellsSpare(playerIn(draft, playerId))) return;
+  // Black fire is Kage Rubra's own element: even in Zarek's hands it never burns her.
+  if (playerIn(draft, playerId).ability === "ocularAwakening") return;
   // Fire gets inside a Susanoo: it's the one armour it burns through.
   const victim = playerIn(draft, playerId);
   if (isUntouchable(victim) && !inSusanoo(victim)) {

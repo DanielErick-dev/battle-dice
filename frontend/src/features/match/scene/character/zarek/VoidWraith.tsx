@@ -9,6 +9,7 @@ import { fadingMaterial, preloadProps, Prop, usePropMesh } from "../core/props";
 import { useDisposable } from "../shared/disposal";
 import { VOID_BLACK } from "./voidPalette";
 import { SURGE_SECONDS } from "./VoidSurge";
+import { wraithTrack } from "./wraithTrack";
 
 /** Seconds a wander leg lasts, and of each cycle the Void shows for (it only now and then comes out). */
 const WANDER_SECONDS = 6;
@@ -87,6 +88,8 @@ export function VoidWraith({ roam, call }: VoidWraithProps) {
     const travel = Math.hypot(dx, dz);
     if (travel > 0.05) heading.current += (Math.atan2(dx, dz) - heading.current) * Math.min(1, delta * 2);
     node.position.set(at.x, at.y + TAIL_CLEARANCE + WRAITH_HEIGHT / 2 + Math.sin(time * 1.3) * 0.12, at.z);
+    wraithTrack.position.set(at.x, at.y, at.z);
+    wraithTrack.shown = node.visible;
     node.rotation.set(Math.min(0.25, travel * 0.04), heading.current, Math.sin(time * 0.9) * 0.06, "YXZ");
     const breath = 1 + Math.sin(time * 2.1) * 0.03;
     node.scale.set(breath, 1 / breath, breath);

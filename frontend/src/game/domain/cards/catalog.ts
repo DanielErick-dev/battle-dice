@@ -19,10 +19,11 @@ export type CardId =
   | "heavenlyAegis"
   | "ascension"
   // Themis's own (see characters/themis/cards.ts).
-  | "scalesOfJustice"
-  | "swordOfLaw"
-  | "weightOfGuilt"
-  | "sacredBlindfold"
+  | "blindJustice"
+  | "confiscation"
+  | "justiceMark"
+  | "containmentDecree"
+  | "finalJudgment"
   // Zarek's own.
   | "voidHunger"
   | "hungryRift"
@@ -55,6 +56,10 @@ export interface CardDefinition {
   cost?: number;
   /** A character's own card: one copy in their deck only, playable only by whoever has this ability. */
   exclusive?: AbilityId;
+  /** Other hand cards burnt on top of the energy to play it. */
+  sacrifices?: number;
+  /** Aimed at an opponent without touching them: no ward, Mark of Justice or verdict comes into it. */
+  spares?: boolean;
 }
 
 const card = (
@@ -93,10 +98,18 @@ export const CARD_CATALOG: Readonly<Record<CardId, CardDefinition>> = {
   heavenlyAegis: card("heavenlyAegis", "legendary", { relic: true, cost: 2 }),
   ascension: card("ascension", "legendary", { relic: true, cost: 2 }),
 
-  scalesOfJustice: card("scalesOfJustice", "epic", { exclusive: "silentVerdict", targetsOpponent: true }),
-  swordOfLaw: card("swordOfLaw", "rare", { exclusive: "silentVerdict", targetsOpponent: true }),
-  weightOfGuilt: card("weightOfGuilt", "uncommon", { exclusive: "silentVerdict", targetsOpponent: true }),
-  sacredBlindfold: card("sacredBlindfold", "common", { exclusive: "silentVerdict" }),
+  blindJustice: card("blindJustice", "common", { exclusive: "silentVerdict" }),
+  confiscation: card("confiscation", "uncommon", { exclusive: "silentVerdict", targetsOpponent: true }),
+  justiceMark: card("justiceMark", "uncommon", { exclusive: "silentVerdict" }),
+  containmentDecree: card("containmentDecree", "rare", { exclusive: "silentVerdict", cost: 3 }),
+  // Her trump: a huge leap, paid with energy and another card.
+  finalJudgment: card("finalJudgment", "epic", {
+    exclusive: "silentVerdict",
+    targetsOpponent: true,
+    spares: true,
+    cost: 5,
+    sacrifices: 1,
+  }),
 
   voidHunger: card("voidHunger", "uncommon", { exclusive: "theVoid" }),
   hungryRift: card("hungryRift", "rare", { exclusive: "theVoid" }),

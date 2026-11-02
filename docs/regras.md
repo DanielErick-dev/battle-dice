@@ -44,6 +44,7 @@ Antes de rolar o dado, em qualquer ordem e quantas vezes as regras deixarem:
 1. **Jogar cartas**: **1 carta por vez** (2 com a Conjuração Dupla).
 2. **Usar a habilidade**, se estiver carregada. Usar a habilidade não encerra a vez.
 3. **Fundir cartas** (3 cópias iguais viram 1 carta fundida, ver [Fusão](#fusão)). Fundir é grátis e não conta como a carta da vez.
+4. **Sacrificar energia**: pague **5** de energia e compre **1** carta do seu baralho (o descarte é reembaralhado se ele acabar). Pode repetir enquanto tiver energia; não dá com a mão cheia nem sem nenhuma carta no baralho e no descarte.
 
 Por fim você **rola o dado**: anda, resolve a casa onde parou e a vez passa. **Rolar é o que encerra a vez.** Jogar uma carta ou usar a habilidade nunca encerra.
 
@@ -77,8 +78,8 @@ Energia paga as cartas. Também vem de casas de energia (+2), da Fonte de Luz (+
 
 | Ciclo | Habilidades |
 |---|---|
-| **3** | O Vazio (mais +1 por armadilha disparada, destruída ou presa), Conjuração Dupla, Vento a Favor, Revisão Relâmpago, Bênção do Serafim, Transmutação, Aposta do Coringa |
-| **4** | Veredito Silencioso (reativo, carga secreta) |
+| **3** | Conjuração Dupla, Vento a Favor, Revisão Relâmpago, Bênção do Serafim, Transmutação, Aposta do Coringa |
+| **4** | O Vazio (mais +1 por armadilha disparada, destruída ou presa), Veredito Silencioso (reativo, carga secreta) |
 | **5** | Levitação Carmesim, Fúria Adormecida, Chuva de Flechas, Ressurreição, Escritura dos 4 Selos, Aparições Espectrais, Florescimento Feérico, Maré Purificadora, Indomável, Canhão de Plasma |
 | **6** | Despertar Ocular |
 | **7** | Arrastar ao Inferno, Engrenagem do Tempo |
@@ -146,7 +147,7 @@ Uma jornada longa, gerada por um sorteio de semente fixa: **o tabuleiro é igual
 | Portais | **12**, que alternam inferno e céu (6 + 6). Nenhum antes da casa 25. |
 | Armadilhas | **13** (6 descartam carta, 4 drenam energia, 3 só mandam de volta), cada uma recuando de 5 a 18 casas |
 | Avanços | **12** (de 2 a 5 casas) |
-| Cartas | **20** |
+| Cartas | **27**, mais concentradas do meio para o fim (16 da casa 100 em diante), para a mão não secar no final |
 | Energia | **16** |
 | Habilidade | **7** |
 | Vez extra | **7** |
@@ -273,18 +274,19 @@ Cartas de **mira** escolhem um oponente no mesmo lugar (caminho principal ou o m
 
 ### Cartas exclusivas
 
-Cada personagem tem **4 cartas próprias**, embaralhadas só no baralho de quem o escolheu (1 cópia de cada). Só o dono as joga: roubadas, ficam mortas na mão de quem pegou. Não saem da Transmutação nem do jackpot da Aposta, e não se fundem. A lista completa (e as propostas dos outros personagens) está em [cartas-exclusivas.md](cartas-exclusivas.md).
+Cada personagem tem **5 cartas próprias** (a Têmis já tem as 5; o Zarek ainda está com 4), embaralhadas só no baralho de quem o escolheu (1 cópia de cada). Só o dono as joga: roubadas, ficam mortas na mão de quem pegou. Não saem da Transmutação nem do jackpot da Aposta, e não se fundem. A lista completa (e as propostas dos outros personagens) está em [cartas-exclusivas.md](cartas-exclusivas.md).
 
 | Carta | Dono | Raridade | Custo | Efeito |
 |---|---|---|---|---|
-| **Balança da Justiça** | Têmis | Épica | 3 | Mira: soma a energia dela com a do oponente e divide igual (a sobra fica com ela). |
-| **Espada da Lei** | Têmis | Rara | 2 | Mira: empurra **4** casas, ou **8** se o oponente estiver à frente dela. |
-| **Peso da Culpa** | Têmis | Incomum | 2 | Mira: o oponente descarta **2** cartas ao acaso. |
-| **Venda Sagrada** | Têmis | Comum | 1 | Desarma as armadilhas escondidas nas próximas **12** casas (+1 de energia cada). |
+| **Justiça Cega** | Têmis | Comum | 1 | Todos andam **4** casas, um depois do outro (começando por ela, na ordem dos turnos), sem dado e sem ninguém poder jogar carta. A casa onde cada um parar tem efeito (os outros não ganham jogar de novo nem prompt; se alguém cruzar a chegada assim, vence). |
+| **Confisco de Bens** | Têmis | Incomum | 2 | Mira: pega **2** cartas aleatórias da mão do oponente para a dela. |
+| **Marca da Justiça** | Têmis | Incomum | 2 | Todos os oponentes recebem **1** Marca da Justiça. |
+| **Decreto de Contenção** | Têmis | Rara | 3 | Nas próximas **3** rolagens de cada oponente, o dado não passa de **3** (4–6 viram 1–3; a Runa do Destino vale no máximo 3). Bônus somam normalmente. |
+| **Julgamento Final** | Têmis | Épica (Triunfo) | 5 + queimar 1 carta | Mira um oponente (não é ataque: nada bloqueia nem marca). Ela anda (distância entre os dois ÷ **3**, arredondando para cima) × um **Dado da Justiça** (1–6). O alvo fica parado. |
 | **Fome do Vazio** | Zarek | Incomum | 2 | O Vazio ganha **+2** de carga. |
 | **Fenda Faminta** | Zarek | Rara | 2 | O Vazio engole a primeira armadilha, maldição ou "perde a vez" visível nas próximas **15** casas, sem gastar a carga. |
 | **Eco do Vazio** | Zarek | Épica | 3 | A última coisa guardada no Vazio vira duas. |
-| **Chamado da Fenda** | Zarek | Épica | 3 | Mira: puxa o oponente até a fenda do Zarek mais próxima atrás dele, e ela o atinge. Contra a Têmis armada, é só anulada. |
+| **Chamado da Fenda** | Zarek | Épica | 3 | Mira: puxa o oponente até a fenda do Zarek mais próxima atrás dele, e ela o atinge. Se cair no Veredito, é só anulada. |
 
 ### Relíquias do céu
 
@@ -301,15 +303,17 @@ Com **3 cópias** comuns (não fundidas) da mesma carta na mão, você pode fund
 
 | Carta | Fundida | Efeito fundido |
 |---|---|---|
-| Passo do Vento | **Vendaval** | Avance **9** casas |
-| Erva Curativa | **Elixir da Vida** | Energia cheia e cancela as vezes perdidas, a neve e as correntes |
-| Amuleto da Sorte | **Trevo Dourado** | **+10** na próxima rolagem |
-| Escudo Arcano | **Égide Arcana** | Escudo Arcano **e** Armadura Espectral por **2** rodadas |
-| Pergaminho Antigo | **Grimório Proibido** | Compre **5** cartas |
-| Rajada Arcana | **Tempestade Arcana** | Empurre um oponente **15** casas para trás |
+| Passo do Vento | **Vendaval** | Avance **18** casas |
+| Erva Curativa | **Elixir da Vida** | Energia cheia, habilidade **+2** de carga, e cancela as vezes perdidas, a neve e as correntes |
+| Amuleto da Sorte | **Trevo Dourado** | **+12** na próxima rolagem |
+| Escudo Arcano | **Égide Arcana** | Escudo Arcano **e** Armadura Espectral por **4** rodadas |
+| Pergaminho Antigo | **Grimório Proibido** | Compre **6** cartas |
+| Rajada Arcana | **Tempestade Arcana** | Empurre um oponente **30** casas para trás |
 | Luz Celestial | **Aurora Divina** | Energia cheia, habilidade pronta, livre das vezes perdidas e da neve |
-| Égide Celestial | **Santuário Celestial** | Égide por **6** rodadas **e** Escudo Arcano |
+| Égide Celestial | **Santuário Celestial** | Égide por **9** rodadas **e** Escudo Arcano |
 | Ascensão | **Apoteose** | Habilidade pronta e uma vez extra depois desta |
+
+A regra dos números: juntar 3 cartas tem que valer bem mais do que jogar as 3 separadas, mais ou menos o **dobro da soma**.
 
 Só as cartas dessa tabela fundem. O baralho tem 3 cópias de Passo do Vento, Erva e Amuleto, mas só 2 de Escudo, Pergaminho e Rajada: a terceira tem que vir de outro jeito (Transmutação, roubo, Ressurreição).
 
@@ -357,7 +361,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 
 | # | Personagem | Habilidade | Carga |
 |---|---|---|---|
-| 1 | Zarek, o Cavaleiro do Vazio | O Vazio | 3 |
+| 1 | Zarek, o Cavaleiro do Vazio | O Vazio | 4 |
 | 2 | Encantadora Carmesim | Conjuração Dupla | 3 |
 | 3 | Bruxa Carmesim | Levitação Carmesim | 5 |
 | 4 | Alquimista Esmeralda | Transmutação | 3 |
@@ -383,7 +387,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 ### 1. Zarek
 *O Cavaleiro do Vazio*
 
-**Habilidade:** O Vazio · **Carga:** 3 · **Tipo:** reativa (o botão só aparece para "Tomar", ver abaixo)
+**Habilidade:** O Vazio · **Carga:** 4 · **Tipo:** reativa (o botão só aparece para "Absorver", ver abaixo)
 
 **Passiva: o Vazio se alimenta**
 - Cada armadilha em que **qualquer jogador** cai, ou que é **destruída** ou **presa** (Canhão de Plasma, Chuva de Flechas), dá **+1** de carga ao Vazio. O que o próprio Vazio engole não conta.
@@ -394,14 +398,16 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 3. **Recusou:** você sofre normalmente e o Vazio continua pronto.
 
 **Soltar (na sua vez, quantas vezes quiser, sem gastar carga)**
-- Uma **armadilha, maldição ou perde a vez** guardada abre uma **fenda**: uma **casa nova** no caminho, logo depois da casa que você escolher (o tabuleiro fica 1 casa maior). Pode ser em qualquer ponto do caminho principal antes da chegada.
+- Uma **armadilha, maldição ou perde a vez** guardada abre uma **fenda**: uma **casa nova** no caminho, logo depois da casa que você escolher (o tabuleiro fica 1 casa maior). Pode ser em qualquer ponto do caminho principal antes da chegada. Várias fendas no mesmo ponto ficam enfileiradas ao lado da estrada.
+- **No inferno** também dá para soltar: como o trilho não comporta casa nova, o mal **marca uma casa de lá** de roxo (uma marca do Vazio, ver abaixo). Feitiços guardados (neve, fogo, selo, aparição) também pousam no inferno.
+- **No céu, nada:** impureza não entra.
 - Ao abrir, você pode **dobrar a penalidade** pagando **2 de energia**: volta o dobro de casas, a maldição atinge duas vezes, o perde a vez vale 2 rodadas.
 - As **suas fendas nunca te atingem**. Parando numa delas com o Vazio pronto, você pode engoli-la de novo.
 
-**Roubar (botão da habilidade)**
-- Com o Vazio pronto, o botão **rouba** uma casa de outro jogador: **fogo negro, neve, gelo escolhido pela Fada, selo ou aparição** (a carga zera).
-- A casa **fica no lugar e mantém o efeito**, marcada com o selo do Vazio, mas agora é **sua**: a neve te leva 5 casas e prende os outros (dando energia a você), o fogo queima os outros, o selo e a aparição agem a seu favor. O gelo da Fada vira neve sua.
-- **Sem limite** de casas roubadas.
+**Absorver (botão da habilidade)**
+- Com o Vazio pronto e com espaço, o botão **absorve** o feitiço de outro jogador numa casa: **fogo negro, neve, gelo da Fada, selo ou aparição** (a carga zera). Vale no caminho principal e no inferno.
+- O feitiço **sai da casa e vai para o Vazio** (conta no limite de 4). Na sua vez você o **solta onde quiser**, quantos quiser, e ele passa a ser seu. O gelo da Fada entra como neve.
+- A casa de onde ele saiu vira uma **armadilha roxa sua** (marca do Vazio): quem para nela volta **4** casas; ela **nunca te atinge**. O Escudo Arcano a bloqueia; a Maré Purificadora a lava.
 
 **Detalhes e exceções**
 - A pergunta vem **mesmo com o Escudo Arcano erguido**: engolindo, você guarda o escudo.
@@ -630,7 +636,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 5. Quando você para numa casa ocupada, empurra os outros **1** casa para a frente (nunca para a chegada; protegidos ficam).
 
 **Detalhes e exceções**
-- O fogo negro **toma a casa**: enquanto queima, só o fogo existe ali (uma armadilha ou um portal debaixo dele não agem). O seu próprio fogo não te queima.
+- O fogo negro **toma a casa**: enquanto queima, só o fogo existe ali (uma armadilha ou um portal debaixo dele não agem). **Nenhum fogo negro queima a Kage Rubra**, nem o que o Zarek absorveu e soltou: é o elemento dela.
 - Passar pelo fogo não queima: só parar.
 - **Fogo vence neve:** acender sobre a neve da Fada derrete a neve para sempre, e a Fada não consegue nevar sobre o fogo.
 - **Inverno vence fogo:** o gelo do Inverno Eterno apaga o fogo negro onde chega, e não dá para acender fogo no gelo.
@@ -655,10 +661,14 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 **Inverno Eterno**
 - Quando um Florescimento deixa **nenhuma casa ruim à sua frente**, começa o Inverno Eterno (uma vez por partida).
 - A cada rodada, as próximas **6** casas do caminho principal congelam, do início em direção à chegada (a chegada nunca congela).
-- Depois que o Inverno começou, a habilidade muda: em vez de nevar, ela **congela 1 casa à sua escolha** em qualquer ponto do caminho principal (que não esteja congelada ou com neve). Pode ser até uma casa com **fogo negro**: o inverno é superior e apaga o fogo.
+- Depois que o Inverno começou, a habilidade muda: em vez de nevar, ela **congela 1 casa à sua escolha** em qualquer ponto do caminho principal ou **do inferno** (que não esteja congelada ou com neve). Pode ser até uma casa com **fogo negro**: o inverno é superior e apaga o fogo.
+- **Gelo no inferno derrete:** o fogo de lá consome o gelo a cada rodada. Depois de **5** rodadas ele já está meio derretido e só te leva **3** casas (em vez de 5); em **10** rodadas ele some.
 - Uma casa congelada (escolhida ou tomada pelo avanço do gelo) funciona **exatamente como a neve**: você parando nela avança **5** (e encadeia em outra neve ou gelo seu), o oponente fica preso **2 rodadas** sugado como na neve, e sua habilidade ganha **+1** de carga.
 
 **Detalhes e exceções**
+- O **Escudo Arcano** segura a neve: quem para nela com escudo não fica preso, o escudo se gasta e a neve continua lá.
+- Casa de portal coberta de neve (da fada ou roubada pelo Zarek) não é portal enquanto durar: o Portal Místico passa direto para o próximo.
+- A neve que o Zarek tomou fica **roxa** no tabuleiro, para não confundir com a da fada.
 - Passar por cima da neve não conta: só parar.
 - Protegidos e a Bruxa não ficam presos na neve.
 - Sozinha, toda neve é sua.
@@ -690,26 +700,33 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 
 **Habilidade:** Veredito Silencioso · **Carga:** 4 · **Reativa** (não tem botão de usar)
 
-**O que faz**
+**Marca da Justiça**
+- Todo oponente que **mirar** uma carta ou habilidade em alguém ganha **1 marca**, e o ataque acontece normalmente (menos quando mira nela com o Veredito armado: aí ele volta, ver abaixo). As marcas se acumulam.
+- Quem está marcado tem um **anel de runas dourado** girando nos pés (mais rápido e mais forte a cada marca) e o selo "⚖ Marcado ×N" no painel.
+- Contam só os ataques **mirados**: Rajada Arcana, Clarão Ofuscante, Chamado do Abismo, Troca de Destinos, Chamado da Fenda, Distorção Temporal, Arrastar ao Inferno, o roubo da Aposta. Chuva de Flechas, atropelo do Bjorn, selos, aparições, neve, gelo, fogo e fendas não marcam.
+- A Têmis nunca é marcada. Sem a Têmis na partida, ninguém é marcado.
+
+**O que faz o Veredito**
 1. Ao carregar, o veredito **se arma sozinho, em segredo**: os oponentes veem `?` no lugar da carga dela (só aparece na vez dela), e nem banner nem log anunciam que ficou pronto.
-2. Armado, a **próxima** carta ou habilidade que um oponente **mirar nela** é anulada e **se volta contra quem mirou**. O veredito se gasta.
-   - **Rajada Arcana:** quem jogou é que recua.
-   - **Clarão Ofuscante** e **Distorção Temporal:** quem mirou é que perde a vez (ou anda de ré). Como acontece antes de rolar, a vez dele acaba na hora, e ele perde a próxima.
-   - **Chamado do Abismo** e **Arrastar ao Inferno:** quem mirou é que desce ao inferno.
-   - **Aposta do Coringa** (quando ganha): o Coringa é que entrega as cartas para ela.
-   - **Troca de Destinos:** só é anulada (a troca não tem lado para inverter).
+2. Armado, volta **em dobro contra quem atacou**: qualquer ataque mirado **nela** (com ou sem marca), e o ataque de um oponente com **2 marcas** (o 3º ataque dele) contra **qualquer outro jogador**, que vem para ela. O veredito se gasta e as marcas de quem atacou somem.
+   - **Rajada Arcana:** quem jogou é que recua o **dobro** de casas (uma Rajada de 7 vira 14).
+   - **Clarão Ofuscante** e **Distorção Temporal:** quem mirou é que perde **2** vezes (ou anda de ré o dobro de rodadas). Como acontece antes de rolar, a vez dele acaba na hora.
+   - **Chamado do Abismo** e **Arrastar ao Inferno:** quem mirou é que desce ao inferno (não tem como dobrar).
+   - **Aposta do Coringa** (quando ganha): o Coringa é que entrega o **dobro** de cartas para ela.
+   - **Troca de Destinos** e **Chamado da Fenda:** só são anulados.
+3. Contra outro jogador, o 1º e o 2º ataques **passam**, mesmo com o veredito armado: cada um só dá uma marca. O número de marcas necessário fica em `MARKS_TO_JUDGE` (hoje 2).
+4. Cada julgamento **paga a Têmis**: **+2 de energia** e a carga recomeça em **1** (em vez de zero).
+5. Se o 3º ataque chega com ela **desarmada**, ele passa e as marcas do atacante **se apagam**: a contagem recomeça. Dá para fazer estratégia (atacar quando ela acabou de gastar o veredito), e o apagar das marcas acaba revelando que ela estava desarmada.
 
-**Desarmado**, ela sofre tudo normalmente (Clarão, Distorção Temporal, empurrões…).
+**Desarmado**, o ataque passa normalmente e quem atacou ganha mais uma marca.
 
-**Passiva, a Balança Cega**
-- Armadilhas **escondidas** no caminho dela (rolagem, casa de avanço, Passo do Vento) são **desarmadas** para sempre, sem dano, e cada uma dá **+1 de energia**. Desarmar conta como armadilha para o Vazio do Zarek.
+**Passiva:** a própria Marca da Justiça (a Balança Cega foi removida em 01/11/2026).
 
 **Detalhes e exceções**
-- Só dispara com o que é **mirado nela**. Chuva de Flechas, atropelo do Bjorn, selos, aparições, neve, gelo, fogo e as fendas do Zarek seguem normais.
+- O veredito vem **antes** das proteções do alvo: um ataque redirecionado vai para ela mesmo que o alvo original estivesse protegido.
 - As proteções de quem mirou (Indomável, armadura…) não o salvam do veredito.
-- Se ela já estiver protegida (armadura, Égide…), o ataque é só bloqueado e o veredito fica guardado.
 
-> no código: `characters/themis/verdict.ts` (`passVerdict`, `senseHiddenTraps`)
+> no código: `characters/themis/verdict.ts` (`judgeAim`, `markForJustice`), cartas em `characters/themis/cards.ts`
 
 ---
 

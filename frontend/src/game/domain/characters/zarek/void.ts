@@ -7,7 +7,7 @@ import { playerIn, updatePlayer, type Draft } from "../../core/draft";
 import { pushPath } from "../../board/paths";
 import type { GameEvent } from "../../core/events";
 import { HIDDEN_TRAP_PUSH } from "../../board/hiddenTraps";
-import type { VoidHarm, VoidItem, VoidSpell } from "./types";
+import type { VoidHarm, VoidItem, VoidScar, VoidSpell } from "./types";
 import type { Board, Threat, Tile, TileEffect, TileId } from "../../board/types";
 import type { GameState, Player, PlayerId } from "../../core/state";
 
@@ -15,6 +15,8 @@ import type { GameState, Player, PlayerId } from "../../core/state";
 export const VOID_CAPACITY = 4;
 /** Paid to set a harm down with its penalty doubled. */
 export const VOID_DOUBLE_ENERGY = 2;
+/** The setback of the purple trap left where the Void took a spell. */
+export const VOID_SCAR_BACK = 4;
 
 /** Ready, with room left in the Void. */
 export function canSwallow(player: Player): boolean {
@@ -77,17 +79,56 @@ export function riftAnchors(board: Board): TileId[] {
 }
 
 /** The board and the spells on it, as the state or the screen holds them. */
-type SpellBoard = Pick<GameState, "board" | "blackFlames" | "enchantedTiles" | "winter"> & {
-  seals: readonly { tile: TileId }[];
-  specters: readonly { tile: TileId }[];
+type SpellBoard = Pick<GameState, "board" | "blackFlames" | "enchantedTiles" | "winter" | "voidScars"> & {
+  seals: readonly { tile: TileId; owner: PlayerId }[];
+  specters: readonly { tile: TileId; owner: PlayerId }[];
 };
 
-/** Regular main-path tiles free of every spell, where a spell taken by the Void may land. */
+/** Hell takes the Void's impurity, heaven never does; a track has no room for a new tile, so harms mark one there. */
+function inHellTrack(board: Board, tile: TileId): boolean {
+  return getTile(board, tile).track?.realm === "infernal";
+}
+
+function occupied(state: SpellBoard): Set<TileId> {
+  return new Set([
+    ...spellTiles(state),
+    ...frozenTiles(state.winter, state.board.startTile),
+    ...state.voidScars.map(({ tile }) => tile),
+  ]);
+}
+
+/** Regular main-path and hell tiles free of every spell and mark, where a spell taken by the Void may land. */
 export function spellGround(state: SpellBoard): TileId[] {
-  const taken = new Set([...spellTiles(state), ...frozenTiles(state.winter, state.board.startTile)]);
+  const taken = occupied(state);
   return state.board.tiles
-    .filter(({ id, role, track }) => role === "regular" && !track && !taken.has(id))
+    .filter(({ id, role, track }) => (role === "regular" && !track) || inHellTrack(state.board, id))
+    .filter(({ id }) => !taken.has(id))
     .map(({ id }) => id);
+}
+
+/** Another's spell, on the main path or in hell, that the ready Void may absorb (heaven keeps none). */
+export function seizableTiles(state: SpellBoard, owner: PlayerId): TileId[] {
+  const others = <T extends { tile: TileId; owner: PlayerId }>(list: readonly T[]) =>
+    list.filter((entry) => entry.owner !== owner).map(({ tile }) => tile);
+  const iced = state.winter && state.winter.owner !== owner ? state.winter.iced : [];
+  const spells = [
+    ...others(state.blackFlames),
+    ...others(state.enchantedTiles),
+    ...iced,
+    ...others(state.seals),
+    ...others(state.specters),
+  ];
+  return [...new Set(spells)].filter((tile) => {
+    const { role, track } = getTile(state.board, tile);
+    return (role === "regular" && !track) || inHellTrack(state.board, tile);
+  });
+}
+
+/** Where a held harm may go: a rift after a main-path tile, or a mark on a free hell tile. */
+export function harmGround(state: SpellBoard): TileId[] {
+  const taken = occupied(state);
+  const hell = state.board.tiles.filter(({ id }) => inHellTrack(state.board, id) && !taken.has(id));
+  return [...riftAnchors(state.board), ...hell.map(({ id }) => id)];
 }
 
 /** Tiles holding a spell the idle Void may take over: fire, snow, the fairy's picked ice, seals, apparitions. */
@@ -120,10 +161,15 @@ export function placeVoid(
     return board;
   }
 
-  if (!riftAnchors(board).includes(tile)) throw new GameRuleError("INVALID_VOID");
+  if (!harmGround(draftView(draft)).includes(tile)) throw new GameRuleError("INVALID_VOID");
   if (doubled && player.energy < VOID_DOUBLE_ENERGY) throw new GameRuleError("NOT_ENOUGH_ENERGY");
   release(draft, playerId, index);
   if (doubled) updatePlayer(draft, playerId, (current) => ({ energy: current.energy - VOID_DOUBLE_ENERGY }));
+  if (inHellTrack(board, tile)) {
+    draft.voidScars = [...draft.voidScars, { tile, owner: playerId, harm: item, doubled }];
+    draft.events.push({ type: "voidCast", playerId, tile, item });
+    return board;
+  }
   const rift = openRift(board, tile, playerId, item, doubled);
   const linked = linkRift(board, rift);
   draft.events.push({ type: "riftOpened", playerId, rift: getTile(linked, rift.id) });
@@ -142,6 +188,7 @@ function draftView(draft: Draft) {
     winter: draft.winter,
     seals: draft.seals,
     specters: draft.specters,
+    voidScars: draft.voidScars,
   };
 }
 
@@ -214,41 +261,44 @@ export function closeRifts(board: Board): Board {
   };
 }
 
-/** The Void steals the spell on `tile` where it stands: same effect, now Zarek's (no cap, that's the fun). */
+/** The Void absorbs another's spell on `tile` to set down anywhere later; a purple trap of Zarek's is left behind. */
 export function seize(draft: Draft, playerId: PlayerId, tile: TileId | undefined): void {
-  const item = tile === undefined ? null : stealSpell(draft, playerId, tile);
+  if (playerIn(draft, playerId).voidHold.length >= VOID_CAPACITY) throw new GameRuleError("VOID_FULL");
+  const valid = tile !== undefined && seizableTiles(draftView(draft), playerId).includes(tile);
+  const item = valid ? absorbSpell(draft, playerId, tile) : null;
   if (tile === undefined || !item) throw new GameRuleError("INVALID_VOID");
-  updatePlayer(draft, playerId, () => ({ voidIdle: 0 }));
+  const scar: VoidScar = { tile, owner: playerId, harm: { kind: "trap", back: VOID_SCAR_BACK }, doubled: false };
+  draft.voidScars = [...draft.voidScars, scar];
+  updatePlayer(draft, playerId, (player) => ({ voidIdle: 0, voidHold: [...player.voidHold, item] }));
   draft.events.push({ type: "voidSeized", playerId, tile, item });
 }
 
-function stealSpell(draft: Draft, owner: PlayerId, tile: TileId): VoidItem | null {
-  const steal = <T extends { tile: TileId; owner: PlayerId }>(list: readonly T[]) => {
+function absorbSpell(draft: Draft, owner: PlayerId, tile: TileId): VoidItem | null {
+  const take = <T extends { tile: TileId; owner: PlayerId }>(list: readonly T[]) => {
     const found = list.find((entry) => entry.tile === tile && entry.owner !== owner);
-    return { found, list: list.map((entry) => (entry === found ? { ...entry, owner } : entry)) };
+    return { found, list: list.filter((entry) => entry !== found) };
   };
-  const flame = steal(draft.blackFlames);
+  const flame = take(draft.blackFlames);
   if (flame.found) {
     draft.blackFlames = flame.list;
     return { kind: "flame" };
   }
-  const snow = steal(draft.enchantedTiles);
+  const snow = take(draft.enchantedTiles);
   if (snow.found) {
     draft.enchantedTiles = snow.list;
     return { kind: "snow" };
   }
-  // The fairy's ice leaves her winter and stays on as Zarek's snow.
+  // The fairy's ice leaves her winter and goes into the Void as snow.
   if (draft.winter && draft.winter.owner !== owner && draft.winter.iced.includes(tile)) {
     draft.winter = { ...draft.winter, iced: draft.winter.iced.filter((iced) => iced !== tile) };
-    draft.enchantedTiles = [...draft.enchantedTiles, { tile, owner }];
     return { kind: "snow" };
   }
-  const seal = steal(draft.seals);
+  const seal = take(draft.seals);
   if (seal.found) {
     draft.seals = seal.list;
     return { kind: "seal", seal: seal.found.kind };
   }
-  const specter = steal(draft.specters);
+  const specter = take(draft.specters);
   if (specter.found) {
     draft.specters = specter.list;
     return { kind: "specter", specter: specter.found.kind };
@@ -286,7 +336,6 @@ function trapsIn(event: GameEvent): number {
   switch (event.type) {
     case "trapTriggered":
     case "hiddenTrapSprung":
-    case "hiddenTrapDisarmed":
     case "trapDestroyed":
       return 1;
     case "arrowsLoosed":

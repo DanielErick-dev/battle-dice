@@ -12,8 +12,12 @@ export type GameCommand =
       cardUid: string;
       targetId?: PlayerId;
       value?: number;
+      /** Hand cards burnt to pay for a card that asks for them (see CardDefinition.sacrifices). */
+      sacrificeUids?: readonly string[];
     }
   | { type: "discardCard"; playerId: PlayerId; cardUid: string }
+  /** SACRIFICE_ENERGY for a card off the top of the deck, any time in the player's turn. */
+  | { type: "sacrificeEnergy"; playerId: PlayerId }
   /** See fusion.ts. */
   | { type: "fuseCards"; playerId: PlayerId; cardId: CardId }
   /** Reactive abilities answer a ward prompt instead; the optional fields are each ability's choice. */

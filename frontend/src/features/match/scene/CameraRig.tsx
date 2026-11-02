@@ -22,6 +22,9 @@ const FOLLOW_RATE = 3;
 /** A spotlit figure is framed at its chest, from this far above the horizon (radians). */
 const SPOT_HEIGHT = FIGURE_HEIGHT * 0.55;
 const SPOT_ELEVATION = 0.42;
+/** Share of the follow distance the Void is chased from while it works on a tile. */
+const CHASE_DISTANCE = 0.8;
+const CHASE_SECONDS = 2.2;
 /** How quickly the camera swings round to the front of a spotlit figure, and back after. */
 const SPOT_RATE = 3.5;
 
@@ -76,8 +79,10 @@ const SHOTS: Record<TileEffectKind, Shot> = {
   dragged: { closeUp: { distance: 0.62, seconds: 1.2 }, trauma: 0.5 },
   // Pulled well back so the whole giant scale fits in, from Themis to the one judged.
   verdict: { closeUp: { distance: 1.8, seconds: 4 }, trauma: 0.35 },
-  disarmed: { fovKick: 0.3 },
-  weighed: { closeUp: { distance: 1.8, seconds: 4 }, trauma: 0.2 },
+  marked: { closeUp: { distance: 0.7, seconds: 1.2 } },
+  marched: { fovKick: 0.6 },
+  decree: { fovKick: 0.6, trauma: 0.2 },
+  judgment: { closeUp: { distance: 0.62, seconds: 1.6 }, trauma: 0.5, fovKick: 1 },
 };
 
 /** Cards whose cast is filmed too (the rest are covered by the effects they cause). */
@@ -110,6 +115,14 @@ export interface CameraSpotlight {
   /** Share of the follow distance to film it from. */
   distance: number;
   seconds: number;
+  /** Radians above the horizon, when not the usual SPOT_ELEVATION. */
+  elevation?: number;
+}
+
+/** A live position to ride along with for CHASE_SECONDS after its `key` first shows, then back to the focus. */
+export interface CameraChase {
+  key: number;
+  position: Vector3;
 }
 
 /** Following the focus up close or from midway, or framing the whole board. */
@@ -133,6 +146,8 @@ interface CameraRigProps {
   onFreeLook: () => void;
   /** A figure's move to swing round and film from the front. */
   spotlight: CameraSpotlight | null;
+  /** Something moving on its own to follow live, up close, instead of the focus (the Void at work). */
+  chase: CameraChase | null;
 }
 
 /**
@@ -151,6 +166,7 @@ export function CameraRig({
   free,
   onFreeLook,
   spotlight,
+  chase,
 }: CameraRigProps) {
   const camera = useThree((state) => state.camera);
   const aspect = useThree((state) => state.size.width / state.size.height);
@@ -161,6 +177,7 @@ export function CameraRig({
   const lastGoalDistance = useRef(0);
   const lastEffect = useRef<TileEffectView | null>(null);
   const lastCast = useRef<CardCastView | null>(null);
+  const chased = useRef({ key: -1, until: 0 });
   const shot = useRef({
     closeUpFactor: 1,
     closeUpUntil: 0,
@@ -223,8 +240,10 @@ export function CameraRig({
     if (cast && cast.id !== lastCast.current?.id) film(CAST_SHOTS[cast.card.cardId] ?? {});
     lastCast.current = cast;
 
-    const closeUp = celebrating || now < state.closeUpUntil;
-    const closeUpFactor = celebrating ? VICTORY_DISTANCE : state.closeUpFactor;
+    if (chase && chase.key !== chased.current.key) chased.current = { key: chase.key, until: now + CHASE_SECONDS };
+    const chasing = chase !== null && now < chased.current.until && !celebrating;
+    const closeUp = celebrating || chasing || now < state.closeUpUntil;
+    const closeUpFactor = celebrating ? VICTORY_DISTANCE : chasing ? CHASE_DISTANCE : state.closeUpFactor;
     const follow = framing !== "board";
     const tracking = follow || closeUp;
     const goalDistance = closeUp
@@ -249,8 +268,9 @@ export function CameraRig({
         front.target.set(spotlight.position[0], spotlight.position[1] + SPOT_HEIGHT, spotlight.position[2]);
         const [fx, , fz] = spotlight.facing;
         const flat = Math.hypot(fx, fz) || 1;
+        const elevation = spotlight.elevation ?? SPOT_ELEVATION;
         front.direction
-          .set((fx / flat) * Math.cos(SPOT_ELEVATION), Math.sin(SPOT_ELEVATION), (fz / flat) * Math.cos(SPOT_ELEVATION))
+          .set((fx / flat) * Math.cos(elevation), Math.sin(elevation), (fz / flat) * Math.cos(elevation))
           .normalize();
         front.distance = followDistance * spotlight.distance;
       }
@@ -265,7 +285,8 @@ export function CameraRig({
     } else {
       // Up on a realm bridge the target rises with the player, so they stay framed. Left alone
       // while the viewer looks around on their own.
-      goal.set(tracking ? focus[0] : 0, tracking ? focus[1] * 0.8 : 0, tracking ? focus[2] : 0);
+      if (chasing) goal.set(chase.position.x, chase.position.y * 0.8, chase.position.z);
+      else goal.set(tracking ? focus[0] : 0, tracking ? focus[1] * 0.8 : 0, tracking ? focus[2] : 0);
       step.subVectors(goal, orbit.target).multiplyScalar(free ? 0 : k);
       orbit.target.add(step);
       camera.position.add(step);

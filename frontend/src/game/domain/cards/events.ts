@@ -10,6 +10,8 @@ export type CardEvent =
       card: CardInstance;
     }
   | { type: "deckReshuffled"; playerId: PlayerId; size: number }
+  /** Energy given up for a card off the deck (drawn as a cardDrawn right after). */
+  | { type: "energySacrificed"; playerId: PlayerId; energy: number }
   /** The drawn card is among those the player can throw away. */
   | { type: "discardRequired"; playerId: PlayerId; card: CardInstance }
   | {

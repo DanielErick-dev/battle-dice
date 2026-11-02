@@ -9,11 +9,13 @@ export const OCULAR_AWAKENING_CYCLE = 6;
 export const HELLS_DRAG_CYCLE = 7;
 export const TIME_WARP_CYCLE = 7;
 export const VERDICT_CYCLE = 4;
+/** Zarek's Void also feeds on every trap, and seizing empties it: it must come back fast. */
+export const VOID_CYCLE = 4;
 
 /** Own turns to charge each ability; a new ability doesn't compile until it has one. */
 const ABILITY_CYCLES: Readonly<Record<AbilityId, number>> = {
   doubleCast: ABILITY_CYCLE,
-  theVoid: ABILITY_CYCLE,
+  theVoid: VOID_CYCLE,
   tailwind: ABILITY_CYCLE,
   studySession: ABILITY_CYCLE,
   seraphBlessing: ABILITY_CYCLE,

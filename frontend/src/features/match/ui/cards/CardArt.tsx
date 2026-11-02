@@ -20,10 +20,11 @@ export const CARD_PALETTE: Readonly<Record<CardId, { from: string; to: string }>
   celestialLight: { from: "#fef9c3", to: "#ca8a04" },
   heavenlyAegis: { from: "#e0f2fe", to: "#0369a1" },
   ascension: { from: "#fae8ff", to: "#7e22ce" },
-  scalesOfJustice: { from: "#93c5fd", to: "#0f172a" },
-  swordOfLaw: { from: "#cbd5e1", to: "#1e293b" },
-  weightOfGuilt: { from: "#64748b", to: "#020617" },
-  sacredBlindfold: { from: "#bfdbfe", to: "#1e3a8a" },
+  blindJustice: { from: "#fde68a", to: "#78350f" },
+  confiscation: { from: "#d6d3d1", to: "#292524" },
+  justiceMark: { from: "#fbbf24", to: "#451a03" },
+  containmentDecree: { from: "#a8a29e", to: "#1c1917" },
+  finalJudgment: { from: "#fef3c7", to: "#92400e" },
   voidHunger: { from: "#4c1d95", to: "#000000" },
   hungryRift: { from: "#6d28d9", to: "#09090b" },
   voidEcho: { from: "#7c3aed", to: "#030712" },
@@ -31,7 +32,20 @@ export const CARD_PALETTE: Readonly<Record<CardId, { from: string; to: string }>
 };
 
 /** Procedural artwork for each card (inline SVG, 100×70 viewBox): no image files or rights. */
+/** Painted illustrations (public/cards/), shown instead of the drawn artwork; the rest are still drawn below. */
+const CARD_IMAGES: Partial<Record<CardId, string>> = {
+  blindJustice: "/cards/blindJustice.webp",
+  confiscation: "/cards/confiscation.webp",
+  justiceMark: "/cards/justiceMark.webp",
+  containmentDecree: "/cards/containmentDecree.webp",
+};
+
 export function CardArt({ cardId }: { cardId: CardId }) {
+  const image = CARD_IMAGES[cardId];
+  if (image) {
+    // eslint-disable-next-line @next/next/no-img-element -- a tiny static file, not worth next/image's loader.
+    return <img src={image} alt="" draggable={false} className="h-full w-full object-cover" aria-hidden />;
+  }
   return (
     <svg viewBox="0 0 100 70" className="h-full w-full" aria-hidden>
       {ART[cardId]}
@@ -373,67 +387,101 @@ const ART: Record<CardId, ReactNode> = {
       <polygon points="70,34 66,40 74,40" fill="#ffffff" opacity="0.8" />
     </g>
   ),
-  // A golden balance, level: weighed and split.
-  scalesOfJustice: (
-    <g stroke="#fde68a" strokeLinecap="round">
-      <line x1="50" y1="12" x2="50" y2="60" strokeWidth="3" />
-      <line x1="30" y1="62" x2="70" y2="62" strokeWidth="3" />
-      <line x1="22" y1="22" x2="78" y2="22" strokeWidth="2.5" />
-      {[22, 78].map((x) => (
-        <g key={x}>
-          <path d={`M${x} 22 L${x - 9} 42 M${x} 22 L${x + 9} 42`} strokeWidth="1" />
-          <path d={`M${x - 11} 42 Q${x} 52 ${x + 11} 42 Z`} fill="#fbbf24" strokeWidth="1.5" />
+  // A blindfold over a row of footsteps all marching the same way.
+  blindJustice: (
+    <g>
+      {[22, 40, 58, 76].map((x, i) => (
+        <g key={x} fill="#fef3c7" opacity={0.55 + i * 0.12}>
+          <ellipse cx={x} cy={i % 2 ? 54 : 60} rx="4" ry="6" />
+          <path d={`M${x + 6} 57 l5 0 l-2 -3 M${x + 11} 57 l-2 3`} stroke="#fef3c7" strokeWidth="1.5" fill="none" />
         </g>
       ))}
-      <circle cx="50" cy="12" r="3.5" fill="#fef3c7" />
+      <path d="M14 24 Q50 16 86 24 L86 34 Q50 26 14 34 Z" fill="#fffbeb" stroke="#fbbf24" strokeWidth="1.5" />
+      <path d="M86 28 Q94 38 88 48 M86 30 Q98 34 96 44" fill="none" stroke="#fffbeb" strokeWidth="2.5" />
     </g>
   ),
-  // A longsword point down, cross guard and all, under a ring of light.
-  swordOfLaw: (
-    <g strokeLinecap="round">
-      <ellipse cx="50" cy="16" rx="16" ry="4" fill="none" stroke="#bfdbfe" strokeWidth="1.5" opacity="0.7" />
-      <path d="M46 24 L54 24 L52 62 L50 67 L48 62 Z" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="1" />
-      <line x1="50" y1="26" x2="50" y2="60" stroke="#94a3b8" strokeWidth="0.8" />
-      <line x1="36" y1="22" x2="64" y2="22" stroke="#fbbf24" strokeWidth="4" />
-      <rect x="47.5" y="8" width="5" height="13" rx="1.5" fill="#78350f" />
-      <circle cx="50" cy="7" r="3" fill="#fbbf24" />
-    </g>
-  ),
-  // A heavy weight, chains to it, crushing cards.
-  weightOfGuilt: (
+  // A gauntlet closing on a card, a golden seal of the court on it.
+  confiscation: (
     <g>
-      {[-1, 1].map((side) => (
-        <rect
-          key={side}
-          x={50 + side * 18 - 7}
-          y="46"
-          width="14"
-          height="19"
-          rx="2"
-          fill="#e2e8f0"
-          opacity="0.5"
-          transform={`rotate(${side * 18} ${50 + side * 18} 56)`}
-        />
+      <rect
+        x="40"
+        y="14"
+        width="26"
+        height="36"
+        rx="3"
+        fill="#f5f5f4"
+        stroke="#a8a29e"
+        strokeWidth="1.5"
+        transform="rotate(12 53 32)"
+      />
+      <circle cx="54" cy="32" r="6" fill="#fbbf24" stroke="#92400e" strokeWidth="1" />
+      <path
+        d="M20 66 L28 44 Q30 38 36 40 L38 30 Q40 25 44 28 L46 40 L52 36 Q56 34 56 40 L50 56 Q46 66 36 66 Z"
+        fill="#57534e"
+        stroke="#d6d3d1"
+        strokeWidth="1.5"
+      />
+    </g>
+  ),
+  // The court's golden brand: a balance inside a turning ring of runes.
+  justiceMark: (
+    <g>
+      <circle cx="50" cy="38" r="26" fill="none" stroke="#fde68a" strokeWidth="2" strokeDasharray="4 3" />
+      <circle cx="50" cy="38" r="19" fill="#451a03" stroke="#fbbf24" strokeWidth="2.5" />
+      <g stroke="#fde68a" strokeLinecap="round">
+        <line x1="50" y1="26" x2="50" y2="50" strokeWidth="2" />
+        <line x1="38" y1="31" x2="62" y2="31" strokeWidth="2" />
+        <path d="M34 42 Q38 47 42 42 Z M58 42 Q62 47 66 42 Z" fill="#fbbf24" strokeWidth="1" />
+        <path d="M38 31 L35 42 M38 31 L41 42 M62 31 L59 42 M62 31 L65 42" strokeWidth="0.8" />
+        <line x1="44" y1="51" x2="56" y2="51" strokeWidth="2" />
+      </g>
+    </g>
+  ),
+  // A die bound in chains, sealed by the court's wax: nothing above three.
+  containmentDecree: (
+    <g>
+      <rect x="32" y="18" width="36" height="36" rx="6" fill="#f5f5f4" stroke="#78716c" strokeWidth="2" />
+      {[
+        [42, 28],
+        [50, 36],
+        [58, 44],
+      ].map(([x, y]) => (
+        <circle key={x} cx={x} cy={y} r="3.5" fill="#1c1917" />
       ))}
-      <path d="M50 4 L50 20" stroke="#94a3b8" strokeWidth="2" strokeDasharray="3 2" />
-      <path d="M34 50 L40 22 L60 22 L66 50 Z" fill="#334155" stroke="#94a3b8" strokeWidth="2" />
-      <circle cx="50" cy="20" r="4" fill="none" stroke="#94a3b8" strokeWidth="2.5" />
-      <text x="50" y="44" textAnchor="middle" fontSize="11" fontWeight="900" fill="#cbd5e1">
-        ⚖
+      <path d="M18 26 L82 50 M18 50 L82 26" stroke="#a8a29e" strokeWidth="3.5" strokeDasharray="6 3" />
+      <circle cx="50" cy="60" r="8" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1.5" />
+      <text x="50" y="64" textAnchor="middle" fontSize="10" fontWeight="900" fill="#fef3c7">
+        3
       </text>
     </g>
   ),
-  // A blindfold, its knot trailing, over a trap coming apart.
-  sacredBlindfold: (
-    <g>
-      <path d="M22 56 L36 46 L46 58 L56 46 L66 58 L78 50" fill="none" stroke="#f87171" strokeWidth="2" opacity="0.5" />
-      <path d="M14 26 Q50 18 86 26 L86 36 Q50 28 14 36 Z" fill="#eff6ff" stroke="#93c5fd" strokeWidth="1.5" />
-      <path d="M86 30 Q94 40 88 52 M86 32 Q98 36 96 46" fill="none" stroke="#eff6ff" strokeWidth="2.5" />
+  // Her sword driven down through a burst of light: the last word.
+  finalJudgment: (
+    <g strokeLinecap="round">
+      {Array.from({ length: 12 }, (_, i) => {
+        const angle = (i / 12) * Math.PI * 2;
+        return (
+          <line
+            key={i}
+            x1={50 + Math.cos(angle) * 10}
+            y1={40 + Math.sin(angle) * 10}
+            x2={50 + Math.cos(angle) * 32}
+            y2={40 + Math.sin(angle) * 32}
+            stroke="#fef3c7"
+            strokeWidth="1.5"
+            opacity="0.7"
+          />
+        );
+      })}
+      <path d="M46 22 L54 22 L52 60 L50 66 L48 60 Z" fill="#fffbeb" stroke="#d97706" strokeWidth="1" />
+      <line x1="36" y1="20" x2="64" y2="20" stroke="#fbbf24" strokeWidth="4" />
+      <rect x="47.5" y="6" width="5" height="13" rx="1.5" fill="#78350f" />
+      <circle cx="50" cy="5" r="3" fill="#fbbf24" />
       {[
-        [30, 14],
-        [70, 12],
+        [24, 16],
+        [76, 18],
       ].map(([x, y]) => (
-        <Star key={x} x={x} y={y} r={3} fill="#bfdbfe" />
+        <Star key={x} x={x} y={y} r={3} fill="#fde68a" />
       ))}
     </g>
   ),

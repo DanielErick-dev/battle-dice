@@ -15,6 +15,20 @@ const RECIPE: BoardRecipe = {
 };
 
 describe("generateBoard", () => {
+  it("adds late card tiles past the middle without moving anything else", () => {
+    const plain = generateBoard(RECIPE).effects;
+    const late = generateBoard({ ...RECIPE, lateCards: { count: 8, from: 0.4 } }).effects;
+    const added = Object.keys(late)
+      .map(Number)
+      .filter((tile) => !(tile in plain));
+    expect(added).toHaveLength(8);
+    for (const tile of added) {
+      expect(late[tile]).toEqual({ kind: "card" });
+      expect(tile).toBeGreaterThanOrEqual(80);
+    }
+    for (const [tile, effect] of Object.entries(plain)) expect(late[Number(tile)]).toEqual(effect);
+  });
+
   it("builds the same board from the same seed", () => {
     expect(generateBoard(RECIPE)).toEqual(generateBoard(RECIPE));
     expect(generateBoard({ ...RECIPE, seed: 43 })).not.toEqual(generateBoard(RECIPE));

@@ -2,7 +2,14 @@ import { abilityCycle } from "@/game/domain/abilities/charge";
 import { TRANSMUTATION_CARDS, TRANSMUTATION_FALLBACK_LEVEL } from "@/game/domain/characters/alchemist/transmutation";
 import { ARROW_RAIN_PINS, ARROW_RAIN_PUSH } from "@/game/domain/characters/archer/arrowRain";
 import { BLOOD_PACT_ENERGY, RUIN_PUSH, SEAL_RANGE } from "@/game/domain/characters/scribe/seals";
-import { CARD_GAMBLE_DRAWS, CARD_GAMBLE_EPICS, CARD_GAMBLE_JACKPOT, CARD_GAMBLE_LOSES_UP_TO, CARD_GAMBLE_LOST, CARD_GAMBLE_STOLEN } from "@/game/domain/characters/jester/cardGamble";
+import {
+  CARD_GAMBLE_DRAWS,
+  CARD_GAMBLE_EPICS,
+  CARD_GAMBLE_JACKPOT,
+  CARD_GAMBLE_LOSES_UP_TO,
+  CARD_GAMBLE_LOST,
+  CARD_GAMBLE_STOLEN,
+} from "@/game/domain/characters/jester/cardGamble";
 import { DORMANT_FURY_MULTIPLIER, STUDY_DRAWS, TAILWIND_BONUS, LEVITATION_TURNS } from "@/game/domain/abilities/basic";
 import { PLASMA_PUSH, PLASMA_TRAPS } from "@/game/domain/characters/alva/plasmaCannon";
 import { TIDE_RANGE } from "@/game/domain/characters/auric/cleansingTide";
@@ -11,13 +18,27 @@ import { TIME_ROUNDS } from "@/game/domain/characters/cronos/timeWarp";
 import { RESURRECTION_CARDS } from "@/game/domain/characters/necromancer/resurrection";
 import { PLUNDER_CARDS, SPECTER_RANGE } from "@/game/domain/characters/warden/specters";
 import type { AbilityId } from "@/game/domain/abilities/ability";
-import { ARMOUR_TURNS, FLAME_ENERGY, FLAME_HITS, FLAME_PUSH, FLAME_TILES, FLAME_TURNS } from "@/game/domain/characters/kage/flames";
-import { VOID_CAPACITY, VOID_DOUBLE_ENERGY } from "@/game/domain/characters/zarek/void";
-import { ENCHANT_ADVANCE, ENCHANT_FREEZE, SNOW_DRAIN, ENCHANT_TILES, WINTER_PICKS, WINTER_TILES } from "@/game/domain/characters/fairy/winter";
+import {
+  ARMOUR_TURNS,
+  FLAME_ENERGY,
+  FLAME_HITS,
+  FLAME_PUSH,
+  FLAME_TILES,
+  FLAME_TURNS,
+} from "@/game/domain/characters/kage/flames";
+import { VOID_CAPACITY, VOID_DOUBLE_ENERGY, VOID_SCAR_BACK } from "@/game/domain/characters/zarek/void";
+import {
+  ENCHANT_ADVANCE,
+  ENCHANT_FREEZE,
+  SNOW_DRAIN,
+  ENCHANT_TILES,
+  WINTER_PICKS,
+  WINTER_TILES,
+} from "@/game/domain/characters/fairy/winter";
 import { MAX_RARITY_LEVEL } from "@/game/domain/cards/catalog";
 import { BLESSING_TURNS, SERAPH_BLESSING_TURNS } from "@/game/domain/board/blessings";
 import { CROWN_BONUS, DRAG_TRAPS } from "@/game/domain/characters/seraphiel/seraph";
-import { BLIND_SCALE_ENERGY } from "@/game/domain/characters/themis/verdict";
+import { MARKS_TO_JUDGE } from "@/game/domain/characters/themis/verdict";
 
 /**
  * Player-facing ability copy (pt-BR). Rules live in the domain; this is only what the ability
@@ -31,7 +52,7 @@ export const ABILITY_TEXT: Readonly<Record<AbilityId, { name: string; descriptio
   },
   theVoid: {
     name: "O Vazio",
-    description: `Carrega em ${abilityCycle("theVoid")} turnos, e +1 a cada armadilha em que alguém cai ou que é destruída ou presa. Pronto, ao cair numa armadilha, maldição ou perde a vez, você escolhe se o Vazio a engole: ela some da casa e fica guardada (até ${VOID_CAPACITY}). Na sua vez, solte o que guardou: uma armadilha abre uma casa nova no caminho, logo depois da casa que você escolher, e pode ter a penalidade dobrada por ${VOID_DOUBLE_ENERGY} de energia. As suas fendas não te atingem. Pronto, também pode ser usado no botão para roubar uma casa de outro (fogo, neve, gelo, selo ou aparição): ela continua no lugar com o mesmo efeito, mas marcada pelo Vazio e agora sua. Sem limite de casas roubadas.`,
+    description: `Carrega em ${abilityCycle("theVoid")} turnos, e +1 a cada armadilha em que alguém cai ou que é destruída ou presa. Pronto, ao cair numa armadilha, maldição ou perde a vez, você escolhe se o Vazio a engole: ela some da casa e fica guardada (até ${VOID_CAPACITY}). Na sua vez, solte o que guardou: uma armadilha abre uma casa nova no caminho, logo depois da casa que você escolher, e pode ter a penalidade dobrada por ${VOID_DOUBLE_ENERGY} de energia. As suas fendas não te atingem. Pronto, também pode ser usado no botão para absorver o feitiço de outro numa casa (fogo, neve, gelo, selo ou aparição): ele vai para o Vazio e você o solta onde quiser, e a casa vira uma armadilha roxa sua (volta ${VOID_SCAR_BACK} casas, não te atinge). No inferno você também solta o que guardou, marcando uma casa de lá; no céu, nada entra.`,
     active: "O Vazio agiu",
   },
   tailwind: {
@@ -66,7 +87,7 @@ export const ABILITY_TEXT: Readonly<Record<AbilityId, { name: string; descriptio
   },
   silentVerdict: {
     name: "Veredito Silencioso",
-    description: `Carrega em ${abilityCycle("silentVerdict")} turnos e se arma sozinho, em segredo: os oponentes não veem a sua carga. Armado, a próxima carta ou habilidade que um oponente mirar em você (Rajada Arcana, Clarão Ofuscante, Chamado do Abismo, Troca de Destinos, Distorção Temporal, Arrastar ao Inferno ou o roubo da Aposta) é anulada e se volta contra ele: quem ia te empurrar recua, quem ia te cegar perde a vez, quem ia te arrastar ao inferno desce no seu lugar, quem ia te roubar perde as cartas para você (a Troca só é anulada). Desarmado, você sofre tudo normalmente. Passiva, a Balança Cega: armadilhas escondidas no seu caminho são desarmadas e cada uma dá +${BLIND_SCALE_ENERGY} de energia.`,
+    description: `Veredito: carrega em ${abilityCycle("silentVerdict")} turnos e se arma sozinho, em segredo (os oponentes não veem a sua carga). Armado, a próxima carta ou habilidade que um oponente mirar em você volta dobrada contra ele: quem ia empurrar recua o dobro, quem ia cegar ou parar o tempo perde o dobro, quem ia arrastar ao inferno desce, quem ia roubar perde as cartas para você (a Troca e o Chamado da Fenda só são anulados). Passiva, a Marca da Justiça: quem mira um ataque em outro jogador ganha uma marca (o ataque passa). Com ${MARKS_TO_JUDGE} marcas, o próximo ataque dele contra qualquer um vem para você e volta dobrado, se o Veredito estiver armado; se não estiver, ele escapa e as marcas se apagam.`,
     active: "O veredito foi dado",
   },
   timeWarp: {

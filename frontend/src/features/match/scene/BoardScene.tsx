@@ -8,14 +8,15 @@ import { getTile } from "@/game/domain/board/board";
 import { withRifts } from "@/game/domain/characters/zarek/void";
 import { DICE_SIDES } from "@/game/domain/core/dice";
 import { frozenTiles } from "@/game/domain/characters/fairy/winter";
-import type { Board, PlayerId, TileId } from "@/game/domain/types";
+import type { Board, Player, PlayerId, TileId } from "@/game/domain/types";
 import { characterFor, playerColor } from "../characters";
 import type { EffectsQuality } from "../config";
-import type { MatchView } from "../model/matchView";
+import type { MatchView, TileEffectKind } from "../model/matchView";
 import { createBoardLayout, withRiftPositions, type BoardLayout, type Vec3 } from "./boardLayout";
-import { boardScaleFor, CameraRig, type CameraFraming, type CameraSpotlight } from "./CameraRig";
+import { boardScaleFor, CameraRig, type CameraChase, type CameraFraming, type CameraSpotlight } from "./CameraRig";
 import { diceLanding, dieRoll, focusPoint, focusTile, realmAt } from "./cameraFocus";
 import { PickedTileMark } from "./character/shared/PickedTileMark";
+import { wraithTrack } from "./character/zarek/wraithTrack";
 import { DiceThrow } from "./DiceThrow";
 import { BOARD_EFFECTS, OVERLAY_EFFECTS, type BoardFx } from "./effects";
 import { ArenaEnvironment, HORIZON_COLOR } from "./environment/ArenaEnvironment";
@@ -155,7 +156,7 @@ export default function BoardScene({
           {/* Cold moonlight; warmth comes only from fires, torches and lanterns. */}
           <directionalLight
             position={[7 * scale, 14 * scale, 8 * scale]}
-            intensity={1.55}
+            intensity={2}
             color="#c6d1e6"
             castShadow
             shadow-mapSize={[2048, 2048]}
@@ -166,7 +167,7 @@ export default function BoardScene({
             shadow-camera-far={60 * scale}
           />
           {/* Cool rim light from the moon's side of the sky. */}
-          <directionalLight position={[-0.3, 0.28, -0.8]} intensity={0.5} color="#8da0c2" />
+          <directionalLight position={[-0.3, 0.28, -0.8]} intensity={0.7} color="#8da0c2" />
 
           <ArenaEnvironment layout={roadLayout} scale={scale} mapId={mapId} />
           {/* Pools of particles in world space, fed by emitters on the tokens. */}
@@ -221,7 +222,9 @@ export default function BoardScene({
               player={player}
               character={characterFor(player.id)}
               nameTag={
-                view.players.length > 1 ? { text: `J${seat + 1} ${player.name.split(" ")[0]}`, seat } : undefined
+                view.players.length > 1
+                  ? { text: `J${seat + 1} ${player.name.split(" ")[0]}`, seat: tileSeat(view.players, seat) }
+                  : undefined
               }
               color={playerColor(player.id)}
               target={tokenTarget(player, view, board, layout)}
@@ -256,6 +259,7 @@ export default function BoardScene({
             free={freeLook}
             onFreeLook={onFreeLook}
             spotlight={cameraSpotlight(view, board, layout)}
+            chase={voidChase(view)}
           />
         </RealmAtmosphere>
         <Preload all />
@@ -264,6 +268,20 @@ export default function BoardScene({
       <PostEffects quality={quality} />
     </Canvas>
   );
+}
+
+const VOID_EFFECTS: readonly (TileEffectKind | undefined)[] = [
+  "voidSwallowed",
+  "riftOpened",
+  "voidCast",
+  "voidSeized",
+  "voidEchoed",
+];
+
+/** While the Void works on a tile (swallowing, opening, setting down, taking), the camera rides along with it. */
+function voidChase(view: MatchView): CameraChase | null {
+  const rift = view.fx.voidRift;
+  return rift && VOID_EFFECTS.includes(view.effect?.kind) ? { key: rift.id, position: wraithTrack.position } : null;
 }
 
 /** Tracks showing: someone is on them, or their gate is opening right now. */
@@ -296,6 +314,12 @@ function reachableTiles(view: MatchView, board: Board): Set<number> {
 }
 
 /** Angle from one tile to another on the face texture (canvas x = world x, canvas y = world z). */
+/** Only figures sharing a tile lift their tags apart; one alone keeps its tag right over its head. */
+function tileSeat(players: readonly Player[], seat: number): number {
+  const { position } = players[seat];
+  return players.slice(0, seat).filter((other) => other.position === position).length;
+}
+
 /** Where whoever Themis's verdict judges stands, for her to point at; null for anyone else. */
 function judgedBy(view: MatchView, layout: BoardLayout, playerId: string): Vec3 | null {
   const verdict = view.fx.verdict;

@@ -97,6 +97,7 @@ export function syncStep(state: GameState): PlaybackStep {
       blackFlames: state.blackFlames,
       winter: state.winter,
       rifts: riftsOf(state.board),
+      voidScars: state.voidScars,
       pendingPlunder: state.pendingPlunder,
       walkEnd: null,
     }),

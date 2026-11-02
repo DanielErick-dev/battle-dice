@@ -1,18 +1,18 @@
 import { playCard } from "../cards/play";
 import { GameRuleError } from "../core/errors";
 import { throwOnPile } from "../cards/decks";
-import { giveCard } from "../cards/hand";
+import { giveCard, sacrificeEnergy } from "../cards/hand";
 import { playerIn, startDraft, updatePlayer } from "../core/draft";
 import { fuseCards } from "../cards/fusion";
 import { assertCanAct, currentPlayer, KEEPS_TURN, pendingAnswer, settle } from "./shared";
 import type { CommandHandlers } from "./types";
 
-export const cardCommands: CommandHandlers<"playCard" | "discardCard" | "fuseCards"> = {
+export const cardCommands: CommandHandlers<"playCard" | "discardCard" | "fuseCards" | "sacrificeEnergy"> = {
   playCard: (state, command, deps) => {
     const { playerId, cardUid } = command;
     assertCanAct(state, playerId);
     const draft = startDraft(state, deps.random);
-    playCard(draft, playerId, cardUid, command);
+    playCard(draft, playerId, cardUid, command, deps.rollDice);
 
     const settled = settle(draft, playerId, KEEPS_TURN);
     if (settled.state.turn !== state.turn) return settled;
@@ -40,6 +40,13 @@ export const cardCommands: CommandHandlers<"playCard" | "discardCard" | "fuseCar
     // The next card waiting on a full hand comes in, asking for another discard if it still doesn't fit.
     for (const next of pending.queued) giveCard(draft, next.playerId, next.card);
     return settle(draft, currentPlayer(state).id, { endsTurn: pending.endsTurn, extraTurn: pending.extraTurn });
+  },
+
+  sacrificeEnergy: (state, { playerId }, deps) => {
+    assertCanAct(state, playerId);
+    const draft = startDraft(state, deps.random);
+    sacrificeEnergy(draft, playerId);
+    return settle(draft, playerId, KEEPS_TURN);
   },
 
   fuseCards: (state, { playerId, cardId }, deps) => {

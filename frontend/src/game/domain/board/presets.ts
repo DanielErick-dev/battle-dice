@@ -45,6 +45,8 @@ export const POWER_TOURNAMENT_BOARD: BoardDefinition = generateBoard({
   trapZones: { count: 3, length: 10, traps: 2 },
   // The opening has no portal: everyone plays through it, and the Mystic Gate can't skip it.
   portalsFrom: 25,
+  // Decks run thin late in the race: more card tiles from the middle on.
+  lateCards: { count: 8, from: 0.4 },
 });
 
 function cards(tiles: readonly TileId[]): Record<TileId, TileEffect> {
