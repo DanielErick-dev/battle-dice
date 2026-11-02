@@ -38,6 +38,7 @@ const CARD_IMAGES: Partial<Record<CardId, string>> = {
   confiscation: "/cards/confiscation.webp",
   justiceMark: "/cards/justiceMark.webp",
   containmentDecree: "/cards/containmentDecree.webp",
+  finalJudgment: "/cards/finalJudgment.webp",
 };
 
 export function CardArt({ cardId }: { cardId: CardId }) {
