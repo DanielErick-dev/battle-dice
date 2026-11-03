@@ -86,6 +86,7 @@ export const abilitiesSteps: StepHandlers<
         apply: (view) => ({
           ...withFx(view, { tide: view.fx.tide && { ...view.fx.tide, rolling: false } }),
           blackFlames: view.blackFlames.filter((flame) => !event.tiles.includes(flame.tile)),
+          scarletFlames: view.scarletFlames.filter((flame) => !event.tiles.includes(flame.tile)),
           enchantedTiles: view.enchantedTiles.filter((enchanted) => !event.tiles.includes(enchanted.tile)),
           specters: view.specters.filter((specter) => !event.tiles.includes(specter.tile)),
           seals: view.seals.filter((seal) => !event.tiles.includes(seal.tile)),

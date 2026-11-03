@@ -29,7 +29,9 @@ export function DicePanel({
   return (
     <section className="hud-panel flex w-full max-w-sm items-center gap-5 p-4">
       <div className="flex items-center gap-2">
-        {isRolling || !lastRoll || (lastRoll.dice.length === 1 && lastRoll.bonus === 0 && lastRoll.multiplier === 1) ? (
+        {isRolling ||
+        !lastRoll ||
+        (lastRoll.dice.length === 1 && lastRoll.bonus === 0 && lastRoll.multiplier === 1 && !lastRoll.halved) ? (
           <DiceFace value={lastRoll?.dice[0] ?? null} rolling={isRolling} />
         ) : (
           <>
@@ -47,6 +49,11 @@ export function DicePanel({
             {lastRoll.multiplier > 1 && (
               <span className="text-lg font-black text-yellow-300" title="Fúria Adormecida">
                 ×{lastRoll.multiplier}
+              </span>
+            )}
+            {lastRoll.halved && (
+              <span className="text-lg font-black text-red-400" title="Pegando fogo: metade, arredondando para baixo">
+                ÷2
               </span>
             )}
             <span

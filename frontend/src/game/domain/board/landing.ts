@@ -9,6 +9,8 @@ import { moveHiddenTrap, strike, strikeScar, threatAt } from "./harm";
 import { moveTo, playerIn, type Draft } from "../core/draft";
 import { repelledBySusanoo, scorch, sweptBySusanoo } from "../characters/kage/flames";
 import { stirEnchantment } from "../characters/fairy/winter";
+import { landOnScarlet } from "../characters/akane/fire";
+import { weedOut } from "../characters/vinicius/weeding";
 import type { PlayerId, Threat, TileId } from "@/game/domain/types";
 
 /** Destinations never chain into another effect; a ward prompt pauses resolving until resolveWard. */
@@ -35,6 +37,8 @@ export function resolveLanding(draft: Draft, playerId: PlayerId, landed: TileId)
     scorch(draft, playerId, landed);
     return;
   }
+  // Under Akane's scarlet fire too, only the fire is there.
+  if (landOnScarlet(draft, playerId, landed)) return;
   // Snow, or Eternal Winter's ice, has taken the tile's harm for good: it stirs instead.
   if (stirEnchantment(draft, playerId, landed)) return;
   // A seal written here breaks first; whatever else is on the tile (a hidden trap) waits.
@@ -54,6 +58,8 @@ export function resolveLanding(draft: Draft, playerId: PlayerId, landed: TileId)
     if (harm && canSwallow(playerIn(draft, playerId))) offerSwallow(draft, playerId, landed, harm);
     return;
   }
+  // Vinicius hoes a trap out before it can bite, wards or not.
+  if (weedOut(draft, playerId, landed, harm)) return;
   // Hell is the Fallen Angel's own: its curses, setbacks and lost turns don't touch him.
   if (harm && isFallen(playerIn(draft, playerId)) && inHell(board, landed)) {
     draft.events.push({ type: "trapBlocked", playerId, tile: landed, ward: "fallen", hidden: false });

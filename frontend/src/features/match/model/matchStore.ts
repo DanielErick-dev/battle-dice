@@ -54,6 +54,8 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   NOT_YOUR_CARD: "Essa carta é de outro personagem.",
   NO_SACRIFICE: "Você precisa de outra carta na mão para queimar.",
   INVALID_SACRIFICE: "Escolha a carta que vai ser queimada.",
+  NO_INNER_FLAME: "Você não tem nenhuma Chama Interna para liberar.",
+  NO_FIRE: "Não há fogo no tabuleiro nem oponente queimando.",
 };
 
 /** Sends commands to the GameClient and replays the resulting events step by step (see model/README.md). */

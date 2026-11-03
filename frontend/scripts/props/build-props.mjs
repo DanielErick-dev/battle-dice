@@ -38,6 +38,14 @@ const PROPS = {
   tribunalArena: { file: "themis/props/arena.glb", vertices: 12_000, texture: 2048, sloppy: true },
   tribunalArch: { file: "themis/props/archway.glb", vertices: 14_000, texture: 1024, sloppy: true },
   offeringBasin: { file: "themis/props/basin.glb", vertices: 8_000, texture: 1024, sloppy: true },
+  // Akane's menu habitat: a stone courtyard floor ringed with lanterns, and a stone garden lantern.
+  akaneCourtyard: { file: "akane/props/courtyard.glb", vertices: 14_000, texture: 2048, sloppy: true },
+  akaneLantern: { file: "akane/props/lantern.glb", vertices: 8_000, texture: 1024, sloppy: true },
+  // 6.5M vertices of loose blossoms from Meshy (its remesh lost the pink): squeezed hard, the leaves kept apart.
+  akaneTree: { file: "akane/props/tree.glb", vertices: 40_000, texture: 2048, sloppy: true },
+  viniciusHoe: { file: "vinicius/props/hoe.glb", vertices: 4_000, texture: 1024 },
+  // Only 43k vertices after Meshy's remesh: kept whole, as squeezing it smears the texture across its UV seams.
+  viniciusGarden: { file: "vinicius/props/garden.glb", vertices: 43_000, texture: 2048 },
   // Her wings, flapped in code (Meshy can't rig a winged figure): see Wings.
   fairyWings: { file: "fairy/props/wings.glb", vertices: 8_000, texture: 1024 },
   seraphWings: { file: "seraphiel/props/wings.glb", vertices: 8_000, texture: 1024 },

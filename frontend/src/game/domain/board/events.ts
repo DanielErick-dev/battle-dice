@@ -50,6 +50,8 @@ export type BoardEvent =
     }
   /** A trap on `tile` smashed for good (Plasma Cannon). */
   | { type: "trapDestroyed"; playerId: PlayerId; tile: TileId; hidden: boolean }
+  /** Vinicius stopped on a trap and hoed it out for good (characters/vinicius/). */
+  | { type: "trapWeeded"; playerId: PlayerId; tile: TileId; hidden: boolean }
   /** A walk freed a pinned trap (a hidden one moves elsewhere, unseen). */
   | { type: "trapUnpinned"; tile: TileId }
   /** It then moves elsewhere in its zone. */

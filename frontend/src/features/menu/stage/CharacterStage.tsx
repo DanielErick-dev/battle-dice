@@ -91,7 +91,7 @@ export function CharacterStage({ characterId, className }: { characterId: Charac
           {scenery ? (
             <group position-y={FLOOR_Y}>
               <Suspense fallback={null}>
-                <scenery.component gust={gust} />
+                <scenery.component gust={gust} intro={`${characterId}:${encore}`} />
                 {/* Part of the ground, so they stay put while the figure is turned; replayed with each intro. */}
                 {introSword && (
                   <GreekColumns

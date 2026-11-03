@@ -30,6 +30,7 @@ export function flammableTiles(board: Board, position: TileId, taken: readonly T
 export function lightFlames(draft: Draft, playerId: PlayerId, tiles: readonly TileId[]): void {
   const allowed = flammableTiles(draft.state.board, playerIn(draft, playerId).position, [
     ...draft.blackFlames.map((flame) => flame.tile),
+    ...draft.scarletFlames.map((flame) => flame.tile),
     ...frozenTiles(draft.winter, draft.state.board.startTile),
   ]);
   if (

@@ -87,9 +87,9 @@ Energia paga as cartas. Também vem de casas de energia (+2), da Fonte de Luz (+
 
 | Ciclo | Habilidades |
 |---|---|
-| **3** | Conjuração Dupla, Vento a Favor, Revisão Relâmpago, Bênção do Serafim, Transmutação, Aposta do Coringa |
+| **3** | Conjuração Dupla, Vento a Favor, Bênção do Serafim, Transmutação, Aposta do Coringa |
 | **4** | O Vazio (mais +1 por armadilha disparada, destruída ou presa), Veredito Silencioso (reativo, carga secreta) |
-| **5** | Levitação Carmesim, Fúria Adormecida, Chuva de Flechas, Ressurreição, Escritura dos 4 Selos, Aparições Espectrais, Florescimento Feérico, Maré Purificadora, Indomável, Canhão de Plasma |
+| **5** | Levitação Carmesim, Fúria Adormecida, Chuva de Flechas, Ressurreição, Escritura dos 4 Selos, Aparições Espectrais, Florescimento Feérico, Maré Purificadora, Zona de Incêndio, Indomável, Canhão de Plasma |
 | **6** | Despertar Ocular |
 | **7** | Arrastar ao Inferno, Engrenagem do Tempo |
 
@@ -283,15 +283,20 @@ Cartas de **mira** escolhem um oponente no mesmo lugar (caminho principal ou o m
 
 ### Cartas exclusivas
 
-Cada personagem tem **5 cartas próprias** (a Têmis já tem as 5; o Zarek ainda está com 4), embaralhadas só no baralho de quem o escolheu (1 cópia de cada). Só o dono as joga: roubadas, ficam mortas na mão de quem pegou. Não saem da Transmutação nem do jackpot da Aposta, e não se fundem. A lista completa (e as propostas dos outros personagens) está em [cartas-exclusivas.md](cartas-exclusivas.md).
+Cada personagem tem **5 cartas próprias** (a Têmis e o Akane já têm as 5; o Zarek ainda está com 4), embaralhadas só no baralho de quem o escolheu (1 cópia de cada). Só o dono as joga: roubadas, ficam mortas na mão de quem pegou. Não saem da Transmutação nem do jackpot da Aposta, e não se fundem. A lista completa (e as propostas dos outros personagens) está em [cartas-exclusivas.md](cartas-exclusivas.md).
 
 | Carta | Dono | Raridade | Custo | Efeito |
 |---|---|---|---|---|
-| **Justiça Cega** | Têmis | Comum | 1 | Todos andam **4** casas, um depois do outro (começando por ela, na ordem dos turnos), sem dado e sem ninguém poder jogar carta. A casa onde cada um parar tem efeito (os outros não ganham jogar de novo nem prompt; se alguém cruzar a chegada assim, vence). |
+| **Justiça Cega** | Têmis | Comum | 1 | Ela anda **8** casas e cada oponente **4**, um depois do outro (começando por ela, na ordem dos turnos), sem dado e sem ninguém poder jogar carta. A casa onde cada um parar tem efeito (os outros não ganham jogar de novo nem prompt; se alguém cruzar a chegada assim, vence). |
 | **Confisco de Bens** | Têmis | Incomum | 2 | Mira: pega **2** cartas aleatórias da mão do oponente para a dela. |
 | **Marca da Justiça** | Têmis | Incomum | 2 | Todos os oponentes recebem **1** Marca da Justiça. |
 | **Decreto de Contenção** | Têmis | Rara | 3 | Nas próximas **3** rolagens de cada oponente, o dado não passa de **3** (4–6 viram 1–3; a Runa do Destino vale no máximo 3). Bônus somam normalmente. |
 | **Julgamento Final** | Têmis | Épica (Triunfo) | 5 + queimar 1 carta | Mira um oponente (não é ataque: nada bloqueia nem marca). Ela anda (distância entre os dois ÷ **3**, arredondando para cima) × um **Dado da Justiça** (1–6). O alvo fica parado. |
+| **Sangue Quente** | Akane | Comum | 1 | Gasta as Chamas Internas: todo oponente a até **7** casas (à frente ou atrás) volta **3** casas por chama (máx. 9). Sem chamas, não dá para jogar. Não é mirada. |
+| **Passo de Brasa** | Akane | Comum | 1 | Neste turno, se a rolagem parar numa casa em chamas, ele desliza mais **5** casas (a nova casa tem efeito). |
+| **Febre Escarlate** | Akane | Rara | 2 | Mirada automaticamente no oponente mais à frente: ele pega fogo e **5** casas antes e depois dele queimam por 2 rodadas. Protegido = BLOQUEADO; o veredito da Têmis só a anula. |
+| **Combustível Puro** | Akane | Rara | 3 | Nas próximas **2** rolagens dele, 2 dados somados sempre que algum oponente estiver pegando fogo (se não houver outra carta de lançamento). |
+| **Supernova Escarlate** | Akane | Épica (Triunfo) | 5 + queimar 1 carta | Absorve todo o fogo escarlate e o fogo de quem queima: anda **2** casas por casa em chamas e por oponente queimando, sem teto. Sem fogo nenhum, não dá para jogar. |
 | **Fome do Vazio** | Zarek | Incomum | 2 | O Vazio ganha **+2** de carga. |
 | **Fenda Faminta** | Zarek | Rara | 2 | O Vazio engole a primeira armadilha, maldição ou "perde a vez" visível nas próximas **15** casas, sem gastar a carga. |
 | **Eco do Vazio** | Zarek | Épica | 3 | A última coisa guardada no Vazio vira duas. |
@@ -384,12 +389,13 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 | 12 | Fada Cristalina | Florescimento Feérico | 5 |
 | 13 | Zéfiro | Vento a Favor | 3 |
 | 14 | Têmis | Veredito Silencioso | 4 |
-| 15 | Akane | Revisão Relâmpago | 3 |
+| 15 | Akane | Zona de Incêndio | 5 |
 | 16 | Bjorn Presa-Gélida | Indomável | 5 |
 | 17 | Auric | Maré Purificadora | 5 |
 | 18 | Seraphiel (e o Anjo Caído) | Bênção do Serafim / Arrastar ao Inferno | 3 / 7 |
 | 19 | Cronos | Engrenagem do Tempo | 7 |
 | 20 | Unidade Alva | Canhão de Plasma | 5 |
+| 21 | Vinicius | Capina (passiva) | — |
 
 ---
 
@@ -717,13 +723,13 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 
 **O que faz o Veredito**
 1. Ao carregar, o veredito **se arma sozinho, em segredo**: os oponentes veem `?` no lugar da carga dela (só aparece na vez dela), e nem banner nem log anunciam que ficou pronto.
-2. Armado, volta **em dobro contra quem atacou**: qualquer ataque mirado **nela** (com ou sem marca), e o ataque de um oponente com **2 marcas** (o 3º ataque dele) contra **qualquer outro jogador**, que vem para ela. O veredito se gasta e as marcas de quem atacou somem.
+2. Armado, volta **em dobro contra quem atacou**: qualquer ataque mirado **nela** (com ou sem marca), e o ataque de um oponente **já marcado** (o 2º ataque dele) contra **qualquer outro jogador**, que vem para ela. O veredito se gasta e as marcas de quem atacou somem.
    - **Rajada Arcana:** quem jogou é que recua o **dobro** de casas (uma Rajada de 7 vira 14).
    - **Clarão Ofuscante** e **Distorção Temporal:** quem mirou é que perde **2** vezes (ou anda de ré o dobro de rodadas). Como acontece antes de rolar, a vez dele acaba na hora.
    - **Chamado do Abismo** e **Arrastar ao Inferno:** quem mirou é que desce ao inferno (não tem como dobrar).
    - **Aposta do Coringa** (quando ganha): o Coringa é que entrega o **dobro** de cartas para ela.
    - **Troca de Destinos** e **Chamado da Fenda:** só são anulados.
-3. Contra outro jogador, o 1º e o 2º ataques **passam**, mesmo com o veredito armado: cada um só dá uma marca. O número de marcas necessário fica em `MARKS_TO_JUDGE` (hoje 2).
+3. Contra outro jogador, o 1º ataque **passa**, mesmo com o veredito armado: só dá a marca. O 2º já é julgado. O número de marcas necessário fica em `MARKS_TO_JUDGE` (hoje 1).
 4. Cada julgamento **paga a Têmis**: **+2 de energia** e a carga recomeça em **1** (em vez de zero).
 5. Se o 3º ataque chega com ela **desarmada**, ele passa e as marcas do atacante **se apagam**: a contagem recomeça. Dá para fazer estratégia (atacar quando ela acabou de gastar o veredito), e o apagar das marcas acaba revelando que ela estava desarmada.
 
@@ -740,17 +746,32 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 ---
 
 ### 15. Akane
-*Lição decorada, carta na mão*
+*O Prodígio Escarlate*
 
-**Habilidade:** Revisão Relâmpago · **Carga:** 3
+**Habilidade:** Zona de Incêndio · **Carga:** 5 (só começa a carregar depois que todo o fogo escarlate dele apagar, como o Indomável do Bjorn; uma casa de carga conta mesmo assim)
 
-**O que faz**
-1. Compra **2** cartas na hora.
+**Passiva: Ímpeto Brilhante**
+- Tirar **1 ou 2** no dado (o valor do dado, sem bônus; a Runa do Destino não conta) ou **cair numa armadilha** acende **1 Chama Interna** (máximo **3**).
+- Com 3 chamas, a **próxima rolagem** libera o Ímpeto: as chamas zeram e as suas próximas **2** rolagens andam **+3** casas.
+- Durante o Ímpeto, todo oponente que ele **atravessa ou em quem para** pega fogo e volta **3** casas (como o atropelo do Bjorn; protegidos escapam). Durante o Ímpeto ele não acende chamas novas.
 
-**Detalhes e exceções**
-- Com a mão cheia, entra a fila de descarte.
+**O que faz (ativa)**
+1. As **20** casas à sua frente pegam **fogo escarlate** por **2 rodadas** (contadas nas vezes dele; a rodada em que acende não conta). Nunca o início, a chegada ou uma casa com fogo negro.
+2. Quem estiver nessas casas, ou parar nelas depois, **pega fogo** por **2 rodadas** (as vezes dele):
+   - o dado anda a **metade**, arredondando para baixo, já com bônus e multiplicadores (6 + 3 = 9 → 4; um 1 não sai do lugar, e a casa onde ele está não age de novo);
+   - **não ganha energia** de nenhuma fonte (turno, Fonte de Luz, casas, cartas…);
+   - **o fogo cobra:** no fim de cada vez dele queimando, o Akane que o incendiou ganha **1 de energia**, tirada de quem queima enquanto ele tiver (sem energia, o Akane ganha mesmo assim). Vale para qualquer fogo do Akane (a Zona, a Febre, o Ímpeto).
+3. Enquanto queima, só o fogo existe na casa: uma armadilha ou um portal debaixo dele não agem.
 
-> no código: `abilities/basic.ts` (`studySession`)
+**Fogo contra os elementos**
+- **Fogo vence gelo:** o fogo escarlate derrete a **neve** da Fada e até o **gelo do Inverno Eterno**. O gelo não volta sozinho (só se a Fada escolher congelar a casa de novo), e o avanço do inverno não congela casas em chamas. A Fada não consegue congelar fogo escarlate.
+- A armadilha que estava **debaixo da neve** volta a funcionar quando o fogo apaga.
+- **Água vence fogo:** a Maré Purificadora do Auric apaga o fogo escarlate no alcance dela e tira o "pegando fogo" de quem estiver ali.
+- A **Erva Curativa** também apaga o fogo de quem a joga.
+- O fogo escarlate **nunca queima o Akane**. Passar por cima não queima: só parar. A Bruxa levitando e quem está protegido (Indomável, armadura) não pegam fogo do chão.
+- A Kage não acende fogo negro numa casa com fogo escarlate.
+
+> no código: `characters/akane/fire.ts` (fogo, queimadura, Ímpeto), `characters/akane/cards.ts` (cartas)
 
 ---
 
@@ -886,6 +907,14 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 
 > no código: `characters/alva/plasmaCannon.ts`, `board/traps.ts` (`blastTrapsAhead`)
 
+
+### 21. Vinicius
+
+Personagem de zoeira (o primo do Daniel), com a enxada sempre na mão.
+
+- **Capina** (passiva, sempre ligada, não carrega nem tem botão): se ele **parar numa armadilha**, mesmo escondida, capina ela pela raiz antes que ela pegue. A armadilha some do tabuleiro para sempre e nada acontece com ele. Vale antes de qualquer proteção (não gasta escudo).
+- Conta como armadilha destruída para o Vazio do Zarek.
+- Maldições, perder a vez e as fendas do Vazio não são armadilhas: essas o pegam normalmente.
 ---
 
 ## 6. Glossário

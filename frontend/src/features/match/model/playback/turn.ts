@@ -40,11 +40,24 @@ export const turnSteps: StepHandlers<
             best: event.best ?? false,
             bonus: event.bonus ?? 0,
             multiplier: event.multiplier ?? 1,
+            halved: event.halved ?? false,
             total: event.value,
           },
         }),
         durationMs: timings.diceRevealMs,
       },
+      // On fire, the roll is halved: said out loud, or a 1 that goes nowhere looks like a bug.
+      ...(event.halved
+        ? [
+            {
+              apply: (view: MatchView) => ({
+                ...view,
+                effect: { ...playerTileEffect(view, event.playerId, "burntRoll"), count: event.value },
+              }),
+              durationMs: timings.noticeMs,
+            },
+          ]
+        : []),
     ];
   },
   playerMoved: (event, timings) => {
@@ -56,6 +69,8 @@ export const turnSteps: StepHandlers<
           trample: view.fx.trample?.by === event.playerId ? null : view.fx.trample,
         }),
         walkEnd: event.dash || end === undefined ? null : { playerId: event.playerId, tile: end },
+        // Blind Justice walks everyone in turn: the camera goes with whoever is walking.
+        movingPlayerId: view.fx.march ? event.playerId : view.movingPlayerId,
       }),
       durationMs: event.dash ? timings.dashStepMs : timings.stepMs,
     }));
@@ -172,6 +187,7 @@ export const turnSteps: StepHandlers<
           specters: [],
           enchantedTiles: [],
           blackFlames: [],
+          scarletFlames: [],
           winter: null,
         }),
         durationMs: 0,

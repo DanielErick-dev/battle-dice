@@ -81,6 +81,21 @@ const SHOTS: Record<TileEffectKind, Shot> = {
   verdict: { closeUp: { distance: 1.8, seconds: 4 }, trauma: 0.35 },
   marked: { closeUp: { distance: 0.7, seconds: 1.2 } },
   marched: { fovKick: 0.6 },
+  scarletLit: { fovKick: 0.8, trauma: 0.25 },
+  ignited: { closeUp: { distance: 0.7, seconds: 1.2 }, trauma: 0.2 },
+  quenched: {},
+  // Close on him stomping in a fury at a low roll.
+  kindled: { closeUp: { distance: 0.7, seconds: 1.3 } },
+  impetus: { closeUp: { distance: 0.62, seconds: 1.4 }, fovKick: 0.8 },
+  emberSlid: { fovKick: 0.5 },
+  emberStep: {},
+  hotBlood: { trauma: 0.7, fovKick: 0.6 },
+  // Close on him hacking the trap out.
+  weeded: { closeUp: { distance: 0.7, seconds: 1.2 } },
+  burntRoll: { closeUp: { distance: 0.75, seconds: 1.1 } },
+  fireFed: {},
+  fuel: {},
+  supernova: { closeUp: { distance: 0.62, seconds: 1.6 }, trauma: 0.6, fovKick: 1 },
   timedOut: { trauma: 0.2 },
   decree: { fovKick: 0.6, trauma: 0.2 },
   judgment: { closeUp: { distance: 0.62, seconds: 1.6 }, trauma: 0.5, fovKick: 1 },
@@ -124,6 +139,8 @@ export interface CameraSpotlight {
 export interface CameraChase {
   key: number;
   position: Vector3;
+  /** How long to ride along, when not CHASE_SECONDS. */
+  seconds?: number;
 }
 
 /** Following the focus up close or from midway, or framing the whole board. */
@@ -241,7 +258,8 @@ export function CameraRig({
     if (cast && cast.id !== lastCast.current?.id) film(CAST_SHOTS[cast.card.cardId] ?? {});
     lastCast.current = cast;
 
-    if (chase && chase.key !== chased.current.key) chased.current = { key: chase.key, until: now + CHASE_SECONDS };
+    if (chase && chase.key !== chased.current.key)
+      chased.current = { key: chase.key, until: now + (chase.seconds ?? CHASE_SECONDS) };
     const chasing = chase !== null && now < chased.current.until && !celebrating;
     const closeUp = celebrating || chasing || now < state.closeUpUntil;
     const closeUpFactor = celebrating ? VICTORY_DISTANCE : chasing ? CHASE_DISTANCE : state.closeUpFactor;

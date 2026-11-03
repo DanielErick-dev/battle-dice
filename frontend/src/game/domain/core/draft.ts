@@ -1,5 +1,6 @@
 import type {
   BlackFlame,
+  ScarletFlame,
   CardInstance,
   EnchantedTile,
   GameEvent,
@@ -34,6 +35,7 @@ export interface Draft {
   specters: Specter[];
   enchantedTiles: EnchantedTile[];
   blackFlames: BlackFlame[];
+  scarletFlames: ScarletFlame[];
   winter: Winter | null;
   voidScars: VoidScar[];
   /** A Plunder specter caught someone this command; settle turns it into a PendingPlunder. */
@@ -63,6 +65,7 @@ export function startDraft(state: GameState, random: RandomSource): Draft {
     specters: [...state.specters],
     enchantedTiles: [...state.enchantedTiles],
     blackFlames: [...state.blackFlames],
+    scarletFlames: [...state.scarletFlames],
     winter: state.winter,
     voidScars: [...state.voidScars],
     plunder: null,
@@ -82,6 +85,7 @@ export function draftState(draft: Draft): GameState {
     specters: draft.specters,
     enchantedTiles: draft.enchantedTiles,
     blackFlames: draft.blackFlames,
+    scarletFlames: draft.scarletFlames,
     winter: draft.winter,
     voidScars: draft.voidScars,
   };

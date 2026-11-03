@@ -18,7 +18,8 @@ export type ThemisEvent =
       ability?: AbilityId;
     }
   /** Blind Justice: everyone walks `tiles` ahead, one after another, from `order[0]`. */
-  | { type: "justiceMarched"; playerId: PlayerId; tiles: number; order: readonly PlayerId[] }
+  | { type: "justiceMarched"; playerId: PlayerId; tiles: number; own: number; order: readonly PlayerId[] }
+  | { type: "justiceMarchEnded"; playerId: PlayerId }
   /** The Containment Decree: the dice of `targetIds` can't go above `cap` for their next `rolls` rolls. */
   | { type: "decreeIssued"; playerId: PlayerId; targetIds: readonly PlayerId[]; rolls: number; cap: number }
   /** The Final Judgment: `ceil(distance / 3) × die` tiles ahead for Themis; the target stays put. */

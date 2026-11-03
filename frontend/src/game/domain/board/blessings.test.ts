@@ -29,7 +29,7 @@ const BOARD: BoardDefinition = {
 /** A tile in heaven: the celestial track's first. */
 const HEAVEN = 61;
 
-const game = () => newGame(BOARD, { p1: "studySession" });
+const game = () => newGame(BOARD, { p1: "doubleCast" });
 const blessed = (kind: TimedBlessing, patch: Partial<Player> = {}) =>
   withPlayer(game(), "p1", { blessings: [{ kind, turnsLeft: BLESSING_TURNS, fresh: false }], ...patch });
 
@@ -132,7 +132,7 @@ describe("divine cards", () => {
   });
 
   it("Ascension readies the ability at once", () => {
-    expect(playing("ascension", { abilityCharge: 0 }).abilityCharge).toBe(abilityCycle("studySession"));
+    expect(playing("ascension", { abilityCharge: 0 }).abilityCharge).toBe(abilityCycle("doubleCast"));
   });
 
   it("wait in heaven, neither working nor wearing off, and start once the player is out", () => {

@@ -30,7 +30,7 @@ const HEAVEN_SPRING = 80;
 const HEAVEN_LIGHT = 82;
 const HEAVEN_LAST = 96;
 
-const duel = (ability: AbilityId = "seraphBlessing") => newGame(BOARD, { hero: ability, rival: "studySession" });
+const duel = (ability: AbilityId = "seraphBlessing") => newGame(BOARD, { hero: ability, rival: "doubleCast" });
 const solo = (ability: AbilityId = "seraphBlessing") => newGame(BOARD, { hero: ability });
 const fallen = (state: GameState) => withPlayer(state, "hero", { ability: "hellsDrag" });
 const drag = (state: GameState, targetId?: string) =>
@@ -91,7 +91,7 @@ describe("Seraphiel in heaven", () => {
   });
 
   it("anyone else just receives the tile's blessing", () => {
-    const { state } = roll(withPlayer(solo("studySession"), "hero", { position: HEAVEN_RELIC }), "hero", 1);
+    const { state } = roll(withPlayer(solo("doubleCast"), "hero", { position: HEAVEN_RELIC }), "hero", 1);
     expect(state.pendingGrace).toBeNull();
     expect(playerOf(state, "hero").blessings.map((blessing) => blessing.kind)).toEqual(["spring"]);
   });
@@ -152,7 +152,7 @@ describe("the Fall", () => {
   });
 
   it("hell still harms anyone else", () => {
-    const { state } = roll(withPlayer(duel("studySession"), "hero", { position: HELL }), "hero", 1);
+    const { state } = roll(withPlayer(duel("doubleCast"), "hero", { position: HELL }), "hero", 1);
     expect(playerOf(state, "hero").skipTurns).toBe(1);
   });
 
@@ -228,7 +228,7 @@ describe("Call of the Abyss (card)", () => {
   const callAbyss = (state: GameState, targetId: string) => play(withCard(state), "hero", "abyss", { targetId });
 
   it("pulls the opponent down into hell, to come out where they were", () => {
-    const { state, events } = callAbyss(withPlayer(duel("studySession"), "rival", { position: 30 }), "rival");
+    const { state, events } = callAbyss(withPlayer(duel("doubleCast"), "rival", { position: 30 }), "rival");
     expect(playerOf(state, "rival")).toMatchObject({
       position: HELL,
       realmEntry: { portal: 30, exit: 30 },
@@ -244,7 +244,7 @@ describe("Call of the Abyss (card)", () => {
 
   it("is turned away by armour, and spent", () => {
     const { state, events } = callAbyss(
-      withPlayer(duel("studySession"), "rival", { position: 30, spectralArmour: 2 }),
+      withPlayer(duel("doubleCast"), "rival", { position: 30, spectralArmour: 2 }),
       "rival",
     );
     expect(playerOf(state, "rival").position).toBe(30);
@@ -253,6 +253,6 @@ describe("Call of the Abyss (card)", () => {
   });
 
   it("can't reach someone already in a realm", () => {
-    expect(() => callAbyss(withPlayer(duel("studySession"), "rival", { position: HEAVEN_SPRING }), "rival")).toThrow();
+    expect(() => callAbyss(withPlayer(duel("doubleCast"), "rival", { position: HEAVEN_SPRING }), "rival")).toThrow();
   });
 });

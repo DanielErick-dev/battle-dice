@@ -72,6 +72,10 @@ export interface PlaybackTimings {
   verdictTipMs: number;
   /** Fairy Bloom: she raises her wand and points it ahead before the snow flies. */
   frostAimMs: number;
+  /** Akane's Fire Zone: his pitch winds up and lets go of the fireball (1.6 s into his cast) before the fire lands. */
+  fireThrowMs: number;
+  /** Akane striking the ground (Hot Blood, the Impetus): the blow lands at 1 s, the fire bursts out after it. */
+  fireStrikeMs: number;
   /** Fairy Bloom: the snow streams from her wand to one tile, and lands. */
   frostStreamMs: number;
   /** Zarek's Void surfaces as a rift on a tile and does its work there. */
@@ -102,7 +106,7 @@ export const DEFAULT_TIMINGS: PlaybackTimings = {
   dashStrikeMs: 550,
   dashStepMs: 45,
   dashArriveMs: 700,
-  arrowAimMs: 700,
+  arrowAimMs: 2650,
   arrowVolleyMs: 1500,
   arrowImpactMs: 450,
   tideMs: 2300,
@@ -121,6 +125,12 @@ export const DEFAULT_TIMINGS: PlaybackTimings = {
   verdictWeighMs: 1900,
   verdictTipMs: 1300,
   frostAimMs: 1500,
+  fireThrowMs: 1700,
+  fireStrikeMs: 1800,
   frostStreamMs: 2300,
   voidRiftMs: 1800,
 };
+
+/** Seconds Akane's fireballs fly (Blaze), and between one tile of his Fire Zone catching and the next. */
+export const FIRE_BOLT_SECONDS = 0.5;
+export const FIRE_RACE_STEP = 0.2;

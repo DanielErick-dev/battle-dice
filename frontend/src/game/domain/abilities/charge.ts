@@ -1,5 +1,6 @@
 import { playerIn, updatePlayer, type Draft } from "../core/draft";
 import type { AbilityId, Player, PlayerId } from "@/game/domain/types";
+import { isPassive } from "./ability";
 
 export const ABILITY_CYCLE = 3;
 /** The strongest abilities take longer to come back. */
@@ -17,7 +18,6 @@ const ABILITY_CYCLES: Readonly<Record<AbilityId, number>> = {
   doubleCast: ABILITY_CYCLE,
   theVoid: VOID_CYCLE,
   tailwind: ABILITY_CYCLE,
-  studySession: ABILITY_CYCLE,
   seraphBlessing: ABILITY_CYCLE,
   transmutation: ABILITY_CYCLE,
   cardGamble: ABILITY_CYCLE,
@@ -29,12 +29,15 @@ const ABILITY_CYCLES: Readonly<Record<AbilityId, number>> = {
   spectralApparitions: LONG_ABILITY_CYCLE,
   fairyBloom: LONG_ABILITY_CYCLE,
   cleansingTide: LONG_ABILITY_CYCLE,
+  fireZone: LONG_ABILITY_CYCLE,
   untamed: LONG_ABILITY_CYCLE,
   plasmaCannon: LONG_ABILITY_CYCLE,
   ocularAwakening: OCULAR_AWAKENING_CYCLE,
   hellsDrag: HELLS_DRAG_CYCLE,
   timeWarp: TIME_WARP_CYCLE,
   silentVerdict: VERDICT_CYCLE,
+  // Passive: never charges (see chargeAbility).
+  weeding: ABILITY_CYCLE,
 };
 
 export function abilityCycle(ability: AbilityId | null): number {
@@ -45,16 +48,20 @@ export function isAbilityReady(player: Player): boolean {
   return player.ability !== null && player.abilityCharge >= abilityCycle(player.ability);
 }
 
-/** Untamed and held Time Warp don't charge, unless `fromBoard` (a charge tile always fills a turn). */
+/**
+ * Untamed, held Time Warp and Akane with his scarlet fire still burning (`fireLit`) don't charge, unless `fromBoard`
+ * (a charge tile always fills a turn).
+ */
 export function chargeAbility(
   player: Player,
-  { fromBoard = false }: { fromBoard?: boolean } = {},
+  { fromBoard = false, fireLit = false }: { fromBoard?: boolean; fireLit?: boolean } = {},
 ): {
   player: Player;
   becameReady: boolean;
 } {
-  const held = !fromBoard && (player.untamed > 0 || player.chargeHeld > 0);
-  if (player.ability === null || isAbilityReady(player) || held) return { player, becameReady: false };
+  const held = !fromBoard && (player.untamed > 0 || player.chargeHeld > 0 || fireLit);
+  if (player.ability === null || isPassive(player.ability) || isAbilityReady(player) || held)
+    return { player, becameReady: false };
   const charged = { ...player, abilityCharge: player.abilityCharge + 1 };
   return { player: charged, becameReady: isAbilityReady(charged) };
 }
@@ -69,8 +76,9 @@ export function chargeInDraft(
   const before = playerIn(draft, playerId);
   let player = before;
   let becameReady = false;
+  const fireLit = draft.scarletFlames.some((flame) => flame.owner === playerId);
   for (let step = 0; step < steps; step++) {
-    const charged = chargeAbility(player, options);
+    const charged = chargeAbility(player, { ...options, fireLit });
     player = charged.player;
     becameReady ||= charged.becameReady;
   }

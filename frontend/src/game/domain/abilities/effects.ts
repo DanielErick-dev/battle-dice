@@ -1,7 +1,8 @@
 import { bloom, freezeTiles } from "../characters/fairy/winter";
 import { cleansingTide } from "../characters/auric/cleansingTide";
 import { hellsDrag } from "../characters/seraphiel/seraph";
-import { levitate, studySession } from "./basic";
+import { levitate } from "./basic";
+import { fireZone } from "../characters/akane/fire";
 import { lightFlames, raiseArmour } from "../characters/kage/flames";
 import { loseArrowRain } from "../characters/archer/arrowRain";
 import { plasmaCannon } from "../characters/alva/plasmaCannon";
@@ -31,7 +32,8 @@ export const ABILITY_EFFECTS: Readonly<Record<AbilityId, AbilityEffect | null>> 
   tailwind: null,
   dormantFury: null,
   silentVerdict: null,
-  studySession: (draft, playerId) => studySession(draft, playerId),
+  weeding: null,
+  fireZone: (draft, playerId) => fireZone(draft, playerId),
   levitation: (draft, playerId) => levitate(draft, playerId),
   seraphBlessing: (draft, playerId) => seraphBlessing(draft, playerId),
   hellsDrag: (draft, playerId, { targetId }) => hellsDrag(draft, playerId, targetId),

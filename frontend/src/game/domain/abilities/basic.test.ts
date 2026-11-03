@@ -1,12 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { ABILITY_CYCLE, LONG_ABILITY_CYCLE, abilityCycle } from "./charge";
-import { DORMANT_FURY_MULTIPLIER, LEVITATION_TURNS, STUDY_DRAWS, TAILWIND_BONUS } from "./basic";
+import { DORMANT_FURY_MULTIPLIER, LEVITATION_TURNS, TAILWIND_BONUS } from "./basic";
 import type { AbilityId } from "./ability";
 import { TRAP_AND_CURSE_BOARD } from "../testing/boards";
 import {
   activate,
   cards,
-  eventsOfType,
   expectRuleError,
   hasEvent,
   newGame,
@@ -44,7 +43,7 @@ describe("ability charge", () => {
   });
 
   it("charged again in the same turn (Ascension), can be used again", () => {
-    const duel = newGame(TRAP_AND_CURSE_BOARD, { hero: "studySession", rival: "studySession" });
+    const duel = newGame(TRAP_AND_CURSE_BOARD, { hero: "doubleCast", rival: "doubleCast" });
     const once = activate(readyAbility(duel, "hero"), "hero");
     const again = activate(readyAbility(once.state, "hero"), "hero");
     expect(again.events).toContainEqual(expect.objectContaining({ type: "abilityUsed", playerId: "hero" }));
@@ -93,20 +92,6 @@ describe("Dormant Fury", () => {
 
   it("takes the long cycle to charge", () => {
     expect(abilityCycle("dormantFury")).toBe(LONG_ABILITY_CYCLE);
-  });
-});
-
-describe("Study Session", () => {
-  it("draws cards right away", () => {
-    const { state, events } = activate(withPlayer(ready(solo("studySession")), "p1", { hand: [] }), "p1");
-    expect(eventsOfType(events, "cardDrawn")).toHaveLength(2);
-    expect(aria(state).hand).toHaveLength(2);
-  });
-
-  it(`draws ${STUDY_DRAWS} cards with opponents at the table too`, () => {
-    const duel = newGame(TRAP_AND_CURSE_BOARD, { hero: "studySession", rival: "studySession" });
-    const { state } = activate(readyAbility(withPlayer(duel, "hero", { hand: [] }), "hero"), "hero");
-    expect(playerOf(state, "hero").hand).toHaveLength(STUDY_DRAWS);
   });
 });
 

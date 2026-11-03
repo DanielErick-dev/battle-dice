@@ -30,6 +30,7 @@ const IDLE_SIGNALS: PoseInput["signals"] = {
   dragged: null,
   abilityCast: null,
   verdict: null,
+  outburst: null,
 };
 
 function input(now: number, overrides: Partial<PoseInput> = {}): PoseInput {

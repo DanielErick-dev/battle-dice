@@ -17,7 +17,7 @@ function scale(view: MatchView, judgeId: PlayerId, attackerId: PlayerId, phase: 
 const nameIn = (view: MatchView, id: PlayerId) => view.players.find((player) => player.id === id)?.name;
 
 export const verdictSteps: StepHandlers<
-  "verdictPassed" | "justiceMarked" | "justiceMarched" | "decreeIssued" | "finalJudgment"
+  "verdictPassed" | "justiceMarked" | "justiceMarched" | "justiceMarchEnded" | "decreeIssued" | "finalJudgment"
 > = {
   verdictPassed: (event, timings) => {
     // The scale weighs over the attacker, then drops on their side; what they aimed plays out next, turned on them.
@@ -65,10 +65,17 @@ export const verdictSteps: StepHandlers<
   justiceMarched: (event, timings) => [
     {
       apply: (view) => ({
-        ...view,
+        ...withFx(view, { march: { playerId: event.playerId } }),
         effect: { ...playerTileEffect(view, event.playerId, "marched"), count: event.tiles },
       }),
       durationMs: timings.noticeMs,
+    },
+  ],
+  // Everyone has walked: the camera goes back to her.
+  justiceMarchEnded: (event, timings) => [
+    {
+      apply: (view) => ({ ...withFx(view, { march: null }), movingPlayerId: event.playerId }),
+      durationMs: timings.noticeMs / 2,
     },
   ],
   decreeIssued: (event, timings) => [

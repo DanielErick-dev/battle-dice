@@ -24,6 +24,12 @@ export type CardId =
   | "justiceMark"
   | "containmentDecree"
   | "finalJudgment"
+  // Akane's own (see characters/akane/cards.ts).
+  | "hotBlood"
+  | "emberStep"
+  | "scarletFever"
+  | "pureFuel"
+  | "scarletSupernova"
   // Zarek's own.
   | "voidHunger"
   | "hungryRift"
@@ -60,6 +66,8 @@ export interface CardDefinition {
   sacrifices?: number;
   /** Aimed at an opponent without touching them: no ward, Mark of Justice or verdict comes into it. */
   spares?: boolean;
+  /** Finds its own opponent (no pick): left out of solo decks like those that target one. */
+  needsOpponent?: boolean;
 }
 
 const card = (
@@ -110,6 +118,14 @@ export const CARD_CATALOG: Readonly<Record<CardId, CardDefinition>> = {
     cost: 5,
     sacrifices: 1,
   }),
+
+  hotBlood: card("hotBlood", "common", { exclusive: "fireZone" }),
+  emberStep: card("emberStep", "common", { exclusive: "fireZone" }),
+  // Aimed at the leader on its own: Themis and wards still have their say (see scarletFever).
+  scarletFever: card("scarletFever", "rare", { exclusive: "fireZone", needsOpponent: true }),
+  pureFuel: card("pureFuel", "rare", { exclusive: "fireZone", cost: 3 }),
+  // His trump: every fire on the board turned into a leap, paid with energy and another card.
+  scarletSupernova: card("scarletSupernova", "epic", { exclusive: "fireZone", cost: 5, sacrifices: 1 }),
 
   voidHunger: card("voidHunger", "uncommon", { exclusive: "theVoid" }),
   hungryRift: card("hungryRift", "rare", { exclusive: "theVoid" }),

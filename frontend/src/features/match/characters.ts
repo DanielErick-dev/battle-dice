@@ -16,7 +16,8 @@ import type { WingsId } from "./scene/character/accessories/wingLooks";
  * chair, while they've lost turns (shared the same way); hop plays once as the Crystal Fairy stops on
  * her own snow, before it carries her on. brake plays once as they come to a stop out of a run, slowing
  * to a walk, and sit as they settle onto their chair before rest. guard and scoff are Themis's: passing
- * her verdict she guards, points (her cast) at the one judged, and scoffs as it turns on them.
+ * her verdict she guards, points (her cast) at the one judged, and scoffs as it turns on them. strike and fume
+ * are Akane's: he strikes the ground as his fire bursts out (Hot Blood, the Impetus) and stomps in a fury on a low roll.
  */
 export type CharacterClip =
   | "idle"
@@ -34,7 +35,9 @@ export type CharacterClip =
   | "brake"
   | "sit"
   | "guard"
-  | "scoff";
+  | "scoff"
+  | "strike"
+  | "fume";
 
 /** Seconds each clip lasts, for the clips a model has. */
 export type ClipLengths = Partial<Record<CharacterClip, number>>;
@@ -54,10 +57,16 @@ export interface CharacterDefinition {
   energyBlades?: boolean;
   /** Seconds into their cast clip when the blow lands: the ability's burst waits for it. */
   castImpactSeconds?: number;
+  /** Turned this far round (radians) while the cast clip plays: a throw made side-on still aims down the path. */
+  castTurn?: number;
   /** Tint of their Arcane Shield bubble (cyan by default). */
   shieldColor?: string;
   /** Holds her sword in the right hand, always (see JusticeSword). */
   holdsSword?: boolean;
+  /** His hoe: stood beside him on the menu (PlantedHoe), out in the match only to hoe a trap out (HeldHoe). */
+  holdsHoe?: boolean;
+  /** His fire, always: a live flame off each palm (see BodyFlames) and his clothes burning without burning up (ClothFire). */
+  handFlame?: boolean;
   /** A prop made in code, held in the right hand in the moves that use it (see HeldVial). */
   handProp?: "vial";
   /** Carries her bow slung on her back, drawn for her ability (see BackBow). */
@@ -106,6 +115,9 @@ export interface CharacterDefinition {
   introBones?: IntroBoneBeats;
   /** Frost gathers on their fist and the floor freezes over where it slams down in the intro (see FrostSlam). */
   introFrost?: IntroFrostBeats;
+  /** Their intro gets up off their own chair, which bursts into flames at the snap of their fingers (see ThroneIntro). */
+  /** Their intro gets up off a school chair that burns away as they rise, then snaps their fingers (see ChairIntro). */
+  introChair?: { riseSeconds: number; snapSeconds: number };
   /** The ground they stand on in the menu, in place of the rune pedestal (see menu/stage/scenery). */
   stage?: SceneryId;
   /**
@@ -197,6 +209,9 @@ export interface IntroSealBeats {
 const model = (id: string) => `/models/characters/${id}.glb`;
 
 /** Every character, made with Meshy AI (see `playable`). The ids name the model files. */
+/** Akane's intro plays this much slower than its clip: cut tight, it rushed. */
+const AKANE_INTRO_SPEED = 0.78;
+
 export const CHARACTERS = {
   zarek: {
     name: "Zarek",
@@ -281,8 +296,8 @@ export const CHARACTERS = {
     chair: "elderwoodThrone",
     ability: "arrowRain",
     bow: true,
-    // Until her draw-and-shoot clip comes: she just draws the bow, no leap (drop this with the clip).
-    castsStill: true,
+    // Her cast is her intro's shot bent up at the sky (see the manifest's skyward): the arrow flies at 2.65 s.
+    castImpactSeconds: 2.65,
     playable: true,
     shieldColor: "#84cc16",
     // Her intro: the bow comes up from 0.6 s, drawn and held, the arrow loosed at 2.65 s.
@@ -407,12 +422,21 @@ export const CHARACTERS = {
   },
   akane: {
     name: "Akane",
-    epithet: "Lição decorada, carta na mão",
-    color: "#f9a8d4",
+    epithet: "O Prodígio Escarlate",
+    // Flame orange, kept apart from Kage Rubra's scarlet.
+    color: "#f97316",
     model: model("akane"),
-    ability: "studySession",
+    ability: "fireZone",
     playable: true,
-    shieldColor: "#f9a8d4",
+    handFlame: true,
+    // His cast pitches a fireball off to his left at 1.6 s: turned a quarter round, it flies down the path.
+    castImpactSeconds: 1.6,
+    castTurn: -Math.PI / 2,
+    // His intro, slowed down a touch: he gets up off his chair from 0.9 s into the clip and snaps his fingers at 2.65 s
+    // (measured on the built clip), stretched by the slower playback.
+    introSpeed: AKANE_INTRO_SPEED,
+    introChair: { riseSeconds: 0.9 / AKANE_INTRO_SPEED, snapSeconds: 2.65 / AKANE_INTRO_SPEED },
+    shieldColor: "#f97316",
     chair: "infernalThrone",
     stage: "sakuraCourtyard",
   },
@@ -483,6 +507,19 @@ export const CHARACTERS = {
     shieldColor: "#e2e8f0",
     chair: "cyberThrone",
     stage: "hangar",
+  },
+  // The user's cousin, put in for a laugh: a farm hand who hoes out any trap he stops on.
+  vinicius: {
+    name: "Vinicius",
+    epithet: "Capina tudo",
+    // Earthy amber, the colour of turned soil.
+    color: "#b45309",
+    model: model("vinicius"),
+    ability: "weeding",
+    playable: true,
+    holdsHoe: true,
+    shieldColor: "#b45309",
+    stage: "farmPlot",
   },
 } as const satisfies Record<string, CharacterDefinition>;
 

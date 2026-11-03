@@ -1,10 +1,10 @@
 import { abilityBlocker, type AbilityId } from "../abilities/ability";
-import { LEVITATION_TURNS, STUDY_DRAWS } from "../abilities/basic";
+import { LEVITATION_TURNS } from "../abilities/basic";
+import { fireZone } from "../characters/akane/fire";
 import { loseArrowRain } from "../characters/archer/arrowRain";
 import { unleash } from "../characters/bjorn/untamed";
 import { playCardGamble } from "../characters/jester/cardGamble";
 import { GameRuleError } from "../core/errors";
-import { drawCard } from "../cards/hand";
 import { playerIn, startDraft, updatePlayer, type Draft } from "../core/draft";
 import { bloom, freezeTiles } from "../characters/fairy/winter";
 import { lightFlames, raiseArmour } from "../characters/kage/flames";
@@ -32,9 +32,7 @@ type AbilityEffect = (
 
 /** What each activated ability does; reactive ones (the Void's swallowing, Tailwind…) only answer prompts or boost rolls. */
 const ABILITY_EFFECTS: Partial<Record<AbilityId, AbilityEffect>> = {
-  studySession: (draft, playerId) => {
-    for (let draw = 0; draw < STUDY_DRAWS; draw++) drawCard(draft, playerId);
-  },
+  fireZone: (draft, playerId) => fireZone(draft, playerId),
   seraphBlessing: (draft, playerId) => seraphBlessing(draft, playerId),
   hellsDrag: (draft, playerId, { targetId }) => hellsDrag(draft, playerId, targetId),
   cleansingTide: (draft, playerId) => cleansingTide(draft, playerId),

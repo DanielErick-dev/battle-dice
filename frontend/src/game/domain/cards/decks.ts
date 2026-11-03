@@ -1,4 +1,4 @@
-import { CARD_CATALOG, type Rarity } from "./catalog";
+import { CARD_CATALOG, type CardDefinition, type Rarity } from "./catalog";
 import { shuffle, type RandomSource } from "../core/random";
 import type { AbilityId, CardId, CardInstance, PlayerId } from "@/game/domain/types";
 
@@ -11,12 +11,14 @@ export const COPIES_BY_RARITY: Readonly<Record<Rarity, number>> = {
   legendary: 1,
 };
 
+function facesOpponent(definition: CardDefinition): boolean {
+  return definition.targetsOpponent || definition.needsOpponent === true;
+}
+
 /** Everyone's deck until collections exist: 20 cards solo, 26 with opponents. */
 export function standardDeck({ withOpponents }: { withOpponents: boolean }): CardId[] {
   return Object.values(CARD_CATALOG)
-    .filter(
-      (definition) => !definition.relic && !definition.exclusive && (withOpponents || !definition.targetsOpponent),
-    )
+    .filter((definition) => !definition.relic && !definition.exclusive && (withOpponents || !facesOpponent(definition)))
     .flatMap((definition) => Array<CardId>(COPIES_BY_RARITY[definition.rarity]).fill(definition.id));
 }
 
@@ -25,7 +27,7 @@ export function exclusiveCards(ability: AbilityId | null, { withOpponents }: { w
   return Object.values(CARD_CATALOG)
     .filter(
       (definition) =>
-        ability !== null && definition.exclusive === ability && (withOpponents || !definition.targetsOpponent),
+        ability !== null && definition.exclusive === ability && (withOpponents || !facesOpponent(definition)),
     )
     .map((definition) => definition.id);
 }

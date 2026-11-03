@@ -15,6 +15,7 @@ export function abilityUsedMs(ability: AbilityId, timings: PlaybackTimings): num
   if (ability === "untamed") return timings.untamedCastMs;
   if (ability === "hellsDrag") return timings.dragCastMs;
   if (ability === "fairyBloom") return timings.frostAimMs;
+  if (ability === "fireZone") return timings.fireThrowMs;
   return timings.noticeMs;
 }
 

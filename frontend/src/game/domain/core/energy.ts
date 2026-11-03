@@ -8,7 +8,9 @@ export const TURNS_PER_ENERGY = 2;
 
 /** Up to `amount`, what still fits the bar; returns what was gained. */
 export function gainEnergy(draft: Draft, playerId: PlayerId, amount: number): number {
-  const gained = Math.min(amount, MAX_ENERGY - playerIn(draft, playerId).energy);
+  const player = playerIn(draft, playerId);
+  // Burning on Akane's fire, nothing comes in.
+  const gained = player.burning > 0 ? 0 : Math.min(amount, MAX_ENERGY - player.energy);
   updatePlayer(draft, playerId, (player) => ({ energy: player.energy + gained }));
   return gained;
 }

@@ -148,7 +148,7 @@ export function PlayerToken({
     const lift = levitationLift(rise.current);
     const hover = lift * LEVITATE_HEIGHT + Math.sin(now * 1.6) * LEVITATE_BOB * lift;
 
-    if (way.heading !== null) yaw.current = turnTowards(yaw.current, way.heading, delta * TURN_RATE);
+    if (way.heading !== null) yaw.current = turnTowards(yaw.current, way.heading + pose.turn, delta * TURN_RATE);
     if (body.current) {
       body.current.position.y = Math.sin(Math.PI * pose.spin) * HOP_HEIGHT + hover - pose.sunk * SINK_DEPTH;
       body.current.rotation.y = yaw.current + easeInOut(pose.spin) * Math.PI * 2;

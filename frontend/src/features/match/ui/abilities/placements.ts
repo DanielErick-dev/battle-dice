@@ -71,6 +71,7 @@ export function placementOf(placement: Placement, scene: AbilityScene): Placemen
         steps: FLAME_STEPS,
         tiles: flammableTiles(board, player.position, [
           ...view.blackFlames.map((flame) => flame.tile),
+          ...view.scarletFlames.map((flame) => flame.tile),
           ...frozenTiles(view.winter, board.startTile),
         ]),
         confirmLabel: "Incendiar",
@@ -82,7 +83,13 @@ export function placementOf(placement: Placement, scene: AbilityScene): Placemen
         title: "Inverno Eterno",
         tone: "text-sky-300",
         steps: FROST_STEPS,
-        tiles: freezableTiles(board, player.position, view.winter, view.enchantedTiles),
+        tiles: freezableTiles(
+          board,
+          player.position,
+          view.winter,
+          view.enchantedTiles,
+          view.scarletFlames.map((flame) => flame.tile),
+        ),
         confirmLabel: "Congelar",
         cursor: "frost",
         send: activating((frostTiles) => ({ frostTiles })),

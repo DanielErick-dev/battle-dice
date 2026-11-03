@@ -30,7 +30,7 @@ import {
 } from "../testing";
 import type { GameState, Player } from "../core/state";
 
-const duel = (ability: AbilityId) => newGame(HARM_AHEAD_BOARD, { hero: ability, rival: "studySession" });
+const duel = (ability: AbilityId) => newGame(HARM_AHEAD_BOARD, { hero: ability, rival: "doubleCast" });
 const ready = (state: GameState) => readyAbility(state, "hero");
 const activate = (state: GameState, options: ActivateOptions = {}) => activateFor(state, "hero", options);
 /** The rival's turn, standing on `from`, rolling `die`. */

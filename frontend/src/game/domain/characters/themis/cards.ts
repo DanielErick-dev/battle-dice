@@ -14,6 +14,8 @@ import type { Board, Player, PlayerId } from "../../types";
 export const CONFISCATED_CARDS = 2;
 /** Tiles everyone walks under Blind Justice. */
 export const JUSTICE_MARCH = 4;
+/** Blind Justice walks Themis herself twice as far as everyone else. */
+export const JUSTICE_MARCH_OWN = 8;
 /** The highest die an opponent can throw under the Containment Decree, for DECREE_ROLLS rolls. */
 export const CONTAINED_DIE = 3;
 export const DECREE_ROLLS = 3;
@@ -35,15 +37,15 @@ export function advance(draft: Draft, playerId: PlayerId, tiles: number): void {
   unpinPassed(draft, path);
 }
 
-/** Blind Justice: from Themis on, in turn order, everyone walks JUSTICE_MARCH tiles with no roll and no say. */
+/** Blind Justice: from Themis on, in turn order, everyone walks JUSTICE_MARCH tiles (she JUSTICE_MARCH_OWN) with no roll and no say. */
 export function blindJustice(draft: Draft, playerId: PlayerId): void {
   const ids = draft.players.map((player) => player.id);
   const first = ids.indexOf(playerId);
   const order = [...ids.slice(first), ...ids.slice(0, first)];
-  draft.events.push({ type: "justiceMarched", playerId, tiles: JUSTICE_MARCH, order });
+  draft.events.push({ type: "justiceMarched", playerId, tiles: JUSTICE_MARCH, own: JUSTICE_MARCH_OWN, order });
   for (const id of order) {
     if (id === playerId) {
-      advance(draft, id, JUSTICE_MARCH);
+      advance(draft, id, JUSTICE_MARCH_OWN);
       continue;
     }
     // Walked by her card, the others have no turn to answer prompts in or to take an extra one.
@@ -55,6 +57,8 @@ export function blindJustice(draft: Draft, playerId: PlayerId): void {
     if (ward) resolveWard(draft, id, ward.tile, ward.threat, false);
     draft.pendingGrace = null;
   }
+  // Back to her once everyone has walked (the camera followed each in turn).
+  draft.events.push({ type: "justiceMarchEnded", playerId });
 }
 
 /** Confiscation: random cards of the target's straight into her hand (fewer if theirs is smaller). */

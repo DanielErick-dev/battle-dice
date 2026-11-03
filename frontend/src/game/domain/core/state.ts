@@ -2,6 +2,7 @@ import type {
   AbilityId,
   ActiveBlessing,
   BlackFlame,
+  ScarletFlame,
   Board,
   CardId,
   Crown,
@@ -73,6 +74,18 @@ export interface Player {
   justiceMarks: number;
   /** Rolls left whose die can't go above CONTAINED_DIE (Themis's Containment Decree). */
   containedRolls: number;
+  /** Own turns left on Akane's scarlet fire: rolls halved (rounded down), no energy gained. */
+  burning: number;
+  /** The Akane who set them alight: each round they burn, he takes FIRE_TOLL energy (see feedTheFire). */
+  burnedBy: PlayerId | null;
+  /** Akane's Inner Flame (Brilliant Impetus), up to INNER_FLAME_MAX. */
+  innerFlame: number;
+  /** Akane's rolls left under the Brilliant Impetus: further, scorching whoever is in the way. */
+  impetusRolls: number;
+  /** Rolls left under Pure Fuel (two dice while an opponent burns). */
+  fuelRolls: number;
+  /** Ember Step played this turn: a roll stopping on fire slides on. */
+  emberStep: boolean;
 }
 
 /** One physical copy of a card; `uid` tells copies of the same card apart. */
@@ -164,6 +177,7 @@ export interface GameState {
   specters: readonly Specter[];
   enchantedTiles: readonly EnchantedTile[];
   blackFlames: readonly BlackFlame[];
+  scarletFlames: readonly ScarletFlame[];
   winter: Winter | null;
   /** Tiles Zarek's Void marked purple (see VoidScar). */
   voidScars: readonly VoidScar[];

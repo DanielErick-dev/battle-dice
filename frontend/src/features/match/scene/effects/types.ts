@@ -1,7 +1,7 @@
 import type { ComponentType, RefObject } from "react";
 import type { Object3D, Vector3 } from "three";
 import type { Board, Player, PlayerId, TileId } from "@/game/domain/types";
-import type { CharacterDefinition } from "../../characters";
+import type { CharacterClip, CharacterDefinition } from "../../characters";
 import type { CardCastView, MatchView } from "../../model/matchView";
 import type { BoardLayout } from "../boardLayout";
 
@@ -35,6 +35,10 @@ export interface TokenSignals {
   fell: number | null;
   /** A fresh id per verdict Themis passes: she guards, points at the one judged and scoffs at them. */
   verdict: number | null;
+  /** A fresh id per outburst Akane acts out (striking the ground, stomping in a fury) and its clip. */
+  outburst: { id: number; clip: CharacterClip } | null;
+  /** A fresh id per trap Vinicius hoes out. */
+  weeded: number | null;
 }
 
 /** Refs the token's frame loop fills every frame, for the effects that follow its motion. */

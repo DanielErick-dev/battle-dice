@@ -7,6 +7,7 @@ import type { CardId } from "@/game/domain/cards/catalog";
 import { riftsOf } from "@/game/domain/characters/zarek/void";
 import type {
   BlackFlame,
+  ScarletFlame,
   Crown,
   EnchantedTile,
   Winter,
@@ -84,7 +85,30 @@ export type TileEffectKind =
   /** The Final Judgment's Die of Justice; shown over Themis, `count` the tiles she leaps. */
   | "judgment"
   /** The hourglass ran out on the player: the turn is lost. */
-  | "timedOut";
+  | "timedOut"
+  /** Akane's Fire Zone (or Scarlet Fever's tiles) caught; shown over Akane, `count` the tiles. */
+  | "scarletLit"
+  /** Someone caught Akane's fire; shown over them. */
+  | "ignited"
+  /** Water or a herb put the fire out; shown over the first one. */
+  | "quenched"
+  /** Akane's Inner Flame grew; `count` the flames. */
+  | "kindled"
+  /** Brilliant Impetus unleashed; `count` the rolls it lasts. */
+  | "impetus"
+  /** Ember Step slid him on through the fire. */
+  | "emberSlid"
+  /** Hot Blood's blast; `count` the tiles each was thrown back. */
+  | "hotBlood"
+  /** Pure Fuel; `count` the rolls. */
+  | "fuel"
+  /** Ember Step played: waiting on the roll. */
+  | "emberStep"
+  /** Scarlet Supernova; `count` the tiles he leaps. */
+  | "supernova"
+  | "weeded"
+  | "burntRoll"
+  | "fireFed";
 
 export interface LogEntry {
   id: number;
@@ -99,6 +123,8 @@ export interface RollView {
   bonus: number;
   /** Applied after the bonus (Dormant Fury: 3). */
   multiplier: number;
+  /** On Akane's fire: the total is already halved. */
+  halved: boolean;
   total: number;
 }
 
@@ -156,6 +182,19 @@ interface TrampleView {
 }
 
 /** Silent Verdict: a giant scale over the two of them `weigh`s, then `tip`s down on the attacker's side. */
+/** One of Akane's fires going off: a fireball thrown, a ring bursting out, a pillar, or the Supernova. */
+export interface BlazeView {
+  id: number;
+  kind: "bolt" | "burst" | "pillar" | "nova" | "lob" | "fume";
+  playerId: PlayerId;
+  /** Hit by fireballs from him (bolt, burst). */
+  targetIds: readonly PlayerId[];
+  /** Nova: the scarlet tiles whose fire streams back into him. Lob: the tiles his fireball sets alight, in order. */
+  tiles: readonly TileId[];
+  /** The clip he acts it out with. */
+  act?: "strike" | "fume";
+}
+
 export interface VerdictView {
   id: number;
   judgeId: PlayerId;
@@ -230,6 +269,9 @@ export interface MatchFx {
   frostStream: FrostStreamView | null;
   voidRift: VoidRiftView | null;
   verdict: VerdictView | null;
+  blaze: BlazeView | null;
+  /** Blind Justice under way: the camera follows each walker in turn. */
+  march: { playerId: PlayerId } | null;
 }
 
 const NO_FX: MatchFx = {
@@ -245,6 +287,8 @@ const NO_FX: MatchFx = {
   frostStream: null,
   voidRift: null,
   verdict: null,
+  blaze: null,
+  march: null,
 };
 
 /** A tile effect or turn notice; without travel, `from` and `to` are the same tile. */
@@ -351,6 +395,7 @@ export interface MatchView {
   specters: readonly SpecterView[];
   enchantedTiles: readonly EnchantedTile[];
   blackFlames: readonly BlackFlame[];
+  scarletFlames: readonly ScarletFlame[];
   winter: Winter | null;
   /** Tiles Zarek's Void opened into the path, in the order they opened (see linkRift). */
   rifts: readonly Tile[];
@@ -393,6 +438,7 @@ export function createInitialView(state: GameState): MatchView {
     specters: specterViews(state),
     enchantedTiles: state.enchantedTiles,
     blackFlames: state.blackFlames,
+    scarletFlames: state.scarletFlames,
     winter: state.winter,
     rifts: riftsOf(state.board),
     voidScars: state.voidScars,

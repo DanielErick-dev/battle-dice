@@ -5,3 +5,7 @@ export { drawParchment, pageStrokes } from "@/features/match/scene/character/sha
 export { PROP_HEIGHT, Prop, usePropMesh } from "@/features/match/scene/character/core/props";
 export { useRuneTexture } from "@/features/match/scene/character/shared/runeCircle";
 export { useSoftDisc } from "@/features/match/scene/character/shared/softDisc";
+export { FlameCard } from "@/features/match/scene/character/akane/FlameCard";
+export { FireRing } from "@/features/match/scene/character/akane/Blaze";
+export { FIGURE_HEIGHT as MATCH_FIGURE_HEIGHT } from "@/features/match/scene/character/core/figure";
+export { useAge } from "@/features/match/scene/useAge";

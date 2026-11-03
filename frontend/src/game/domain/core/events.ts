@@ -1,6 +1,7 @@
 import type {
   AbilityId,
   AimWard,
+  AkaneEvent,
   AlchemistEvent,
   ArcherEvent,
   AuricEvent,
@@ -27,6 +28,7 @@ export type GameEvent =
   | AbilityEvent
   | BoardEvent
   | CardEvent
+  | AkaneEvent
   | AlchemistEvent
   | ArcherEvent
   | AuricEvent
@@ -56,6 +58,10 @@ export type TurnEvent =
       multiplier?: number;
       /** Time Warp's reverse. */
       reversed?: boolean;
+      /** On Akane's fire: `value` is already halved (rounded down). */
+      halved?: boolean;
+      /** Under Akane's Brilliant Impetus (its bonus is in `bonus`). */
+      impetus?: boolean;
     }
   /** `dash`: crossed in a flash of lightning (a Dormant Fury roll) rather than run. */
   | { type: "playerMoved"; playerId: PlayerId; path: readonly TileId[]; dash?: boolean }

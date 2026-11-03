@@ -42,7 +42,9 @@ export type GameErrorCode =
   | "NO_HARM_AHEAD"
   | "NOT_YOUR_CARD"
   | "NO_SACRIFICE"
-  | "INVALID_SACRIFICE";
+  | "INVALID_SACRIFICE"
+  | "NO_INNER_FLAME"
+  | "NO_FIRE";
 
 export class GameRuleError extends Error {
   constructor(readonly code: GameErrorCode) {

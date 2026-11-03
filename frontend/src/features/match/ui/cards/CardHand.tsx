@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { cardBlocker, cardTargets, type CardChoice, type CardTable } from "@/game/domain/cards/play";
 import { CARD_CATALOG, cardCost, type CardId } from "@/game/domain/cards/catalog";
 import { HAND_LIMIT, SACRIFICE_ENERGY } from "@/game/domain/cards/hand";
@@ -9,6 +10,7 @@ import { FUSION_COPIES, fusibleInHand } from "@/game/domain/cards/fusion";
 import type { CardInstance, Player } from "@/game/domain/types";
 import { cn } from "@/lib/utils";
 import { CardBack } from "./CardBack";
+import { CardChoicePicker } from "./CardChoicePicker";
 import { CardView } from "./CardView";
 import { CARD_TEXT, cardText } from "./cardText";
 import { EnergyMeter } from "./EnergyMeter";
@@ -57,6 +59,21 @@ export function CardHand({
     player.deck.length + player.discard.length > 0;
   const fusible = onFuse ? fusibleInHand(player.hand) : [];
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
+  /** The card under the pointer: it opens up to its full text, larger, pushing the ones below down. */
+  const [hoveredUid, setHoveredUid] = useState<string | null>(null);
+  const focusedUid = hoveredUid ?? selectedUid;
+  const section = useRef<HTMLElement>(null);
+  // A click anywhere off the hand puts the pulled-out card back.
+  useEffect(() => {
+    if (selectedUid === null) return;
+    const away = (event: PointerEvent) => {
+      if (!section.current?.contains(event.target as Node)) setSelectedUid(null);
+    };
+    document.addEventListener("pointerdown", away);
+    return () => document.removeEventListener("pointerdown", away);
+  }, [selectedUid]);
+  /** A card that burns others to be played, waiting for the cards to burn (its target already picked, if any). */
+  const [burning, setBurning] = useState<{ card: CardInstance; targetId?: string } | null>(null);
 
   const blockedReason = (card: CardInstance): string | null => {
     if (cardsLeft === 0) return "Você já usou as cartas deste turno";
@@ -100,6 +117,12 @@ export function CardHand({
 
   const play = (card: CardInstance, choice: CardChoice = {}) => {
     setSelectedUid(null);
+    // Burning others to play it: the cards to burn are picked first, on the same screen as an overfull hand's discard.
+    if (CARD_CATALOG[card.cardId].sacrifices && !choice.sacrificeUids) {
+      setBurning({ card, targetId: choice.targetId });
+      return;
+    }
+    setBurning(null);
     onPlay(card.uid, choice);
   };
 
@@ -114,7 +137,7 @@ export function CardHand({
   };
 
   return (
-    <section aria-label="Mão de cartas" className="flex flex-col items-end gap-2">
+    <section ref={section} aria-label="Mão de cartas" className="flex flex-col items-end gap-2">
       <div className="flex items-center gap-2">
         <DeckPile count={player.deck.length} />
         <div
@@ -164,17 +187,45 @@ export function CardHand({
         </button>
       ))}
 
+      {burning &&
+        createPortal(
+          <div className="fixed inset-0 z-50">
+            <CardChoicePicker
+              title={cardText(burning.card.cardId, burning.card.fused).name}
+              subtitle={
+                CARD_CATALOG[burning.card.cardId].sacrifices === 1
+                  ? "Escolha a carta da mão que vai ser queimada para jogá-la."
+                  : `Escolha as ${CARD_CATALOG[burning.card.cardId].sacrifices} cartas da mão que vão ser queimadas para jogá-la.`
+              }
+              accent="amber"
+              cards={player.hand.filter((held) => held.uid !== burning.card.uid)}
+              max={CARD_CATALOG[burning.card.cardId].sacrifices ?? 1}
+              required
+              confirmLabel="Queimar e jogar"
+              onPick={(sacrificeUids) => play(burning.card, { targetId: burning.targetId, sacrificeUids })}
+              onCancel={() => setBurning(null)}
+            />
+          </div>,
+          document.body,
+        )}
+
       <ul className="flex flex-col items-end">
         {player.hand.map((card, index) => {
           const reason = blockedReason(card);
           const isSelected = card.uid === selectedUid;
+          const isFocused = card.uid === focusedUid;
+          // Right under the card in focus: no overlap, so its whole text shows.
+          const belowFocused = index > 0 && player.hand[index - 1].uid === focusedUid;
           return (
             <li
               key={card.uid}
               className={cn(
-                "relative w-28 transition-all duration-300 sm:w-36",
+                "relative transition-all duration-300",
+                isFocused ? "w-36 sm:w-48" : "w-28 sm:w-36",
+                belowFocused && "mt-2",
                 // A fuller hand overlaps more so a full hand (eight) still fits on screen.
                 index > 0 &&
+                  !belowFocused &&
                   (player.hand.length > 6
                     ? "-mt-28 sm:-mt-[9.6rem]"
                     : player.hand.length > 4
@@ -182,7 +233,7 @@ export function CardHand({
                       : player.hand.length > 3
                         ? "-mt-24 sm:-mt-32"
                         : "-mt-16 sm:-mt-20"),
-                isSelected ? "z-20 -translate-x-6 scale-105" : "hover:z-10 hover:-translate-x-3",
+                isSelected ? "z-20 -translate-x-6" : isFocused ? "z-10 -translate-x-3" : "",
                 card.uid === lastDrawnUid && "animate-in slide-in-from-right-24 fade-in duration-500",
               )}
             >
@@ -191,6 +242,8 @@ export function CardHand({
                 <button
                   type="button"
                   onClick={() => click(card)}
+                  onPointerEnter={() => setHoveredUid(card.uid)}
+                  onPointerLeave={() => setHoveredUid((current) => (current === card.uid ? null : current))}
                   aria-pressed={isSelected}
                   aria-label={
                     isSelected
@@ -199,7 +252,13 @@ export function CardHand({
                   }
                   className="relative block w-full rounded-xl text-left focus-visible:outline-2 focus-visible:outline-orange-400"
                 >
-                  <CardView cardId={card.cardId} fused={card.fused} dimmed={reason !== null} selected={isSelected} />
+                  <CardView
+                    cardId={card.cardId}
+                    fused={card.fused}
+                    dimmed={reason !== null}
+                    selected={isSelected}
+                    expanded={isFocused}
+                  />
                   {/* Brought back by Resurrection: a ghostly teal glow, and a warning it won't come back again. */}
                   {card.risen && (
                     <span
@@ -218,7 +277,6 @@ export function CardHand({
                   card={card}
                   reason={reason}
                   opponents={targetsFor(card)}
-                  hand={player.hand}
                   onPlay={(choice) => play(card, choice)}
                   onClose={() => setSelectedUid(null)}
                 />
@@ -235,8 +293,6 @@ interface CardActionProps {
   card: CardInstance;
   reason: string | null;
   opponents: readonly Player[];
-  /** For cards that burn others to be played (see CardDefinition.sacrifices). */
-  hand: readonly CardInstance[];
   onPlay: (choice: CardChoice) => void;
   onClose: () => void;
 }
@@ -245,10 +301,8 @@ interface CardActionProps {
  * Beside the pulled-out card, where it stays in view: why it can't be played, the choice it
  * needs, or a reminder that a second click plays it.
  */
-function CardAction({ card, reason, opponents, hand, onPlay, onClose }: CardActionProps) {
+function CardAction({ card, reason, opponents, onPlay, onClose }: CardActionProps) {
   const definition = CARD_CATALOG[card.cardId];
-  // A card that burns another asks for its target first, then for the card to burn.
-  const [targetId, setTargetId] = useState<string | null>(null);
   const button =
     "rounded-lg bg-orange-600 px-3 py-2 text-xs font-black tracking-wider text-white uppercase transition hover:bg-orange-500 active:scale-95";
 
@@ -275,22 +329,6 @@ function CardAction({ card, reason, opponents, hand, onPlay, onClose }: CardActi
             ))}
           </div>
         </>
-      ) : targetId !== null ? (
-        <>
-          <p className="text-[11px] font-bold tracking-wider text-zinc-300 uppercase">Escolha a carta a queimar</p>
-          {hand
-            .filter((held) => held.uid !== card.uid)
-            .map((held) => (
-              <button
-                key={held.uid}
-                type="button"
-                onClick={() => onPlay({ targetId, sacrificeUids: [held.uid] })}
-                className={cn(button, "bg-red-800 hover:bg-red-700")}
-              >
-                {cardText(held.cardId, held.fused).name}
-              </button>
-            ))}
-        </>
       ) : definition.targetsOpponent ? (
         <>
           <p className="text-[11px] font-bold tracking-wider text-zinc-300 uppercase">Escolha o alvo</p>
@@ -298,7 +336,7 @@ function CardAction({ card, reason, opponents, hand, onPlay, onClose }: CardActi
             <button
               key={opponent.id}
               type="button"
-              onClick={() => (definition.sacrifices ? setTargetId(opponent.id) : onPlay({ targetId: opponent.id }))}
+              onClick={() => onPlay({ targetId: opponent.id })}
               className={button}
             >
               {opponent.name}

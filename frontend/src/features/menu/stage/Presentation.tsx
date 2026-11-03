@@ -17,6 +17,11 @@ import { SmokeCloud } from "@/features/match/scene/character/alchemist/SmokeClou
 import { Wings } from "@/features/match/scene/character/accessories/Wings";
 import { HeadCrown } from "@/features/match/scene/character/accessories/HeadCrown";
 import { FrostWand } from "@/features/match/scene/character/fairy/FrostWand";
+import { BodyFlames } from "@/features/match/scene/character/akane/BodyFlames";
+import { ClothFire } from "@/features/match/scene/character/akane/ClothFire";
+import { ChairIntro, SnapFlare } from "@/features/match/scene/character/akane/ChairIntro";
+import { BackBow } from "@/features/match/scene/character/archer/BackBow";
+import { PlantedHoe } from "@/features/match/scene/character/vinicius/HeldHoe";
 import { JusticeSword } from "@/features/match/scene/character/themis/JusticeSword";
 import { ThemisIntro } from "@/features/match/scene/character/themis/ThemisIntro";
 import { EnergyBlades } from "@/features/match/scene/character/zarek/EnergyBlades";
@@ -201,6 +206,8 @@ export function Presentation({
         </>
       )}
       {character.descends && <HeavenDescent size={FIGURE_HEIGHT} color={character.color} />}
+      {character.holdsHoe && <PlantedHoe size={FIGURE_HEIGHT} />}
+      {character.introChair && <ChairIntro size={FIGURE_HEIGHT} riseSeconds={character.introChair.riseSeconds} />}
       {entrance && <WindGusts tips={tips} />}
       <group ref={descent} position-y={character.descends ? descentHeight(0) * FIGURE_HEIGHT : 0}>
         <group ref={hover}>
@@ -267,6 +274,12 @@ export function Presentation({
                   <Wings figure={figure} wings={character.wings} stroke={stroke} tips={entrance ? tips : undefined} />
                 )}
                 {character.crown && <HeadCrown figure={figure} crown={character.crown} />}
+                {/* His fire lights at the snap of his fingers in his intro. */}
+                {character.handFlame && <BodyFlames figure={figure} igniteAt={character.introChair?.snapSeconds} />}
+                {character.handFlame && <ClothFire figure={figure} igniteAt={character.introChair?.snapSeconds} />}
+                {character.introChair && <SnapFlare figure={figure} snapSeconds={character.introChair.snapSeconds} />}
+                {/* Slung on her back as in the match, folded away while her intro's bow is out. */}
+                {character.bow && <BackBow figure={figure} cast={null} seated={inIntro} />}
                 {character.holdsSword && <JusticeSword figure={figure} away={swordAway} />}
                 {character.introSword && (
                   <ThemisIntro

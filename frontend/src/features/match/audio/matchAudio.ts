@@ -60,6 +60,22 @@ const EFFECT_SOUNDS: Record<TileEffectKind, (sounds: MatchSounds, effect: TileEf
   },
   marked: (sounds) => sounds.shieldBlock(),
   marched: (sounds) => sounds.boost(),
+  scarletLit: (sounds) => sounds.powerUp(),
+  ignited: (sounds) => sounds.trap(),
+  quenched: (sounds) => sounds.shieldBlock(),
+  kindled: (sounds) => sounds.bonus(),
+  impetus: (sounds) => sounds.powerUp(),
+  emberSlid: (sounds) => sounds.boost(),
+  emberStep: (sounds) => sounds.bonus(),
+  hotBlood: (sounds) => sounds.thunder(0.5),
+  fuel: (sounds) => sounds.bonus(),
+  weeded: (sounds) => sounds.shieldBlock(),
+  burntRoll: (sounds) => sounds.penalty(),
+  fireFed: (sounds) => sounds.bonus(),
+  supernova: (sounds) => {
+    sounds.thunder(0.8);
+    sounds.powerUp();
+  },
   timedOut: (sounds) => sounds.penalty(),
   decree: (sounds) => sounds.penalty(),
   judgment: (sounds) => {

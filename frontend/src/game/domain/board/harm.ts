@@ -5,6 +5,7 @@ import { moveTo, playerIn, updatePlayer, type Draft } from "../core/draft";
 import { pushPath } from "./paths";
 import { swallow } from "../characters/zarek/void";
 import { takeRandomCard } from "../cards/hand";
+import { kindle } from "../characters/akane/fire";
 import type { PlayerId, Threat, TileId, TrapCurse, VoidScar } from "@/game/domain/types";
 
 export const TRAP_DRAIN_ENERGY = 2;
@@ -55,11 +56,14 @@ export function strike(draft: Draft, playerId: PlayerId, tile: TileId, threat: T
     const to = pushPath(board, tile, HIDDEN_TRAP_PUSH).at(-1) ?? tile;
     draft.events.push({ type: "hiddenTrapSprung", playerId, tile, to });
     moveTo(draft, playerId, to);
+    kindle(draft, playerId);
     return;
   }
   if (effect.kind !== "trap") return;
   draft.events.push({ type: "trapTriggered", playerId, from: tile, to: effect.to });
   moveTo(draft, playerId, effect.to);
+  // A trap only stokes Akane's Inner Flame.
+  kindle(draft, playerId);
   if (effect.curse) for (let curse = 0; curse < curses; curse++) applyCurse(draft, playerId, effect.curse);
 }
 

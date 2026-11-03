@@ -7,7 +7,7 @@ import type { TokenSignals } from "./effects";
 
 export function tokenSignals(view: MatchView, player: Player): TokenSignals {
   const { effect } = view;
-  const { trample, drag, dash, cast } = view.fx;
+  const { trample, drag, dash, cast, blaze } = view.fx;
   const id = player.id;
   const own = effect?.playerId === id ? effect : null;
   const isDashing = dash?.playerId === id && !dash.arrived;
@@ -37,6 +37,8 @@ export function tokenSignals(view: MatchView, player: Player): TokenSignals {
     abilityCast: own?.kind === "abilityUsed" ? effectKey(own) : null,
     fell: own?.kind === "fallen" ? effectKey(own) : null,
     verdict: view.fx.verdict?.judgeId === id ? view.fx.verdict.id : null,
+    outburst: blaze?.playerId === id && blaze.act ? { id: blaze.id, clip: blaze.act } : null,
+    weeded: own?.kind === "weeded" ? effectKey(own) : null,
   };
 }
 

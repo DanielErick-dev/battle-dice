@@ -57,7 +57,8 @@ O que é comum a vários cenários fica em `kit/`: `textures.ts` (`useCanvasText
 | `WitchHollow`     | Bruxa Carmesim       | Chão de floresta escura, raízes retorcidas, cogumelos vermelhos, anel de pedras e caldeirão borbulhando sobre o fogo |
 | `AlchemyLab`      | Alquimista Esmeralda | Piso de ardósia, círculo de transmutação brilhando, bancada com frascos verdes borbulhando e alambique de latão      |
 | `CardTable`       | Coringa Carmesim     | Piso arlequim carmesim e preto, cartas espalhadas e flutuando, fichas, dados e lâmpadas de circo piscando            |
-| `SakuraCourtyard` | Akane                | Pátio de pedra, cerejeira com pétalas caindo, cadernos abertos e lanterna de pedra                                   |
+| `SakuraCourtyard` | Akane                | Pátio de pedra do Meshy com lanternas, duas árvores de flor de brasa do Meshy (tronco com magma) soltando pétalas que pegam fogo no estalo, lanterna do Meshy e papéis queimando |
+| `FarmPlot`        | Vinicius             | Horta cercada do Meshy (com remesh), a roça dele para capinar |
 | `ElvenGlade`      | Arqueira Élfica      | Chão de musgo, raízes e tronco caído, samambaias, cogumelos brilhando, alvo de palha com flechas e vaga-lumes        |
 | `CrystalGrove`    | Fada Cristalina      | Neve sobre musgo, cristais que brilham por dentro (ciano e lilás), anel de flores luminosas e brilhos subindo        |
 | `WindPeak`        | Zéfiro               | Topo de montanha com grama dobrando ao vento, os quatro elementos orbitando, folhas em espiral e nuvens abaixo       |

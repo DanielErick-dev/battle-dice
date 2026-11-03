@@ -1,6 +1,7 @@
 import { getTile } from "../../board/board";
 import { playerIn, type Draft } from "../../core/draft";
 import { relocateHiddenTrap } from "../../board/hiddenTraps";
+import { drownScarlet } from "../akane/fire";
 import type { Board, PlayerId, TileId } from "../../types";
 
 export const TIDE_RANGE = 20;
@@ -23,6 +24,7 @@ export function cleansingTide(draft: Draft, playerId: PlayerId): void {
   const swept = (tile: TileId) => reach.has(tile);
   const tiles = [
     ...draft.blackFlames.map((flame) => flame.tile),
+    ...draft.scarletFlames.map((flame) => flame.tile),
     ...draft.enchantedTiles.map((enchanted) => enchanted.tile),
     ...draft.specters.map((specter) => specter.tile),
     ...draft.seals.map((seal) => seal.tile),
@@ -42,4 +44,6 @@ export function cleansingTide(draft: Draft, playerId: PlayerId): void {
   draft.voidScars = draft.voidScars.filter((scar) => !swept(scar.tile));
   draft.pinnedTraps = draft.pinnedTraps.filter((tile) => !swept(tile));
   draft.events.push({ type: "boardCleansed", playerId, reach: path, tiles: [...new Set(tiles)] });
+  // Water beats Akane's fire: the tiles and anyone burning on them are put out.
+  drownScarlet(draft, playerId, reach);
 }

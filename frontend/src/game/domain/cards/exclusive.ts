@@ -9,6 +9,14 @@ import { pushPath, walkPath } from "../board/paths";
 import { isFrozen } from "../characters/fairy/winter";
 import { resolveLanding } from "../board/landing";
 import { blindJustice, confiscate, finalJudgment, issueDecree, markEveryone } from "../characters/themis/cards";
+import {
+  emberStep,
+  hotBlood,
+  pureFuel,
+  scarletFever,
+  scarletSupernova,
+  supernovaFuel,
+} from "../characters/akane/cards";
 import type { Board, Threat, TileId } from "../board/types";
 import type { GameState, Player, PlayerId } from "../core/state";
 
@@ -20,7 +28,7 @@ export const HUNGRY_RIFT_RANGE = 15;
 /** What a card's blockers look at beyond the player: the board and what covers or has emptied its tiles. */
 export type HarmTable = Pick<
   GameState,
-  "board" | "blackFlames" | "winter" | "destroyedTraps" | "pinnedTraps" | "enchantedTiles"
+  "board" | "blackFlames" | "winter" | "destroyedTraps" | "pinnedTraps" | "enchantedTiles" | "scarletFlames" | "players"
 >;
 
 /** A character's own card in someone else's hand (stolen) is dead; some need something more. */
@@ -29,6 +37,12 @@ export function exclusiveBlocker(table: HarmTable, player: Player, cardId: CardI
   if (!exclusive) return null;
   if (player.ability !== exclusive) return "NOT_YOUR_CARD";
   switch (cardId) {
+    case "hotBlood":
+      return player.innerFlame > 0 ? null : "NO_INNER_FLAME";
+    case "scarletSupernova": {
+      const { fires, burning } = supernovaFuel(table, player.id);
+      return fires + burning > 0 ? null : "NO_FIRE";
+    }
     case "voidHunger":
       return isAbilityReady(player) ? "ABILITY_ALREADY_READY" : null;
     case "hungryRift":
@@ -96,6 +110,21 @@ export function playExclusive(
     case "finalJudgment":
       if (targetId !== null) finalJudgment(draft, playerId, targetId, rollDie);
       return;
+    case "hotBlood":
+      hotBlood(draft, playerId);
+      return;
+    case "emberStep":
+      emberStep(draft, playerId);
+      return;
+    case "scarletFever":
+      scarletFever(draft, playerId);
+      return;
+    case "pureFuel":
+      pureFuel(draft, playerId);
+      return;
+    case "scarletSupernova":
+      scarletSupernova(draft, playerId);
+      return;
     case "voidHunger":
       feedVoid(draft, playerId);
       return;
@@ -132,6 +161,8 @@ function harmTable(draft: Draft): HarmTable {
     destroyedTraps: draft.destroyedTraps,
     pinnedTraps: draft.pinnedTraps,
     enchantedTiles: draft.enchantedTiles,
+    scarletFlames: draft.scarletFlames,
+    players: draft.players,
   };
 }
 

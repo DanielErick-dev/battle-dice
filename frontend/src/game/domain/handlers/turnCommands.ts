@@ -11,6 +11,8 @@ import { CROWN_BONUS } from "../characters/seraphiel/seraph";
 import { crossSpecters } from "../characters/warden/specters";
 import { CONTAINED_DIE, containedFace } from "../characters/themis/cards";
 import { closeRifts } from "../characters/zarek/void";
+import { burntRoll, prepareRoll, settleRoll } from "../characters/akane/fire";
+import { slideOnEmbers } from "../characters/akane/cards";
 import type { DiceBoost, PlayerId } from "../types";
 import { openingState } from "./setup";
 import { assertCanAct, settle } from "./shared";
@@ -20,26 +22,35 @@ export const turnCommands: CommandHandlers<"rollDice" | "forfeitTurn" | "restart
   rollDice: (state, { playerId }, deps) => {
     assertCanAct(state, playerId);
     const draft = startDraft(state, deps.random);
+    const { bonus: impetus, boost } = prepareRoll(draft, playerId);
     const player = playerIn(draft, playerId);
 
     const { diceBonuses } = player;
     // Under Themis's Containment Decree the die never shows more than CONTAINED_DIE.
     const contained = player.containedRolls > 0;
     const rollDie = contained ? () => containedFace(deps.rollDice()) : deps.rollDice;
-    const rolled = throwDice(
+    const thrown = throwDice(
       playerId,
-      player.diceBoost,
+      boost,
       {
         extra:
           diceBonuses.reduce((sum, { amount }) => sum + amount, 0) +
           rollBonus(state.abilityInUse) +
           blessingCount(state.board, player, "wings") * WINGS_BONUS +
-          (player.crown ? CROWN_BONUS : 0),
+          (player.crown ? CROWN_BONUS : 0) +
+          impetus,
         multiplier: rollMultiplier(state.abilityInUse),
       },
       rollDie,
       contained,
     );
+    // On Akane's fire the whole walk is halved, rounded down: a 1 doesn't move at all.
+    const burnt = player.burning > 0;
+    const rolled = {
+      ...thrown,
+      ...(burnt && { value: burntRoll(thrown.value), halved: true }),
+      ...(impetus > 0 && { impetus: true }),
+    };
     updatePlayer(draft, playerId, (current) => ({
       containedRolls: Math.max(0, current.containedRolls - 1),
       diceBoost: null, // every boost is spent by a single roll
@@ -60,8 +71,11 @@ export const turnCommands: CommandHandlers<"rollDice" | "forfeitTurn" | "restart
       walkTrampling(draft, playerId, path, dash);
     }
     crossSpecters(draft, playerId, path);
-    resolveLanding(draft, playerId, path.at(-1) ?? player.position);
+    if (path.length > 0) resolveLanding(draft, playerId, path.at(-1) ?? player.position);
     unpinPassed(draft, path);
+    slideOnEmbers(draft, playerId);
+    const face = thrown.best ? Math.max(...thrown.dice) : thrown.dice.reduce((sum, die) => sum + die, 0);
+    settleRoll(draft, playerId, face, boost?.kind === "fixed");
 
     const extraTurn = draft.extraTurn || state.bonusTurn;
     return settle(draft, playerId, { endsTurn: true, extraTurn });

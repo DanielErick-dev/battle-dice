@@ -16,7 +16,18 @@ import {
   DECREE_ROLLS,
   JUDGMENT_SPAN,
   JUSTICE_MARCH,
+  JUSTICE_MARCH_OWN,
 } from "@/game/domain/characters/themis/cards";
+
+import {
+  EMBER_SLIDE,
+  FEVER_SPREAD,
+  FUEL_ROLLS,
+  HOT_BLOOD_PUSH,
+  HOT_BLOOD_REACH,
+  SUPERNOVA_STEP,
+} from "@/game/domain/characters/akane/cards";
+import { BURN_ROUNDS, SCARLET_ROUNDS } from "@/game/domain/characters/akane/fire";
 
 /** Player-facing card copy (pt-BR). Rules live in the domain; this is only what the card says. */
 export const CARD_TEXT: Readonly<Record<CardId, { name: string; description: string }>> = {
@@ -85,7 +96,7 @@ export const CARD_TEXT: Readonly<Record<CardId, { name: string; description: str
 
   blindJustice: {
     name: "Justiça Cega",
-    description: `Todos os jogadores andam ${JUSTICE_MARCH} casas, um depois do outro, sem dado. A casa onde cada um parar tem efeito.`,
+    description: `Você anda ${JUSTICE_MARCH_OWN} casas e cada oponente ${JUSTICE_MARCH}, um depois do outro, sem dado. A casa onde cada um parar tem efeito.`,
   },
   confiscation: {
     name: "Confisco de Bens",
@@ -102,6 +113,26 @@ export const CARD_TEXT: Readonly<Record<CardId, { name: string; description: str
   finalJudgment: {
     name: "Julgamento Final",
     description: `Triunfo. Queime outra carta da mão. Escolha um oponente: você anda (distância entre vocês ÷ ${JUDGMENT_SPAN}, para cima) × um Dado da Justiça. Ele fica onde está.`,
+  },
+  hotBlood: {
+    name: "Sangue Quente",
+    description: `Gaste suas Chamas Internas: todo oponente a até ${HOT_BLOOD_REACH} casas (à frente ou atrás) volta ${HOT_BLOOD_PUSH} casas por chama.`,
+  },
+  emberStep: {
+    name: "Passo de Brasa",
+    description: `Neste turno, se a sua rolagem parar numa casa em chamas, você desliza mais ${EMBER_SLIDE} casas.`,
+  },
+  scarletFever: {
+    name: "Febre Escarlate",
+    description: `O oponente na liderança pega fogo por ${BURN_ROUNDS} rodadas, e ${FEVER_SPREAD} casas antes e depois dele queimam por ${SCARLET_ROUNDS} rodadas.`,
+  },
+  pureFuel: {
+    name: "Combustível Puro",
+    description: `Nas suas próximas ${FUEL_ROLLS} rolagens, você rola 2 dados se algum oponente estiver pegando fogo.`,
+  },
+  scarletSupernova: {
+    name: "Supernova Escarlate",
+    description: `Triunfo. Queime 1 carta. Todo o fogo volta para você: +${SUPERNOVA_STEP} casas por casa em chamas e por oponente queimando.`,
   },
   voidHunger: { name: "Fome do Vazio", description: `O Vazio ganha +${VOID_HUNGER_CHARGE} de carga.` },
   hungryRift: {

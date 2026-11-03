@@ -17,6 +17,8 @@ export const OPTIONAL_CLIPS = [
   "sit",
   "guard",
   "scoff",
+  "strike",
+  "fume",
 ];
 
 // Clips borrowed by everyone without their own (one fall and one way of sitting fit every body).
@@ -33,7 +35,9 @@ const MODELS = {
   monk: {
     sequences: { intro: ["sway", "spin"], dash: ["lunge@0.4"], land: ["landing@0.85"] },
   },
-  archer: {},
+  // Ends on the arrow's follow-through: the export's last half second slumps into a stiff wide-legged rest pose.
+  // Her cast is the same shot, bent over so the arrow goes up into the sky (the volley rains down from it).
+  archer: { sequences: { intro: ["shoot@0-3.05"], cast: ["shoot@0-3.05:skyward"] } },
   jester: {},
   necromancer: {},
   scribe: { sequences: { intro: ["write@0-3.85", "arms-up"] } },
@@ -50,7 +54,9 @@ const MODELS = {
     // The sweep runs 0.4–2.1 s; the rest of the export just stands.
     sequences: { intro: ["sword-plant"], guard: ["negation@0.3-2.4"] },
   },
-  akane: {},
+  // Akane: his intro gets up off his chair (the export sits still until 1.4 s and is up by 3.1) and snaps his fingers
+  // (the flick at 0.65 s; cut as the hand comes down, for idle to take over).
+  akane: { sequences: { intro: ["stand-up@1.4-3.1", "snap@0.1-1.35"] } },
   // Only the first thrust: the export walks on into a second push.
   bjorn: { sequences: { shove: ["shove@0.05-0.55"] } },
   auric: {},
@@ -59,6 +65,7 @@ const MODELS = {
   seraphielFallen: {},
   cronos: {},
   alva: {},
+  vinicius: {},
 };
 
 export const CHARACTER_MODELS = Object.fromEntries(Object.entries(MODELS).map(([id, model]) => [id, { id, ...model }]));

@@ -8,8 +8,8 @@ import type { Player, PlayerId } from "../../core/state";
 /** What an attack turned by her verdict does to the attacker, against what it would have done to its target. */
 export const VERDICT_MULTIPLIER = 2;
 
-/** Marks an attacker needs before their next attack on someone else goes before her (their third, at 2). */
-export const MARKS_TO_JUDGE = 2;
+/** Marks an attacker needs before their next attack on someone else goes before her: the first marks, the second is judged. */
+export const MARKS_TO_JUDGE = 1;
 
 /** What each verdict pays the judge: energy, and a head start on her next charge. */
 export const VERDICT_ENERGY = 2;

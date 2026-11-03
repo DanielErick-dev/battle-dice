@@ -19,6 +19,8 @@ import { arrowRainSteps } from "./arrowRain";
 import { cardGambleSteps } from "./cardGamble";
 import { voidSteps } from "./void";
 import { verdictSteps } from "./verdict";
+import { akaneSteps } from "./akane";
+import { viniciusSteps } from "./vinicius";
 import type { PlaybackStep, StepHandlers } from "./types";
 
 export type { PlaybackStep } from "./types";
@@ -38,6 +40,8 @@ const HANDLERS: StepHandlers<GameEvent["type"]> = {
   ...cardGambleSteps,
   ...voidSteps,
   ...verdictSteps,
+  ...akaneSteps,
+  ...viniciusSteps,
 };
 
 export function eventToSteps(event: GameEvent, timings: PlaybackTimings): PlaybackStep[] {
@@ -130,6 +134,7 @@ export function syncStep(state: GameState): PlaybackStep {
       specters: specterViews(state),
       enchantedTiles: state.enchantedTiles,
       blackFlames: state.blackFlames,
+      scarletFlames: state.scarletFlames,
       winter: state.winter,
       rifts: riftsOf(state.board),
       voidScars: state.voidScars,

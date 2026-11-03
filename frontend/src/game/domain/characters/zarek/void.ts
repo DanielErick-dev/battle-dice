@@ -337,6 +337,7 @@ function trapsIn(event: GameEvent): number {
     case "trapTriggered":
     case "hiddenTrapSprung":
     case "trapDestroyed":
+    case "trapWeeded":
       return 1;
     case "arrowsLoosed":
       return event.pinned.length;

@@ -89,7 +89,7 @@ Por fim, **rola o dado**: anda, resolve a casa onde parou e a vez passa. **Rolar
 
 | Ciclo | Habilidades                                                                                                                                                                                                |
 | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 3     | O Vazio (+1 por armadilha), Conjuração Dupla, Vento a Favor, Revisão Relâmpago, Bênção do Serafim, Transmutação, Aposta do Coringa |
+| 3     | O Vazio (+1 por armadilha), Conjuração Dupla, Vento a Favor, Bênção do Serafim, Transmutação, Aposta do Coringa |
 | 4     | Veredito Silencioso (reativo, carga secreta) |
 | 5     | Levitação Carmesim, Fúria Adormecida, Chuva de Flechas, Ressurreição, Escritura dos 4 Selos, Aparições Espectrais, Florescimento Feérico, Maré Purificadora, Indomável, Canhão de Plasma |
 | 6     | Despertar Ocular                                                                                                                                                                                           |
@@ -343,7 +343,7 @@ Todos são jogáveis. Cada um tem: uma **cor** (anel no chão, HUD, menus, cor d
 | 12  | Fada Cristalina        | O encanto que cura o caminho           | Florescimento Feérico                   | 5     | ciano               |
 | 13  | Zéfiro                 | O vento sempre a favor                 | Vento a Favor                           | 3     | menta               |
 | 14  | Têmis                | A Juíza Vendada | Veredito Silencioso                        | 4     | azul profundo                |
-| 15  | Akane                  | Lição decorada, carta na mão           | Revisão Relâmpago                       | 3     | rosa claro          |
+| 15  | Akane                  | O Prodígio Escarlate                   | Zona de Incêndio                        | 5     | laranja-fogo        |
 | 16  | Bjorn Presa-Gélida     | Quem fica no caminho, voa              | Indomável (+ atropelo)                  | 5     | azul gelo           |
 | 17  | Auric                  | Senhor das marés douradas              | Maré Purificadora                       | 5     | dourado             |
 | 18  | Seraphiel / Anjo Caído | Asas que abençoam o caminho            | Bênção do Serafim / Arrastar ao Inferno | 3 / 7 | marfim              |
@@ -477,10 +477,10 @@ Todos são jogáveis. Cada um tem: uma **cor** (anel no chão, HUD, menus, cor d
 
 ### 15. Akane
 
-- **Estilo:** estudante de rosa, "lição decorada, carta na mão" (cadernos, ambiente japonês).
-- **Habilidade, Revisão Relâmpago (carga 3):** compra 2 cartas na hora.
+- **Estilo:** estudante prodígio e impetuoso, de uniforme escolar, que manipula chamas escarlates ("O Prodígio Escarlate"). Uma chama viva queima na mão direita dele. Forte contra a Fada (o fogo derrete neve e gelo), fraco contra o Auric (a maré apaga o fogo).
+- **Habilidade, Zona de Incêndio (carga 5):** as 20 casas à frente pegam fogo por 2 rodadas; quem para nelas pega fogo (dado pela metade, sem energia). **Passiva, Ímpeto Brilhante:** 1 ou 2 no dado, ou armadilha, acende Chamas Internas; com 3, duas rolagens com +3, queimando e empurrando quem estiver no caminho. Detalhes em [regras.md](regras.md).
 - **Animações:** só idle e run.
-- **Cenário:** Pátio das Cerejeiras (pátio de pedra, cerejeira com pétalas caindo, cadernos abertos, lanterna de pedra). **Trono:** trono infernal.
+- **Cenário:** Pátio das Cerejeiras em brasa (pétalas que viram brasa antes de sumir, fogo vivo na lanterna, papéis com a ponta queimando). **Trono:** trono infernal.
 
 ### 16. Bjorn Presa-Gélida
 

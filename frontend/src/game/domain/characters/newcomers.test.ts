@@ -31,7 +31,7 @@ const BOARD: BoardDefinition = {
   },
 };
 
-const duel = (ability: AbilityId) => newGame(BOARD, { hero: ability, rival: "studySession" });
+const duel = (ability: AbilityId) => newGame(BOARD, { hero: ability, rival: "doubleCast" });
 const solo = (ability: AbilityId) => newGame(BOARD, { hero: ability });
 const ready = (state: GameState) => readyAbility(state, "hero");
 /** Charges the hero's ability and uses it at once. */
@@ -175,7 +175,7 @@ describe("the newcomers' abilities", () => {
       size: 30,
       effects: { 4: { kind: "blessing", blessing: "charge" } },
     };
-    const game = (ability: AbilityId) => newGame(charging, { hero: ability, rival: "studySession" });
+    const game = (ability: AbilityId) => newGame(charging, { hero: ability, rival: "doubleCast" });
     const warped = roll(activate(game("timeWarp"), { power: "halt", targetId: "rival" }).state, "hero", 3).state;
     expect(playerOf(warped, "hero")).toMatchObject({
       position: 4,

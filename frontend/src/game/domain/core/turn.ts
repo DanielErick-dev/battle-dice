@@ -4,11 +4,14 @@ import { MAX_ENERGY, TURNS_PER_ENERGY } from "./energy";
 import type { Draft } from "./draft";
 import { drainSnow, spreadWinter } from "../characters/fairy/winter";
 import { burnDown } from "../characters/kage/flames";
+import { burnDownScarlet, feedTheFire } from "../characters/akane/fire";
 
 /** Returns the next player's index. Timed effects wear off as their owner's turn ends; charge and energy come as one starts. */
 export function endTurn(draft: Draft, extraTurn: boolean): number {
   const { currentPlayerIndex } = draft.state;
   let index = currentPlayerIndex;
+  // A round on fire pays its Akane, before the burning wears down.
+  feedTheFire(draft, draft.players[currentPlayerIndex].id);
   const ending = draft.players[currentPlayerIndex];
   draft.players[currentPlayerIndex] = {
     ...ending,
@@ -16,10 +19,13 @@ export function endTurn(draft: Draft, extraTurn: boolean): number {
     spectralArmour: Math.max(0, ending.spectralArmour - 1),
     divineAegis: Math.max(0, ending.divineAegis - 1),
     untamed: Math.max(0, ending.untamed - 1),
+    burning: Math.max(0, ending.burning - 1),
+    emberStep: false,
     blessings: wearBlessings(draft.state.board, ending),
     ...(ending.ability === "theVoid" && { voidIdle: ending.voidIdle + 1 }),
   };
   burnDown(draft, ending.id);
+  burnDownScarlet(draft, ending.id);
 
   // Stuck by this very turn, the extra turn still owed is spent as the first lost one.
   const passes = !extraTurn || ending.skipTurns > 0;
@@ -38,15 +44,22 @@ export function endTurn(draft: Draft, extraTurn: boolean): number {
 
   const next = draft.players[index];
   const charged = next.energyCharge + 1 >= TURNS_PER_ENERGY;
-  const energy = next.energy + (charged ? 1 : 0) + blessingCount(draft.state.board, next, "spring") * SPRING_ENERGY;
-  const once = chargeAbility({
-    ...next,
-    silencedTurns: Math.max(0, next.silencedTurns - 1),
-    energy: Math.min(MAX_ENERGY, energy),
-    energyCharge: charged ? 0 : next.energyCharge + 1,
-  });
+  // On fire, no energy comes in at all.
+  const income = (charged ? 1 : 0) + blessingCount(draft.state.board, next, "spring") * SPRING_ENERGY;
+  const energy = next.energy + (next.burning > 0 ? 0 : income);
+  // Akane's Fire Zone only starts charging again once all his scarlet fire has gone out (as Untamed does).
+  const fireLit = draft.scarletFlames.some((flame) => flame.owner === next.id);
+  const once = chargeAbility(
+    {
+      ...next,
+      silencedTurns: Math.max(0, next.silencedTurns - 1),
+      energy: Math.min(MAX_ENERGY, energy),
+      energyCharge: charged ? 0 : next.energyCharge + 1,
+    },
+    { fireLit },
+  );
   const twice = isBlessed(draft.state.board, next, "inspiration")
-    ? chargeAbility(once.player)
+    ? chargeAbility(once.player, { fireLit })
     : { player: once.player, becameReady: false };
   // A held charge (Time Warp) lets one more turn go by.
   const player = { ...twice.player, chargeHeld: Math.max(0, twice.player.chargeHeld - 1) };

@@ -1,4 +1,5 @@
 import { CONTAINED_DIE } from "@/game/domain/characters/themis/cards";
+import { INNER_FLAME_MAX } from "@/game/domain/characters/akane/fire";
 import { Layers, Sparkles } from "lucide-react";
 import { abilityCycle, isAbilityReady } from "@/game/domain/abilities/charge";
 import { getTile, trackOf } from "@/game/domain/board/board";
@@ -76,6 +77,30 @@ export function PlayersPanel({ players, activePlayerId, board }: PlayersPanelPro
                     className="rounded-full bg-amber-400/20 px-1.5 text-[9px] font-bold text-amber-200 uppercase"
                   >
                     ⚖ Marcado{player.justiceMarks > 1 && ` ×${player.justiceMarks}`}
+                  </span>
+                )}
+                {player.burning > 0 && (
+                  <span
+                    title="Pegando fogo: o dado anda a metade (para baixo) e não ganha energia"
+                    className="rounded-full bg-orange-500/25 px-1.5 text-[9px] font-bold text-orange-300 uppercase"
+                  >
+                    🔥 Queimando ×{player.burning}
+                  </span>
+                )}
+                {player.innerFlame > 0 && (
+                  <span
+                    title={`Chama Interna: com ${INNER_FLAME_MAX}, a próxima rolagem libera o Ímpeto Brilhante`}
+                    className="rounded-full bg-amber-500/20 px-1.5 text-[9px] font-bold text-amber-200 uppercase"
+                  >
+                    Chama {player.innerFlame}/{INNER_FLAME_MAX}
+                  </span>
+                )}
+                {player.impetusRolls > 0 && (
+                  <span
+                    title="Ímpeto Brilhante: rolagens com bônus, queimando quem estiver no caminho"
+                    className="rounded-full bg-yellow-400/25 px-1.5 text-[9px] font-bold text-yellow-200 uppercase"
+                  >
+                    Ímpeto ×{player.impetusRolls}
                   </span>
                 )}
                 {player.containedRolls > 0 && (

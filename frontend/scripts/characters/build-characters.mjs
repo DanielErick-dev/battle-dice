@@ -32,6 +32,8 @@ const IN_PLACE_CLIPS = [
   "sit",
   "guard",
   "scoff",
+  "strike",
+  "fume",
 ];
 /** Share of travel an in-place clip keeps: a dash lunges forward a little yet stays on its tile. */
 const KEPT_TRAVEL = { dash: 0.4 };
@@ -39,6 +41,8 @@ const KEPT_TRAVEL = { dash: 0.4 };
 const SEQUENCE_BLEND_SECONDS = 0.3;
 /** How high a `grounded` part keeps the lowest joint off the floor (joints sit inside the body). */
 const GROUND_CLEARANCE = 0.06;
+/** How far `skyward` turns the upper body, the seconds it eases in over, and the spine joints sharing the turn. */
+const SKYWARD = { degrees: 55, from: 0.4, to: 1.3, joints: ["Spine1", "Spine2"] };
 
 const { values } = parseArgs({
   options: { source: { type: "string" }, only: { type: "string" } },
@@ -145,6 +149,7 @@ async function sequenceChannels(model, name) {
     const clip = await io.read(path.join(values.source, model.id, "parts", `${file}.glb`));
     let channels = channelsOf(clip.getRoot().listAnimations()[0]);
     if (mode === "grounded") channels = grounded(channels, clip);
+    if (mode === "skyward") channels = skyward(channels, clip);
     if (bodyHips) channels = borrowed(channels, { hipsScale: bodyHips / restHipsHeight(clip) });
     if (to) channels = trimEnd(channels, Number(to));
     if (from) channels = trimStart(channels, Number(from));
@@ -208,6 +213,49 @@ function grounded(channels, document) {
     values[frame * 3 + 1] += GROUND_CLEARANCE - lowest;
   });
   return channels.map((channel) => (channel === hips ? { ...channel, values } : channel));
+}
+
+/**
+ * Bends the upper body over to the right so a shot aimed off to the left (an archer stands side-on) goes up
+ * into the sky instead: each spine joint takes a share of a turn about the body's forward axis, eased in.
+ */
+function skyward(channels, document) {
+  const nodes = document.getRoot().listNodes();
+  const parentOf = parentsOf(nodes);
+  const animated = channelMap(channels);
+  const joints = SKYWARD.joints.map((name) => nodes.find((node) => node.getName().endsWith(`:${name}`)));
+  if (joints.some((joint) => !joint || !animated.get(`${joint.getName()}/rotation`))) return channels;
+  const replaced = new Map();
+  const share = (SKYWARD.degrees * Math.PI) / 180 / joints.length;
+  const rotationOf = (matrix) => {
+    const q = new Quaternion();
+    matrix.decompose(new Vector3(), q, new Vector3());
+    return q;
+  };
+  for (const [index, joint] of joints.entries()) {
+    const channel = animated.get(`${joint.getName()}/rotation`);
+    const values = [...channel.values];
+    channel.times.forEach((time, frame) => {
+      const ease = Math.min(1, Math.max(0, (time - SKYWARD.from) / (SKYWARD.to - SKYWARD.from)));
+      const turn = share * ease * ease * (3 - 2 * ease);
+      // The joints above this one have already turned the parent by `index` shares.
+      const parent = new Quaternion()
+        .setFromAxisAngle(new Vector3(0, 0, 1), turn * index)
+        .multiply(rotationOf(worldPose(animated, parentOf, time)(parentOf.get(joint))));
+      const delta = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), turn);
+      const local = new Quaternion().fromArray(values, frame * 4);
+      parent
+        .clone()
+        .invert()
+        .multiply(delta)
+        .multiply(parent)
+        .multiply(local)
+        .normalize()
+        .toArray(values, frame * 4);
+    });
+    replaced.set(channel, { ...channel, values });
+  }
+  return channels.map((channel) => replaced.get(channel) ?? channel);
 }
 
 /** The clip's first pose held still (two keyframes a second apart, so it still loops). */

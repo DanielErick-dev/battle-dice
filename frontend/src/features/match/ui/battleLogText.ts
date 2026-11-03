@@ -54,7 +54,8 @@ export function battleLogLine(event: GameEvent, players: readonly Player[]): Log
       const parts = event.dice.join(event.best ? " ou " : " + ");
       const bonus = event.bonus ? ` + ${event.bonus}` : "";
       const times = event.multiplier && event.multiplier > 1 ? ` × ${event.multiplier}` : "";
-      const detail = event.dice.length > 1 || bonus || times ? ` (${parts}${bonus}${times})` : "";
+      const halved = event.halved ? " ÷ 2, pegando fogo" : "";
+      const detail = event.dice.length > 1 || bonus || times || halved ? ` (${parts}${bonus}${times}${halved})` : "";
       return line(
         event.playerId,
         `${who(event.playerId)} rolou ${event.value}${detail}${event.reversed ? ", de ré" : ""}`,
@@ -104,6 +105,11 @@ export function battleLogLine(event: GameEvent, players: readonly Player[]): Log
       );
     case "trapBlocked":
       return line(event.playerId, `${who(event.playerId)} escapou da armadilha ${TRAP_WARDS[event.ward]}`);
+    case "trapWeeded":
+      return line(
+        event.playerId,
+        `🌱 ${who(event.playerId)} capinou ${event.hidden ? "uma armadilha escondida" : `a armadilha da casa ${event.tile}`}`,
+      );
     case "trapDestroyed":
       return line(
         event.playerId,
@@ -242,7 +248,53 @@ export function battleLogLine(event: GameEvent, players: readonly Player[]): Log
     case "playerTrampled":
       return line(
         event.by,
-        `${who(event.by)} atropelou ${who(event.playerId)} e o mandou ${plural(event.path.length, "casa", "casas")} para trás`,
+        `${who(event.by)} ${event.burning ? "passou em chamas por" : "atropelou"} ${who(event.playerId)} e o mandou ${plural(event.path.length, "casa", "casas")} para trás`,
+      );
+    case "scarletLit":
+      return line(
+        event.playerId,
+        `🔥 ${who(event.playerId)} incendiou ${plural(event.tiles.length, "casa", "casas")}${event.melted.length ? ` (derreteu ${plural(event.melted.length, "casa", "casas")} de neve/gelo)` : ""}`,
+      );
+    case "playerIgnited":
+      return line(
+        event.by,
+        `🔥 ${who(event.playerId)} pegou fogo por ${plural(event.rounds, "rodada", "rodadas")}: dado pela metade e sem energia`,
+      );
+    case "fireQuenched":
+      return line(
+        event.by,
+        `💧 ${event.playerIds.map(who).join(", ")} ${event.playerIds.length > 1 ? "não estão" : "não está"} mais pegando fogo`,
+      );
+    case "innerFlameKindled":
+      return line(event.playerId, `${who(event.playerId)} acendeu uma Chama Interna (${event.flames}/3)`);
+    case "impetusUnleashed":
+      return line(
+        event.playerId,
+        `${who(event.playerId)} liberou o Ímpeto Brilhante por ${plural(event.rolls, "rolagem", "rolagens")}`,
+      );
+    case "emberSlid":
+      return line(event.playerId, `${who(event.playerId)} deslizou pelas chamas (Passo de Brasa)`);
+    case "hotBloodBurst":
+      return line(
+        event.playerId,
+        `${who(event.playerId)} explodiu de Sangue Quente: ${event.targetIds.length ? `${event.targetIds.map(who).join(", ")} voltam ${plural(event.tiles, "casa", "casas")}` : "ninguém por perto"}`,
+      );
+    case "fuelPoured":
+      return line(
+        event.playerId,
+        `${who(event.playerId)} jogou Combustível Puro por ${plural(event.rolls, "rolagem", "rolagens")}`,
+      );
+    case "fireFed":
+      return line(
+        event.playerId,
+        `🔥 ${who(event.playerId)} queimou mais uma rodada: ${event.energy ? `perdeu ${event.energy} de energia e ` : ""}${who(event.by)} ganhou 1`,
+      );
+    case "emberStepReady":
+      return line(event.playerId, `${who(event.playerId)} preparou o Passo de Brasa`);
+    case "supernova":
+      return line(
+        event.playerId,
+        `💥 Supernova Escarlate: ${plural(event.fires, "casa", "casas")} em chamas e ${plural(event.burning, "oponente", "oponentes")} queimando → ${who(event.playerId)} avança ${plural(event.tiles, "casa", "casas")}`,
       );
     case "voidSwallowed":
       return line(event.playerId, `O Vazio de ${who(event.playerId)} engoliu: ${voidItemName(event.item)}`);
@@ -309,7 +361,12 @@ export function battleLogLine(event: GameEvent, players: readonly Player[]): Log
     case "turnTimedOut":
       return line(event.playerId, `⌛ ${who(event.playerId)} ficou sem tempo e perdeu a vez`);
     case "justiceMarched":
-      return line(event.playerId, `⚖ Justiça Cega: todos andam ${plural(event.tiles, "casa", "casas")}`);
+      return line(
+        event.playerId,
+        `⚖ Justiça Cega: ${who(event.playerId)} anda ${plural(event.own, "casa", "casas")}, os outros ${plural(event.tiles, "casa", "casas")}`,
+      );
+    case "justiceMarchEnded":
+      return null;
     case "decreeIssued":
       return line(
         event.playerId,
@@ -332,6 +389,7 @@ export function battleLogLine(event: GameEvent, players: readonly Player[]): Log
     case "voidFed":
     case "winterSpread":
     case "flamesFaded":
+    case "scarletFaded":
     case "trapUnpinned":
     case "gameRestarted":
       return null;

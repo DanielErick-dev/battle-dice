@@ -11,4 +11,6 @@ export type BjornEvent =
       path: readonly TileId[];
       /** Sitting out lost turns (see isSeated): they get up to be shoved. */
       seated: boolean;
+      /** Knocked by Akane's Impetus: they catch fire too (a playerIgnited follows). */
+      burning?: boolean;
     };

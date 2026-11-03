@@ -5,7 +5,13 @@ import { cardsOfLevel, MAX_RARITY_LEVEL } from "./catalog";
 import { characterDeck, standardDeck } from "./decks";
 import { VOID_HUNGER_CHARGE } from "./exclusive";
 import { VERDICT_CHARGE } from "../characters/themis/verdict";
-import { CONFISCATED_CARDS, CONTAINED_DIE, DECREE_ROLLS, JUSTICE_MARCH } from "../characters/themis/cards";
+import {
+  CONFISCATED_CARDS,
+  CONTAINED_DIE,
+  DECREE_ROLLS,
+  JUSTICE_MARCH,
+  JUSTICE_MARCH_OWN,
+} from "../characters/themis/cards";
 import {
   card,
   cards,
@@ -68,13 +74,19 @@ describe("Themis's cards", () => {
     });
 
   it("Blind Justice walks everyone ahead from her on, each landing resolved, with no roll", () => {
-    const start = holding(court({ position: 8 }, { position: 16 }), "judge", "blindJustice");
+    const start = holding(court({ position: 12 - JUSTICE_MARCH_OWN }, { position: 16 }), "judge", "blindJustice");
     const { state, events } = play(start, "judge", "blindJustice");
-    // The rival lands on the lost turn at 20; she lands on the trap at 12 and is sent back to 8.
+    // The rival walks 4 onto the lost turn at 20; she walks twice as far onto the trap at 12 and is sent back to 8.
     expect(playerOf(state, "judge").position).toBe(8);
     expect(playerOf(state, "rival")).toMatchObject({ position: 8 + 12, skipTurns: 1 });
     expect(eventsOfType(events, "justiceMarched")).toEqual([
-      { type: "justiceMarched", playerId: "judge", tiles: JUSTICE_MARCH, order: ["judge", "rival"] },
+      {
+        type: "justiceMarched",
+        playerId: "judge",
+        tiles: JUSTICE_MARCH,
+        own: JUSTICE_MARCH_OWN,
+        order: ["judge", "rival"],
+      },
     ]);
     expect(state.currentPlayerIndex).toBe(0);
   });

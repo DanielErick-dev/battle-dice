@@ -25,7 +25,7 @@ const BOARD: BoardDefinition = { size: 60, effects: { 50: { kind: "portal", to: 
 const HELL = 61;
 
 /** The hero aims at Themis ("judge"), a few tiles ahead of them. */
-const duel = (heroAbility: Parameters<typeof abilityCycle>[0] = "studySession") =>
+const duel = (heroAbility: Parameters<typeof abilityCycle>[0] = "doubleCast") =>
   withPlayers(newGame(BOARD, { hero: heroAbility, judge: "silentVerdict" }), {
     hero: { position: 30, energy: 10 },
     judge: { position: 35 },
@@ -85,11 +85,11 @@ describe("Silent Verdict", () => {
     ]);
   });
 
-  it("unarmed, lets a once-marked attacker's blast through and marks them again", () => {
-    const start = withPlayer(duel(), "hero", { justiceMarks: 1 });
+  it("unarmed, lets an unmarked attacker's blast through and marks them", () => {
+    const start = duel();
     const { state, events } = play(holding(start, "arcaneBlast"), "hero", "arcaneBlast", { targetId: "judge" });
     expect(playerOf(state, "judge").position).toBe(35 - ARCANE_BLAST_PUSH);
-    expect(playerOf(state, "hero").justiceMarks).toBe(2);
+    expect(playerOf(state, "hero").justiceMarks).toBe(MARKS_TO_JUDGE);
     expect(eventsOfType(events, "verdictPassed")).toEqual([]);
   });
 
@@ -100,18 +100,18 @@ describe("Silent Verdict", () => {
     expect(playerOf(state, "hero").justiceMarks).toBe(0);
   });
 
-  it("armed, still lets a once-marked attacker's blast at someone else through", () => {
+  it("armed, still lets an unmarked attacker's first blast at someone else through", () => {
     const start = withPlayers(
       readyAbility(newGame(BOARD, { hero: null, judge: "silentVerdict", victim: null }), "judge"),
       {
-        hero: { position: 30, energy: 10, hand: cards("arcaneBlast"), justiceMarks: 1 },
+        hero: { position: 30, energy: 10, hand: cards("arcaneBlast"), justiceMarks: 0 },
         judge: { position: 35 },
         victim: { position: 40 },
       },
     );
     const { state } = play(start, "hero", "c0", { targetId: "victim" });
     expect(playerOf(state, "victim").position).toBe(40 - ARCANE_BLAST_PUSH);
-    expect(playerOf(state, "hero").justiceMarks).toBe(2);
+    expect(playerOf(state, "hero").justiceMarks).toBe(MARKS_TO_JUDGE);
   });
 
   it("takes a marked attacker's blast at someone else upon herself and turns it", () => {

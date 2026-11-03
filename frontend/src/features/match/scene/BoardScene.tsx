@@ -9,6 +9,7 @@ import { withRifts } from "@/game/domain/characters/zarek/void";
 import { DICE_SIDES } from "@/game/domain/core/dice";
 import { frozenTiles } from "@/game/domain/characters/fairy/winter";
 import type { Board, Player, PlayerId, TileId } from "@/game/domain/types";
+import { INNER_FLAME_MAX } from "@/game/domain/characters/akane/fire";
 import { characterFor, playerColor } from "../characters";
 import type { EffectsQuality } from "../config";
 import type { MatchView, TileEffectKind } from "../model/matchView";
@@ -17,6 +18,8 @@ import { boardScaleFor, CameraRig, type CameraChase, type CameraFraming, type Ca
 import { diceLanding, dieRoll, focusPoint, focusTile, realmAt } from "./cameraFocus";
 import { PickedTileMark } from "./character/shared/PickedTileMark";
 import { wraithTrack } from "./character/zarek/wraithTrack";
+import { fireTrack } from "./character/akane/fireTrack";
+import { FIRE_BOLT_SECONDS, FIRE_RACE_STEP } from "../config";
 import { DiceThrow } from "./DiceThrow";
 import { BOARD_EFFECTS, OVERLAY_EFFECTS, type BoardFx } from "./effects";
 import { ArenaEnvironment, HORIZON_COLOR } from "./environment/ArenaEnvironment";
@@ -223,7 +226,10 @@ export default function BoardScene({
               character={characterFor(player.id)}
               nameTag={
                 view.players.length > 1
-                  ? { text: `J${seat + 1} ${player.name.split(" ")[0]}`, seat: tileSeat(view.players, seat) }
+                  ? {
+                      text: `J${seat + 1} ${player.name.split(" ")[0]}${fireStatus(player)}`,
+                      seat: tileSeat(view.players, seat),
+                    }
                   : undefined
               }
               color={playerColor(player.id)}
@@ -259,7 +265,7 @@ export default function BoardScene({
             free={freeLook}
             onFreeLook={onFreeLook}
             spotlight={cameraSpotlight(view, board, layout)}
-            chase={voidChase(view)}
+            chase={voidChase(view) ?? fireChase(view)}
           />
         </RealmAtmosphere>
         <Preload all />
@@ -282,6 +288,18 @@ const VOID_EFFECTS: readonly (TileEffectKind | undefined)[] = [
 function voidChase(view: MatchView): CameraChase | null {
   const rift = view.fx.voidRift;
   return rift && VOID_EFFECTS.includes(view.effect?.kind) ? { key: rift.id, position: wraithTrack.position } : null;
+}
+
+/** Akane's Fire Zone: the camera rides along with the fire as it races down the tiles. */
+function fireChase(view: MatchView): CameraChase | null {
+  const blaze = view.fx.blaze;
+  return blaze?.kind === "lob" && view.effect?.kind === "scarletLit"
+    ? {
+        key: 10_000 + blaze.id,
+        position: fireTrack.position,
+        seconds: FIRE_BOLT_SECONDS + blaze.tiles.length * FIRE_RACE_STEP + 0.3,
+      }
+    : null;
 }
 
 /** Tracks showing: someone is on them, or their gate is opening right now. */
@@ -354,4 +372,12 @@ function cameraSpotlight(view: MatchView, board: Board, layout: BoardLayout): Ca
     position: tokenTarget(player, view, board, layout),
     facing: pathDirection(board, layout, player.position),
   };
+}
+
+/** Fire worth seeing at a glance over a figure: rounds left on fire, or Akane's Inner Flame. */
+function fireStatus({ burning, innerFlame, impetusRolls }: Player): string {
+  if (burning > 0) return ` · 🔥${burning}`;
+  if (impetusRolls > 0) return ` · ÍMPETO ${impetusRolls}`;
+  if (innerFlame > 0) return ` · CHAMA ${innerFlame}/${INNER_FLAME_MAX}`;
+  return "";
 }

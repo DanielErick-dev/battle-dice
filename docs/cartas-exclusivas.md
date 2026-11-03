@@ -20,7 +20,7 @@ Item do MVP: cada personagem soma **5 cartas próprias** ao baralho, no estilo d
 
 | Carta | Raridade · custo | Efeito | Interações |
 |---|---|---|---|
-| **Justiça Cega** | Comum · 1 | Todos andam **4** casas, um depois do outro, sem dado. A casa onde cada um parar tem efeito. | Começa por ela e segue a ordem dos turnos. Ninguém joga carta no meio. Os outros não ganham "jogue de novo" nem prompts (o Zarek não engole, o Seraphiel não escolhe). Se alguém cruzar a chegada assim, vence. |
+| **Justiça Cega** | Comum · 1 | Ela anda **8** casas e cada oponente **4**, um depois do outro, sem dado. A casa onde cada um parar tem efeito. | Começa por ela e segue a ordem dos turnos. Ninguém joga carta no meio. Os outros não ganham "jogue de novo" nem prompts (o Zarek não engole, o Seraphiel não escolhe). Se alguém cruzar a chegada assim, vence. |
 | **Confisco de Bens** | Incomum · 2 | Mira: pega **2** cartas aleatórias da mão do oponente para a dela (menos, se ele tiver menos). | Exclusiva de outro personagem fica morta na mão dela. Oponente protegido: BLOQUEADO. |
 | **Marca da Justiça** | Incomum · 2 | Todos os oponentes recebem **1** Marca da Justiça. | Prepara o Veredito: o próximo ataque mirado de qualquer um deles já pode ser redirecionado. |
 | **Decreto de Contenção** | Rara · 3 | Nas próximas **3** rolagens de cada oponente, o dado não passa de **3**. | 4–6 viram 1–3 (cada face continua igualmente provável). Runa do Destino vale no máximo 3. Bônus de cartas, asas e coroa somam por cima. |
@@ -137,13 +137,14 @@ Pode mudar quando ele ganhar as 4 habilidades dos elementos.
 | Redemoinho | Rara · 2 | Mira: troca de lugar com um oponente a até 3 casas de você. |
 | Furacão | Épica · 3 | Todos os oponentes no seu alcance voltam 3 casas. |
 
-### Akane (Sessão de Estudo)
+### Akane (Zona de Incêndio) — implementado em 02/11/2026
 | Carta | Raridade · custo | Efeito |
 |---|---|---|
-| Cola | Comum · 1 | Compre 1 carta. |
-| Revisão | Incomum · 2 | A última carta do seu descarte volta para a mão. |
-| Prova Surpresa | Rara · 2 | Mira: o oponente descarta 1 carta aleatória para cada carta a mais que ele tem do que você. |
-| Nota Máxima | Épica · 3 | Compre até ficar com 6 cartas na mão. |
+| Sangue Quente | Comum · 1 | Gasta as Chamas Internas: oponentes a até 7 casas voltam 3 por chama. |
+| Passo de Brasa | Comum · 1 | Se a rolagem do turno parar no fogo, desliza +5. |
+| Febre Escarlate | Rara · 2 | O líder pega fogo e 5 casas de cada lado dele queimam. |
+| Combustível Puro | Rara · 3 | 2 rolagens com 2 dados enquanto algum oponente queima. |
+| Supernova Escarlate | Épica · 5 + 1 carta | Absorve todo o fogo e anda 2 por casa em chamas ou oponente queimando. |
 
 ### Bjorn Presa-Gélida (Indomável)
 | Carta | Raridade · custo | Efeito |

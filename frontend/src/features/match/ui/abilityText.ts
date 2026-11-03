@@ -10,7 +10,17 @@ import {
   CARD_GAMBLE_LOST,
   CARD_GAMBLE_STOLEN,
 } from "@/game/domain/characters/jester/cardGamble";
-import { DORMANT_FURY_MULTIPLIER, STUDY_DRAWS, TAILWIND_BONUS, LEVITATION_TURNS } from "@/game/domain/abilities/basic";
+import { DORMANT_FURY_MULTIPLIER, TAILWIND_BONUS, LEVITATION_TURNS } from "@/game/domain/abilities/basic";
+import {
+  BURN_ROUNDS,
+  FIRE_TOLL,
+  FIRE_ZONE_RANGE,
+  IMPETUS_BONUS,
+  IMPETUS_PUSH,
+  IMPETUS_ROLLS,
+  INNER_FLAME_MAX,
+  SCARLET_ROUNDS,
+} from "@/game/domain/characters/akane/fire";
 import { PLASMA_PUSH, PLASMA_TRAPS } from "@/game/domain/characters/alva/plasmaCannon";
 import { TIDE_RANGE } from "@/game/domain/characters/auric/cleansingTide";
 import { TRAMPLE_PUSH, UNTAMED_TURNS } from "@/game/domain/characters/bjorn/untamed";
@@ -60,10 +70,10 @@ export const ABILITY_TEXT: Readonly<Record<AbilityId, { name: string; descriptio
     description: `Carrega em ${abilityCycle("tailwind")} turnos. Ao usar, a rolagem do turno anda +${TAILWIND_BONUS} casas.`,
     active: `+${TAILWIND_BONUS} casas na rolagem deste turno`,
   },
-  studySession: {
-    name: "Revisão Relâmpago",
-    description: `Carrega em ${abilityCycle("studySession")} turnos. Ao usar, compra ${STUDY_DRAWS} cartas na hora.`,
-    active: `+${STUDY_DRAWS} cartas na mão`,
+  fireZone: {
+    name: "Zona de Incêndio",
+    description: `Carrega em ${abilityCycle("fireZone")} turnos, contados só depois que todo o seu fogo escarlate apagar. Ao usar, as ${FIRE_ZONE_RANGE} casas à sua frente pegam fogo escarlate por ${SCARLET_ROUNDS} rodadas. Quem estiver nelas ou parar nelas pega fogo por ${BURN_ROUNDS} rodadas: o dado anda a metade (para baixo), não ganha energia e te dá ${FIRE_TOLL} de energia por rodada. O fogo derrete a neve e o gelo da Fada; a Maré do Auric o apaga. Passiva, Ímpeto Brilhante: tirar 1 ou 2 no dado ou cair numa armadilha acende 1 Chama Interna (até ${INNER_FLAME_MAX}). Com ${INNER_FLAME_MAX}, as suas próximas ${IMPETUS_ROLLS} rolagens andam +${IMPETUS_BONUS}, e quem você atravessar pega fogo e volta ${IMPETUS_PUSH} casas.`,
+    active: "O caminho está em chamas",
   },
   seraphBlessing: {
     name: "Bênção do Serafim",
@@ -87,7 +97,7 @@ export const ABILITY_TEXT: Readonly<Record<AbilityId, { name: string; descriptio
   },
   silentVerdict: {
     name: "Veredito Silencioso",
-    description: `Veredito: carrega em ${abilityCycle("silentVerdict")} turnos e se arma sozinho, em segredo (os oponentes não veem a sua carga). Armado, a próxima carta ou habilidade que um oponente mirar em você volta dobrada contra ele: quem ia empurrar recua o dobro, quem ia cegar ou parar o tempo perde o dobro, quem ia arrastar ao inferno desce, quem ia roubar perde as cartas para você (a Troca e o Chamado da Fenda só são anulados). Passiva, a Marca da Justiça: quem mira um ataque em outro jogador ganha uma marca (o ataque passa). Com ${MARKS_TO_JUDGE} marcas, o próximo ataque dele contra qualquer um vem para você e volta dobrado, se o Veredito estiver armado; se não estiver, ele escapa e as marcas se apagam.`,
+    description: `Veredito: carrega em ${abilityCycle("silentVerdict")} turnos e se arma sozinho, em segredo (os oponentes não veem a sua carga). Armado, a próxima carta ou habilidade que um oponente mirar em você volta dobrada contra ele: quem ia empurrar recua o dobro, quem ia cegar ou parar o tempo perde o dobro, quem ia arrastar ao inferno desce, quem ia roubar perde as cartas para você (a Troca e o Chamado da Fenda só são anulados). Passiva, a Marca da Justiça: quem mira um ataque em outro jogador ganha uma marca (o ataque passa). Com ${MARKS_TO_JUDGE === 1 ? "a marca" : `${MARKS_TO_JUDGE} marcas`}, o próximo ataque dele contra qualquer um vem para você e volta dobrado, se o Veredito estiver armado; se não estiver, ele escapa e as marcas se apagam.`,
     active: "O veredito foi dado",
   },
   timeWarp: {
@@ -149,5 +159,11 @@ export const ABILITY_TEXT: Readonly<Record<AbilityId, { name: string; descriptio
     name: "Despertar Ocular",
     description: `Carrega em ${abilityCycle("ocularAwakening")} turnos. Ao usar, escolha: Chamas Eternas (até ${FLAME_TILES} casas de qualquer lugar do caminho pegam fogo negro por ${FLAME_TURNS} rodadas; o oponente que parar numa delas perde ${FLAME_ENERGY} de energia e volta ${FLAME_PUSH} casas; cada fogo apaga depois de queimar ${FLAME_HITS} vezes, e cada vítima dá +1 de carga à sua habilidade) ou Susanoo (por ${ARMOUR_TURNS} rodadas, cartas, habilidades, selos, aparições, armadilhas, maldições e perder a vez não te atingem; só o que ataca por dentro passa: o espinho da armadilha oculta, o fogo negro e a manipulação do tempo).`,
     active: "Os olhos despertaram",
+  },
+  weeding: {
+    name: "Capina",
+    description:
+      "Passiva, sempre ligada: se você parar numa armadilha, mesmo escondida, capina ela pela raiz antes que ela te pegue. Ela some do tabuleiro para sempre e nada acontece com você.",
+    active: "Capinando",
   },
 };

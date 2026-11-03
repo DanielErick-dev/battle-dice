@@ -1,5 +1,5 @@
 import { Sparkles } from "lucide-react";
-import { abilityBlocker, isReactive } from "@/game/domain/abilities/ability";
+import { abilityBlocker, isPassive, isReactive } from "@/game/domain/abilities/ability";
 import { abilityCycle, isAbilityReady } from "@/game/domain/abilities/charge";
 import type { Player } from "@/game/domain/types";
 import { cn } from "@/lib/utils";
@@ -52,7 +52,10 @@ export function AbilityMeter({ player, inUse = false, onActivate, canActivate = 
       >
         {text.name}
       </span>
-      {player.levitating > 0 ? (
+      {isPassive(player.ability) ? (
+        // Always on: nothing to charge or press.
+        <span className="text-[9px] font-black tracking-widest text-zinc-300 uppercase">Passiva</span>
+      ) : player.levitating > 0 ? (
         <span className="text-[9px] font-black tracking-widest text-violet-200 uppercase">
           Flutuando · {player.levitating} {player.levitating === 1 ? "turno" : "turnos"}
         </span>

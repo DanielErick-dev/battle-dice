@@ -27,6 +27,7 @@ import {
   FUSED_WIND_STEP_TILES,
 } from "./fusion";
 import { isFrozen } from "../characters/fairy/winter";
+import { quench } from "../characters/akane/fire";
 import { exclusiveBlocker, playExclusive, riftBehind, type HarmTable } from "./exclusive";
 import type { Board, RealmEntry, TileId } from "../board/types";
 import type { CardInstance, Player, PlayerId } from "../core/state";
@@ -168,6 +169,8 @@ function applyEffect(
         snowbound: null,
         chained: 0,
       }));
+      // It soothes burns too, before the energy comes in.
+      quench(draft, playerId, [playerId]);
       if (card.fused && chargeInDraft(draft, playerId, FUSED_HERB_CHARGE).becameReady) announceReady(draft, playerId);
       break;
     case "arcaneShield":

@@ -5,6 +5,7 @@ import { BurningShrine } from "./burningShrine/BurningShrine";
 import { CardTable } from "./cardTable/CardTable";
 import { CrystalGrove } from "./crystalGrove/CrystalGrove";
 import { ElvenGlade } from "./elvenGlade/ElvenGlade";
+import { FarmPlot } from "./farmPlot/FarmPlot";
 import { FrozenWastes } from "./frozenWastes/FrozenWastes";
 import { GearWorks } from "./gearWorks/GearWorks";
 import { Graveyard } from "./graveyard/Graveyard";
@@ -23,6 +24,8 @@ import { WitchHollow } from "./witchHollow/WitchHollow";
 export interface SceneryProps {
   /** How hard the wind blows through the stage (0 to 1): Seraphiel's wingbeats. */
   gust: RefObject<number>;
+  /** A fresh key per intro played (each pick and each replay), for scenery that acts on its beats. */
+  intro: string;
 }
 
 /** A character's own ground on the menu stage, in place of the rune pedestal (origin on the floor). */
@@ -61,6 +64,8 @@ export const SCENERY = {
   cardTable: { component: CardTable },
   // Its own falling petals take the place of the rising motes.
   sakuraCourtyard: { component: SakuraCourtyard, weather: true },
+  // Warm afternoon sun over the soil.
+  farmPlot: { component: FarmPlot, light: "#ffd58a" },
 } as const satisfies Record<string, Scenery>;
 
 export type SceneryId = keyof typeof SCENERY;

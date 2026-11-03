@@ -20,7 +20,7 @@ import type { GameState, Player } from "../../core/state";
 
 const BOARD: BoardDefinition = { size: 60, effects: { 12: { kind: "trap", to: 8 } } };
 
-const duel = () => newGame(BOARD, { scribe: "forbiddenSeals", rival: "studySession" });
+const duel = () => newGame(BOARD, { scribe: "forbiddenSeals", rival: "doubleCast" });
 const solo = () => newGame(BOARD, { scribe: "forbiddenSeals" });
 const readyScribe = (state: GameState) => readyAbility(state, "scribe");
 const write = (state: GameState, sealTiles: number[]) => activate(state, "scribe", { sealTiles });

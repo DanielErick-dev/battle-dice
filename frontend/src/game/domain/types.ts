@@ -7,6 +7,7 @@ export type * from "./cards/events";
 export type { AimWard } from "./core/playerStatus";
 export type { AbilityId, AbilityPower } from "./abilities/ability";
 export type { CardId } from "./cards/catalog";
+export type * from "./characters/akane/types";
 export type * from "./characters/alchemist/types";
 export type * from "./characters/archer/types";
 export type * from "./characters/auric/types";

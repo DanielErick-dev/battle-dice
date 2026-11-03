@@ -47,6 +47,7 @@ export interface TokenActs {
   hopStartedAt: number | null;
   runLinger: number;
   lastVerdict: number | null;
+  lastOutburst: number | null;
   /** Themis passing her verdict, with the clips of it her model has. */
   reaction: { startedAt: number; clips: readonly CharacterClip[] } | null;
   sitStartedAt: number | null;
@@ -61,6 +62,7 @@ export interface ActTraits {
   landImpactSeconds: number;
   castImpactSeconds: number | null;
   castPropSeconds: number;
+  castTurn: number;
 }
 
 export interface PoseInput {
@@ -68,7 +70,16 @@ export interface PoseInput {
   delta: number;
   signals: Pick<
     TokenSignals,
-    "isDashing" | "isFuryAwake" | "isResting" | "shove" | "knocked" | "hop" | "dragged" | "abilityCast" | "verdict"
+    | "isDashing"
+    | "isFuryAwake"
+    | "isResting"
+    | "shove"
+    | "knocked"
+    | "hop"
+    | "dragged"
+    | "abilityCast"
+    | "verdict"
+    | "outburst"
   >;
   levitating: boolean;
   traits: ActTraits;
@@ -88,6 +99,8 @@ export interface PoseInput {
 export interface Pose {
   clip: CharacterClip;
   heading: number | null;
+  /** Turned this far off the heading for now (a side-on cast), never stored in it. */
+  turn: number;
   /** Taken by the lightning mid-dash: only the bolt shows. */
   hidden: boolean;
   /** Under the board, carried off by Hell's Drag. */
@@ -127,6 +140,7 @@ export function createTokenActs(): TokenActs {
     hopStartedAt: null,
     runLinger: 0,
     lastVerdict: null,
+    lastOutburst: null,
     reaction: null,
     sitStartedAt: null,
   };
@@ -134,7 +148,7 @@ export function createTokenActs(): TokenActs {
 
 type TraitSheet = Pick<
   CharacterDefinition,
-  "castsStill" | "handProp" | "wand" | "landImpactSeconds" | "castImpactSeconds" | "castPropSeconds"
+  "castsStill" | "handProp" | "wand" | "landImpactSeconds" | "castImpactSeconds" | "castPropSeconds" | "castTurn"
 >;
 
 export function actTraits(character: TraitSheet | null): ActTraits {
@@ -145,6 +159,7 @@ export function actTraits(character: TraitSheet | null): ActTraits {
     landImpactSeconds: character?.landImpactSeconds ?? 0,
     castImpactSeconds: character?.castImpactSeconds ?? null,
     castPropSeconds: character?.castPropSeconds ?? 0,
+    castTurn: character?.castTurn ?? 0,
   };
 }
 
@@ -237,6 +252,11 @@ export function stepPose(acts: TokenActs, input: PoseInput): Pose {
     acts.lastVerdict = signals.verdict;
     acts.reaction = { startedAt: now, clips: VERDICT_CLIPS.filter((name) => lengths[name] !== undefined) };
   }
+  const outburst = signals.outburst;
+  if (outburst !== null && outburst.id !== acts.lastOutburst) {
+    acts.lastOutburst = outburst.id;
+    if (lengths[outburst.clip] !== undefined) acts.reaction = { startedAt: now, clips: [outburst.clip] };
+  }
   let reactClip: CharacterClip | null = null;
   if (acts.reaction !== null) {
     const step = sequenceStep(acts.reaction.clips, lengths, now - acts.reaction.startedAt);
@@ -286,6 +306,7 @@ export function stepPose(acts: TokenActs, input: PoseInput): Pose {
   return {
     clip,
     heading,
+    turn: clip === "cast" ? traits.castTurn : 0,
     hidden,
     gone,
     sunk,

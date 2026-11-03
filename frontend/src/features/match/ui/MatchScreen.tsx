@@ -309,7 +309,8 @@ function Match({ preset, mapId, roster, chargedAbilities, hourglass, audio }: Ma
           <ErrorToast error={view.error} />
         </div>
 
-        <div className="flex justify-center">
+        {/* Pinned a third of the way down, clear of the dice panel: in the flow, the tall players panel pushed it to the bottom. */}
+        <div className="absolute inset-x-0 top-[30%] z-30 flex justify-center px-4">
           <EffectBanner effect={view.effect} winnerName={nameOf(view.winnerId)} nameOf={nameOf} />
         </div>
 
@@ -326,6 +327,8 @@ function Match({ preset, mapId, roster, chargedAbilities, hourglass, audio }: Ma
                   destroyedTraps: view.destroyedTraps,
                   pinnedTraps: view.pinnedTraps,
                   enchantedTiles: view.enchantedTiles,
+                  scarletFlames: view.scarletFlames,
+                  players: view.players,
                 }}
                 player={activePlayer}
                 // Who each card can be aimed at (see cardTargets); a protected one turns it away.

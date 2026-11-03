@@ -46,7 +46,14 @@ export function spreadWinter(draft: Draft): void {
   if (!winter || winter.frontier >= finishTile - 1) return;
   const to = Math.min(finishTile - 1, winter.frontier + WINTER_TILES);
   draft.events.push({ type: "winterSpread", owner: winter.owner, from: winter.frontier + 1, to });
-  draft.winter = { ...winter, frontier: to, iced: winter.iced.filter((tile) => tile > to) };
+  // Akane's scarlet fire holds the ice off: those tiles stay thawed.
+  const held = draft.scarletFlames.map((flame) => flame.tile).filter((tile) => tile > winter.frontier && tile <= to);
+  draft.winter = {
+    ...winter,
+    frontier: to,
+    iced: winter.iced.filter((tile) => tile > to),
+    ...(held.length > 0 && { thawed: [...(winter.thawed ?? []), ...held] }),
+  };
   // Winter beats fire: the ice puts out black fire as it reaches it.
   draft.blackFlames = draft.blackFlames.filter((flame) => flame.tile <= winter.frontier || flame.tile > to);
 }
@@ -62,7 +69,7 @@ function meltHellIce(draft: Draft): void {
 
 /** The main path up to the frontier, her picks beyond it, and her ice in hell; never the start or finish. */
 export function isFrozen(winter: Winter | null, startTile: TileId, tile: TileId): boolean {
-  if (winter === null) return false;
+  if (winter === null || winter.thawed?.includes(tile)) return false;
   if (winter.melting?.some((ice) => ice.tile === tile)) return true;
   return tile > startTile && (tile <= winter.frontier || winter.iced.includes(tile));
 }
@@ -71,7 +78,23 @@ export function isFrozen(winter: Winter | null, startTile: TileId, tile: TileId)
 export function frozenTiles(winter: Winter | null, startTile: TileId): TileId[] {
   if (!winter) return [];
   const path = Array.from({ length: Math.max(0, winter.frontier - startTile) }, (_, index) => startTile + 1 + index);
-  return [...path, ...winter.iced, ...(winter.melting ?? []).map(({ tile }) => tile)];
+  const tiles = [...path, ...winter.iced, ...(winter.melting ?? []).map(({ tile }) => tile)];
+  return winter.thawed ? tiles.filter((tile) => !winter.thawed?.includes(tile)) : tiles;
+}
+
+/** Akane's fire melts the ice on `tiles` for good; returns the ones that were frozen. */
+export function thaw(draft: Draft, tiles: readonly TileId[]): TileId[] {
+  const { winter } = draft;
+  const { startTile } = draft.state.board;
+  const frozen = tiles.filter((tile) => isFrozen(winter, startTile, tile));
+  if (!winter || frozen.length === 0) return [];
+  draft.winter = {
+    ...winter,
+    iced: winter.iced.filter((tile) => !frozen.includes(tile)),
+    melting: winter.melting?.filter((ice) => !frozen.includes(ice.tile)),
+    thawed: [...(winter.thawed ?? []), ...frozen.filter((tile) => tile <= winter.frontier)],
+  };
+  return frozen;
 }
 
 function inHellTrack(board: Board, tile: TileId): boolean {
@@ -84,8 +107,10 @@ export function freezableTiles(
   position: TileId,
   winter: Winter | null,
   snowed: readonly EnchantedTile[],
+  scarlet: readonly TileId[] = [],
 ): TileId[] {
-  const taken = new Set(snowed.map(({ tile }) => tile));
+  // Akane's fire is the one fire her ice can't put out.
+  const taken = new Set([...snowed.map(({ tile }) => tile), ...scarlet]);
   const ground = ({ id, role, track }: Board["tiles"][number]) =>
     (role === "regular" && !track) || inHellTrack(board, id);
   return board.tiles
@@ -97,7 +122,13 @@ export function freezableTiles(
 /** Up to WINTER_PICKS tiles of her choice freeze, as the winter's own. */
 export function freezeTiles(draft: Draft, playerId: PlayerId, tiles: readonly TileId[]): void {
   const { winter } = draft;
-  const allowed = freezableTiles(draft.state.board, playerIn(draft, playerId).position, winter, draft.enchantedTiles);
+  const allowed = freezableTiles(
+    draft.state.board,
+    playerIn(draft, playerId).position,
+    winter,
+    draft.enchantedTiles,
+    draft.scarletFlames.map((flame) => flame.tile),
+  );
   if (
     !winter ||
     tiles.length === 0 ||
@@ -112,6 +143,7 @@ export function freezeTiles(draft: Draft, playerId: PlayerId, tiles: readonly Ti
   draft.winter = {
     ...winter,
     iced: [...winter.iced, ...tiles.filter((tile) => !hell.includes(tile))],
+    thawed: winter.thawed?.filter((tile) => !tiles.includes(tile)),
     ...(hell.length > 0 && { melting: [...(winter.melting ?? []), ...hell.map((tile) => ({ tile, rounds: 0 }))] }),
   };
   draft.blackFlames = draft.blackFlames.filter((flame) => !tiles.includes(flame.tile));
@@ -125,7 +157,9 @@ function harmfulAhead(draft: Draft, from: TileId, count: number): TileId[] {
   let tile = getTile(board, from).next;
   while (tile !== null && found.length < count) {
     // Snow can't settle on black fire: fire beats frost.
-    const burning = draft.blackFlames.some((flame) => flame.tile === tile);
+    const burning =
+      draft.blackFlames.some((flame) => flame.tile === tile) ||
+      draft.scarletFlames.some((flame) => flame.tile === tile);
     if (isHarmful(draft, tile) && !burning && !draft.enchantedTiles.some((enchanted) => enchanted.tile === tile)) {
       found.push(tile);
     }
@@ -205,7 +239,9 @@ export function drainSnow(draft: Draft, playerId: PlayerId): void {
     energy: player.energy - taken,
     snowbound: snowbound.rounds > 1 ? { ...snowbound, rounds: snowbound.rounds - 1 } : null,
   }));
-  updatePlayer(draft, snowbound.owner, (owner) => ({ energy: Math.min(MAX_ENERGY, owner.energy + taken) }));
+  updatePlayer(draft, snowbound.owner, (owner) => ({
+    energy: owner.burning > 0 ? owner.energy : Math.min(MAX_ENERGY, owner.energy + taken),
+  }));
   draft.events.push({ type: "snowDrained", playerId, owner: snowbound.owner, energy: taken });
 }
 

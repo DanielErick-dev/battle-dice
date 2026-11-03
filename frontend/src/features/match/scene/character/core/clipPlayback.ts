@@ -25,6 +25,8 @@ export const CLIP_PLAYBACK: Readonly<Record<CharacterClip, ClipPlayback>> = {
   sit: { speed: 1, once: true },
   guard: { speed: 1, once: true },
   scoff: { speed: 1, once: true },
+  strike: { speed: 1, once: true },
+  fume: { speed: 1, once: true },
 };
 
 export const CHARACTER_CLIPS = Object.keys(CLIP_PLAYBACK) as readonly CharacterClip[];
@@ -55,7 +57,13 @@ export function crossfadeSeconds(previous: CharacterClip | null, next: Character
   if (next === "rest" && previous === "sit") return CROSSFADE_SECONDS;
   if (next === "rest" && previous === "run") return RUN_TO_SIT_CROSSFADE_SECONDS;
   if (next === "rest" || previous === "rest") return SIT_CROSSFADE_SECONDS;
-  if (previous === "intro" || previous === "cast" || previous === "land" || previous === "guard")
+  if (
+    previous === "intro" ||
+    previous === "cast" ||
+    previous === "land" ||
+    previous === "guard" ||
+    previous === "strike"
+  )
     return SETTLE_CROSSFADE_SECONDS;
   return CROSSFADE_SECONDS;
 }

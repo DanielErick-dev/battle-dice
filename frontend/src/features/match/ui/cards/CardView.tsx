@@ -14,6 +14,8 @@ interface CardViewProps {
   /** Greyed out (not enough energy, card already played…). */
   dimmed?: boolean;
   selected?: boolean;
+  /** In focus: drawn at its full height, the whole rules text showing. */
+  expanded?: boolean;
   className?: string;
 }
 
@@ -22,7 +24,14 @@ interface CardViewProps {
  * stars; heaven's relics in white and gold). Every card above common gets a holographic foil that
  * follows the pointer (and tilts the card).
  */
-export function CardView({ cardId, fused = false, dimmed = false, selected = false, className }: CardViewProps) {
+export function CardView({
+  cardId,
+  fused = false,
+  dimmed = false,
+  selected = false,
+  expanded = false,
+  className,
+}: CardViewProps) {
   const { rarity, relic, exclusive } = CARD_CATALOG[cardId];
   const stars = RARITY_LEVEL[rarity];
   const palette = CARD_PALETTE[cardId];
@@ -34,7 +43,9 @@ export function CardView({ cardId, fused = false, dimmed = false, selected = fal
       onPointerMove={trackPointer}
       onPointerLeave={resetPointer}
       className={cn(
-        "game-card relative flex aspect-[5/7] w-full flex-col overflow-hidden rounded-xl p-[3px] select-none",
+        "game-card relative flex w-full flex-col overflow-hidden rounded-xl p-[3px] select-none",
+        // In focus it grows to fit its whole text instead of keeping the card's proportions.
+        expanded ? "min-h-0" : "aspect-[5/7]",
         dimmed && "saturate-[0.35] brightness-75",
         selected && "ring-2 ring-orange-400 ring-offset-2 ring-offset-black/60",
         className,
@@ -70,13 +81,28 @@ export function CardView({ cardId, fused = false, dimmed = false, selected = fal
         </header>
 
         <div
-          className="mx-1.5 mt-1 aspect-[10/7] overflow-hidden rounded-md border border-white/15"
+          // Never squeezed by a long rules text: the text shrinks instead.
+          className="mx-1.5 mt-1 aspect-[10/7] shrink-0 overflow-hidden rounded-md border border-white/15"
           style={{ background: `radial-gradient(circle at 50% 40%, ${palette.from}, ${palette.to})` }}
         >
           <CardArt cardId={cardId} />
         </div>
 
-        <p className="mx-1.5 mt-1.5 flex-1 rounded-md bg-white/5 px-1.5 py-1 text-[10px] leading-snug font-medium text-zinc-200">
+        <p
+          className={cn(
+            "mx-1.5 mt-1.5 min-h-0 flex-1 rounded-md bg-white/5 px-1.5 py-1 leading-snug font-medium text-zinc-200",
+            expanded
+              ? "text-[11px]"
+              : cn(
+                  "overflow-hidden",
+                  text.description.length > 120
+                    ? "text-[8px]"
+                    : text.description.length > 90
+                      ? "text-[9px]"
+                      : "text-[10px]",
+                ),
+          )}
+        >
           {text.description}
         </p>
         <footer className="flex items-center justify-between gap-1 px-2 py-1 text-[8px] font-bold tracking-[0.2em] text-zinc-400 uppercase">

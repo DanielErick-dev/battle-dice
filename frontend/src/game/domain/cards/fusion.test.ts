@@ -29,7 +29,7 @@ describe("card fusion", () => {
   });
 
   it("heaven's relics fuse too: the Apotheosis readies the ability and grants another turn", () => {
-    const hero = newGame(CARD_PORTAL_TRAP_BOARD, { p1: "studySession", p2: null });
+    const hero = newGame(CARD_PORTAL_TRAP_BOARD, { p1: "doubleCast", p2: null });
     const start = withPlayer(hero, "p1", { hand: triple("ascension"), energy: 5, abilityCharge: 0 });
     const { state } = play(fuse(start, "ascension").state, "p1", "a:fused");
     expect(aria(state).abilityCharge).toBeGreaterThan(0);

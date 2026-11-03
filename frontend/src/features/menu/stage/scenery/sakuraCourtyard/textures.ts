@@ -1,5 +1,5 @@
 import { withDressing, type GroundDressing } from "../kit/groundDressing";
-import { type NoiseLook, type Painter } from "../kit/textures";
+import { type Painter } from "../kit/textures";
 
 /** Pale pavers in staggered rows, mossy joints, the odd fallen petal; tinted by the dusk. */
 const paintPaving: Painter = (context, size, random) => {
@@ -26,7 +26,7 @@ const paintPaving: Painter = (context, size, random) => {
     context.fillRect(random() * size, y - 1, 4 + random() * 10, 4);
   }
   for (let petal = 0; petal < 120; petal++) {
-    context.fillStyle = random() < 0.5 ? "rgba(249,168,212,0.9)" : "rgba(255,214,230,0.85)";
+    context.fillStyle = random() < 0.5 ? "rgba(160,18,40,0.9)" : "rgba(110,12,28,0.85)";
     context.beginPath();
     context.ellipse(
       random() * size,
@@ -73,16 +73,12 @@ export const paintNotebookPage: Painter = (context, size, random) => {
   }
 };
 
-export const BARK: NoiseLook = { base: [58, 42, 40], dark: [26, 18, 18], light: [96, 78, 74], fadeOut: false };
-
-export const STONE: NoiseLook = { base: [96, 94, 90], dark: [52, 50, 48], light: [138, 134, 126], fadeOut: false };
-
-/** A stepping-stone path across the courtyard, petals piling up under the cherry tree (back left). */
+/** A stepping-stone path across the courtyard, crimson petals piling up under the trees. */
 const COURTYARD_GROUND: GroundDressing = {
-  wash: { colour: "#f9a8d4", alpha: 0.25 },
+  wash: { colour: "#7f1d1d", alpha: 0.2 },
   path: { kind: "slabs", colour: "#8e8577", edge: "#4d463d", width: [0.15, 0.24], wind: 0.04 },
   litter: [
-    { shape: "petal", colours: ["#f9a8d4", "#fbcfe8", "#f472b6"], count: 260, size: 4, pile: [0, 0.5, 0, 0.55] },
+    { shape: "petal", colours: ["#b5122b", "#7f0d1f", "#dc2626"], count: 260, size: 4, pile: [0, 0.5, 0, 0.55] },
   ],
 };
 

@@ -67,6 +67,6 @@ Objetivo: cada personagem com uma habilidade **ativa** e uma **passiva**, todos 
 
 ### Pendente
 - [ ] **Validar na tela:** HUD com 8 jogadores, ampulheta e pausa, posição do botão do dado, flechas sincronizadas, tamanho e brilho da balança do Veredito.
-- [ ] **Akane** (próximo foco): homem, estilo fogo, forte contra a Fada e fraco contra o Auric. O Daniel ainda está pensando no kit. Definir o que diferencia o fogo dele do fogo negro da Kage.
+- [x] **Akane** (02/11/2026): kit de fogo escarlate implementado (Zona de Incêndio, Ímpeto Brilhante, 5 cartas, chama na mão, habitat em brasa). Falta: teste visual, arte pintada das 5 cartas, assets do Meshy (lanterna, piso, torii, emblema de chama) e intro/cast.
 - [ ] **5ª carta do Zarek.**
 - [ ] **Coringa:** ganhou o teste de 4 jogadores; observar se a Aposta está forte demais.

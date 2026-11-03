@@ -1,3 +1,4 @@
+import { isPassive } from "../abilities/ability";
 import type { AbilityId } from "../abilities/ability";
 import { STARTING_ENERGY } from "../core/energy";
 import { STARTING_HAND } from "../cards/hand";
@@ -44,6 +45,7 @@ export function openingState(
     specters: [],
     enchantedTiles: [],
     blackFlames: [],
+    scarletFlames: [],
     voidScars: [],
     winter: null,
     pendingPlunder: null,
@@ -74,7 +76,7 @@ function dealPlayer({ id, name, ability = null }: NewPlayer, { startTile, cards,
     diceBoost: null,
     diceBonuses: [],
     ability,
-    abilityCharge: ability && playsFirst ? 1 : 0,
+    abilityCharge: ability && playsFirst && !isPassive(ability) ? 1 : 0,
     levitating: 0,
     silencedTurns: 0,
     spectralArmour: 0,
@@ -91,5 +93,11 @@ function dealPlayer({ id, name, ability = null }: NewPlayer, { startTile, cards,
     voidIdle: 0,
     justiceMarks: 0,
     containedRolls: 0,
+    burning: 0,
+    burnedBy: null,
+    innerFlame: 0,
+    impetusRolls: 0,
+    fuelRolls: 0,
+    emberStep: false,
   };
 }

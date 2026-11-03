@@ -15,6 +15,8 @@ export interface Winter {
   iced: readonly TileId[];
   /** Ice she laid in hell, and the rounds the fire has been melting it (see HELL_ICE_ROUNDS). */
   melting?: readonly MeltingIce[];
+  /** Melted by Akane's scarlet fire: never frozen again unless she picks them. */
+  thawed?: readonly TileId[];
 }
 
 export interface MeltingIce {

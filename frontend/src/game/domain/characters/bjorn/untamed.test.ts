@@ -28,8 +28,8 @@ const BOARD: BoardDefinition = {
   },
 };
 
-const game = (rivalAbility: AbilityId = "studySession") =>
-  newGame(BOARD, { wolf: "untamed", rival: rivalAbility, third: "studySession" });
+const game = (rivalAbility: AbilityId = "doubleCast") =>
+  newGame(BOARD, { wolf: "untamed", rival: rivalAbility, third: "doubleCast" });
 const unleashed = (state: GameState) => activate(readyAbility(state, "wolf"), "wolf").state;
 const moves = (events: readonly GameEvent[]) =>
   events.flatMap((event) => (event.type === "playerMoved" ? [event.path] : []));
