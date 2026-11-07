@@ -107,7 +107,7 @@ const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 const easeOut = (x: number) => 1 - (1 - x) ** 3;
 
 /**
- * The Berserker's Untamed, while it lasts: a blizzard hugging him (see FRAGMENT), tiny ice
+ * Bjorn's Untamed, while it lasts: a blizzard hugging him (see FRAGMENT), tiny ice
  * crystals orbiting him and glinting now and then, snow swirling up and a little frost under his
  * feet. It takes hold `delay` seconds after `active` comes on (as the cast clip's blow on his chest
  * lands): the crystals burst out of his chest to their orbits, with a flash and a cold wave over the

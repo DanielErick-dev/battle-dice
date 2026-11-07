@@ -13,7 +13,7 @@ export interface SpotlightShot {
   elevation?: number;
 }
 
-/** Ability casts, Themis turning an attack away, the Berserker's shove, a lost turn thrown at someone and the Fall. */
+/** Ability casts, Themis turning an attack away, Bjorn's shove, a lost turn thrown at someone and the Fall. */
 export function spotlightOf(view: MatchView): SpotlightShot | null {
   const { effect } = view;
   const { trample, verdict } = view.fx;

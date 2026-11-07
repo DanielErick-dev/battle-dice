@@ -6,7 +6,7 @@ import { tileOffsetFor, TILE_SIZE, type BoardLayout, type Vec3 } from "@/feature
 import { LEVITATE_HEIGHT } from "@/features/characters/core/figure";
 import { headingOf } from "./motion";
 
-/** How far ahead of the one he trampled the Berserker stands to shove them, face to face. */
+/** How far ahead of the one he trampled Bjorn stands to shove them, face to face. */
 const SHOVE_GAP = TILE_SIZE * 0.45;
 
 /** Which way the path runs at a tile (towards the next one; into the finish on the last). */
@@ -42,7 +42,7 @@ export function tokenTarget(player: Player, view: MatchView, board: Board, layou
 }
 
 /**
- * A trample puts the one trampled mid-tile until they're sent flying, and the Berserker just ahead
+ * A trample puts the one trampled mid-tile until they're sent flying, and Bjorn just ahead
  * of them along the path until he runs on.
  */
 function trampleTarget(playerId: string, view: MatchView, board: Board, layout: BoardLayout): Vec3 | null {

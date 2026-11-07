@@ -39,7 +39,7 @@ import { WitchStaff } from "@/features/characters/witch/WitchStaff";
 import { useAge } from "@/features/shared/three/useAge";
 import type { StageSounds } from "../audio/stageSounds";
 import { FIGURE_HEIGHT, FLOOR_Y } from "./layout";
-import { GUSTS, gustAt, wingStroke } from "./seraphEntrance";
+import { GUSTS, gustAt, wingStroke } from "./seraphielEntrance";
 import { WindGusts, type WingTips } from "./WindGusts";
 
 /** A levitating character's hover over the pedestal (on top of its float clip's own lift) and bob. */
@@ -61,7 +61,7 @@ export function Presentation({
 }: {
   characterId: CharacterId;
   sounds: StageSounds;
-  /** Set every frame to how hard the entrance's wind blows (see seraphEntrance). */
+  /** Set every frame to how hard the entrance's wind blows (see seraphielEntrance). */
   gustRef: RefObject<number>;
 }) {
   const character: CharacterDefinition = CHARACTERS[characterId];
@@ -83,7 +83,7 @@ export function Presentation({
   const [smoke, setSmoke] = useState<number | null>(null);
   const descent = useRef<Group>(null);
   const age = useAge();
-  // A winged descent ends in mighty wingbeats whose swing is driven from here (see seraphEntrance).
+  // A winged descent ends in mighty wingbeats whose swing is driven from here (see seraphielEntrance).
   const entrance = character.descends === true && character.wings !== undefined;
   const stroke = useRef<number | null>(null);
   /** Kept up to date by the wings: what the downstrokes shake off flies from there. */

@@ -61,7 +61,7 @@ export const turnSteps: StepHandlers<
     ];
   },
   playerMoved: (event, timings) => {
-    // The Berserker runs on from where he shoved someone.
+    // Bjorn runs on from where he shoved someone.
     const end = event.path.at(-1);
     const steps = event.path.map((tile) => ({
       apply: (view: MatchView) => ({

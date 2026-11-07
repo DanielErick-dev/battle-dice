@@ -9,7 +9,7 @@ import type { WingsId } from "./accessories/wingLooks";
  * picked, then showcase loops to present them (idle stands in without it); cast plays once as
  * they use their ability; float loops while they levitate (idle stands in without it); land plays
  * dash plays once as they throw themselves into a lightning dash, land as they touch down out of it.
- * shove plays once as the Berserker shoves someone he trampled; knocked as anyone is sent flying
+ * shove plays once as Bjorn shoves someone he trampled; knocked as anyone is sent flying
  * (every model borrows it from one, see SHARED_CLIPS in the build manifest); rest loops, seated on a
  * chair, while they've lost turns (shared the same way); hop plays once as the Crystal Fairy stops on
  * her own snow, before it carries her on. brake plays once as they come to a stop out of a run, slowing

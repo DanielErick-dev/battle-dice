@@ -28,7 +28,7 @@ describe("the camera's spotlight", () => {
     expect(shot!.distance).toBeGreaterThan(1);
   });
 
-  it("films the Berserker as he shoves, not the Susanoo's throw", () => {
+  it("films Bjorn as he shoves, not the Susanoo's throw", () => {
     const trample = { id: 2, by: "bjorn", victim: "p1", tile: 5, phase: "shove", susanoo: false };
     expect(spotlightOf(viewWith({ fx: { trample } as never }))?.playerId).toBe("bjorn");
     expect(spotlightOf(viewWith({ fx: { trample: { ...trample, susanoo: true } } as never }))).toBeNull();

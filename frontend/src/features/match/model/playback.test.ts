@@ -53,7 +53,7 @@ describe("playback of rule events", () => {
     expect(views.at(-1)?.players[0].position).toBe(4);
   });
 
-  it("acts a trample out: the Berserker shoves, the victim flies back, then he runs on from there", () => {
+  it("acts a trample out: Bjorn shoves, the victim flies back, then he runs on from there", () => {
     const [shoving, flying, over] = replay(initial(), {
       type: "playerTrampled",
       playerId: "p1",

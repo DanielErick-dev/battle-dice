@@ -166,7 +166,7 @@ describe("the clip a figure plays", () => {
 });
 
 describe("a trample", () => {
-  it("waits for the Berserker to settle, turns him against the path and lunges without a shove clip", () => {
+  it("waits for Bjorn to settle, turns him against the path and lunges without a shove clip", () => {
     const acts = createTokenActs();
     const shove = signals({ shove: 4 });
     const moving = stepPose(acts, input(0, { signals: shove, motion: run(false) }));

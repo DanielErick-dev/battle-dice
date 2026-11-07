@@ -129,7 +129,7 @@ export const abilitiesSteps: StepHandlers<
     ];
   },
   armourHeld: (event, timings) => {
-    // Untamed, it's not armour that turned it away: the Berserker just shrugs it off.
+    // Untamed, it's not armour that turned it away: Bjorn just shrugs it off.
     return [
       {
         apply: (view) => ({

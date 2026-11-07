@@ -44,19 +44,19 @@ export interface PlaybackTimings {
   arrowImpactMs: number;
   /** Cleansing Tide: the wave rises and rolls over the tiles ahead, before the spells there are gone. */
   tideMs: number;
-  /** Untamed: the Berserker beats his chest and roars before play goes on. */
+  /** Untamed: Bjorn beats his chest and roars before play goes on. */
   untamedCastMs: number;
   /** The Crystal Fairy hops on her own snow (crouch, jump, landing) before it carries her on. */
   snowHopMs: number;
   /** Time bent on an opponent: the camera goes over to them and stays (halted, they sit down on their chair). */
   timeBentMs: number;
-  /** A trample on someone seated on their chair: they get up before the Berserker shoves. */
+  /** A trample on someone seated on their chair: they get up before Bjorn shoves. */
   trampleRiseMs: number;
-  /** A trample: the Berserker steps ahead of the one he ran into, turns on them and shoves, up to the blow. */
+  /** A trample: Bjorn steps ahead of the one he ran into, turns on them and shoves, up to the blow. */
   trampleShoveMs: number;
   /** A trample: the one shoved flies back to where the knock-back leaves them. */
   trampleFlightMs: number;
-  /** A trample: they've landed and the Berserker turns back to run on. */
+  /** A trample: they've landed and Bjorn turns back to run on. */
   trampleRecoverMs: number;
   /** The Fall: Seraphiel's light turns to fire before play goes on. */
   fallMs: number;

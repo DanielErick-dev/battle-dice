@@ -3,7 +3,7 @@ import { FLAME_TURNS } from "@/game/domain/characters/kage/flames";
 import { nextFxId, withFx, withPlayer, withPlayerAt } from "../matchView";
 import type { StepHandlers } from "./types";
 
-export const kunoichiSteps: StepHandlers<"susanooRepelled" | "flamesLit" | "flamesScorched" | "flamesFaded"> = {
+export const kageSteps: StepHandlers<"susanooRepelled" | "flamesLit" | "flamesScorched" | "flamesFaded"> = {
   susanooRepelled: (event, timings) => {
     // They reach her tile and the Susanoo throws them back; they get up there.
     return [

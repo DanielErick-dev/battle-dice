@@ -5,15 +5,15 @@
 import { AbilityFlash } from "./abilities";
 import { Blaze, Burning, EmberFeet, FuelFire, HandFlame, InnerFlame, PitchFire, ScarletFlames } from "./akane";
 import { PinnedTraps, SlungBow, Volley } from "./arrowRain";
-import { KnockedBurst, ShoveImpact, UntamedAura } from "./berserker";
+import { KnockedBurst, ShoveImpact, UntamedAura } from "./bjorn";
 import { ArcaneBlastFx, DiceOrb, HealingHerbFx, PoweredAura, RedAura, ShieldFx, WindStepFx } from "./cards";
 import { Tide } from "./cleansingTide";
 import { DashBolt, DashLanding, FuryField, LimbBolts } from "./dormantFury";
 import { EnchantedTiles, EternalWinter, FrostWandProp, Snowbound, SnowHop, SnowStream } from "./fairy";
-import { ArmourShell, BlackFlames, SusanooArmour } from "./kunoichi";
+import { ArmourShell, BlackFlames, SusanooArmour } from "./kage";
 import { LevitationCast, LevitationGlow, LevitationStaff } from "./levitation";
 import { Seals } from "./seals";
-import { Fall, HeavenChains, HellsDrag } from "./seraph";
+import { Fall, HeavenChains, HellsDrag } from "./seraphiel";
 import { Apparitions } from "./specters";
 import { Gate, HiddenTrap } from "./tiles";
 import { HandVial, VialThrow } from "./transmutation";

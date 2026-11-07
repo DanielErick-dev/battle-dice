@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DESCENT_SECONDS } from "@/features/characters/seraphiel/HeavenDescent";
-import { ENTRANCE_SECONDS, GUSTS, gustAt, wingStroke } from "./seraphEntrance";
+import { ENTRANCE_SECONDS, GUSTS, gustAt, wingStroke } from "./seraphielEntrance";
 
 describe("Seraphiel's entrance", () => {
   it("stirs the wind with every beat on the way down, from the start, stronger near the ground", () => {

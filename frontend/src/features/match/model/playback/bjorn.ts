@@ -3,7 +3,7 @@ import { nextFxId, withFx, withPlayer, withPlayerAt, type MatchView } from "../m
 import { playerTileEffect } from "./helpers";
 import type { StepHandlers } from "./types";
 
-export const berserkerSteps: StepHandlers<"untamedUnleashed" | "playerTrampled"> = {
+export const bjornSteps: StepHandlers<"untamedUnleashed" | "playerTrampled"> = {
   untamedUnleashed: (event) => {
     return [
       {
