@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { at } from "../core/invariant";
 import { ARROW_RAIN_PUSH } from "../characters/archer/arrowRain";
 import { createBoard, getTile, type BoardDefinition } from "./board";
 import { sameSpace } from "./reach";
@@ -25,7 +26,8 @@ const HELPFUL: ReadonlySet<TileEffect["kind"]> = new Set(["blessing", "card"]);
 
 describe("realm tracks", () => {
   const board = createBoard(BOARD);
-  const [infernal, celestial] = board.tracks;
+  const infernal = at(board.tracks, 0);
+  const celestial = at(board.tracks, 1);
   const lastInfernal = infernal.tiles.at(-1)!;
 
   it("add a track of tiles after the main path for each realm portal", () => {
@@ -51,12 +53,12 @@ describe("realm tracks", () => {
     };
     const shared = createBoard(twoGates);
     expect(shared.tracks).toHaveLength(1);
-    expect(shared.tracks[0].entries).toEqual([
+    expect(at(shared.tracks, 0).entries).toEqual([
       { portal: 5, exit: 12 },
       { portal: 25, exit: 33 },
     ]);
-    const [first] = shared.tracks[0].tiles;
-    const last = shared.tracks[0].tiles.at(-1)!;
+    const [first] = at(shared.tracks, 0).tiles;
+    const last = at(shared.tracks, 0).tiles.at(-1)!;
 
     // In by the second portal: onto the same first tile, and out at that portal's exit.
     const start = newGame(twoGates, { p1: null });
@@ -66,7 +68,7 @@ describe("realm tracks", () => {
       realmEntry: { portal: 25, exit: 33 },
     });
     const out = roll(withPlayer(inHell, "p1", { position: last - 1 }), "p1", 2).state;
-    expect(out.players[0].position).toBe(33);
+    expect(at(out.players, 0).position).toBe(33);
   });
 
   it("lay out one heaven too: two players in by different portals walk the same corridor", () => {
@@ -79,7 +81,7 @@ describe("realm tracks", () => {
     };
     const shared = createBoard(twoGates);
     expect(shared.tracks).toHaveLength(1);
-    expect(shared.tracks[0].entries).toEqual([
+    expect(at(shared.tracks, 0).entries).toEqual([
       { portal: 5, exit: 12 },
       { portal: 25, exit: 33 },
     ]);
@@ -117,7 +119,7 @@ describe("realm tracks", () => {
       from: 5,
       to: 31,
     });
-    expect(state.players[0].position).toBe(31);
+    expect(at(state.players, 0).position).toBe(31);
   });
 
   it("walk along the track and out at the exit", () => {
@@ -128,7 +130,7 @@ describe("realm tracks", () => {
       playerId: "p1",
       path: [lastInfernal, 12, 13],
     });
-    expect(state.players[0].position).toBe(13);
+    expect(at(state.players, 0).position).toBe(13);
   });
 
   it("bless on celestial tiles", () => {
@@ -156,13 +158,13 @@ describe("realm tracks", () => {
     const setback = infernal.tiles.slice(1).find((id) => getTile(board, id).effect.kind === "trap")!;
     const effect = getTile(board, setback).effect as Extract<TileEffect, { kind: "trap" }>;
     const { state } = roll(withPlayer(game(), "p1", { position: getTile(board, setback).previous! }), "p1", 1);
-    expect(state.players[0].position).toBe(effect.to);
+    expect(at(state.players, 0).position).toBe(effect.to);
   });
 });
 
 describe("a realm track is cut off from the board", () => {
   const board = createBoard(BOARD);
-  const inside = board.tracks[0].tiles[3];
+  const inside = at(at(board.tracks, 0).tiles, 3);
   const duel = (archerAt: number, rivalAt: number, ability: "arrowRain" | "cardGamble" = "arrowRain") =>
     withPlayers(newGame(BOARD, { p1: ability, p2: null }), {
       p1: { position: archerAt, abilityCharge: 5 },
@@ -172,38 +174,38 @@ describe("a realm track is cut off from the board", () => {
   it("knows which tiles share a place", () => {
     expect(sameSpace(board, 3, 20)).toBe(true);
     expect(sameSpace(board, 3, inside)).toBe(false);
-    expect(sameSpace(board, inside, board.tracks[0].tiles[0])).toBe(true);
-    expect(sameSpace(board, inside, board.tracks[1].tiles[0])).toBe(false);
+    expect(sameSpace(board, inside, at(at(board.tracks, 0).tiles, 0))).toBe(true);
+    expect(sameSpace(board, inside, at(at(board.tracks, 1).tiles, 0))).toBe(false);
   });
 
   it("Arrow Rain from the board can't be aimed at a player inside a realm, nor the other way round", () => {
     const aim = (state: GameState) => activate(state, "p1", { volley: "opponents" });
     expect(() => aim(duel(20, inside))).toThrow(GameRuleError);
     expect(() => aim(duel(inside, 20))).toThrow(GameRuleError);
-    expect(aim(duel(25, 20)).state.players[1].position).toBe(20 - ARROW_RAIN_PUSH);
+    expect(at(aim(duel(25, 20)).state.players, 1).position).toBe(20 - ARROW_RAIN_PUSH);
   });
 
   it("Card Gamble can't steal from a player in another place", () => {
     const { state } = activate(duel(20, inside, "cardGamble"), "p1", {}, [6]);
-    expect(state.players[1].hand).toHaveLength(1);
+    expect(at(state.players, 1).hand).toHaveLength(1);
   });
 
   it("Card Gamble may still bet against someone out of reach: a win is turned away, a loss costs a card", () => {
     const bet = (dice: number[]) => activate(duel(20, inside, "cardGamble"), "p1", { targetId: "p2" }, dice);
     const won = bet([5]);
     expect(won.events).toContainEqual(expect.objectContaining({ type: "abilityBlocked", ward: "away" }));
-    expect(won.state.players[1].hand).toHaveLength(1);
+    expect(at(won.state.players, 1).hand).toHaveLength(1);
     const lost = bet([1]);
-    const hand = duel(20, inside, "cardGamble").players[0].hand.length;
-    expect(lost.state.players[0].hand).toHaveLength(hand - 1);
-    expect(lost.state.players[1].hand).toHaveLength(1);
+    const hand = at(duel(20, inside, "cardGamble").players, 0).hand.length;
+    expect(at(lost.state.players, 0).hand).toHaveLength(hand - 1);
+    expect(at(lost.state.players, 1).hand).toHaveLength(1);
   });
 
   it("with nobody in reach, Card Gamble's lucky throw draws as many cards as the die shows", () => {
     const start = duel(20, inside, "cardGamble");
     const lucky = (state: GameState) => activate(state, "p1", { power: "fortune" }, [2]);
-    const hand = start.players[0].hand.length;
-    expect(lucky(start).state.players[0].hand).toHaveLength(hand + 2);
+    const hand = at(start.players, 0).hand.length;
+    expect(at(lucky(start).state.players, 0).hand).toHaveLength(hand + 2);
     expect(() => lucky(duel(20, 25, "cardGamble"))).toThrow(GameRuleError);
   });
 });

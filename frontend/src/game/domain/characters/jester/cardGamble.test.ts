@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { at } from "../../core/invariant";
 import { ABILITY_CYCLE, abilityCycle } from "../../abilities/charge";
 import {
   CARD_GAMBLE_DRAWS,
@@ -132,7 +133,7 @@ describe("Card Gamble", () => {
       expect(state.pendingDiscard).toMatchObject({ playerId: "p1", queued: [{ playerId: "p1" }] });
 
       // One discard per won card.
-      const discardFirst = (from: GameState) => discard(from, "p1", aria(from).hand[0].uid).state;
+      const discardFirst = (from: GameState) => discard(from, "p1", at(aria(from).hand, 0).uid).state;
       const once = discardFirst(state);
       expect(once.pendingDiscard).toMatchObject({ playerId: "p1", queued: [] });
       const twice = discardFirst(once);

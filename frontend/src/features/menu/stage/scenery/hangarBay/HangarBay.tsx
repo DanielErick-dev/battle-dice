@@ -12,7 +12,7 @@ import {
   type Mesh,
   type Sprite,
 } from "three";
-import { useCanvasTexture } from "../kit/textures";
+import { useCanvasTexture } from "@/features/shared/three/canvasTexture";
 import { Reticle } from "./Reticle";
 import { LOCKED } from "./layout";
 import { CRATE, DECK, HAZARD, PAD, SCREEN, SEAMS } from "./textures";

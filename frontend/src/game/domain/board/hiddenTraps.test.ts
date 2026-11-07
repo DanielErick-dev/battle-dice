@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { at } from "../core/invariant";
 import { createBoard, type BoardDefinition } from "./board";
 import { HIDDEN_TRAP_PUSH, placeHiddenTraps, relocateHiddenTrap } from "./hiddenTraps";
 import { seededRandom } from "../core/random";
@@ -22,11 +23,11 @@ describe("hidden traps", () => {
   const board = createBoard(BOARD);
 
   it("sit on the zone's plain tiles, as many as asked", () => {
-    expect(board.trapZones[0].tiles).toEqual([10, 11, 12, 13, 15, 16, 17, 18, 19]);
+    expect(at(board.trapZones, 0).tiles).toEqual([10, 11, 12, 13, 15, 16, 17, 18, 19]);
     const traps = placeHiddenTraps(board, seededRandom(1));
     expect(traps).toHaveLength(2);
     expect(new Set(traps).size).toBe(2);
-    for (const trap of traps) expect(board.trapZones[0].tiles).toContain(trap);
+    for (const trap of traps) expect(at(board.trapZones, 0).tiles).toContain(trap);
   });
 
   it("move to another free tile of the zone once found", () => {
@@ -34,7 +35,7 @@ describe("hidden traps", () => {
     expect(moved).toHaveLength(2);
     expect(moved).toContain(16);
     expect(moved).not.toContain(12);
-    expect(board.trapZones[0].tiles).toContain(moved[0]);
+    expect(at(board.trapZones, 0).tiles).toContain(at(moved, 0));
   });
 
   it("throw the player back and move away when landed on", () => {
@@ -45,7 +46,7 @@ describe("hidden traps", () => {
       tile: 12,
       to: 12 - HIDDEN_TRAP_PUSH,
     });
-    expect(state.players[0].position).toBe(12 - HIDDEN_TRAP_PUSH);
+    expect(at(state.players, 0).position).toBe(12 - HIDDEN_TRAP_PUSH);
     expect(state.hiddenTraps).not.toContain(12);
     expect(state.hiddenTraps).toContain(16);
   });

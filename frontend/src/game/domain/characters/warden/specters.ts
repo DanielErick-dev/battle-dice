@@ -2,6 +2,7 @@ import { at } from "../../core/invariant";
 import { abilityCycle } from "../../abilities/charge";
 import { MAX_ENERGY } from "../../core/energy";
 import { trackOf } from "../../board/board";
+import { byDistanceFrom } from "../../board/tileGround";
 import { GameRuleError } from "../../core/errors";
 import { drawCard, handOverCards } from "../../cards/hand";
 import { playerIn, updatePlayer, type Draft } from "../../core/draft";
@@ -25,7 +26,7 @@ export function hauntableTiles(board: Board, position: TileId, taken: readonly T
   if (track?.realm === "celestial") {
     return track.tiles
       .filter((tile) => near(tile) && !taken.includes(tile))
-      .sort((a, b) => Math.abs(a - position) - Math.abs(b - position) || a - b);
+      .sort(byDistanceFrom(position));
   }
   if (track) return [];
   return sealableTiles(board, position, taken).filter(near);

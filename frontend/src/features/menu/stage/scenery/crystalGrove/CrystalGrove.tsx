@@ -13,7 +13,7 @@ import {
 } from "three";
 import { seededRandom } from "@/game/domain/core/random";
 import { GROUND_RADIUS } from "../kit/geometry";
-import { useCanvasTexture } from "../kit/textures";
+import { useCanvasTexture } from "@/features/shared/three/canvasTexture";
 import { Flowers } from "./Flowers";
 import { FrostTufts } from "./FrostTufts";
 import { Sparkles } from "./Sparkles";

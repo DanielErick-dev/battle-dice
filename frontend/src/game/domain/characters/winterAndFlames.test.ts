@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { at } from "../core/invariant";
 import {
   ARMOUR_TURNS,
   FLAME_TILES,
@@ -132,7 +133,7 @@ describe("Ocular Awakening", () => {
   it("Eternal Flames: an opponent stopping on one loses energy and is thrown back; walking through is harmless", () => {
     const lit = activate(kunoichi(), { power: "flames", flameTiles: [24, 26] }).state;
     expect(lit.blackFlames.map((flame) => flame.tile)).toEqual([24, 26]);
-    expect(lit.blackFlames[0].turnsLeft).toBe(FLAME_TURNS);
+    expect(at(lit.blackFlames, 0).turnsLeft).toBe(FLAME_TURNS);
     const through = rivalRolls(withPlayer(lit, "rival", { energy: 5 }), 22, 3).state;
     expect(playerOf(through, "rival")).toMatchObject({ energy: 5, position: 25 });
     const { state } = rivalRolls(withPlayer(lit, "rival", { energy: 5 }), 22, 2);
@@ -336,7 +337,7 @@ describe("Eternal Winter", () => {
     const { state, events } = rivalRolls(frozen, 3, 2);
     expect(events).toContainEqual({ type: "snowDrained", playerId: "rival", owner: "hero", energy: 1 });
     expect(playerOf(state, "rival")).toMatchObject({ energy: 4, skipTurns: ENCHANT_FREEZE - 1 });
-    expect(state.players[state.currentPlayerIndex].id).toBe("hero");
+    expect(at(state.players, state.currentPlayerIndex).id).toBe("hero");
   });
 
   it("can't freeze more than its share, twice the same tile, or tiles already frozen", () => {

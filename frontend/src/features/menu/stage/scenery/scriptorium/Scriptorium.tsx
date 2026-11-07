@@ -8,7 +8,7 @@ import { GroundDisc } from "../kit/Floor";
 import { useSoftDisc } from "../kit/matchAssets";
 import { GLOW, HOT_GLOW } from "../kit/materials";
 import type { FlameShape, Flicker } from "../kit/motion";
-import { useCanvasTexture } from "../kit/textures";
+import { useCanvasTexture } from "@/features/shared/three/canvasTexture";
 import { paintScriptoriumFloor, useStrewnPages } from "./textures";
 
 const CANDLES = [

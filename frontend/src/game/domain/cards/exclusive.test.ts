@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { at } from "../core/invariant";
 import { VOID_CAPACITY } from "../characters/zarek/void";
 import type { BoardDefinition } from "../board/board";
 import { cardsOfLevel, MAX_RARITY_LEVEL } from "./catalog";
@@ -117,7 +118,7 @@ describe("Themis's cards", () => {
     expect(playerOf(decreed.state, "judge").energy).toBe(10 - 3);
     expect(playerOf(decreed.state, "rival").containedRolls).toBe(DECREE_ROLLS);
     const rolled = roll({ ...decreed.state, currentPlayerIndex: 1 }, "rival", 6);
-    expect(eventsOfType(rolled.events, "diceRolled")[0].value).toBe(CONTAINED_DIE);
+    expect(at(eventsOfType(rolled.events, "diceRolled"), 0).value).toBe(CONTAINED_DIE);
     expect(playerOf(rolled.state, "rival").containedRolls).toBe(DECREE_ROLLS - 1);
   });
 

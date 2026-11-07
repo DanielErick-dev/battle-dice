@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { at } from "./invariant";
 import { CLASSIC_BOARD } from "../board/presets";
 import { GameRuleError } from "./errors";
 import { createGame } from "./engine";
@@ -22,7 +23,7 @@ describe("createGame", () => {
 describe("rollDice", () => {
   it("walks tile by tile and passes the turn", () => {
     const { state, events } = roll(duo(), "p1", 3);
-    expect(state.players[0].position).toBe(4);
+    expect(at(state.players, 0).position).toBe(4);
     expect(state.currentPlayerIndex).toBe(1);
     expect(events).toEqual([
       { type: "diceRolled", playerId: "p1", value: 3, dice: [3] },
@@ -33,13 +34,13 @@ describe("rollDice", () => {
 
   it("teleports forward when landing on a portal", () => {
     const { state, events } = roll(duo(), "p1", 4);
-    expect(state.players[0].position).toBe(10);
+    expect(at(state.players, 0).position).toBe(10);
     expect(events).toContainEqual({ type: "portalEntered", playerId: "p1", from: 5, to: 10 });
   });
 
   it("sends the player back when landing on a trap", () => {
     const { state, events } = roll(withPlayer(duo(), "p1", { position: 6 }), "p1", 2);
-    expect(state.players[0].position).toBe(6);
+    expect(at(state.players, 0).position).toBe(6);
     expect(events).toContainEqual({ type: "trapTriggered", playerId: "p1", from: 8, to: 6 });
   });
 

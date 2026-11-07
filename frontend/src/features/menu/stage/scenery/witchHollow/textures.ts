@@ -1,5 +1,6 @@
 import { withDressing, type GroundDressing } from "../kit/groundDressing";
-import { type NoiseLook, type Painter } from "../kit/textures";
+import { type Painter } from "@/features/shared/three/canvasTexture";
+import { type NoiseLook } from "../kit/textures";
 
 /** Dark loam with moss patches, fallen leaves and grit. */
 const paintForestFloor: Painter = (context, size, random) => {

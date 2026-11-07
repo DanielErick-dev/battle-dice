@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { at } from "../../core/invariant";
 import { abilityCycle } from "../../abilities/charge";
 import { PLUNDER_CARDS } from "./specters";
 import type { BoardDefinition } from "../../board/board";
@@ -77,7 +78,7 @@ describe("Spectral Apparitions", () => {
     expect(playerOf(picked, "warden").hand).toEqual(expect.arrayContaining([hand[1], hand[2]]));
     expect(picked.pendingPlunder).toBeNull();
     // The rival's roll ended their turn once the plunder was settled.
-    expect(picked.players[picked.currentPlayerIndex].id).toBe("warden");
+    expect(at(picked.players, picked.currentPlayerIndex).id).toBe("warden");
     expect(PLUNDER_CARDS).toBe(2);
   });
 

@@ -28,7 +28,7 @@ Linhas = código da própria pasta (sem subpastas e sem testes), contadas em 29/
 | `match/` (raiz) | 🟡 | | Fichas e `config.ts` saíram daqui (07/11). | Revisar `boards.ts`, `maps.ts` e `diceFaces.ts`. |
 | `match/model/` | ✅ | 1178 | `view.fx` separado do estado de jogo (etapa 3). | |
 | `match/model/playback/` | ✅ | 1720 | Um arquivo por tema, mapa tipado de eventos (etapa 1). | |
-| `match/audio/` | ⬜ | 991 | Tem README. | Revisar. |
+| `match/audio/` | ✅ | 991 | Tem README. Revisada em 07/11: nada a mudar. | |
 | `match/hooks/` | ⬜ | 107 | | Revisar. |
 | `match/ui/` | 🟡 | 1130 | `MatchScreen` sem lógica de habilidade (etapa 2). | `MatchScreen` ainda com 409 linhas. |
 | `match/ui/abilities/` | ✅ | 433 | Registro `ABILITY_FLOWS` (etapa 2). | |
@@ -51,10 +51,10 @@ Linhas = código da própria pasta (sem subpastas e sem testes), contadas em 29/
 | `features/menu/stage/scenery/` | ✅ | 9404 | Kit em `kit/` (texturas, geometria, chão, movimento, peças prontas, com testes). Em 01/11 cada habitat virou uma pasta: componente principal + `textures.ts` + `layout.ts` + um arquivo por peça. A arte da partida entra só por `kit/matchAssets.ts`. | `WitchHollow.tsx` ainda com 355 linhas (uma cena grande num JSX só). |
 | `features/menu/ui/` | ⬜ | 549 | | Revisar. |
 | `features/menu/audio/` | ⬜ | 85 | | Revisar. |
-| `features/settings/` | ⬜ | 98 | | Revisar. |
-| `components/ui/` | ⬜ | 204 | | Revisar. |
+| `features/settings/` | ✅ | 98 | Revisada em 07/11: nada a mudar. | |
+| `components/ui/` | ✅ | | `badge` e `card` sem uso apagados (07/11). | |
 | `app/` | ⬜ | ~100 | | Rotas do Next: revisar. |
-| `lib/` | ⬜ | 49 | | Revisar. |
+| `lib/` | ✅ | 49 | Revisada em 07/11. | |
 
 ## Scripts e assets
 

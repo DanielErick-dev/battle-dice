@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { at } from "../core/invariant";
 import { CARD_CATALOG } from "./catalog";
 import { HAND_LIMIT, STARTING_HAND } from "./hand";
 import { standardDeck } from "./decks";
@@ -43,7 +44,7 @@ describe("card tiles", () => {
   it("pause for a discard when the hand is full, then pass the turn", () => {
     const full = [..."abcdefgh".slice(0, HAND_LIMIT)].map((uid) => card("healingHerb", uid));
     const state = withPlayer(duo(), "p1", { hand: full });
-    const drawn = playerOf(state, "p1").deck[0];
+    const drawn = at(playerOf(state, "p1").deck, 0);
 
     const paused = roll(state, "p1", TO_CARD_TILE).state;
     expect(paused.pendingDiscard).toMatchObject({ playerId: "p1", drawn });

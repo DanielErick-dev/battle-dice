@@ -11,7 +11,7 @@ import { usePropMesh, useSoftDisc } from "../kit/matchAssets";
 import { HOT_GLOW } from "../kit/materials";
 import { flicker, rise, type Flicker } from "../kit/motion";
 import { useRefList } from "../kit/refs";
-import { useCanvasTexture } from "../kit/textures";
+import { useCanvasTexture } from "@/features/shared/three/canvasTexture";
 import { paintFlame, paintShrineGround } from "./textures";
 
 /** Wide enough to reach under the tree, behind the torii. */

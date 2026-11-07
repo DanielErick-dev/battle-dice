@@ -15,7 +15,8 @@ import {
 } from "three";
 import { seededRandom } from "@/game/domain/core/random";
 import { GROUND_RADIUS } from "../kit/geometry";
-import { useCanvasTexture, useNoiseTexture } from "../kit/textures";
+import { useCanvasTexture } from "@/features/shared/three/canvasTexture";
+import { useNoiseTexture } from "../kit/textures";
 import { Ferns } from "./Ferns";
 import { Fireflies } from "./Fireflies";
 import { GrassTufts } from "./GrassTufts";

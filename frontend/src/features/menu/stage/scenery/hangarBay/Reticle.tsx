@@ -3,7 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import { AdditiveBlending, Color, MeshBasicMaterial, type Group } from "three";
-import { useCanvasTexture } from "../kit/textures";
+import { useCanvasTexture } from "@/features/shared/three/canvasTexture";
 import { LOCKED } from "./layout";
 import { RETICLE_BRACKETS, RETICLE_RING } from "./textures";
 

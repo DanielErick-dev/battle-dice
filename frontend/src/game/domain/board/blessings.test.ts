@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { at } from "../core/invariant";
 import { abilityCycle } from "../abilities/charge";
 import { createBoard, type BoardDefinition } from "./board";
 import { AEGIS_TURNS } from "../cards/play";
@@ -37,7 +38,7 @@ describe("heaven's timed blessings", () => {
   it("land on whoever stops on their tile, for BLESSING_TURNS rounds", () => {
     const { state, events } = roll(withPlayer(game(), "p1", { position: 9 }), "p1", 1);
     // (Wherever it landed in heaven may have laid another blessing on top.)
-    expect(state.players[0].blessings).toContainEqual({
+    expect(at(state.players, 0).blessings).toContainEqual({
       kind: "wings",
       turnsLeft: BLESSING_TURNS,
       fresh: false,
@@ -54,19 +55,19 @@ describe("heaven's timed blessings", () => {
   it(`wear off after ${BLESSING_TURNS} more rounds`, () => {
     let state = roll(withPlayer(game(), "p1", { position: 9 }), "p1", 1).state;
     for (let round = 1; round <= BLESSING_TURNS; round++) {
-      expect(state.players[0].blessings, `round ${round}`).toHaveLength(1);
+      expect(at(state.players, 0).blessings, `round ${round}`).toHaveLength(1);
       state = roll(withPlayer(state, "p1", { position: 40 }), "p1", 1).state;
     }
-    expect(state.players[0].blessings).toEqual([]);
+    expect(at(state.players, 0).blessings).toEqual([]);
   });
 
   it(`Wings add ${WINGS_BONUS} tiles to every roll`, () => {
-    expect(roll(blessed("wings", { position: 40 }), "p1", 3).state.players[0].position).toBe(43 + WINGS_BONUS);
+    expect(at(roll(blessed("wings", { position: 40 }), "p1", 3).state.players, 0).position).toBe(43 + WINGS_BONUS);
   });
 
   it("the Halo keeps traps and curses off", () => {
     const trapped = roll(blessed("halo", { position: 29 }), "p1", 1);
-    expect(trapped.state.players[0].position).toBe(30);
+    expect(at(trapped.state.players, 0).position).toBe(30);
     expect(trapped.events).toContainEqual({
       type: "trapBlocked",
       playerId: "p1",
@@ -74,12 +75,12 @@ describe("heaven's timed blessings", () => {
       ward: "halo",
       hidden: false,
     });
-    expect(roll(blessed("halo", { position: 31, energy: 4 }), "p1", 1).state.players[0].energy).toBe(4);
+    expect(at(roll(blessed("halo", { position: 31, energy: 4 }), "p1", 1).state.players, 0).energy).toBe(4);
   });
 
   it("Inspiration charges the ability twice as fast", () => {
     const { state } = roll(blessed("inspiration", { position: 40, abilityCharge: 0 }), "p1", 1);
-    expect(state.players[0].abilityCharge).toBe(2);
+    expect(at(state.players, 0).abilityCharge).toBe(2);
   });
 
   it(`the Spring of Light gives ${SPRING_ENERGY} energy as each turn starts`, () => {
@@ -88,7 +89,7 @@ describe("heaven's timed blessings", () => {
       energy: 2,
       energyCharge: 0,
     });
-    expect(roll(start, "p1", 1).state.players[0].energy).toBe(2 + SPRING_ENERGY);
+    expect(at(roll(start, "p1", 1).state.players, 0).energy).toBe(2 + SPRING_ENERGY);
   });
 
   it("stack: a second Spring adds its energy while both last, each wearing on its own", () => {
@@ -102,9 +103,9 @@ describe("heaven's timed blessings", () => {
       ],
     });
     const first = roll(start, "p1", 1).state;
-    expect(first.players[0].energy).toBe(SPRING_ENERGY);
-    expect(first.players[0].blessings).toEqual([{ kind: "spring", turnsLeft: 2, fresh: false }]);
-    expect(roll(withPlayer(first, "p1", { position: 40, energyCharge: 0 }), "p1", 1).state.players[0].energy).toBe(
+    expect(at(first.players, 0).energy).toBe(SPRING_ENERGY);
+    expect(at(first.players, 0).blessings).toEqual([{ kind: "spring", turnsLeft: 2, fresh: false }]);
+    expect(at(roll(withPlayer(first, "p1", { position: 40, energyCharge: 0 }), "p1", 1).state.players, 0).energy).toBe(
       SPRING_ENERGY * 2,
     );
   });
@@ -113,7 +114,7 @@ describe("heaven's timed blessings", () => {
 describe("divine cards", () => {
   it("are found on their tile, that very card", () => {
     const { state } = roll(withPlayer(game(), "p1", { position: 19, hand: [] }), "p1", 1);
-    expect(state.players[0].hand.map((card) => card.cardId)).toEqual(["celestialLight"]);
+    expect(at(state.players, 0).hand.map((card) => card.cardId)).toEqual(["celestialLight"]);
   });
 
   it("are never dealt in a deck", () => {
@@ -121,7 +122,7 @@ describe("divine cards", () => {
   });
 
   const playing = (cardId: "celestialLight" | "heavenlyAegis" | "ascension", patch: Partial<Player> = {}) =>
-    play(withPlayer(game(), "p1", { hand: [card(cardId, "d")], energy: 3, ...patch }), "p1", "d").state.players[0];
+    at(play(withPlayer(game(), "p1", { hand: [card(cardId, "d")], energy: 3, ...patch }), "p1", "d").state.players, 0);
 
   it("Celestial Light fills the energy", () => {
     expect(playing("celestialLight").energy).toBe(MAX_ENERGY);
@@ -137,9 +138,9 @@ describe("divine cards", () => {
 
   it("wait in heaven, neither working nor wearing off, and start once the player is out", () => {
     const { state } = roll(blessed("wings", { position: HEAVEN }), "p1", 3);
-    expect(state.players[0].position).toBe(HEAVEN + 3);
+    expect(at(state.players, 0).position).toBe(HEAVEN + 3);
     // (Wherever it landed in heaven may have laid another blessing on top.)
-    expect(state.players[0].blessings).toContainEqual({
+    expect(at(state.players, 0).blessings).toContainEqual({
       kind: "wings",
       turnsLeft: BLESSING_TURNS,
       fresh: false,

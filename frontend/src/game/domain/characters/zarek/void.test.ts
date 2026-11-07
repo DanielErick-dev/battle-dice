@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { at } from "../../core/invariant";
 import { VOID_CYCLE, abilityCycle } from "../../abilities/charge";
 import { VOID_CAPACITY, VOID_DOUBLE_ENERGY, VOID_SCAR_BACK } from "./void";
 import { getTile } from "../../board/board";
@@ -83,7 +84,7 @@ describe("Zarek's Void", () => {
         { size: 40, effects: {}, trapZones: [{ from: 10, to: 13, traps: 1 }] },
         { zarek: "theVoid" },
       );
-      const trap = zoned.hiddenTraps[0];
+      const trap = at(zoned.hiddenTraps, 0);
       const before = withPlayer(readyAbility(zoned, "zarek"), "zarek", { position: trap - 1 });
       const { state } = answer(roll(before, "zarek", 1).state, true);
       expect(state.hiddenTraps).toEqual([]);
@@ -242,7 +243,9 @@ describe("the Void in the realms", () => {
 
   it("sets harms and spells down in hell, marking a tile there instead of opening one", () => {
     const start = withPlayer(realms(), "zarek", { voidHold: [{ kind: "skipTurn" }, { kind: "snow" }] });
-    const [first, second] = track(start, "infernal");
+    const hell = track(start, "infernal");
+    const first = at(hell, 0);
+    const second = at(hell, 1);
     const marked = place(start, 0, first).state;
     expect(marked.board.tiles).toHaveLength(start.board.tiles.length);
     expect(marked.voidScars).toEqual([{ tile: first, owner: "zarek", harm: { kind: "skipTurn" }, doubled: false }]);
@@ -251,7 +254,7 @@ describe("the Void in the realms", () => {
 
   it("never in heaven: no impurity gets in", () => {
     const start = withPlayer(realms(), "zarek", { voidHold: [{ kind: "skipTurn" }, { kind: "snow" }] });
-    const [heaven] = track(start, "celestial");
+    const heaven = at(track(start, "celestial"), 0);
     expectRuleError(() => place(start, 0, heaven), "INVALID_VOID");
     expectRuleError(() => place(start, 1, heaven), "INVALID_VOID");
   });

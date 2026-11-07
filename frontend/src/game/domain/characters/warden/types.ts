@@ -1,5 +1,5 @@
 import type { TileId } from "../../board/types";
-import type { PlayerId } from "../../core/state";
+import type { PlayerId } from "../../core/ids";
 
 /** The Shadow Warden's apparitions. */
 export type SpecterKind = "plunder" | "hunger";

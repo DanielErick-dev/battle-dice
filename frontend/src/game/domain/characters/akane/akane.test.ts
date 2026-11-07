@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { at } from "../../core/invariant";
 import {
   BURN_ROUNDS,
   FIRE_TOLL,
@@ -140,7 +141,7 @@ describe("Scarlet fire against the elements", () => {
     const snowed = { ...duel(), enchantedTiles: [{ tile: 40, owner: "rival" }] };
     const lit = activate(readyAbility(withPlayer(snowed, "akane", { position: 30 }), "akane"), "akane");
     expect(lit.state.enchantedTiles).toEqual([]);
-    expect(eventsOfType(lit.events, "scarletLit")[0].melted).toEqual([40]);
+    expect(at(eventsOfType(lit.events, "scarletLit"), 0).melted).toEqual([40]);
     const out = { ...lit.state, scarletFlames: [] };
     const { state } = rivalRolls(withPlayer(out, "rival", { position: 36 }), 4);
     expect(playerOf(state, "rival").position).toBe(36);

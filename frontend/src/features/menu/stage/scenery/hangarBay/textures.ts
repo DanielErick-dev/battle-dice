@@ -1,6 +1,6 @@
 import { seededRandom } from "@/game/domain/core/random";
 import { withDressing, type GroundDressing } from "../kit/groundDressing";
-import { type CanvasLook } from "../kit/textures";
+import { type CanvasLook } from "@/features/shared/three/canvasTexture";
 
 /** Across-corners radius of a floor hex, in canvas pixels. */
 const HEX = 26;

@@ -1,5 +1,6 @@
 import { withDressing, type GroundDressing } from "../kit/groundDressing";
-import { type NoiseLook, type Painter } from "../kit/textures";
+import { type Painter } from "@/features/shared/three/canvasTexture";
+import { type NoiseLook } from "../kit/textures";
 
 /** Bare summit rock with cracks, grit and patches of hardy grass, fading out towards the rim. */
 const paintSummitFloor: Painter = (context, size, random) => {

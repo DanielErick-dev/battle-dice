@@ -1,5 +1,5 @@
 import type { TileId } from "../../board/types";
-import type { PlayerId } from "../../core/state";
+import type { PlayerId } from "../../core/ids";
 
 /** A tile on black fire from the Purgatory Kunoichi's Eternal Flames. */
 export interface BlackFlame {

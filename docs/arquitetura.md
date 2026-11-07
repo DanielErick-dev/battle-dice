@@ -22,7 +22,7 @@ frontend/src/
 │   ├── menu/                ← seleção de personagem com as intros
 │   └── settings/            ← configurações
 ├── app/                     ← rotas do Next.js (/, /jogar, /partida, /configuracoes)
-├── components/ui/           ← peças visuais genéricas (button, card, badge) no estilo shadcn/ui
+├── components/ui/           ← peças visuais genéricas (button) no estilo shadcn/ui
 └── lib/                     ← utilitários
 ```
 
@@ -85,6 +85,6 @@ Rodar dentro de `frontend/` a cada mudança:
 npm run typecheck && npm run lint && npm test && npm run build
 ```
 
-O `typecheck` roda duas vezes: o projeto todo e o `tsconfig.game.json`, que liga `noUncheckedIndexedAccess` só em `game/` (sem os testes). Ali, ler uma lista por índice pode dar `undefined`, então o código usa `at` (`core/invariant.ts`) ou `randomItem` (`core/random.ts`), que falham na hora se a regra garantida não valer.
+O `typecheck` roda duas vezes: o projeto todo e o `tsconfig.game.json`, que liga `noUncheckedIndexedAccess` só em `game/`, testes incluídos. Ali, ler uma lista por índice pode dar `undefined`, então o código usa `at` (`core/invariant.ts`) ou `randomItem` (`core/random.ts`), que falham na hora se a regra garantida não valer.
 
 Os testes vivem ao lado do código (`*.test.ts`). O grosso deles cobre `game/domain/`; `playback.test.ts` e `matchStore.test.ts` cobrem a camada de animação.

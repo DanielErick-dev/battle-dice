@@ -1,5 +1,5 @@
 import { blot, speckle } from "../kit/painting";
-import type { Painter } from "../kit/textures";
+import type { Painter } from "@/features/shared/three/canvasTexture";
 
 /**
  * The shrine's ground: a path of dark red flagstones running back to the torii (the canvas's top is the back) through

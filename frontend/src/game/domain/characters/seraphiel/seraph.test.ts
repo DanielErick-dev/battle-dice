@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { at } from "../../core/invariant";
 import { abilityCycle } from "../../abilities/charge";
 import type { AbilityId } from "../../abilities/ability";
 import type { BoardDefinition } from "../../board/board";
@@ -98,7 +99,7 @@ describe("Seraphiel in heaven", () => {
 
   it("his ability's blessing lasts SERAPH_BLESSING_TURNS rounds too", () => {
     const { state } = activate(readyAbility(solo(), "hero"), "hero");
-    expect(playerOf(state, "hero").blessings[0].turnsLeft).toBe(SERAPH_BLESSING_TURNS);
+    expect(at(playerOf(state, "hero").blessings, 0).turnsLeft).toBe(SERAPH_BLESSING_TURNS);
   });
 
   it("comes out of heaven wearing the Seraphic Crown, CROWN_BONUS tiles on every roll", () => {

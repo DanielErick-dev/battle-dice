@@ -1,5 +1,6 @@
 import { chargeAbility } from "../../abilities/charge";
 import { getTile } from "../../board/board";
+import { byDistanceFrom, inHellTrack, isSpellGround } from "../../board/tileGround";
 import { GameRuleError } from "../../core/errors";
 import { MAX_ENERGY } from "../../core/energy";
 import { playerIn, updatePlayer, type Draft } from "../../core/draft";
@@ -97,10 +98,6 @@ export function thaw(draft: Draft, tiles: readonly TileId[]): TileId[] {
   return frozen;
 }
 
-function inHellTrack(board: Board, tile: TileId): boolean {
-  return getTile(board, tile).track?.realm === "infernal";
-}
-
 /** Any main-path or hell tile not frozen or snowed yet, burning ones too, nearest first; never the start or finish. */
 export function freezableTiles(
   board: Board,
@@ -111,12 +108,10 @@ export function freezableTiles(
 ): TileId[] {
   // Akane's fire is the one fire her ice can't put out.
   const taken = new Set([...snowed.map(({ tile }) => tile), ...scarlet]);
-  const ground = ({ id, role, track }: Board["tiles"][number]) =>
-    (role === "regular" && !track) || inHellTrack(board, id);
   return board.tiles
-    .filter((tile) => ground(tile) && !taken.has(tile.id) && !isFrozen(winter, board.startTile, tile.id))
+    .filter((tile) => isSpellGround(tile) && !taken.has(tile.id) && !isFrozen(winter, board.startTile, tile.id))
     .map(({ id }) => id)
-    .sort((a, b) => Math.abs(a - position) - Math.abs(b - position) || a - b);
+    .sort(byDistanceFrom(position));
 }
 
 /** Up to WINTER_PICKS tiles of her choice freeze, as the winter's own. */
@@ -139,7 +134,7 @@ export function freezeTiles(draft: Draft, playerId: PlayerId, tiles: readonly Ti
     throw new GameRuleError("INVALID_FROST");
   }
   const { board } = draft.state;
-  const hell = tiles.filter((tile) => inHellTrack(board, tile));
+  const hell = tiles.filter((tile) => inHellTrack(getTile(board, tile)));
   draft.winter = {
     ...winter,
     iced: [...winter.iced, ...tiles.filter((tile) => !hell.includes(tile))],

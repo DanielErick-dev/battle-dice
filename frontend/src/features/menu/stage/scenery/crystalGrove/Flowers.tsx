@@ -16,7 +16,7 @@ import {
   PlaneGeometry,
 } from "three";
 import { seededRandom } from "@/game/domain/core/random";
-import { useCanvasTexture } from "../kit/textures";
+import { useCanvasTexture } from "@/features/shared/three/canvasTexture";
 import { CLUSTERS } from "./layout";
 import { paintPetals } from "./textures";
 import { useSoftDisc } from "../kit/matchAssets";

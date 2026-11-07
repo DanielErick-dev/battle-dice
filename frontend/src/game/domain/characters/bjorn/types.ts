@@ -1,5 +1,5 @@
 import type { TileId } from "../../board/types";
-import type { PlayerId } from "../../core/state";
+import type { PlayerId } from "../../core/ids";
 
 export type BjornEvent =
   | { type: "untamedUnleashed"; playerId: PlayerId; turns: number }

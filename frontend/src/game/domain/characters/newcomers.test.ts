@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { at } from "../core/invariant";
 import { PLASMA_PUSH } from "./alva/plasmaCannon";
 import { TIDE_RANGE } from "./auric/cleansingTide";
 import { TIME_ROUNDS } from "./cronos/timeWarp";
@@ -49,7 +50,7 @@ describe("the newcomers' abilities", () => {
         return "blessing";
       }
       expect(hand).toHaveLength(1);
-      expect(DIVINE_CARDS).toContain(hand[0].cardId);
+      expect(DIVINE_CARDS).toContain(at(hand, 0).cardId);
       expect(events).toContainEqual(expect.objectContaining({ type: "cardDrawn", playerId: "hero" }));
       return "card";
     });
@@ -204,7 +205,7 @@ describe("the newcomers' abilities", () => {
 
   it("Time Warp alone plays again once the turn is over", () => {
     const { state } = roll(activate(solo("timeWarp")).state, "hero", 2);
-    expect(state.players[state.currentPlayerIndex].id).toBe("hero");
+    expect(at(state.players, state.currentPlayerIndex).id).toBe("hero");
     expect(playerOf(state, "hero").position).toBe(3);
   });
 

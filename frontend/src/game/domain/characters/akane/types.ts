@@ -1,5 +1,5 @@
 import type { TileId } from "../../board/types";
-import type { PlayerId } from "../../core/state";
+import type { PlayerId } from "../../core/ids";
 
 /** A tile set alight by Akane's scarlet fire (Fire Zone, Scarlet Fever). */
 export interface ScarletFlame {

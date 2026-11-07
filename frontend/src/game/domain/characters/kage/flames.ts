@@ -1,6 +1,7 @@
 import { chargeAbility } from "../../abilities/charge";
 import { GameRuleError } from "../../core/errors";
 import { getTile } from "../../board/board";
+import { byDistanceFrom, isRegularMainTile } from "../../board/tileGround";
 import { frozenTiles } from "../fairy/winter";
 import { playerIn, updatePlayer, type Draft } from "../../core/draft";
 import { pushPath, walkPath } from "../../board/paths";
@@ -21,9 +22,9 @@ export const SUSANOO_PUSH = 1;
 /** Any regular main-path tile not `taken` (burning, or frozen: winter beats fire), however far; nearest first. */
 export function flammableTiles(board: Board, position: TileId, taken: readonly TileId[]): TileId[] {
   return board.tiles
-    .filter(({ id, role, track }) => role === "regular" && !track && !taken.includes(id))
+    .filter((tile) => isRegularMainTile(tile) && !taken.includes(tile.id))
     .map(({ id }) => id)
-    .sort((a, b) => Math.abs(a - position) - Math.abs(b - position) || a - b);
+    .sort(byDistanceFrom(position));
 }
 
 /** Up to FLAME_TILES picked tiles. */

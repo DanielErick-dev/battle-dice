@@ -12,7 +12,7 @@ import {
   type Sprite,
 } from "three";
 import { GROUND_RADIUS } from "../kit/geometry";
-import { useCanvasTexture, useCanvasTextures } from "../kit/textures";
+import { useCanvasTexture, useCanvasTextures } from "@/features/shared/three/canvasTexture";
 import { ChipStacks } from "./ChipStacks";
 import { FACES } from "./layout";
 import { CARD_LOOKS, DIE_LOOKS, paintCasinoFloor } from "./textures";
