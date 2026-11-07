@@ -14,7 +14,7 @@ interface PlaybackStep {
 
 O `matchStore` executa os passos um atrás do outro e, no fim, encaixa a tela no estado real (`syncStep`).
 
-**Log de batalha:** o `updateSteps` monta a fila de uma jogada e grava cada evento em `view.log` junto com o **primeiro passo** dele (`logged`). Assim o log nunca adianta o que ainda vai aparecer na tela e não cria passos novos (o tempo da animação continua igual). O texto em português de cada evento fica em `ui/battleLogText.ts`.
+**Log de batalha:** o `updateSteps` monta a fila de uma jogada e grava cada evento em `view.log` junto com o **primeiro passo** dele (`logged`). Assim o log nunca adianta o que ainda vai aparecer na tela e não cria passos novos (o tempo da animação continua igual). O texto em português de cada evento fica em `ui/battleLog/`.
 
 ## Arquivos
 

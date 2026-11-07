@@ -6,7 +6,7 @@ Fica entre o jogo (`game/`) e o que aparece na tela (`scene/`, `ui/`). Não dese
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `createLocalMatch.ts` | Monta uma partida offline: cria o jogo, o `LocalGameClient` e o store. No online, troca-se só o client aqui.                                                      |
 | `matchStore.ts`       | O **store**. Recebe os cliques (`rollDice`, `playCard`, `activateAbility`…), manda o comando ao `GameClient` e toca os passos da animação em fila.                |
-| `matchView.ts`        | A **`MatchView`**: o que a tela mostra _agora_ (posição de cada boneco, efeito tocando, banner). Também tem perguntas como `canRoll(view)` e `canPlayCard(view)`. |
+| `matchView/`          | A **`MatchView`**: o que a tela mostra _agora_ (posição de cada boneco, efeito tocando, banner). Também tem perguntas como `canRoll(view)` e `canPlayCard(view)`. Tipos em `view.ts`, `effect.ts` e `fx.ts`; funções em `create.ts`, `queries.ts` e `updates.ts`. |
 | `playback/`           | Transforma cada evento do jogo em passos de animação. Tem README próprio.                                                                                         |
 
 ## O caminho de um clique
@@ -31,6 +31,6 @@ Ela tem duas partes:
 - **`view.fx`**: as animações que estão tocando agora, uma de cada tipo (`MatchFx`): a carta jogada (`cast`), comprada (`drawing`), fundida, transmutada, o raio do Monge (`dash`), as flechas (`volley`), a onda (`tide`), o atropelo do Bjorn (`trample`), a mão do inferno (`drag`) e a neve da fada (`frostStream`). Cada uma tem um `id` que muda a cada vez, para a cena e o som tocarem uma vez só. O `syncStep` não mexe nelas: elas existem só na tela, não no jogo.
 
 Para escrever num passo de animação, use `withFx(view, { tide: ... })` e `nextFxId(view.fx.tide)`.
-Animação nova de personagem = um tipo novo em `matchView.ts` + um campo no `MatchFx` (e `null` no `NO_FX`).
+Animação nova de personagem = um tipo novo em `matchView/fx.ts` + um campo no `MatchFx` (e `null` no `NO_FX`).
 
 O React lê o store pelo `useMatch` (em `hooks/`), que usa `useSyncExternalStore`: a tela redesenha sempre que a view muda.

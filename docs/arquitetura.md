@@ -51,7 +51,7 @@ flowchart LR
 2. **Engine** (`domain/engine.ts` → `applyCommand`): função pura. Recebe o estado atual e o comando e devolve o **novo estado** mais os **eventos** do que aconteceu (`diceRolled`, `playerMoved`, `abilityBlocked`…). Nada é alterado no lugar; cada jogada gera um estado novo.
 3. **GameClient** (`application/gameClient.ts`): a interface entre a tela e o "dono" do jogo. Hoje é o `LocalGameClient`, que roda a engine no navegador. No multiplayer será um `WebSocketGameClient` falando com a sala no FastAPI, **com o mesmo contrato**. A tela não vai perceber a diferença.
 4. **Playback** (`features/match/model/playback/`): o estado novo chega de uma vez, mas a tela precisa *contar a história* em ordem: o dado gira, o boneco anda casa por casa, a armadilha dispara. Cada evento vira uma lista de `PlaybackStep { apply, durationMs }`, executados em fila pelo `matchStore`. Os handlers ficam um arquivo por tema (`turn.ts`, `cards.ts`, `fairy.ts`, `seraph.ts`…), e o `index.ts` junta tudo num mapa `evento → handler`.
-5. **MatchView** (`model/matchView.ts`): o "estado da tela", ou seja, a posição mostrada de cada boneco, qual efeito está tocando e qual banner aparece. É ela que a cena 3D e o HUD leem. Fica atrás do `GameState` até o playback alcançá-lo.
+5. **MatchView** (`model/matchView/`): o "estado da tela", ou seja, a posição mostrada de cada boneco, qual efeito está tocando e qual banner aparece. É ela que a cena 3D e o HUD leem. Fica atrás do `GameState` até o playback alcançá-lo.
 
 ### Por que separar GameState de MatchView?
 
