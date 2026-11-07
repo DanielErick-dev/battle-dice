@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CLASSIC_BOARD } from "@/game/domain/board/presets";
 import { createGame } from "@/game/domain/core/engine";
-import { battleLogLine } from "./battleLogText";
+import { battleLogLine } from ".";
 
 const { players } = createGame(CLASSIC_BOARD, [
   { id: "p1", name: "Bruxa Carmesim" },
