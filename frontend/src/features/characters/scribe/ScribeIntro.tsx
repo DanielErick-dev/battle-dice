@@ -15,7 +15,7 @@ import {
   type Object3D,
 } from "three";
 import type { IntroSealBeats } from "..";
-import { useAge } from "@/features/match/scene/useAge";
+import { useAge } from "@/features/shared/three/useAge";
 import { BLOOD_INK } from "../shared/parchment";
 import { useSoftDisc } from "../shared/softDisc";
 import { findBone } from "../core/bones";

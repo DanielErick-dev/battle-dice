@@ -1,4 +1,4 @@
-import { DEFAULT_TIMINGS } from "../../config";
+import { DEFAULT_TIMINGS } from "@/features/shared/config";
 import type { CardTransmuteView } from "../../model/matchView";
 import { CardView } from "./CardView";
 

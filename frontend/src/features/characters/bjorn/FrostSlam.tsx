@@ -4,7 +4,7 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef, type RefObject } from "react";
 import { Vector3, type Group, type Mesh, type Object3D, type Sprite } from "three";
 import type { IntroFrostBeats } from "..";
-import { useAge } from "@/features/match/scene/useAge";
+import { useAge } from "@/features/shared/three/useAge";
 import { useBone } from "../core/bones";
 import { placeInWorld } from "../core/worldPlacement";
 import { useDisposable } from "../shared/disposal";

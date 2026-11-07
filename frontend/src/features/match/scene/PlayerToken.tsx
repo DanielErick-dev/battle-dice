@@ -6,7 +6,7 @@ import type { Group, Mesh, Vector3 } from "three";
 import { isFallen } from "@/game/domain/characters/seraphiel/seraph";
 import type { Player } from "@/game/domain/types";
 import type { CharacterClip, CharacterDefinition, ClipLengths } from "@/features/characters";
-import type { Vec3 } from "./boardLayout";
+import type { Vec3 } from "@/features/shared/board/boardLayout";
 import { CharacterModel } from "@/features/characters/core/CharacterModel";
 import { EFFECT_SCALE, FIGURE_HEIGHT, LEVITATE_HEIGHT } from "@/features/characters/core/figure";
 import { levitationLift, stepLevitation } from "@/features/characters/witch/levitation";

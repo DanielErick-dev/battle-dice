@@ -1,4 +1,4 @@
-import { DEFAULT_TIMINGS } from "../config";
+import { DEFAULT_TIMINGS } from "@/features/shared/config";
 import type { MatchView, TileEffectKind, TileEffectView } from "../model/matchView";
 import type { MatchSounds } from "./soundEffects";
 

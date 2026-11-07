@@ -15,8 +15,8 @@ import {
 } from "three";
 import { getTile } from "@/game/domain/board/board";
 import type { Board, RealmTrack } from "@/game/domain/types";
-import type { BoardPicking } from "../BoardScene";
-import { TILE_HEIGHT, TILE_SIZE, type BoardLayout, type Vec3 } from "../boardLayout";
+import type { BoardPicking } from "../pickCursor";
+import { TILE_HEIGHT, TILE_SIZE, type BoardLayout, type Vec3 } from "@/features/shared/board/boardLayout";
 import { TileMesh } from "../TileMesh";
 import { REALM_PALETTES } from "../tileTheme";
 import { CorridorWalls } from "./CorridorWalls";

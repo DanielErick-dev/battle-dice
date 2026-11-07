@@ -4,7 +4,7 @@ import { Sparkles } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { AdditiveBlending, Color, type Group, type Mesh, type MeshBasicMaterial } from "three";
-import { useAge } from "./useAge";
+import { useAge } from "@/features/shared/three/useAge";
 
 const BURST_SECONDS = 1.3;
 const COLUMN_HEIGHT = 2.6;

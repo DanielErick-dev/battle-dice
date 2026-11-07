@@ -1,4 +1,4 @@
-import type { Vec3 } from "../boardLayout";
+import type { Vec3 } from "@/features/shared/board/boardLayout";
 
 /** Water surface height (see ArenaEnvironment). */
 export const WATER_LEVEL = -1.05;

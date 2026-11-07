@@ -11,9 +11,9 @@ import {
   SphereGeometry,
   type InstancedMesh,
 } from "three";
-import { TILE_HEIGHT, TILE_PITCH, TILE_SIZE, type Vec3 } from "@/features/match/scene/boardLayout";
+import { TILE_HEIGHT, TILE_PITCH, TILE_SIZE, type Vec3 } from "@/features/shared/board/boardLayout";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import { slabBody, type SlabOutline } from "@/features/match/scene/slab";
+import { slabBody, type SlabOutline } from "@/features/shared/board/slab";
 import { useDisposables } from "../shared/disposal";
 import { COVER_GROW, COVER_HEIGHT, COVER_Y } from "../shared/tileCover";
 import { CRYSTALS, DRIFTS, useSnowTexture } from "./snowCover";

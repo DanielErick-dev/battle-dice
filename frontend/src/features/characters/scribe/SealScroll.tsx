@@ -15,8 +15,8 @@ import {
   type Mesh,
 } from "three";
 import { seededRandom } from "@/game/domain/core/random";
-import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "@/features/match/scene/boardLayout";
-import { useAge } from "@/features/match/scene/useAge";
+import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "@/features/shared/board/boardLayout";
+import { useAge } from "@/features/shared/three/useAge";
 import { EFFECT_SCALE } from "../core/figure";
 import { NameTag } from "../shared/NameTag";
 import { BLOOD_INK } from "../shared/parchment";

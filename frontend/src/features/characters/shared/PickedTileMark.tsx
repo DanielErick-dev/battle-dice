@@ -3,7 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import { AdditiveBlending, type Mesh } from "three";
-import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "@/features/match/scene/boardLayout";
+import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "@/features/shared/board/boardLayout";
 import { NameTag } from "./NameTag";
 import { useGlowColor } from "./glowColor";
 

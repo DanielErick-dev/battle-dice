@@ -6,7 +6,7 @@ import { sequenceDice } from "@/game/domain/core/dice";
 import { seededRandom } from "@/game/domain/core/random";
 import { createGame } from "@/game/domain/core/engine";
 import type { CardInstance, GameState } from "@/game/domain/types";
-import { DEFAULT_TIMINGS } from "../config";
+import { DEFAULT_TIMINGS } from "@/features/shared/config";
 import { MatchStore } from "./matchStore";
 
 const PLAYERS = [

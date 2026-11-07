@@ -1,5 +1,5 @@
 import type { MeshBasicMaterial } from "three";
-import { TILE_SIZE } from "@/features/match/scene/boardLayout";
+import { TILE_SIZE } from "@/features/shared/board/boardLayout";
 
 /** A target's sights on the tile: a ring with four ticks pointing in, lying flat. */
 export function Sight({ material }: { material: MeshBasicMaterial }) {

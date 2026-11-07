@@ -15,7 +15,7 @@ import {
 } from "three";
 import { useFeatherTexture } from "@/features/characters/seraphiel/HeavenDescent";
 import { seededRandom } from "@/game/domain/core/random";
-import { useAge } from "@/features/match/scene/useAge";
+import { useAge } from "@/features/shared/three/useAge";
 import { GUSTS } from "./seraphEntrance";
 
 /** How long a downstroke's feathers and motes take to fly off and fade. */

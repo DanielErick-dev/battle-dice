@@ -7,7 +7,7 @@ import { CanvasTexture, SRGBColorSpace, type Group } from "three";
 import type { CardId } from "@/game/domain/cards/catalog";
 import { CARD_PALETTE } from "../ui/cards/CardArt";
 import { CARD_TEXT } from "../ui/cards/cardText";
-import { TILE_HEIGHT } from "./boardLayout";
+import { TILE_HEIGHT } from "@/features/shared/board/boardLayout";
 
 const CARD_WIDTH = 0.78;
 const CARD_DEPTH = 1.08;

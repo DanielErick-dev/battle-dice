@@ -12,9 +12,9 @@ import {
   type MeshBasicMaterial,
   type MeshStandardMaterial,
 } from "three";
-import type { Vec3 } from "./boardLayout";
+import type { Vec3 } from "@/features/shared/board/boardLayout";
 import { CHEST_HEIGHT } from "@/features/characters/core/figure";
-import { useAge } from "./useAge";
+import { useAge } from "@/features/shared/three/useAge";
 import { HealingEmitter } from "./vfx/healing";
 
 // Colours pushed past 1.0 glow through the bloom pass.

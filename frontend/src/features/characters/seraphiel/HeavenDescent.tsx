@@ -15,7 +15,7 @@ import {
   type PointsMaterial,
 } from "three";
 import { useSoftDisc } from "../shared/softDisc";
-import { useAge } from "@/features/match/scene/useAge";
+import { useAge } from "@/features/shared/three/useAge";
 
 /** Seconds the figure takes to come down out of the sky onto the ground. */
 export const DESCENT_SECONDS = 5.2;

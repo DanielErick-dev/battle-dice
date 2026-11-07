@@ -5,14 +5,14 @@ import { HELL_ICE_ROUNDS, frozenTiles } from "@/game/domain/characters/fairy/win
 import type { PlayerId } from "@/game/domain/types";
 import { playerColor } from "@/features/characters";
 import type { MatchView } from "../../model/matchView";
-import type { BoardLayout } from "../boardLayout";
+import type { BoardLayout } from "@/features/shared/board/boardLayout";
 import { FIGURE_HEIGHT } from "@/features/characters/core/figure";
 import { FrostStream } from "@/features/characters/fairy/FrostStream";
 import { FrostWand } from "@/features/characters/fairy/FrostWand";
 import { SnowBind } from "@/features/characters/fairy/SnowBind";
 import { SnowHopBurst } from "@/features/characters/fairy/SnowHopBurst";
 import { EnchantedTileMark } from "@/features/characters/fairy/EnchantedTileMark";
-import { SQUARE_SLAB } from "../slab";
+import { SQUARE_SLAB } from "@/features/shared/board/slab";
 import { WinterIce } from "@/features/characters/fairy/WinterIce";
 import { Delayed } from "../TrapSmash";
 import type { BoardFx, TokenFx } from "./types";

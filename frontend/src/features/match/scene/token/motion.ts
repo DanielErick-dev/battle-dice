@@ -1,7 +1,7 @@
 /** Where a figure is on its way between tiles: its queue of waypoints, the segment it's on and its heading. */
 import { MathUtils, Vector3 } from "three";
-import { DEFAULT_TIMINGS } from "../../config";
-import { TILE_HEIGHT, TILE_PITCH, TILE_SIZE, type Vec3 } from "../boardLayout";
+import { DEFAULT_TIMINGS } from "@/features/shared/config";
+import { TILE_HEIGHT, TILE_PITCH, TILE_SIZE, type Vec3 } from "@/features/shared/board/boardLayout";
 
 /** How the view sends the figure to its next tile; a dash wins over a teleport. */
 export type Travel = "walk" | "teleport" | "dash";

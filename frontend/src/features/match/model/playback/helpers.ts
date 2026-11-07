@@ -2,7 +2,7 @@
 import type { AbilityId } from "@/game/domain/abilities/ability";
 import { blessingTurns } from "@/game/domain/board/blessings";
 import type { PlayerId, TileId } from "@/game/domain/types";
-import type { PlaybackTimings } from "../../config";
+import type { PlaybackTimings } from "@/features/shared/config";
 import { type MatchView, type TileEffectView } from "../matchView";
 
 /**

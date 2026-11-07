@@ -6,7 +6,7 @@ import { useRef } from "react";
 import { Color, Euler, Quaternion, Vector3, type Group } from "three";
 import type { RealmKind } from "@/game/domain/types";
 import { PIPS } from "../diceFaces";
-import { TILE_HEIGHT, type Vec3 } from "./boardLayout";
+import { TILE_HEIGHT, type Vec3 } from "@/features/shared/board/boardLayout";
 
 const SIZE = 0.8;
 const HALF = SIZE / 2;

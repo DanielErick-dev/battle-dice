@@ -2,7 +2,7 @@
 
 import { Bloom, EffectComposer, ToneMapping, Vignette } from "@react-three/postprocessing";
 import { ToneMappingMode } from "postprocessing";
-import type { EffectsQuality } from "../config";
+import type { EffectsQuality } from "@/features/shared/config";
 
 const SETTINGS = {
   high: { multisampling: 4, levels: 8, intensity: 1.15 },

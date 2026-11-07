@@ -5,7 +5,7 @@ import { useMemo, useRef, type RefObject } from "react";
 import { CubicBezierCurve3, Matrix4, Quaternion, Vector3, type Group, type Mesh, type Object3D } from "three";
 import { fadingMaterial, preloadProps, PROP_HEIGHT, usePropMesh } from "../core/props";
 import type { IntroArrowBeats } from "..";
-import { useAge } from "@/features/match/scene/useAge";
+import { useAge } from "@/features/shared/three/useAge";
 import { findBone } from "../core/bones";
 import { placeInWorld } from "../core/worldPlacement";
 import { useGlowMaterial } from "../shared/additive";

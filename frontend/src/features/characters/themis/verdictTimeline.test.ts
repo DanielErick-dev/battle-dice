@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_TIMINGS } from "@/features/match/config";
+import { DEFAULT_TIMINGS } from "@/features/shared/config";
 import { TIPPED, verdictFrame, verdictGlow } from "./verdictTimeline";
 
 describe("the Silent Verdict's scale", () => {

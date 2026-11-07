@@ -1,7 +1,7 @@
 /** Akane: scarlet fire on the board, people on fire, his Inner Flame and his cards. */
 import { BURN_ROUNDS, FIRE_TOLL, SCARLET_ROUNDS } from "@/game/domain/characters/akane/fire";
 import { MAX_ENERGY } from "@/game/domain/core/energy";
-import { FIRE_BOLT_SECONDS, FIRE_RACE_STEP } from "../../config";
+import { FIRE_BOLT_SECONDS, FIRE_RACE_STEP } from "@/features/shared/config";
 import { nextFxId, withFx, withPlayer, type BlazeView, type MatchView } from "../matchView";
 import { playerTileEffect } from "./helpers";
 import type { StepHandlers } from "./types";

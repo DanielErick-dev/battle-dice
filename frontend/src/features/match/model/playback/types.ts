@@ -1,5 +1,5 @@
 import type { GameEvent } from "@/game/domain/core/events";
-import type { PlaybackTimings } from "../../config";
+import type { PlaybackTimings } from "@/features/shared/config";
 import type { MatchView } from "../matchView";
 
 /** One beat of the story the screen tells: a change to the view, held for a while. */

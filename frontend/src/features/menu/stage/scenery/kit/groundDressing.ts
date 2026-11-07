@@ -1,7 +1,7 @@
 import type { RandomSource } from "@/game/domain/core/random";
 import { paintPath, type PathLook } from "./groundPath";
 import { blot } from "./painting";
-import type { Painter } from "./textures";
+import type { Painter } from "@/features/shared/three/canvasTexture";
 
 /** Bits scattered over the ground: petals, leaves, shards… */
 export interface LitterLook {

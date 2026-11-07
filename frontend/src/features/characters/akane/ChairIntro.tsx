@@ -7,7 +7,7 @@ import { FIGURE_HEIGHT } from "../core/figure";
 import { handUnit, InHand } from "../core/inHand";
 import { useDisposable } from "../shared/disposal";
 import { useSoftDisc } from "../shared/softDisc";
-import { useAge } from "@/features/match/scene/useAge";
+import { useAge } from "@/features/shared/three/useAge";
 import { FireRing } from "./Blaze";
 import { FlameCard } from "./FlameCard";
 

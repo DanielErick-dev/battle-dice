@@ -3,7 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef, type RefObject } from "react";
 import { Euler, Quaternion, Vector3, type Group, type Object3D } from "three";
-import { DEFAULT_TIMINGS } from "@/features/match/config";
+import { DEFAULT_TIMINGS } from "@/features/shared/config";
 import { preloadProps, PROP_HEIGHT, usePropMesh } from "../core/props";
 import { findBone } from "../core/bones";
 import { approach } from "../shared/easing";

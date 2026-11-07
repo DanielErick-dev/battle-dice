@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import type { EffectsQuality } from "@/features/match/config";
+import type { EffectsQuality } from "@/features/shared/config";
 import { preferences, usePreference } from "@/features/settings/preferences";
 import { cn } from "@/lib/utils";
 import { MenuPage } from "./MenuShell";

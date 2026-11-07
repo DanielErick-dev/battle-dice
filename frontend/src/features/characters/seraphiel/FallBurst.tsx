@@ -5,7 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { AdditiveBlending, Color, DoubleSide, type Group, type Mesh, type MeshBasicMaterial } from "three";
 import type { Crown } from "@/game/domain/types";
-import { useAge } from "@/features/match/scene/useAge";
+import { useAge } from "@/features/shared/three/useAge";
 import { useGlowColor } from "../shared/glowColor";
 
 /** Over the head, in the token effects' units (a figure stands 1.9 tall in them). */

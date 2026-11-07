@@ -4,7 +4,7 @@ import { Sparkles } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { AdditiveBlending, Color, type ShaderMaterial } from "three";
-import { TILE_HEIGHT, TILE_SIZE } from "./boardLayout";
+import { TILE_HEIGHT, TILE_SIZE } from "@/features/shared/board/boardLayout";
 
 const VERTEX = /* glsl */ `
   varying vec2 vUv;

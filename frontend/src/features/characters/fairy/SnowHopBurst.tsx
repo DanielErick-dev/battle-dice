@@ -13,7 +13,7 @@ import {
   type Mesh,
 } from "three";
 import { seededRandom } from "@/game/domain/core/random";
-import { useAge } from "@/features/match/scene/useAge";
+import { useAge } from "@/features/shared/three/useAge";
 import { additiveMaterial } from "../shared/additive";
 import { useDisposable, useDisposables } from "../shared/disposal";
 import { clamp01, easeOutCubic } from "../shared/easing";

@@ -3,7 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import type { Group } from "three";
-import { useAge } from "@/features/match/scene/useAge";
+import { useAge } from "@/features/shared/three/useAge";
 import { preloadProps, Prop, usePropMesh } from "../core/props";
 import { clamp01, easeOutCubic } from "../shared/easing";
 

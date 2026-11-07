@@ -4,7 +4,7 @@ import { Sparkles } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import { DoubleSide, type MeshBasicMaterial } from "three";
-import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "@/features/match/scene/boardLayout";
+import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "@/features/shared/board/boardLayout";
 import { VOID_GLOW, VOID_BLACK } from "./voidPalette";
 
 /** A rift's lip: a black crack breathing round the tile, motes rising out of it. */

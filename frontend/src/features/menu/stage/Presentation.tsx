@@ -36,7 +36,7 @@ import { levitationLift, stepLevitation } from "@/features/characters/witch/levi
 import { LevitationAura } from "@/features/characters/witch/LevitationAura";
 import { LevitationBurst } from "@/features/characters/witch/LevitationBurst";
 import { WitchStaff } from "@/features/characters/witch/WitchStaff";
-import { useAge } from "@/features/match/scene/useAge";
+import { useAge } from "@/features/shared/three/useAge";
 import type { StageSounds } from "../audio/stageSounds";
 import { FIGURE_HEIGHT, FLOOR_Y } from "./layout";
 import { GUSTS, gustAt, wingStroke } from "./seraphEntrance";

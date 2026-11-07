@@ -3,7 +3,7 @@ import { currentPlayer } from "@/game/domain/handlers/shared";
 import type { GameEvent } from "@/game/domain/core/events";
 import type { GameState } from "@/game/domain/types";
 import { riftsOf } from "@/game/domain/characters/zarek/void";
-import type { PlaybackTimings } from "../../config";
+import type { PlaybackTimings } from "@/features/shared/config";
 import { sealViews, specterViews, withPlayerAt, type MatchView } from "../matchView";
 import { turnSteps } from "./turn";
 import { tilesSteps } from "./tiles";

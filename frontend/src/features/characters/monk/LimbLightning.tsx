@@ -3,7 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef, type RefObject } from "react";
 import { Color, DoubleSide, Vector3, type Group, type MeshBasicMaterial, type Object3D } from "three";
-import { useAge } from "@/features/match/scene/useAge";
+import { useAge } from "@/features/shared/three/useAge";
 import { findBone } from "../core/bones";
 import { placeInWorld } from "../core/worldPlacement";
 import { AdditiveMaterial } from "../shared/additive";

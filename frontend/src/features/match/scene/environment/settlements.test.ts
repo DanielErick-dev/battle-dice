@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createBoard } from "@/game/domain/board/board";
 import { POWER_TOURNAMENT_BOARD } from "@/game/domain/board/presets";
-import { createBoardLayout } from "../boardLayout";
+import { createBoardLayout } from "@/features/shared/board/boardLayout";
 import { islandShape, trailDistance, TRAIL_EARTH } from "./islandTerrain";
 import { planSettlements } from "./settlements";
 

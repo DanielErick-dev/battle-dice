@@ -3,11 +3,11 @@
 import { useFrame } from "@react-three/fiber";
 import { useRef, useState } from "react";
 import { AdditiveBlending, Vector3, type Group, type Mesh, type MeshBasicMaterial, type Sprite } from "three";
-import type { Vec3 } from "@/features/match/scene/boardLayout";
-import { useAge } from "@/features/match/scene/useAge";
+import type { Vec3 } from "@/features/shared/board/boardLayout";
+import { useAge } from "@/features/shared/three/useAge";
 import { CHEST_HEIGHT, EFFECT_SCALE } from "../core/figure";
 import { useSoftDisc } from "../shared/softDisc";
-import { FIRE_BOLT_SECONDS } from "@/features/match/config";
+import { FIRE_BOLT_SECONDS } from "@/features/shared/config";
 import { FlameCard } from "./FlameCard";
 
 const CORE = "#fff1c2";

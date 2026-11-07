@@ -3,7 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import { AdditiveBlending, ShaderChunk, ShaderMaterial, SkinnedMesh, type Object3D } from "three";
-import { useAge } from "@/features/match/scene/useAge";
+import { useAge } from "@/features/shared/three/useAge";
 import { setUniforms } from "./flameShader";
 
 /** Seconds the fire takes to spread over him as it lights. */

@@ -4,8 +4,8 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { AdditiveBlending, Color, type Group, type MeshBasicMaterial } from "three";
 import { seededRandom } from "@/game/domain/core/random";
-import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "./boardLayout";
-import { useAge } from "./useAge";
+import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "@/features/shared/board/boardLayout";
+import { useAge } from "@/features/shared/three/useAge";
 
 const SPIKES = 9;
 const RISE_SECONDS = 0.18;

@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo } from "react";
 import { BufferGeometry, CatmullRomCurve3, DoubleSide, Float32BufferAttribute, Vector3 } from "three";
-import { useCanvasTexture, type Painter } from "@/features/menu/stage/scenery/kit/textures";
-import { START_PLAZA, TILE_PITCH, type Vec3 } from "../boardLayout";
+import { useCanvasTexture, type Painter } from "@/features/shared/three/canvasTexture";
+import { START_PLAZA, TILE_PITCH, type Vec3 } from "@/features/shared/board/boardLayout";
 
 /** Half the road's width: wider than the slabs, its edges fading into the grass. */
 const ROAD_HALF_WIDTH = 1.9;

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { CLASSIC_BOARD } from "@/game/domain/board/presets";
 import { createGame } from "@/game/domain/core/engine";
 import type { GameEvent } from "@/game/domain/core/events";
-import { DEFAULT_TIMINGS } from "../config";
+import { DEFAULT_TIMINGS } from "@/features/shared/config";
 import { cardsLeftThisTurn, createInitialView, type MatchView } from "./matchView";
 import { eventToSteps } from "./playback";
 

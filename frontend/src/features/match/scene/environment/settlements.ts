@@ -1,5 +1,5 @@
 import { seededRandom } from "@/game/domain/core/random";
-import { START_PLAZA, TILE_PITCH, type Vec3 } from "../boardLayout";
+import { START_PLAZA, TILE_PITCH, type Vec3 } from "@/features/shared/board/boardLayout";
 import {
   groundAt,
   riverDistance,

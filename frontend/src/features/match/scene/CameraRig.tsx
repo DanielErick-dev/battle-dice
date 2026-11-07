@@ -6,7 +6,7 @@ import { useEffect, useRef, type ComponentRef } from "react";
 import { MOUSE, PerspectiveCamera, TOUCH, Vector3 } from "three";
 import type { CardId } from "@/game/domain/cards/catalog";
 import type { CardCastView, TileEffectKind, TileEffectView } from "../model/matchView";
-import type { BoardLayout, Vec3 } from "./boardLayout";
+import type { BoardLayout, Vec3 } from "@/features/shared/board/boardLayout";
 import { FIGURE_HEIGHT } from "@/features/characters/core/figure";
 
 const BASE_DIRECTION = new Vector3(0, 12, 12.5).normalize();

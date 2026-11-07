@@ -1,7 +1,7 @@
 /** Zarek, the Void Knight: his blades of light, smashed traps, the rifts his Void opens and the Void itself. */
 import { useMemo } from "react";
 import type { Object3D } from "three";
-import { TILE_HEIGHT, type Vec3 } from "../boardLayout";
+import { TILE_HEIGHT, type Vec3 } from "@/features/shared/board/boardLayout";
 import { EnergyBlades } from "@/features/characters/zarek/EnergyBlades";
 import { RiftMaw } from "@/features/characters/zarek/RiftMaw";
 import { VoidSurge } from "@/features/characters/zarek/VoidSurge";

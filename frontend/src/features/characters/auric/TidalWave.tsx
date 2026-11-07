@@ -17,9 +17,9 @@ import {
   type PointsMaterial,
 } from "three";
 import { seededRandom } from "@/game/domain/core/random";
-import { DEFAULT_TIMINGS } from "@/features/match/config";
-import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "@/features/match/scene/boardLayout";
-import { useAge } from "@/features/match/scene/useAge";
+import { DEFAULT_TIMINGS } from "@/features/shared/config";
+import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "@/features/shared/board/boardLayout";
+import { useAge } from "@/features/shared/three/useAge";
 import { useSoftDisc } from "../shared/softDisc";
 
 /** How long the wave takes to rise, to roll along the whole reach, and to break at its end. */

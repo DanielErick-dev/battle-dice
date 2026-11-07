@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { BufferGeometry } from "three";
-import { slabBody, type SlabOutline } from "@/features/match/scene/slab";
+import { slabBody, type SlabOutline } from "@/features/shared/board/slab";
 import { useDisposable } from "./disposal";
 
 /** The snow cover: a slab a little thicker than a lifted tile rises, so nothing of the tile shows. */

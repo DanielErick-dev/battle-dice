@@ -2,7 +2,7 @@
 import { abilityCycle } from "@/game/domain/abilities/charge";
 import { isReactive } from "@/game/domain/abilities/ability";
 import { LEVITATION_TURNS } from "@/game/domain/abilities/basic";
-import type { PlaybackTimings } from "../../config";
+import type { PlaybackTimings } from "@/features/shared/config";
 import { nextFxId, withFx, withPlayer } from "../matchView";
 import { abilityUsedMs, abilityEffect, playerTileEffect } from "./helpers";
 import type { EventOf, PlaybackStep, StepHandlers } from "./types";

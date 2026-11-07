@@ -4,8 +4,8 @@ import { Sparkles } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import { DoubleSide, type Group, type Mesh, type MeshBasicMaterial } from "three";
-import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "@/features/match/scene/boardLayout";
-import { useAge } from "@/features/match/scene/useAge";
+import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "@/features/shared/board/boardLayout";
+import { useAge } from "@/features/shared/three/useAge";
 import { VOID_DARK, VOID_GLOW, VOID_BLACK } from "./voidPalette";
 
 /** Seconds the Void takes to come and work a rift open (the playback's voidRiftMs, roughly). */

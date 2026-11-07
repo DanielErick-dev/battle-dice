@@ -13,9 +13,9 @@ import {
   type Mesh,
   type MeshBasicMaterial,
 } from "three";
-import { DEFAULT_TIMINGS } from "@/features/match/config";
-import { TILE_HEIGHT, TILE_PITCH, type Vec3 } from "@/features/match/scene/boardLayout";
-import { useAge } from "@/features/match/scene/useAge";
+import { DEFAULT_TIMINGS } from "@/features/shared/config";
+import { TILE_HEIGHT, TILE_PITCH, type Vec3 } from "@/features/shared/board/boardLayout";
+import { useAge } from "@/features/shared/three/useAge";
 import { CHEST_HEIGHT } from "../core/figure";
 import { useGlowColor } from "../shared/glowColor";
 

@@ -13,13 +13,13 @@ import {
   type MeshStandardMaterial,
 } from "three";
 import type { Tile } from "@/game/domain/types";
-import { TILE_HEIGHT, TILE_PITCH, type BoardLayout, type Vec3 } from "./boardLayout";
+import { TILE_HEIGHT, TILE_PITCH, type BoardLayout, type Vec3 } from "@/features/shared/board/boardLayout";
 import { pickCursor, type PickCursor } from "./pickCursor";
 import { PortalVortex } from "./PortalVortex";
 import { RelicCard } from "./RelicCard";
 import { FIGURE_HEIGHT } from "@/features/characters/core/figure";
 import { themeFor } from "./tileTheme";
-import { slabBody, slabShape, SQUARE_SLAB, type SlabOutline } from "./slab";
+import { slabBody, slabShape, SQUARE_SLAB, type SlabOutline } from "@/features/shared/board/slab";
 import { useTileFaceTexture } from "./useTileFaceTexture";
 
 const HIGHLIGHT_FALLBACK = "#f97316";

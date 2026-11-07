@@ -13,7 +13,7 @@ import {
   type Object3D,
 } from "three";
 import type { IntroBoneBeats } from "..";
-import { useAge } from "@/features/match/scene/useAge";
+import { useAge } from "@/features/shared/three/useAge";
 import { useSoftDisc } from "../shared/softDisc";
 import { fadingMaterial, preloadProps, Prop, propPoint, usePropMesh } from "../core/props";
 import { findBone } from "../core/bones";

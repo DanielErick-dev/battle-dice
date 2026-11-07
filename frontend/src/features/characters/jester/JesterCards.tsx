@@ -14,7 +14,7 @@ import {
   type Object3D,
 } from "three";
 import type { IntroCardBeats } from "..";
-import { useAge } from "@/features/match/scene/useAge";
+import { useAge } from "@/features/shared/three/useAge";
 import { useGlowColor } from "../shared/glowColor";
 
 const CARD_COUNT = 9;

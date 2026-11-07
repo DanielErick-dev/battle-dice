@@ -4,7 +4,7 @@ import { Sparkles } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { Vector3, type Group } from "three";
-import type { Vec3 } from "@/features/match/scene/boardLayout";
+import type { Vec3 } from "@/features/shared/board/boardLayout";
 import { fadingMaterial, preloadProps, Prop, usePropMesh } from "../core/props";
 import { useDisposable } from "../shared/disposal";
 import { VOID_BLACK } from "./voidPalette";

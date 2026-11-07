@@ -2,7 +2,7 @@
 
 import { QuadraticBezierLine } from "@react-three/drei";
 import type { Board } from "@/game/domain/types";
-import { TILE_HEIGHT, type BoardLayout, type Vec3 } from "./boardLayout";
+import { TILE_HEIGHT, type BoardLayout, type Vec3 } from "@/features/shared/board/boardLayout";
 import { themeFor } from "./tileTheme";
 
 /**

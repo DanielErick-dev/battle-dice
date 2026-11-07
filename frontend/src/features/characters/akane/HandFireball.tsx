@@ -5,7 +5,7 @@ import { useMemo, useRef } from "react";
 import { AdditiveBlending, Vector3, type Group, type Object3D, type Sprite } from "three";
 import { handUnit, InHand } from "../core/inHand";
 import { useSoftDisc } from "../shared/softDisc";
-import { useAge } from "@/features/match/scene/useAge";
+import { useAge } from "@/features/shared/three/useAge";
 import { FlameCard } from "./FlameCard";
 
 /** Seconds before the release the fireball starts gathering in his hand. */

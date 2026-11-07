@@ -1,4 +1,4 @@
-import { DEFAULT_TIMINGS } from "@/features/match/config";
+import { DEFAULT_TIMINGS } from "@/features/shared/config";
 
 const WEIGH_SECONDS = DEFAULT_TIMINGS.verdictWeighMs / 1000;
 const TIP_SECONDS = DEFAULT_TIMINGS.verdictTipMs / 1000;

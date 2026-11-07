@@ -3,8 +3,8 @@
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AdditiveBlending, CanvasTexture, Color, type Group, type Mesh, type MeshBasicMaterial } from "three";
-import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "./boardLayout";
-import { useAge } from "./useAge";
+import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "@/features/shared/board/boardLayout";
+import { useAge } from "@/features/shared/three/useAge";
 
 const IMPACT_SECONDS = 1.2;
 const SHARD_COUNT = 14;

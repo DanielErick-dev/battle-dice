@@ -3,7 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { AdditiveBlending, MeshBasicMaterial, type Group, type Mesh, type MeshStandardMaterial } from "three";
-import { useAge } from "@/features/match/scene/useAge";
+import { useAge } from "@/features/shared/three/useAge";
 import { fadingMaterial, preloadProps, Prop, usePropMesh } from "../core/props";
 import { useDisposables } from "../shared/disposal";
 import { TIPPED, verdictFrame, verdictGlow } from "./verdictTimeline";

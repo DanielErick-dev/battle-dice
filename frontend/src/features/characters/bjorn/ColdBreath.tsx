@@ -3,7 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef, type RefObject } from "react";
 import { SpriteMaterial, Vector3, type Group, type Object3D, type Sprite } from "three";
-import { useAge } from "@/features/match/scene/useAge";
+import { useAge } from "@/features/shared/three/useAge";
 import { useSoftDisc } from "../shared/softDisc";
 import { useBone } from "../core/bones";
 import { placeInWorld } from "../core/worldPlacement";

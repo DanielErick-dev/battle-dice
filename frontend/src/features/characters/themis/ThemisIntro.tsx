@@ -15,7 +15,7 @@ import {
   type SpriteMaterial,
 } from "three";
 import type { IntroSwordBeats } from "..";
-import { useAge } from "@/features/match/scene/useAge";
+import { useAge } from "@/features/shared/three/useAge";
 import { useBone } from "../core/bones";
 import { InHand } from "../core/inHand";
 import { preloadProps, Prop, usePropMesh } from "../core/props";

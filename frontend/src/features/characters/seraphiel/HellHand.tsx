@@ -13,8 +13,8 @@ import {
   type Group,
   type Mesh,
 } from "three";
-import { DEFAULT_TIMINGS } from "@/features/match/config";
-import { useAge } from "@/features/match/scene/useAge";
+import { DEFAULT_TIMINGS } from "@/features/shared/config";
+import { useAge } from "@/features/shared/three/useAge";
 
 /** Seconds the hand takes to come up and close, then to sink back with its prey (see the drag timings). */
 const GRAB_SECONDS = DEFAULT_TIMINGS.dragGrabMs / 1000;

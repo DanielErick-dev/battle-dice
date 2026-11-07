@@ -1,5 +1,5 @@
 /** Seraphiel: the Fall, heaven's chains and Hell's Drag. */
-import { TILE_HEIGHT, type Vec3 } from "../boardLayout";
+import { TILE_HEIGHT, type Vec3 } from "@/features/shared/board/boardLayout";
 import { DivineChains } from "@/features/characters/seraphiel/DivineChains";
 import { EFFECT_SCALE } from "@/features/characters/core/figure";
 import { HellHand } from "@/features/characters/seraphiel/HellHand";

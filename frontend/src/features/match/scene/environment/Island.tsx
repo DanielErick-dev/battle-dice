@@ -16,7 +16,7 @@ import {
   SphereGeometry,
 } from "three";
 import { seededRandom } from "@/game/domain/core/random";
-import type { Vec3 } from "../boardLayout";
+import type { Vec3 } from "@/features/shared/board/boardLayout";
 import { PROP_HEIGHT, usePropMesh, type PropId } from "@/features/characters/core/props";
 import { useSoftDisc } from "@/features/characters/shared/softDisc";
 import { planCoast } from "./coast";

@@ -3,9 +3,9 @@
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import { AdditiveBlending, type Group, type Sprite } from "three";
-import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "@/features/match/scene/boardLayout";
-import { SQUARE_SLAB, type SlabOutline } from "@/features/match/scene/slab";
-import { useAge } from "@/features/match/scene/useAge";
+import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "@/features/shared/board/boardLayout";
+import { SQUARE_SLAB, type SlabOutline } from "@/features/shared/board/slab";
+import { useAge } from "@/features/shared/three/useAge";
 import { useEmberTexture } from "../kage/blackFire";
 import { COVER_HEIGHT, COVER_Y, useCoverGeometry } from "../shared/tileCover";
 import { useSoftDisc } from "../shared/softDisc";

@@ -14,7 +14,7 @@ import { Courtyard, StoneLantern } from "./CourtyardPieces";
 import { SmoulderingCorner } from "./SmoulderingPage";
 import { SnapFires } from "./SnapFires";
 import { CHARACTERS } from "@/features/characters";
-import type { SceneryProps } from "..";
+import type { SceneryProps } from "../types";
 
 /** The petals in the air all catch at the snap of his fingers in his intro. */
 const SNAP_SECONDS = CHARACTERS.akane.introChair?.snapSeconds ?? 0;

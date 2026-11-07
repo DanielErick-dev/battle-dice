@@ -1,6 +1,6 @@
 /** Themis: the sword in her hand, the marks she hands out and the Silent Verdict's giant scale. */
 import type { Object3D } from "three";
-import { TILE_HEIGHT } from "../boardLayout";
+import { TILE_HEIGHT } from "@/features/shared/board/boardLayout";
 import { EFFECT_SCALE } from "@/features/characters/core/figure";
 import { JusticeSword } from "@/features/characters/themis/JusticeSword";
 import { JusticeMarkRing } from "@/features/characters/themis/JusticeMarkRing";

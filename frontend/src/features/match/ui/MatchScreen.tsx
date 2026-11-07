@@ -36,7 +36,7 @@ import { activePlayerOf, canActivateAbility, canPlayCard, canRoll, cardsLeftThis
 import { useMatch } from "../hooks/useMatch";
 import { useGameAudio, type GameAudio } from "../hooks/useGameAudio";
 import { useMatchAudio } from "../hooks/useMatchAudio";
-import type { BoardPicking } from "../scene/BoardScene";
+import type { BoardPicking } from "../scene/pickCursor";
 import type { CameraFraming } from "../scene/CameraRig";
 import type { TileId } from "@/game/domain/types";
 import { preloadCharacterModel } from "@/features/characters/core/CharacterModel";

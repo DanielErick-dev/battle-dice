@@ -3,8 +3,8 @@
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { BufferAttribute, CylinderGeometry, type Group } from "three";
-import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "@/features/match/scene/boardLayout";
-import { useAge } from "@/features/match/scene/useAge";
+import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "@/features/shared/board/boardLayout";
+import { useAge } from "@/features/shared/three/useAge";
 import { useGlowMaterial } from "../shared/additive";
 import { useDisposable } from "../shared/disposal";
 import { useGlowColor } from "../shared/glowColor";

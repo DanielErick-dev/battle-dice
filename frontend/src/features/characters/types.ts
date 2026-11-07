@@ -1,5 +1,4 @@
 import type { AbilityId } from "@/game/domain/abilities/ability";
-import type { SceneryId } from "@/features/menu/stage/scenery";
 import type { CrownId } from "./accessories/HeadCrown";
 import type { ChairId } from "./accessories/chairs";
 import type { WingsId } from "./accessories/wingLooks";
@@ -204,5 +203,29 @@ export interface IntroSealBeats {
   /** Seconds into the intro when the arms come down: the scrolls burn away. */
   releaseSeconds: number;
 }
+
+/** The stages a sheet can name; features/menu/stage/scenery draws each one. */
+export type SceneryId =
+  | "graveyard"
+  | "scriptorium"
+  | "tundra"
+  | "sanctuary"
+  | "voidRift"
+  | "mistRuins"
+  | "burningShrine"
+  | "bloodRoseGarden"
+  | "tribunal"
+  | "sunkenTemple"
+  | "gearworks"
+  | "hangar"
+  | "glade"
+  | "grove"
+  | "peak"
+  | "temple"
+  | "witchHollow"
+  | "alchemyLab"
+  | "cardTable"
+  | "sakuraCourtyard"
+  | "farmPlot";
 
 export const model = (id: string) => `/models/characters/${id}.glb`;

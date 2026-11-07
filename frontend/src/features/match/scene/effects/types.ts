@@ -3,7 +3,7 @@ import type { Object3D, Vector3 } from "three";
 import type { Board, Player, PlayerId, TileId } from "@/game/domain/types";
 import type { CharacterClip, CharacterDefinition } from "@/features/characters";
 import type { CardCastView, MatchView } from "../../model/matchView";
-import type { BoardLayout } from "../boardLayout";
+import type { BoardLayout } from "@/features/shared/board/boardLayout";
 
 /** What the view says a figure is doing now (see tokenSignals). */
 export interface TokenSignals {

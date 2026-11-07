@@ -17,7 +17,7 @@ import {
 import type { BoneName } from "../core/bones";
 import { handUnit, InHand } from "../core/inHand";
 import { useSoftDisc } from "../shared/softDisc";
-import { useAge } from "@/features/match/scene/useAge";
+import { useAge } from "@/features/shared/three/useAge";
 import { createEmberMaterial, createFlameGeometry, createFlameMaterial, setUniforms } from "./flameShader";
 
 interface FlameSpot {

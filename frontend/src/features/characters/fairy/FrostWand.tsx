@@ -13,7 +13,7 @@ import {
   type InstancedMesh,
   type Object3D,
 } from "three";
-import { useAge } from "@/features/match/scene/useAge";
+import { useAge } from "@/features/shared/three/useAge";
 import { handUnit, InHand } from "../core/inHand";
 import { preloadProps, Prop, usePropMesh } from "../core/props";
 import { AdditiveMaterial } from "../shared/additive";

@@ -1,3 +1,5 @@
+import type { TileId } from "@/game/domain/types";
+
 /** Whose ability is being placed on the board, which picks the pointer's look. */
 export type PickCursor = "seals" | "specters" | "flames" | "frost" | "void";
 
@@ -36,4 +38,14 @@ function handSvg(glow: string): string {
 /** The CSS cursor for a placement, falling back to the plain pointer where SVG cursors aren't drawn. */
 export function pickCursor(kind: PickCursor): string {
   return `url("data:image/svg+xml,${encodeURIComponent(handSvg(GLOW[kind]))}") 7 3, pointer`;
+}
+
+export interface BoardPicking {
+  /** The tiles that can be picked: they breathe and take clicks. */
+  tiles: ReadonlySet<TileId>;
+  /** Those picked so far, each marked with its tag in its colour. */
+  picked: readonly { tile: TileId; tag: string; color: string }[];
+  onPick: (tile: TileId) => void;
+  /** The pointer over a pickable tile (see pickCursor): whose ability is being placed. */
+  cursor: PickCursor;
 }
