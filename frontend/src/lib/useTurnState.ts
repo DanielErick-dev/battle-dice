@@ -13,9 +13,7 @@ export function useTurnState<T>(initial: T, key: string | null): [T, (next: SetS
         const previous = current.key === key ? current.value : initial;
         return { key, value: next instanceof Function ? next(previous) : next };
       }),
-    // `initial` is a constant at every call site.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [key],
+    [key, initial],
   );
   return [value, set];
 }
