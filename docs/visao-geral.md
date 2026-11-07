@@ -548,7 +548,6 @@ O autor pediu que os poderes "sigam uma lógica". Hoje:
 - **Escolher casas no tabuleiro** (selos, aparições, chamas, gelo): clicando direto nas casas, com cursor de mão encantada, marca na casa escolhida, Desfazer/Cancelar e confirmação.
 - **Câmera:** três enquadramentos (Perto, Médio, Tabuleiro); arrastar move pelo tabuleiro, botão direito gira, roda dá zoom; "Meu personagem" volta a seguir. A câmera acompanha o jogador da vez, as flechas, a onda etc.
 - **Configurações** (`/configuracoes`): som, música, qualidade dos efeitos.
-- **Laboratório** (`/laboratorio`, só para desenvolvimento): testar efeitos visuais num personagem.
 - **Som:** quase tudo é **sintetizado no navegador** (dado, passos, armadilhas, trovão, música gerada nota a nota, ambiente do mar). Falas gravadas dos personagens estão planejadas (testar o ElevenLabs).
 
 ## 12. Tecnologia e como os assets são feitos

@@ -19,9 +19,8 @@ frontend/src/
 │   │   ├── audio/           ← som sintetizado: efeitos, música, ambiente, falas
 │   │   └── characters.ts    ← ficha visual de cada personagem (modelo, clipes, cores, efeitos)
 │   ├── menu/                ← seleção de personagem com as intros
-│   ├── settings/            ← configurações
-│   └── lab/                 ← /laboratorio: testar efeitos visuais num personagem (só dev, fora do jogo)
-├── app/                     ← rotas do Next.js (/, /jogar, /partida, /configuracoes, /laboratorio)
+│   └── settings/            ← configurações
+├── app/                     ← rotas do Next.js (/, /jogar, /partida, /configuracoes)
 ├── components/ui/           ← peças visuais genéricas (button, card, badge) no estilo shadcn/ui
 └── lib/                     ← utilitários
 ```

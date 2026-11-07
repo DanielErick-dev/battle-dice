@@ -25,8 +25,6 @@
     "react-dom": "19.3.1",
     "tailwind-merge": "^3.5.0",
     "three": "^0.187.0",
-    "three-custom-shader-material": "^6.4.0",
-    "three.quarks": "^0.17.1",
     "wawa-vfx": "^1.2.10",
     "zustand": "^5.0.15"
   },

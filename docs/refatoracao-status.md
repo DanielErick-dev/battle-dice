@@ -51,7 +51,6 @@ Linhas = código da própria pasta (sem subpastas e sem testes), contadas em 29/
 | `features/menu/stage/scenery/` | ✅ | 9404 | Kit em `kit/` (texturas, geometria, chão, movimento, peças prontas, com testes). Em 01/11 cada habitat virou uma pasta: componente principal + `textures.ts` + `layout.ts` + um arquivo por peça. A arte da partida entra só por `kit/matchAssets.ts`. | `WitchHollow.tsx` ainda com 355 linhas (uma cena grande num JSX só). |
 | `features/menu/ui/` | ⬜ | 549 | | Revisar. |
 | `features/menu/audio/` | ⬜ | 85 | | Revisar. |
-| `features/lab/` | ⬜ | 381 | | Playground de VFX: decidir se fica ou sai. |
 | `features/settings/` | ⬜ | 98 | | Revisar. |
 | `components/ui/` | ⬜ | 204 | | Revisar. |
 | `app/` | ⬜ | ~100 | | Rotas do Next: revisar. |
