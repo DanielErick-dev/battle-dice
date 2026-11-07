@@ -92,6 +92,7 @@ export function FrostStream({ from, to }: { from: Vector3; to: Vec3 }) {
     [],
   );
 
+  // eslint-disable-next-line react-hooks/immutability -- R3F mutates scene objects per frame, outside render
   useFrame(({ clock }) => {
     const t = age(clock.elapsedTime);
     const { point, tangent, side, up, dummy } = scratch;
@@ -136,6 +137,7 @@ export function FrostStream({ from, to }: { from: Vector3; to: Vec3 }) {
     if (puff.current) puff.current.visible = landed > 0 && landed < 1;
     if (landed > 0 && landed < 1) {
       ring.current?.scale.setScalar(0.3 + easeOutCubic(landed) * 1.2);
+      // eslint-disable-next-line react-hooks/immutability -- R3F mutates scene objects per frame, outside render
       materials.puff.opacity = 0.8 * (1 - landed);
     }
     materials.snow.opacity = t < TRAVEL_SECONDS + SPREAD_SECONDS ? 0.95 : 0;

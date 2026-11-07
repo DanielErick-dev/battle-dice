@@ -124,6 +124,7 @@ function Gust({
   const origins = useRef<{ left: Vector3; right: Vector3 } | null>(null);
   const scratch = useMemo(() => ({ dummy: new Object3D(), point: new Vector3() }), []);
 
+  // eslint-disable-next-line react-hooks/immutability -- R3F mutates scene objects per frame, outside render
   useFrame(({ clock }) => {
     const group = root.current;
     if (!group) return;
@@ -158,7 +159,9 @@ function Gust({
       });
       mesh.instanceMatrix.needsUpdate = true;
     };
+    // eslint-disable-next-line react-hooks/immutability -- R3F mutates scene objects per frame, outside render
     fly(feathers, featherMesh.current, true);
+    // eslint-disable-next-line react-hooks/immutability -- R3F mutates scene objects per frame, outside render
     fly(motes, moteMesh.current, false);
     materials.feather.setValues({ opacity: Math.min(1, (1 - life) * 2.5) });
     materials.mote.setValues({ opacity: (1 - life) ** 1.5 });

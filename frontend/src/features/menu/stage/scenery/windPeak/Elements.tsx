@@ -105,9 +105,11 @@ export function Elements() {
   });
 
   const token = (index: number) => (group: Group | null) => {
+    // eslint-disable-next-line react-hooks/refs -- only a ref callback writes this ref, at commit
     tokens.current[index] = group;
   };
   const spinner = (index: number) => (object: Object3D | null) => {
+    // eslint-disable-next-line react-hooks/refs -- only a ref callback writes this ref, at commit
     spinners.current[index] = object;
   };
 

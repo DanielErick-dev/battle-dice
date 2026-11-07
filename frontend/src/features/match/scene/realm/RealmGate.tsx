@@ -133,6 +133,7 @@ export function RealmGate({ realm, position }: RealmGateProps) {
 
   const top = TILE_HEIGHT / 2 + 0.02;
   const register = (i: number) => (material: ShaderMaterial | null) => {
+    // eslint-disable-next-line react-hooks/refs -- only a ref callback writes this ref, at commit
     materials.current[i] = material;
   };
 

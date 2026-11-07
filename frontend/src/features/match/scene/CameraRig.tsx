@@ -236,6 +236,7 @@ export function CameraRig({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [camera]);
 
+  // eslint-disable-next-line react-hooks/immutability -- R3F mutates scene objects per frame, outside render
   useFrame(({ clock }, delta) => {
     const orbit = controls.current;
     if (!orbit) return;
@@ -347,6 +348,7 @@ export function CameraRig({
       state.fovKick = Math.max(0, state.fovKick - delta * FOV_KICK_DECAY);
       const fov = BASE_FOV + Math.sin(Math.min(1, state.fovKick) * Math.PI * 0.5) * FOV_KICK_DEGREES;
       if (Math.abs(camera.fov - fov) > 0.01) {
+        // eslint-disable-next-line react-hooks/immutability -- R3F mutates scene objects per frame, outside render
         camera.fov = fov;
         camera.updateProjectionMatrix();
       }

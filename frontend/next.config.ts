@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // CLAUDE.md already guides agents; otherwise `next dev` regenerates AGENTS.md.
+  agentRules: false,
 };
 
 export default nextConfig;

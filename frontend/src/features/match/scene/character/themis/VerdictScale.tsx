@@ -80,6 +80,7 @@ export function VerdictScale({ span, phase }: VerdictScaleProps) {
   );
   useDisposables(materials);
 
+  // eslint-disable-next-line react-hooks/immutability -- R3F mutates scene objects per frame, outside render
   useFrame(({ clock }) => {
     const t = age(clock.elapsedTime);
     if (phase === "tip") tipAt.current ??= t;
@@ -89,6 +90,7 @@ export function VerdictScale({ span, phase }: VerdictScaleProps) {
       root.current.visible = opacity > 0;
       root.current.position.y = frame.drop;
     }
+    // eslint-disable-next-line react-hooks/immutability -- R3F mutates scene objects per frame, outside render
     materials.column.opacity = materials.beam.opacity = materials.pan.opacity = opacity;
 
     beam.current?.rotation.set(0, 0, angle);
@@ -125,6 +127,7 @@ export function VerdictScale({ span, phase }: VerdictScaleProps) {
           />
         </group>
 
+        {/* eslint-disable-next-line react-hooks/refs -- passes the refs to JSX without reading them */}
         {pans.map((pan, side) => (
           <group key={side} ref={pan}>
             {/* Its hook right under the end of the beam, its rim at the group's origin. */}
