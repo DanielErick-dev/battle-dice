@@ -5,8 +5,8 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import { CanvasTexture, SRGBColorSpace, type Group } from "three";
 import type { CardId } from "@/game/domain/cards/catalog";
-import { CARD_PALETTE } from "../ui/cards/CardArt";
-import { CARD_TEXT } from "../ui/cards/cardText";
+import { CARD_PALETTE } from "../../ui/cards/CardArt";
+import { CARD_TEXT } from "../../ui/cards/cardText";
 import { TILE_HEIGHT } from "@/features/shared/board/boardLayout";
 
 const CARD_WIDTH = 0.78;

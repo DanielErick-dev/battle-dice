@@ -2,7 +2,7 @@ import type { ComponentType } from "react";
 import type { Board, Player } from "@/game/domain/types";
 import type { MatchStore } from "../../model/matchStore";
 import type { MatchView } from "../../model/matchView";
-import type { PickCursor } from "../../scene/pickCursor";
+import type { PickCursor } from "../../scene/board/pickCursor";
 
 /**
  * Tiles picked on the board: seals, apparitions, Kage Rubra's black fire, the fairy's ice, the spell

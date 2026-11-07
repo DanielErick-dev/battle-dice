@@ -2,12 +2,12 @@
 import { useMemo } from "react";
 import type { Object3D } from "three";
 import { playerColor } from "@/features/characters";
-import { AbilityBurst } from "../AbilityBurst";
+import { AbilityBurst } from "../vfx/AbilityBurst";
 import { ElectricField } from "@/features/characters/monk/ElectricField";
 import { EFFECT_SCALE, FIGURE_HEIGHT } from "@/features/characters/core/figure";
 import { LightningDash } from "@/features/characters/monk/LightningDash";
 import { LimbLightning } from "@/features/characters/monk/LimbLightning";
-import { Delayed, SwordImpact } from "../TrapSmash";
+import { Delayed, SwordImpact } from "../vfx/TrapSmash";
 import type { BoardFx, TokenFx } from "./types";
 
 /** Crackles round the figure while the fury waits for the roll. */

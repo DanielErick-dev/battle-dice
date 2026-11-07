@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { MatchView, TileEffectView } from "../model/matchView";
+import type { MatchView, TileEffectView } from "../../model/matchView";
 import { spotlightOf } from "./spotlight";
 
 const effect = (kind: TileEffectView["kind"], playerId: string): TileEffectView => ({ kind, playerId, from: 3, to: 3 });

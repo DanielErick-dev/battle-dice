@@ -1,7 +1,7 @@
 /** Akane: the flames on his body, scarlet fire on the board, people on fire, his Inner Flame and his cards' fire. */
 import { Sparkles } from "@react-three/drei";
 import type { Object3D } from "three";
-import { tokenPosition } from "../tokenPlacement";
+import { tokenPosition } from "../token/tokenPlacement";
 import {
   BOLT_FLIGHT,
   FireBolt,

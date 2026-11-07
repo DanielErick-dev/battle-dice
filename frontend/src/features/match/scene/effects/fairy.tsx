@@ -14,7 +14,7 @@ import { SnowHopBurst } from "@/features/characters/fairy/SnowHopBurst";
 import { EnchantedTileMark } from "@/features/characters/fairy/EnchantedTileMark";
 import { SQUARE_SLAB } from "@/features/shared/board/slab";
 import { WinterIce } from "@/features/characters/fairy/WinterIce";
-import { Delayed } from "../TrapSmash";
+import { Delayed } from "../vfx/TrapSmash";
 import type { BoardFx, TokenFx } from "./types";
 
 /** Anyone stuck in her snow: it wraps them, then just their legs. */

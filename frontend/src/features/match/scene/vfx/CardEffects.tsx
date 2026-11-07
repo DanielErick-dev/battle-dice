@@ -15,7 +15,7 @@ import {
 import type { Vec3 } from "@/features/shared/board/boardLayout";
 import { CHEST_HEIGHT } from "@/features/characters/core/figure";
 import { useAge } from "@/features/shared/three/useAge";
-import { HealingEmitter } from "./vfx/healing";
+import { HealingEmitter } from "./healing";
 
 // Colours pushed past 1.0 glow through the bloom pass.
 /** The Arcane Shield's usual tint; a character may raise it in their own colour (see CharacterDefinition.shieldColor). */

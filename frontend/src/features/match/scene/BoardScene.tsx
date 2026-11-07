@@ -14,28 +14,34 @@ import { characterFor, playerColor } from "@/features/characters";
 import type { EffectsQuality } from "@/features/shared/config";
 import type { MatchView, TileEffectKind } from "../model/matchView";
 import { createBoardLayout, withRiftPositions, type BoardLayout, type Vec3 } from "@/features/shared/board/boardLayout";
-import { boardScaleFor, CameraRig, type CameraChase, type CameraFraming, type CameraSpotlight } from "./CameraRig";
-import { diceLanding, dieRoll, focusPoint, focusTile, realmAt } from "./cameraFocus";
+import {
+  boardScaleFor,
+  CameraRig,
+  type CameraChase,
+  type CameraFraming,
+  type CameraSpotlight,
+} from "./camera/CameraRig";
+import { diceLanding, dieRoll, focusPoint, focusTile, realmAt } from "./camera/cameraFocus";
 import { PickedTileMark } from "@/features/characters/shared/PickedTileMark";
 import { wraithTrack } from "@/features/characters/zarek/wraithTrack";
 import { fireTrack } from "@/features/characters/akane/fireTrack";
 import { FIRE_BOLT_SECONDS, FIRE_RACE_STEP } from "@/features/shared/config";
-import { DiceThrow } from "./DiceThrow";
+import { DiceThrow } from "./board/DiceThrow";
 import { BOARD_EFFECTS, OVERLAY_EFFECTS, type BoardFx } from "./effects";
 import { ArenaEnvironment, HORIZON_COLOR } from "./environment/ArenaEnvironment";
 import type { MapId } from "../maps";
-import type { BoardPicking } from "./pickCursor";
-import { PlayerToken } from "./PlayerToken";
+import type { BoardPicking } from "./board/pickCursor";
+import { PlayerToken } from "./token/PlayerToken";
 import { PostEffects } from "./PostEffects";
 import { RealmAtmosphere } from "./realm/RealmAtmosphere";
 import { RealmTrackView } from "./realm/RealmTrackView";
 import { SceneWarmup } from "./SceneWarmup";
-import { TileLinks } from "./TileLinks";
-import { TileMesh } from "./TileMesh";
-import { pathColor } from "./tileTheme";
-import { spotlightOf } from "./spotlight";
-import { pathDirection, tokenTarget } from "./tokenPlacement";
-import { tokenSignals } from "./tokenSignals";
+import { TileLinks } from "./board/TileLinks";
+import { TileMesh } from "./board/TileMesh";
+import { pathColor } from "./board/tileTheme";
+import { spotlightOf } from "./camera/spotlight";
+import { pathDirection, tokenTarget } from "./token/tokenPlacement";
+import { tokenSignals } from "./token/tokenSignals";
 import { HealingParticles } from "./vfx/healing";
 
 /** Tiles being picked for an ability, right on the board (see TilePicking). */

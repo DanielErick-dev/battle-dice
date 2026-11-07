@@ -1,6 +1,6 @@
 /** Kage Rubra: her Susanoo armour and the black fire on the board. */
 import { playerColor } from "@/features/characters";
-import { ShieldBubble } from "../CardEffects";
+import { ShieldBubble } from "../vfx/CardEffects";
 import { hasGreatWings } from "./cards";
 import { Susanoo } from "@/features/characters/kage/Susanoo";
 import { BlackFlameMark } from "@/features/characters/kage/BlackFlameMark";

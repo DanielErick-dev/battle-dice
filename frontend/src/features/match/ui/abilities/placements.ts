@@ -5,7 +5,7 @@ import { hauntableTiles, takenForSpecters } from "@/game/domain/characters/warde
 import type { TileId } from "@/game/domain/types";
 import { harmGround, seizableTiles, spellGround } from "@/game/domain/characters/zarek/void";
 import type { MatchStore } from "../../model/matchStore";
-import type { PickCursor } from "../../scene/pickCursor";
+import type { PickCursor } from "../../scene/board/pickCursor";
 import { isVoidHarm, voidItemName } from "../voidText";
 import {
   FLAME_STEPS,

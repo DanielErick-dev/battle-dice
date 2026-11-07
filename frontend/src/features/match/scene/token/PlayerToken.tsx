@@ -12,10 +12,10 @@ import { EFFECT_SCALE, FIGURE_HEIGHT, LEVITATE_HEIGHT } from "@/features/charact
 import { levitationLift, stepLevitation } from "@/features/characters/witch/levitation";
 import { NameTag } from "@/features/characters/shared/NameTag";
 import { RestChair } from "@/features/characters/accessories/RestChair";
-import { TOKEN_EFFECTS } from "./effects";
-import type { TokenEffect, TokenFx, TokenSignals } from "./effects/types";
-import { advanceMotion, createTokenMotion, easeInOut, followTarget, turnTowards } from "./token/motion";
-import { actTraits, createTokenActs, stepPose } from "./token/pose";
+import { TOKEN_EFFECTS } from "../effects";
+import type { TokenEffect, TokenFx, TokenSignals } from "../effects/types";
+import { advanceMotion, createTokenMotion, easeInOut, followTarget, turnTowards } from "./motion";
+import { actTraits, createTokenActs, stepPose } from "./pose";
 
 interface PlayerTokenProps {
   player: Player;

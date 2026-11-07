@@ -1,9 +1,9 @@
 /** What the view says each figure is doing now: the token's motion and its effects follow these. */
 import { isSeated } from "@/game/domain/core/playerStatus";
 import type { Player } from "@/game/domain/types";
-import type { MatchView, TileEffectView } from "../model/matchView";
-import { effectKey } from "./effectKey";
-import type { TokenSignals } from "./effects";
+import type { MatchView, TileEffectView } from "../../model/matchView";
+import { effectKey } from "../vfx/effectKey";
+import type { TokenSignals } from "../effects";
 
 export function tokenSignals(view: MatchView, player: Player): TokenSignals {
   const { effect } = view;

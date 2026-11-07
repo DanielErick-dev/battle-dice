@@ -5,7 +5,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef, type ComponentRef } from "react";
 import { MOUSE, PerspectiveCamera, TOUCH, Vector3 } from "three";
 import type { CardId } from "@/game/domain/cards/catalog";
-import type { CardCastView, TileEffectKind, TileEffectView } from "../model/matchView";
+import type { CardCastView, TileEffectKind, TileEffectView } from "../../model/matchView";
 import type { BoardLayout, Vec3 } from "@/features/shared/board/boardLayout";
 import { FIGURE_HEIGHT } from "@/features/characters/core/figure";
 

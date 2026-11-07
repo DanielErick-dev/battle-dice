@@ -6,7 +6,7 @@ import { EnergyBlades } from "@/features/characters/zarek/EnergyBlades";
 import { RiftMaw } from "@/features/characters/zarek/RiftMaw";
 import { VoidSurge } from "@/features/characters/zarek/VoidSurge";
 import { VoidWraith } from "@/features/characters/zarek/VoidWraith";
-import { SmashedTrapMark } from "../TrapSmash";
+import { SmashedTrapMark } from "../vfx/TrapSmash";
 import type { BoardFx, TokenFx } from "./types";
 
 /** The Void is black. */
