@@ -58,11 +58,7 @@ export function HandColumn({
                   onActivate={onActivateAbility}
                   canActivate={canActivateAbility(view)}
                 />
-                <VoidHold
-                  player={activePlayer}
-                  canAct={canRoll(view)}
-                  onRelease={onReleaseVoidItem}
-                />
+                <VoidHold player={activePlayer} canAct={canRoll(view)} onRelease={onReleaseVoidItem} />
                 <BlessingBadges player={activePlayer} waiting={inHeaven(board, activePlayer.position)} />
               </>
             }

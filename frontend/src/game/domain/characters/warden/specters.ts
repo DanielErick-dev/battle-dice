@@ -24,9 +24,7 @@ export function hauntableTiles(board: Board, position: TileId, taken: readonly T
   const near = (tile: TileId) => Math.abs(tile - position) <= SPECTER_RANGE;
   const track = trackOf(board, position);
   if (track?.realm === "celestial") {
-    return track.tiles
-      .filter((tile) => near(tile) && !taken.includes(tile))
-      .sort(byDistanceFrom(position));
+    return track.tiles.filter((tile) => near(tile) && !taken.includes(tile)).sort(byDistanceFrom(position));
   }
   if (track) return [];
   return sealableTiles(board, position, taken).filter(near);

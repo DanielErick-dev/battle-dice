@@ -220,11 +220,7 @@ function Match({ preset, mapId, roster, chargedAbilities, hourglass, audio }: Ma
       <PendingPrompts store={store} view={view} nameOf={nameOf} />
       <LoadingCurtain ready={ready} />
       {pausedBy !== null && (
-        <PauseOverlay
-          name={nameOf(pausedBy) ?? ""}
-          pausesLeft={pausesLeft(pausedBy)}
-          onResume={resume}
-        />
+        <PauseOverlay name={nameOf(pausedBy) ?? ""} pausesLeft={pausesLeft(pausedBy)} onResume={resume} />
       )}
     </main>
   );

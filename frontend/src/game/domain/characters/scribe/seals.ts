@@ -62,7 +62,10 @@ export function writeSeals(draft: Draft, playerId: PlayerId, tiles: readonly Til
   ) {
     throw new GameRuleError("INVALID_SEALS");
   }
-  draft.seals = [...draft.seals, ...tiles.map((tile, index) => ({ tile, kind: at(SEAL_KINDS, index), owner: playerId }))];
+  draft.seals = [
+    ...draft.seals,
+    ...tiles.map((tile, index) => ({ tile, kind: at(SEAL_KINDS, index), owner: playerId })),
+  ];
   draft.events.push({ type: "sealsWritten", playerId, tiles: [...tiles] });
 }
 

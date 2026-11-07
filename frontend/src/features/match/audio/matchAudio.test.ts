@@ -11,7 +11,9 @@ import type { MatchSounds } from "./soundEffects";
 function setup(rolls: number[], start = 1) {
   const game = createGame(CLASSIC_BOARD, [{ id: "p1", name: "Aria" }]);
   const positioned = { ...game, players: game.players.map((player) => ({ ...player, position: start })) };
-  const store = new MatchStore(new LocalGameClient(positioned, { rollDice: sequenceDice(rolls), random: seededRandom(1) }));
+  const store = new MatchStore(
+    new LocalGameClient(positioned, { rollDice: sequenceDice(rolls), random: seededRandom(1) }),
+  );
   store.connect();
 
   const played: string[] = [];

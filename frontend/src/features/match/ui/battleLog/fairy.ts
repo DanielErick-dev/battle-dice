@@ -2,11 +2,7 @@ import { plural, type LogLines } from "./lines";
 
 /** The Crystal Fairy. */
 export const fairyLines: LogLines<
-  | "snowDrained"
-  | "tilesEnchanted"
-  | "enchantmentStirred"
-  | "winterBegan"
-  | "tilesFrozen"
+  "snowDrained" | "tilesEnchanted" | "enchantmentStirred" | "winterBegan" | "tilesFrozen"
 > = {
   snowDrained: (event, { who, line }) =>
     line(

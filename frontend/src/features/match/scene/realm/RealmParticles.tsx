@@ -78,7 +78,10 @@ function Drift({ realm, count, radius, floor, ceiling, color, size, rise, sway, 
     for (let i = 0; i < count; i++) {
       const angle = random() * Math.PI * 2;
       const distance = Math.sqrt(random()) * radius;
-      positions.set([Math.cos(angle) * distance, floor + random() * (ceiling - floor), Math.sin(angle) * distance], i * 3);
+      positions.set(
+        [Math.cos(angle) * distance, floor + random() * (ceiling - floor), Math.sin(angle) * distance],
+        i * 3,
+      );
       seeds[i] = random();
     }
     const result = new BufferGeometry();
@@ -217,8 +220,32 @@ const MOTE_COLOR = new Color(2.2, 1.9, 1.2);
 export function RealmParticles({ radius }: { radius: number }) {
   return (
     <>
-      <Drift realm="infernal" count={900} radius={radius} floor={-1} ceiling={14} color={EMBER_COLOR} size={1.6} rise={1.4} sway={0.5} flicker={1} seed={7} />
-      <Drift realm="celestial" count={600} radius={radius} floor={-0.5} ceiling={18} color={MOTE_COLOR} size={1.3} rise={0.35} sway={0.9} flicker={0.3} seed={13} />
+      <Drift
+        realm="infernal"
+        count={900}
+        radius={radius}
+        floor={-1}
+        ceiling={14}
+        color={EMBER_COLOR}
+        size={1.6}
+        rise={1.4}
+        sway={0.5}
+        flicker={1}
+        seed={7}
+      />
+      <Drift
+        realm="celestial"
+        count={600}
+        radius={radius}
+        floor={-0.5}
+        ceiling={18}
+        color={MOTE_COLOR}
+        size={1.3}
+        rise={0.35}
+        sway={0.9}
+        flicker={0.3}
+        seed={13}
+      />
       <LightShafts radius={radius * 0.6} />
     </>
   );

@@ -26,7 +26,8 @@ describe.each(BOARD_PRESETS)("board preset $name", ({ definition }) => {
   it("keeps trap zones on plain tiles of the main path", () => {
     for (const zone of board.trapZones) {
       expect(zone.tiles.length).toBeGreaterThan(zone.traps);
-      for (const id of zone.tiles) expect(getTile(board, id)).toMatchObject({ role: "regular", effect: { kind: "none" } });
+      for (const id of zone.tiles)
+        expect(getTile(board, id)).toMatchObject({ role: "regular", effect: { kind: "none" } });
     }
   });
 });

@@ -2,13 +2,7 @@ import type { LogLines } from "./lines";
 
 /** Turns and rolls. */
 export const turnLines: LogLines<
-  | "diceRolled"
-  | "turnChanged"
-  | "turnSkipped"
-  | "turnTimedOut"
-  | "extraTurnGranted"
-  | "skipTurnGained"
-  | "playerWon"
+  "diceRolled" | "turnChanged" | "turnSkipped" | "turnTimedOut" | "extraTurnGranted" | "skipTurnGained" | "playerWon"
 > = {
   diceRolled: (event, { who, line }) => {
     const parts = event.dice.join(event.best ? " ou " : " + ");

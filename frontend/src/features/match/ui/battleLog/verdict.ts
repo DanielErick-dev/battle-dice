@@ -2,12 +2,7 @@ import { plural, type LogLines } from "./lines";
 
 /** Themis. */
 export const verdictLines: LogLines<
-  | "verdictPassed"
-  | "justiceMarked"
-  | "justiceMarched"
-  | "justiceMarchEnded"
-  | "decreeIssued"
-  | "finalJudgment"
+  "verdictPassed" | "justiceMarked" | "justiceMarched" | "justiceMarchEnded" | "decreeIssued" | "finalJudgment"
 > = {
   verdictPassed: (event, { who, line }) =>
     line(
