@@ -10,7 +10,8 @@ import { applyCommand, createGame } from "../core/engine";
 import type { GameTransition } from "../handlers/types";
 import type { GameEvent } from "../core/events";
 import { seededRandom } from "../core/random";
-import type { CardInstance, GameState, Player, PlayerId, TileEffect, TileId } from "../types";
+import type { TileEffect, TileId } from "../board/types";
+import type { CardInstance, GameState, Player, PlayerId } from "../core/state";
 
 export * from "./boards";
 

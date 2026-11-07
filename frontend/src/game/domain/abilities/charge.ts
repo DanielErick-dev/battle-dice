@@ -1,5 +1,6 @@
 import { playerIn, updatePlayer, type Draft } from "../core/draft";
-import type { AbilityId, Player, PlayerId } from "@/game/domain/types";
+import type { AbilityId } from "./ability";
+import type { Player, PlayerId } from "../core/state";
 import { isPassive } from "./ability";
 
 export const ABILITY_CYCLE = 3;

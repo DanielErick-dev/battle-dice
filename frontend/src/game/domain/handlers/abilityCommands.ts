@@ -1,4 +1,4 @@
-import { abilityBlocker } from "../abilities/ability";
+import { abilityBlocker } from "../abilities/blocker";
 import { ABILITY_EFFECTS } from "../abilities/effects";
 import { GameRuleError } from "../core/errors";
 import { playerIn, startDraft, updatePlayer } from "../core/draft";

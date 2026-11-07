@@ -6,7 +6,8 @@ import type { CardId } from "../cards/catalog";
 import { buildDeck } from "../cards/decks";
 import { placeHiddenTraps } from "../board/hiddenTraps";
 import type { RandomSource } from "../core/random";
-import type { Board, GameState, Player, PlayerId } from "../types";
+import type { Board } from "../board/types";
+import type { GameState, Player, PlayerId } from "../core/state";
 
 export interface NewPlayer {
   id: PlayerId;

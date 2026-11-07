@@ -2,7 +2,8 @@ import { getTile } from "../../board/board";
 import { playerIn, type Draft } from "../../core/draft";
 import { relocateHiddenTrap } from "../../board/hiddenTraps";
 import { drownScarlet } from "../akane/fire";
-import type { Board, PlayerId, TileId } from "../../types";
+import type { Board, TileId } from "../../board/types";
+import type { PlayerId } from "../../core/state";
 
 export const TIDE_RANGE = 20;
 

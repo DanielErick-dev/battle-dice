@@ -1,5 +1,5 @@
-import type { CardId } from "@/game/domain/types";
-import type { PlayerId } from "@/game/domain/types";
+import type { CardId } from "../cards/catalog";
+import type { PlayerId } from "../core/state";
 
 export type TileId = number;
 

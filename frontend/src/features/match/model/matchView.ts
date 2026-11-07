@@ -1,4 +1,5 @@
-import { abilityBlocker, type AbilityId } from "@/game/domain/abilities/ability";
+import type { AbilityId } from "@/game/domain/abilities/ability";
+import { abilityBlocker } from "@/game/domain/abilities/blocker";
 import { cardsPerTurn } from "@/game/domain/abilities/basic";
 import { currentPlayer } from "@/game/domain/handlers/shared";
 import type { GameEvent } from "@/game/domain/core/events";

@@ -1,13 +1,5 @@
-import type {
-  Blessing,
-  CardInstance,
-  PlayerId,
-  RealmKind,
-  Threat,
-  TileId,
-  TrapCurse,
-  TrapWard,
-} from "@/game/domain/types";
+import type { Blessing, RealmKind, Threat, TileId, TrapCurse, TrapWard } from "./types";
+import type { CardInstance, PlayerId } from "../core/state";
 
 /** What the tiles did: portals, realms, blessings, traps and curses. */
 export type BoardEvent =

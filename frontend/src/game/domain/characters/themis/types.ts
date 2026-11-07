@@ -1,4 +1,6 @@
-import type { AbilityId, CardId, PlayerId } from "@/game/domain/types";
+import type { AbilityId } from "../../abilities/ability";
+import type { CardId } from "../../cards/catalog";
+import type { PlayerId } from "../../core/state";
 
 export type ThemisEvent =
   /** `playerId` attacked an opponent (or was branded by her card) and now carries `marks` Marks of Justice (0: wiped). */

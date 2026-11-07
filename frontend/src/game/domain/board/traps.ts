@@ -1,7 +1,8 @@
 import { getTile } from "./board";
 import { playerIn, type Draft } from "../core/draft";
 import { tilesAhead } from "./paths";
-import type { PlayerId, TileId } from "@/game/domain/types";
+import type { TileId } from "./types";
+import type { PlayerId } from "../core/state";
 
 /** Gone for good: harmless, no longer hidden nor pinned. The caller announces how it went. */
 export function smashTrap(draft: Draft, tile: TileId): void {

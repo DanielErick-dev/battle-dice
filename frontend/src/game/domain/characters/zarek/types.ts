@@ -1,4 +1,7 @@
-import type { PlayerId, SealKind, SpecterKind, Tile, TileId, TrapCurse } from "@/game/domain/types";
+import type { Tile, TileId, TrapCurse } from "../../board/types";
+import type { SealKind } from "../scribe/types";
+import type { SpecterKind } from "../warden/types";
+import type { PlayerId } from "../../core/state";
 
 /** What Zarek's Void holds: a board harm swallowed whole, or another's spell taken over. */
 export type VoidItem =

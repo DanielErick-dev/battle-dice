@@ -1,26 +1,24 @@
-import type {
-  AbilityId,
-  AimWard,
-  AkaneEvent,
-  AlchemistEvent,
-  ArcherEvent,
-  AuricEvent,
-  BjornEvent,
-  BoardEvent,
-  CardEvent,
-  CronosEvent,
-  FairyEvent,
-  JesterEvent,
-  KageEvent,
-  NecromancerEvent,
-  PlayerId,
-  ScribeEvent,
-  SeraphielEvent,
-  ThemisEvent,
-  TileId,
-  WardenEvent,
-  ZarekEvent,
-} from "@/game/domain/types";
+import type { AbilityId } from "../abilities/ability";
+import type { BoardEvent } from "../board/events";
+import type { TileId } from "../board/types";
+import type { CardEvent } from "../cards/events";
+import type { AkaneEvent } from "../characters/akane/types";
+import type { AlchemistEvent } from "../characters/alchemist/types";
+import type { ArcherEvent } from "../characters/archer/types";
+import type { AuricEvent } from "../characters/auric/types";
+import type { BjornEvent } from "../characters/bjorn/types";
+import type { CronosEvent } from "../characters/cronos/types";
+import type { FairyEvent } from "../characters/fairy/types";
+import type { JesterEvent } from "../characters/jester/types";
+import type { KageEvent } from "../characters/kage/types";
+import type { NecromancerEvent } from "../characters/necromancer/types";
+import type { ScribeEvent } from "../characters/scribe/types";
+import type { SeraphielEvent } from "../characters/seraphiel/types";
+import type { ThemisEvent } from "../characters/themis/types";
+import type { WardenEvent } from "../characters/warden/types";
+import type { ZarekEvent } from "../characters/zarek/types";
+import type { AimWard } from "./playerStatus";
+import type { PlayerId } from "./state";
 
 /** What happened while resolving a command, in order: the UI animates them, a server will broadcast them. */
 export type GameEvent =

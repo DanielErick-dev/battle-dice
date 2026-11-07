@@ -15,7 +15,8 @@ import { timeWarp } from "../characters/cronos/timeWarp";
 import { transmuteCards } from "../characters/alchemist/transmutation";
 import { unleash } from "../characters/bjorn/untamed";
 import { writeSeals } from "../characters/scribe/seals";
-import type { AbilityId, PlayerId } from "@/game/domain/types";
+import type { AbilityId } from "./ability";
+import type { PlayerId } from "../core/state";
 import type { CommandOf, GameDependencies } from "../handlers/types";
 import type { Draft } from "../core/draft";
 

@@ -6,7 +6,9 @@ import { pushPath } from "./paths";
 import { swallow } from "../characters/zarek/void";
 import { takeRandomCard } from "../cards/hand";
 import { kindle } from "../characters/akane/fire";
-import type { PlayerId, Threat, TileId, TrapCurse, VoidScar } from "@/game/domain/types";
+import type { Threat, TileId, TrapCurse } from "./types";
+import type { VoidScar } from "../characters/zarek/types";
+import type { PlayerId } from "../core/state";
 
 export const TRAP_DRAIN_ENERGY = 2;
 

@@ -8,7 +8,8 @@ import { walkTrampling } from "../bjorn/untamed";
 import { crossSpecters } from "../warden/specters";
 import { unpinPassed } from "../archer/arrowRain";
 import { markForJustice } from "./verdict";
-import type { Board, Player, PlayerId } from "../../types";
+import type { Board } from "../../board/types";
+import type { Player, PlayerId } from "../../core/state";
 
 /** Cards Confiscation takes from the target's hand. */
 export const CONFISCATED_CARDS = 2;

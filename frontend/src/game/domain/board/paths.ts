@@ -1,5 +1,5 @@
 import { getTile, nextTile, previousTile } from "./board";
-import type { Board, RealmEntry, TileId } from "@/game/domain/types";
+import type { Board, RealmEntry, TileId } from "./types";
 
 /** Stops at the finish tile (no bounce back). */
 export function walkPath(board: Board, origin: TileId, steps: number, entry?: RealmEntry | null): TileId[] {

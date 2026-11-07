@@ -1,5 +1,5 @@
 import { playerIn, updatePlayer, type Draft } from "./draft";
-import type { PlayerId } from "@/game/domain/types";
+import type { PlayerId } from "./state";
 
 export const MAX_ENERGY = 10;
 export const STARTING_ENERGY = 1;

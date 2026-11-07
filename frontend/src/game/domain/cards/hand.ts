@@ -2,7 +2,7 @@ import { playerIn, updatePlayer, type Draft } from "../core/draft";
 import { shuffle } from "../core/random";
 import { throwOnPile } from "./decks";
 import { GameRuleError } from "../core/errors";
-import type { CardInstance, PlayerId } from "@/game/domain/types";
+import type { CardInstance, PlayerId } from "../core/state";
 
 export const HAND_LIMIT = 8;
 export const STARTING_HAND = 6;

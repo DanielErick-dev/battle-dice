@@ -1,4 +1,4 @@
-import type { AbilityId } from "@/game/domain/types";
+import type { AbilityId } from "../abilities/ability";
 
 export type CardId =
   | "windStep"

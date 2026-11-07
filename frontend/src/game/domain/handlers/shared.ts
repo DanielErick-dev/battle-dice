@@ -3,7 +3,7 @@ import { draftState, playerIn, type Draft } from "../core/draft";
 import { crownAndFall } from "../characters/seraphiel/seraph";
 import { endTurn } from "../core/turn";
 import { feedTheVoid } from "../characters/zarek/void";
-import type { GameState, Player, PlayerId } from "../types";
+import type { GameState, Player, PlayerId } from "../core/state";
 import type { GameTransition } from "./types";
 
 export function currentPlayer(state: GameState): Player {

@@ -1,6 +1,7 @@
 import { smashTrap } from "../../board/traps";
 import { playerIn, type Draft } from "../../core/draft";
-import type { PlayerId, Threat, TileId } from "@/game/domain/types";
+import type { Threat, TileId } from "../../board/types";
+import type { PlayerId } from "../../core/state";
 
 export function isVinicius(player: { ability: string | null }): boolean {
   return player.ability === "weeding";

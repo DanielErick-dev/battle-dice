@@ -2,7 +2,7 @@ import { DIVINE_CARDS } from "../../cards/catalog";
 import { giveCard } from "../../cards/hand";
 import { playerIn, type Draft } from "../../core/draft";
 import { grantBlessing, TIMED_BLESSINGS } from "../../board/blessings";
-import type { PlayerId } from "../../types";
+import type { PlayerId } from "../../core/state";
 
 export const SERAPH_CARD_CHANCE = 0.5;
 

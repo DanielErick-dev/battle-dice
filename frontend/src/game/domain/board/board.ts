@@ -1,5 +1,5 @@
 import { TRACK_LENGTH, trackEffects } from "./realms";
-import type { Board, RealmEntry, RealmTrack, Tile, TileEffect, TileId, TrapZone } from "@/game/domain/types";
+import type { Board, RealmEntry, RealmTrack, Tile, TileEffect, TileId, TrapZone } from "./types";
 
 export interface BoardDefinition {
   size: number;

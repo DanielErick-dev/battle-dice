@@ -1,6 +1,7 @@
 import { aimWard } from "../core/playerStatus";
 import { judgeAim } from "../characters/themis/verdict";
-import type { AbilityId, Player, PlayerId } from "@/game/domain/types";
+import type { AbilityId } from "./ability";
+import type { Player, PlayerId } from "../core/state";
 import type { Draft } from "../core/draft";
 
 /** Who an aimed ability strikes, and who it comes from, once Themis and the target's protections have had their say. */

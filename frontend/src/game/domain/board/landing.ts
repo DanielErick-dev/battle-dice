@@ -11,7 +11,8 @@ import { repelledBySusanoo, scorch, sweptBySusanoo } from "../characters/kage/fl
 import { stirEnchantment } from "../characters/fairy/winter";
 import { landOnScarlet } from "../characters/akane/fire";
 import { weedOut } from "../characters/vinicius/weeding";
-import type { PlayerId, Threat, TileId } from "@/game/domain/types";
+import type { Threat, TileId } from "./types";
+import type { PlayerId } from "../core/state";
 
 /** Destinations never chain into another effect; a ward prompt pauses resolving until resolveWard. */
 export function resolveLanding(draft: Draft, playerId: PlayerId, landed: TileId): void {

@@ -13,7 +13,7 @@ import { CONTAINED_DIE, containedFace } from "../characters/themis/cards";
 import { closeRifts } from "../characters/zarek/void";
 import { burntRoll, prepareRoll, settleRoll } from "../characters/akane/fire";
 import { slideOnEmbers } from "../characters/akane/cards";
-import type { DiceBoost, PlayerId } from "../types";
+import type { DiceBoost, PlayerId } from "../core/state";
 import { openingState } from "./setup";
 import { assertCanAct, settle } from "./shared";
 import type { CommandHandlers } from "./types";

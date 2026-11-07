@@ -1,4 +1,4 @@
-import type { PlayerId } from "@/game/domain/types";
+import type { PlayerId } from "../../core/state";
 
 /** `fortune`: thrown for that many cards instead of against an opponent. */
 export type JesterEvent = {

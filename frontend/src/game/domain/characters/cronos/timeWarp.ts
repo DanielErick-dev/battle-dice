@@ -4,7 +4,8 @@ import { opponentsInSpace } from "../../board/reach";
 import { playerIn, updatePlayer, type Draft } from "../../core/draft";
 import { aimAbility } from "../../abilities/aim";
 import { VERDICT_MULTIPLIER } from "../themis/verdict";
-import type { Board, Player, PlayerId } from "../../types";
+import type { Board } from "../../board/types";
+import type { Player, PlayerId } from "../../core/state";
 
 export const TIME_ROUNDS = 2;
 

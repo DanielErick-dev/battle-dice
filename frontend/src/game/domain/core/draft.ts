@@ -1,19 +1,12 @@
-import type {
-  BlackFlame,
-  ScarletFlame,
-  CardInstance,
-  EnchantedTile,
-  GameEvent,
-  GameState,
-  Player,
-  PlayerId,
-  Seal,
-  Specter,
-  Threat,
-  TileId,
-  VoidScar,
-  Winter,
-} from "@/game/domain/types";
+import type { Threat, TileId } from "../board/types";
+import type { ScarletFlame } from "../characters/akane/types";
+import type { EnchantedTile, Winter } from "../characters/fairy/types";
+import type { BlackFlame } from "../characters/kage/types";
+import type { Seal } from "../characters/scribe/types";
+import type { Specter } from "../characters/warden/types";
+import type { VoidScar } from "../characters/zarek/types";
+import type { GameEvent } from "./events";
+import type { CardInstance, GameState, Player, PlayerId } from "./state";
 import type { RandomSource } from "./random";
 
 /** Mutable working copy the rules write to in sequence; the command then seals it into the next state. */

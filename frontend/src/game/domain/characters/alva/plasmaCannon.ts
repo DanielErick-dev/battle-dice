@@ -2,7 +2,7 @@ import { opponentsInReach } from "../../board/reach";
 import { pushPath } from "../../board/paths";
 import { blastTrapsAhead } from "../../board/traps";
 import { updatePlayer, type Draft } from "../../core/draft";
-import type { PlayerId } from "../../types";
+import type { PlayerId } from "../../core/state";
 
 export const PLASMA_TRAPS = 2;
 export const PLASMA_PUSH = 6;

@@ -1,8 +1,3 @@
-import { HAND_LIMIT } from "../cards/hand";
-import { isAbilityReady } from "./charge";
-import type { Player } from "@/game/domain/types";
-import type { GameErrorCode } from "../core/errors";
-
 /** Each charges one step per own turn started, stays ready until used, and empties when used. */
 export type AbilityId =
   | "doubleCast" // two cards this turn
@@ -43,15 +38,4 @@ export function isReactive(ability: AbilityId): boolean {
 /** Always on, nothing to charge or use. */
 export function isPassive(ability: AbilityId | null): boolean {
   return ability === "weeding";
-}
-
-/** Shared by the UI's button and the engine; charged again the same turn (Ascension), it can be reused. */
-export function abilityBlocker(player: Player): GameErrorCode | null {
-  if (player.ability === null) return "NO_ABILITY";
-  // From the button the Void steals a spell on the board; its swallowing is offered by the board.
-  if (player.ability === "silentVerdict" || isPassive(player.ability)) return "ABILITY_REACTIVE";
-  if (!isAbilityReady(player)) return "ABILITY_NOT_READY";
-  if (needsDiscardChoice(player.ability) && player.discard.length === 0) return "EMPTY_DISCARD";
-  if (needsDiscardChoice(player.ability) && player.hand.length >= HAND_LIMIT) return "HAND_FULL";
-  return null;
 }

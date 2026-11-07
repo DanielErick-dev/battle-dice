@@ -2,7 +2,7 @@ import type { GameCommand } from "../core/commands";
 import type { DiceRoller } from "../core/dice";
 import type { GameEvent } from "../core/events";
 import type { RandomSource } from "../core/random";
-import type { GameState } from "../types";
+import type { GameState } from "../core/state";
 
 export interface GameDependencies {
   rollDice: DiceRoller;

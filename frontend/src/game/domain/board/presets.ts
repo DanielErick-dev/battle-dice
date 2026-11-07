@@ -1,5 +1,5 @@
 import { generateBoard } from "./generator";
-import type { TileEffect, TileId } from "@/game/domain/types";
+import type { TileEffect, TileId } from "./types";
 import type { BoardDefinition } from "./board";
 
 export const CLASSIC_BOARD: BoardDefinition = {

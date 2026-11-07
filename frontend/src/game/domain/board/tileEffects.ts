@@ -9,7 +9,8 @@ import { loseTurns } from "./harm";
 import { moveTo, playerIn, updatePlayer, type Draft } from "../core/draft";
 import { unpinPassed } from "../characters/archer/arrowRain";
 import { walkPath } from "./paths";
-import type { Blessing, PlayerId, TileEffect, TileId } from "@/game/domain/types";
+import type { Blessing, TileEffect, TileId } from "./types";
+import type { PlayerId } from "../core/state";
 
 /** What the tile itself does once nothing else on it (fire, snow, seals, wards, harm) has taken over. */
 export function applyTileEffect(

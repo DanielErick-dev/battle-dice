@@ -1,4 +1,5 @@
-import type { PlayerId, TileId } from "@/game/domain/types";
+import type { TileId } from "../../board/types";
+import type { PlayerId } from "../../core/state";
 
 /** `reach` starts at the player's tile; `tiles` are those that lost a spell. */
 export type AuricEvent = {

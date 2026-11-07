@@ -1,6 +1,7 @@
 import { getTile } from "./board";
 import { isUntouchable } from "../core/playerStatus";
-import type { Board, Player, PlayerId, TileId } from "@/game/domain/types";
+import type { Board, TileId } from "./types";
+import type { Player, PlayerId } from "../core/state";
 
 /** Both on the main path or in the same realm track: a realm is cut off from the board. */
 export function sameSpace(board: Board, a: TileId, b: TileId): boolean {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { abilityBlocker } from "../../abilities/ability";
+import { abilityBlocker } from "../../abilities/blocker";
 import type { BoardDefinition } from "../../board/board";
 import { eventsOfType, newGame, onTurnOf, playerOf, roll, withPlayer } from "../../testing";
 

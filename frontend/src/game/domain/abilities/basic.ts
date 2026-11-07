@@ -1,5 +1,6 @@
 import { updatePlayer, type Draft } from "../core/draft";
-import type { AbilityId, PlayerId } from "@/game/domain/types";
+import type { AbilityId } from "./ability";
+import type { PlayerId } from "../core/state";
 
 // The abilities with no mechanic of their own: a number that changes the turn, the roll or the hand.
 

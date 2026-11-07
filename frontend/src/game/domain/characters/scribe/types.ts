@@ -1,4 +1,5 @@
-import type { PlayerId, TileId } from "@/game/domain/types";
+import type { TileId } from "../../board/types";
+import type { PlayerId } from "../../core/state";
 
 /** The Flesh Scribe's four forbidden seals. */
 export type SealKind = "tithe" | "ruin" | "silence" | "bloodPact";

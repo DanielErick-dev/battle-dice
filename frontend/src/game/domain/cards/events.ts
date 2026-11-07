@@ -1,4 +1,7 @@
-import type { AimWard, CardId, CardInstance, PlayerId, TileId } from "@/game/domain/types";
+import type { TileId } from "../board/types";
+import type { CardId } from "./catalog";
+import type { AimWard } from "../core/playerStatus";
+import type { CardInstance, PlayerId } from "../core/state";
 
 /** Cards moving between deck, hand and discard pile, and being played. */
 export type CardEvent =

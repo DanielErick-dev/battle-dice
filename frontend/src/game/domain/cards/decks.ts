@@ -1,6 +1,8 @@
 import { CARD_CATALOG, type CardDefinition, type Rarity } from "./catalog";
 import { shuffle, type RandomSource } from "../core/random";
-import type { AbilityId, CardId, CardInstance, PlayerId } from "@/game/domain/types";
+import type { AbilityId } from "../abilities/ability";
+import type { CardId } from "./catalog";
+import type { CardInstance, PlayerId } from "../core/state";
 
 /** Copies per card in the standard deck (relics are never in it). */
 export const COPIES_BY_RARITY: Readonly<Record<Rarity, number>> = {

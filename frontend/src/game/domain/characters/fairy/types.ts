@@ -1,4 +1,5 @@
-import type { PlayerId, TileId } from "@/game/domain/types";
+import type { TileId } from "../../board/types";
+import type { PlayerId } from "../../core/state";
 
 /** A harmful tile the Crystal Fairy enchanted for good. */
 export interface EnchantedTile {
