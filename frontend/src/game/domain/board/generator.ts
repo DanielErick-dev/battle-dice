@@ -1,3 +1,4 @@
+import { at } from "../core/invariant";
 import type { BoardDefinition, TrapZoneDefinition } from "./board";
 import { seededRandom, shuffle } from "../core/random";
 import type { RealmKind, TileEffect, TileId, TrapCurse } from "./types";
@@ -99,7 +100,7 @@ function portalsLater(kinds: readonly GeneratedEffect[], opening: number): Gener
     if (result[index] !== "portal") continue;
     while (swap < result.length && result[swap] === "portal") swap++;
     if (swap >= result.length) break;
-    [result[index], result[swap]] = [result[swap], result[index]];
+    [result[index], result[swap]] = [at(result, swap), at(result, index)];
     swap++;
   }
   return result;
@@ -120,7 +121,7 @@ function spreadTrapZones(
 function openRealms(effects: Record<TileId, TileEffect>): Record<TileId, TileEffect> {
   const portals = Object.keys(effects)
     .map(Number)
-    .filter((tile) => effects[tile].kind === "portal")
+    .filter((tile) => effects[tile]?.kind === "portal")
     .sort((a, b) => a - b);
   const realms: readonly RealmKind[] = ["infernal", "celestial"];
   return {

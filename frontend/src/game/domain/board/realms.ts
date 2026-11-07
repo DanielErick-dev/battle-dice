@@ -1,3 +1,4 @@
+import { at } from "../core/invariant";
 import type { CardId } from "../cards/catalog";
 import type { RealmKind, TileEffect, TileId, TimedBlessing, TrapCurse } from "./types";
 
@@ -52,13 +53,13 @@ const TRACK_PATTERNS: Readonly<Record<RealmKind, readonly TrackStep[]>> = {
 export function trackEffects(realm: RealmKind, portal: TileId, tiles: readonly TileId[]): TileEffect[] {
   const pattern = TRACK_PATTERNS[realm];
   return tiles.map((_, index) => {
-    const step = pattern[(index + portal) % pattern.length];
+    const step = at(pattern, (index + portal) % pattern.length);
     switch (step.kind) {
       case "setback":
         if (index === 0) return { kind: "curse", curse: step.curse ?? "drain" };
         return {
           kind: "trap",
-          to: tiles[Math.max(0, index - step.tiles)],
+          to: at(tiles, Math.max(0, index - step.tiles)),
           ...(step.curse && { curse: step.curse }),
         };
       default:

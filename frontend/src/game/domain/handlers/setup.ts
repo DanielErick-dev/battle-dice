@@ -1,3 +1,4 @@
+import { GameRuleError } from "../core/errors";
 import { isPassive } from "../abilities/ability";
 import type { AbilityId } from "../abilities/ability";
 import { STARTING_ENERGY } from "../core/energy";
@@ -22,9 +23,11 @@ export function openingState(
   decks: GameState["decks"],
   random: RandomSource,
 ): GameState {
-  const dealt = players.map((player, index) =>
-    dealPlayer(player, { startTile: board.startTile, cards: decks[player.id], random, playsFirst: index === 0 }),
-  );
+  const dealt = players.map((player, index) => {
+    const cards = decks[player.id];
+    if (!cards) throw new GameRuleError("UNKNOWN_PLAYER");
+    return dealPlayer(player, { startTile: board.startTile, cards, random, playsFirst: index === 0 });
+  });
   return {
     board,
     players: dealt,

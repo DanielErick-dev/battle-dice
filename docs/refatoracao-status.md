@@ -16,7 +16,7 @@ Linhas = código da própria pasta (sem subpastas e sem testes), contadas em 29/
 
 | Pasta | Status | Linhas | Feito | Falta |
 |---|---|---|---|---|
-| `game/domain/` | ✅ | 5316 | Testes por tema (etapa 7). `engine.ts` virou roteador (etapa 6). Agrupada por tema em 01/11: `core/`, `board/`, `cards/`, `abilities/` e `characters/<nome>/` (mecânica, números de balanceamento e tipos de cada personagem). `types.ts` virou só a vitrine de tipos para `features/`. | `cards/play.ts` (313) e `characters/zarek/void.ts` (~290) ainda passam um pouco das 250 linhas. |
+| `game/domain/` | ✅ | 5316 | Testes por tema (etapa 7). `engine.ts` virou roteador (etapa 6). Agrupada por tema em 01/11: `core/`, `board/`, `cards/`, `abilities/` e `characters/<nome>/` (mecânica, números de balanceamento e tipos de cada personagem). `types.ts` virou só a vitrine de tipos para `features/`. Em 07/11: código morto removido, um só `ABILITY_EFFECTS` exaustivo (`abilities/effects.ts`), sem ciclos em runtime, tipos importados do módulo de origem, fronteira no ESLint e `noUncheckedIndexedAccess` via `tsconfig.game.json`. | `cards/play.ts` (313) e `characters/zarek/void.ts` (~290) ainda passam um pouco das 250 linhas. |
 | `game/domain/handlers/` | ✅ | 501 | Mapa tipado por comando, registro `ABILITY_EFFECTS` (etapa 6). | |
 | `game/domain/testing/` | ✅ | 154 | Helpers de teste compartilhados (etapa 7). | |
 | `game/application/` | ✅ | 45 | `GameClient` e `LocalGameClient`, com README. | |

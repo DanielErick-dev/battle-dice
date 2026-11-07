@@ -1,3 +1,4 @@
+import { at } from "../../core/invariant";
 import { getTile } from "../../board/board";
 import { DIVINE_CARDS, type CardId } from "../../cards/catalog";
 import { GameRuleError } from "../../core/errors";
@@ -108,7 +109,7 @@ export function dragIntoHell(draft: Draft, playerId: PlayerId, targetId: PlayerI
   const hell = draft.state.board.tracks.find((track) => track.realm === "infernal");
   if (!hell) throw new GameRuleError("INVALID_TARGET");
   const from = playerIn(draft, targetId).position;
-  const to = hell.tiles[0];
+  const to = at(hell.tiles, 0);
   updatePlayer(draft, targetId, () => ({ position: to, realmEntry: { portal: from, exit: from } }));
   draft.events.push({ type: "hellDragged", playerId, targetId, from, to });
 }

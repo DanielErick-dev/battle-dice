@@ -1,3 +1,4 @@
+import { randomItem } from "../../core/random";
 import { DIVINE_CARDS } from "../../cards/catalog";
 import { giveCard } from "../../cards/hand";
 import { playerIn, type Draft } from "../../core/draft";
@@ -11,11 +12,11 @@ export function seraphBlessing(draft: Draft, playerId: PlayerId): void {
   if (draft.random() < SERAPH_CARD_CHANCE) {
     giveCard(draft, playerId, {
       uid: `${playerId}:grace${draft.state.turn}`,
-      cardId: DIVINE_CARDS[Math.floor(draft.random() * DIVINE_CARDS.length)],
+      cardId: randomItem(DIVINE_CARDS, draft.random),
     });
     return;
   }
-  const blessing = TIMED_BLESSINGS[Math.floor(draft.random() * TIMED_BLESSINGS.length)];
+  const blessing = randomItem(TIMED_BLESSINGS, draft.random);
   grantBlessing(draft, playerId, blessing);
   draft.events.push({
     type: "blessingReceived",

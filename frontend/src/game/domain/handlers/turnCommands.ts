@@ -1,3 +1,4 @@
+import { at } from "../core/invariant";
 import { rollBonus, rollMultiplier } from "../abilities/basic";
 import { unpinPassed } from "../characters/archer/arrowRain";
 import { walkTrampling } from "../characters/bjorn/untamed";
@@ -91,7 +92,7 @@ export const turnCommands: CommandHandlers<"rollDice" | "forfeitTurn" | "restart
 
   restart: (state, _command, deps) => ({
     state: openingState(closeRifts(state.board), state.players, state.decks, deps.random),
-    events: [{ type: "gameRestarted" }, { type: "turnChanged", playerId: state.players[0].id }],
+    events: [{ type: "gameRestarted" }, { type: "turnChanged", playerId: at(state.players, 0).id }],
   }),
 };
 
@@ -118,8 +119,9 @@ function throwBoostedDice(playerId: PlayerId, boost: DiceBoost | null, rollDie: 
     case "fixed":
       return { type: "diceRolled", playerId, value: boost.value, dice: [boost.value] };
     case "double": {
-      const dice = [rollDie(), rollDie()];
-      return { type: "diceRolled", playerId, value: dice[0] + dice[1], dice };
+      const first = rollDie();
+      const second = rollDie();
+      return { type: "diceRolled", playerId, value: first + second, dice: [first, second] };
     }
     case "best": {
       const dice = [rollDie(), rollDie()];

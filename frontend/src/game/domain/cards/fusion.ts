@@ -1,3 +1,4 @@
+import { at } from "../core/invariant";
 import type { CardId } from "./catalog";
 import { GameRuleError } from "../core/errors";
 import { playerIn, updatePlayer, type Draft } from "../core/draft";
@@ -39,7 +40,7 @@ export function fuseCards(draft: Draft, playerId: PlayerId, cardId: CardId): voi
   const { hand } = playerIn(draft, playerId);
   if (!fusibleInHand(hand).includes(cardId)) throw new GameRuleError("CANNOT_FUSE");
   const used = hand.filter((card) => card.cardId === cardId && !card.fused).slice(0, FUSION_COPIES);
-  const fused: CardInstance = { uid: `${used[0].uid}:fused`, cardId, fused: true };
+  const fused: CardInstance = { uid: `${at(used, 0).uid}:fused`, cardId, fused: true };
   updatePlayer(draft, playerId, (player) => ({
     hand: [...player.hand.filter((card) => !used.includes(card)), fused],
   }));

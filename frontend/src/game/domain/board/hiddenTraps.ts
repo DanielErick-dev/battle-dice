@@ -1,4 +1,4 @@
-import { shuffle, type RandomSource } from "../core/random";
+import { randomItem, shuffle, type RandomSource } from "../core/random";
 import type { Board, TileId, TrapZone } from "./types";
 
 export const HIDDEN_TRAP_PUSH = 5;
@@ -25,6 +25,6 @@ export function relocateHiddenTrap(
       (candidate) => candidate !== tile && !traps.includes(candidate) && !smashed.includes(candidate),
     ) ?? [];
   if (free.length === 0) return [...traps];
-  const destination = free[Math.floor(random() * free.length)];
+  const destination = randomItem(free, random);
   return traps.map((trap) => (trap === tile ? destination : trap));
 }

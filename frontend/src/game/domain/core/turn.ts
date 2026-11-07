@@ -1,3 +1,4 @@
+import { at } from "./invariant";
 import { chargeAbility } from "../abilities/charge";
 import { blessingCount, isBlessed, SPRING_ENERGY, wearBlessings } from "../board/blessings";
 import { MAX_ENERGY, TURNS_PER_ENERGY } from "./energy";
@@ -11,8 +12,8 @@ export function endTurn(draft: Draft, extraTurn: boolean): number {
   const { currentPlayerIndex } = draft.state;
   let index = currentPlayerIndex;
   // A round on fire pays its Akane, before the burning wears down.
-  feedTheFire(draft, draft.players[currentPlayerIndex].id);
-  const ending = draft.players[currentPlayerIndex];
+  feedTheFire(draft, at(draft.players, currentPlayerIndex).id);
+  const ending = at(draft.players, currentPlayerIndex);
   draft.players[currentPlayerIndex] = {
     ...ending,
     levitating: Math.max(0, ending.levitating - 1),
@@ -33,7 +34,7 @@ export function endTurn(draft: Draft, extraTurn: boolean): number {
     if (extraTurn) loseTurn(draft, currentPlayerIndex);
     index = (currentPlayerIndex + 1) % draft.players.length;
     // Terminates: every pass consumes one lost turn.
-    while (draft.players[index].skipTurns > 0) {
+    while (at(draft.players, index).skipTurns > 0) {
       loseTurn(draft, index);
       index = (index + 1) % draft.players.length;
     }
@@ -42,7 +43,7 @@ export function endTurn(draft: Draft, extraTurn: boolean): number {
   // Play came round again: a round went by, and Eternal Winter spreads.
   if (passes && index <= currentPlayerIndex) spreadWinter(draft);
 
-  const next = draft.players[index];
+  const next = at(draft.players, index);
   const charged = next.energyCharge + 1 >= TURNS_PER_ENERGY;
   // On fire, no energy comes in at all.
   const income = (charged ? 1 : 0) + blessingCount(draft.state.board, next, "spring") * SPRING_ENERGY;
@@ -72,7 +73,7 @@ export function endTurn(draft: Draft, extraTurn: boolean): number {
 }
 
 function loseTurn(draft: Draft, index: number): void {
-  const skipped = draft.players[index];
+  const skipped = at(draft.players, index);
   draft.players[index] = {
     ...skipped,
     skipTurns: skipped.skipTurns - 1,

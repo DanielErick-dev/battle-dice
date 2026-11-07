@@ -1,3 +1,4 @@
+import { at } from "../../core/invariant";
 import { abilityCycle } from "../../abilities/charge";
 import { MAX_ENERGY } from "../../core/energy";
 import { trackOf } from "../../board/board";
@@ -51,7 +52,7 @@ export function summonSpecters(draft: Draft, playerId: PlayerId, tiles: readonly
   }
   draft.specters = [
     ...draft.specters,
-    ...tiles.map((tile, index) => ({ tile, kind: SPECTER_KINDS[index], owner: playerId })),
+    ...tiles.map((tile, index) => ({ tile, kind: at(SPECTER_KINDS, index), owner: playerId })),
   ];
   draft.events.push({ type: "spectersSummoned", playerId, tiles: [...tiles] });
 }

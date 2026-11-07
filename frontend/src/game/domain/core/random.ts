@@ -1,3 +1,4 @@
+import { at } from "./invariant";
 /** Uniform in [0, 1); injected so games can be replayed and tested. */
 export type RandomSource = () => number;
 
@@ -18,12 +19,17 @@ export function pickRandom<T>(items: readonly T[], random: RandomSource): T | un
   return items[Math.floor(random() * items.length)];
 }
 
+/** One of `items` at random, when the rules guarantee there is one. */
+export function randomItem<T>(items: readonly T[], random: RandomSource): T {
+  return at(items, Math.floor(random() * items.length));
+}
+
 /** A shuffled copy (Fisher–Yates). */
 export function shuffle<T>(items: readonly T[], random: RandomSource): T[] {
   const shuffled = [...items];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    [shuffled[i], shuffled[j]] = [at(shuffled, j), at(shuffled, i)];
   }
   return shuffled;
 }

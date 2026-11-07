@@ -25,7 +25,7 @@ frontend/src/
 └── lib/                     ← utilitários
 ```
 
-**Regra de ouro:** `game/` não importa nada de `features/`. As regras do jogo não sabem que existe 3D, som ou React. Isso permite:
+**Regra de ouro:** `game/` não importa nada de `features/`. As regras do jogo não sabem que existe 3D, som ou React. O ESLint garante isso: em `src/game/**`, importar `features/`, `app/`, `components/`, React, Next ou Three.js dá erro, e `game/domain/` também não pode importar `game/application/`. Isso permite:
 
 - testar todas as regras com vitest, sem navegador;
 - levar o mesmo código para o servidor no futuro (o backend FastAPI vai validar as jogadas reimplementando ou espelhando essas regras);
@@ -81,5 +81,7 @@ Rodar dentro de `frontend/` a cada mudança:
 ```bash
 npm run typecheck && npm run lint && npm test && npm run build
 ```
+
+O `typecheck` roda duas vezes: o projeto todo e o `tsconfig.game.json`, que liga `noUncheckedIndexedAccess` só em `game/` (sem os testes). Ali, ler uma lista por índice pode dar `undefined`, então o código usa `at` (`core/invariant.ts`) ou `randomItem` (`core/random.ts`), que falham na hora se a regra garantida não valer.
 
 Os testes vivem ao lado do código (`*.test.ts`). O grosso deles cobre `game/domain/`; `playback.test.ts` e `matchStore.test.ts` cobrem a camada de animação.

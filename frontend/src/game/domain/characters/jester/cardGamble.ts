@@ -1,3 +1,4 @@
+import { randomItem } from "../../core/random";
 import type { AbilityPower } from "../../abilities/ability";
 import { CARD_CATALOG, RARITY_LEVEL, rarityLevel } from "../../cards/catalog";
 import { throwOnPile } from "../../cards/decks";
@@ -114,7 +115,7 @@ function conjureEpics(draft: Draft, playerId: PlayerId): void {
   for (let index = 0; index < CARD_GAMBLE_EPICS && pool.length > 0; index++) {
     const card: CardInstance = {
       uid: `${playerId}:jackpot${draft.state.turn}:${index}`,
-      cardId: pool[Math.floor(draft.random() * pool.length)].id,
+      cardId: randomItem(pool, draft.random).id,
     };
     conjureCard(draft, playerId, card);
   }
@@ -123,7 +124,7 @@ function conjureEpics(draft: Draft, playerId: PlayerId): void {
 function discardRandom(draft: Draft, playerId: PlayerId): void {
   const { hand } = playerIn(draft, playerId);
   if (hand.length === 0) return;
-  const card = hand[Math.floor(draft.random() * hand.length)];
+  const card = randomItem(hand, draft.random);
   const rest = hand.filter((candidate) => candidate.uid !== card.uid);
   updatePlayer(draft, playerId, (player) => ({ hand: rest, discard: throwOnPile(player.discard, [card]) }));
   draft.events.push({ type: "cardDiscarded", playerId, card, hand: rest });

@@ -1,5 +1,5 @@
 import { playerIn, updatePlayer, type Draft } from "../core/draft";
-import { shuffle } from "../core/random";
+import { randomItem, shuffle } from "../core/random";
 import { throwOnPile } from "./decks";
 import { GameRuleError } from "../core/errors";
 import type { CardInstance, PlayerId } from "../core/state";
@@ -82,7 +82,7 @@ export function handOverCards(draft: Draft, from: PlayerId, to: PlayerId, cards:
 export function takeRandomCard(draft: Draft, playerId: PlayerId): CardInstance | null {
   const { hand } = playerIn(draft, playerId);
   if (hand.length === 0) return null;
-  const card = hand[Math.floor(draft.random() * hand.length)];
+  const card = randomItem(hand, draft.random);
   updatePlayer(draft, playerId, (player) => ({
     hand: player.hand.filter((candidate) => candidate.uid !== card.uid),
     discard: throwOnPile(player.discard, [card]),

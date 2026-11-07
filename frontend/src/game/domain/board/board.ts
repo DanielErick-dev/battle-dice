@@ -1,3 +1,4 @@
+import { at } from "../core/invariant";
 import { TRACK_LENGTH, trackEffects } from "./realms";
 import type { Board, RealmEntry, RealmTrack, Tile, TileEffect, TileId, TrapZone } from "./types";
 
@@ -49,7 +50,7 @@ export function createBoard({ size, effects, trapZones = [] }: BoardDefinition):
     const first = tiles.length + 1;
     const ids = Array.from({ length: TRACK_LENGTH }, (_, index) => first + index);
     trackEffects(realmKind, portal.id, ids).forEach((trackEffect, index) => {
-      const id = ids[index];
+      const id = at(ids, index);
       tiles.push({
         id,
         role: "track",

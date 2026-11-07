@@ -1,3 +1,4 @@
+import { randomItem } from "../../core/random";
 import { cardsOfLevel, MAX_RARITY_LEVEL, rarityLevel, type CardId } from "../../cards/catalog";
 import { GameRuleError } from "../../core/errors";
 import { conjureCard } from "../../cards/hand";
@@ -40,7 +41,7 @@ export function transmuteCards(draft: Draft, playerId: PlayerId, cardUids: reado
   const [from, sacrificed] = chosen;
   if (!from || !sacrificed) throw new GameRuleError("UNKNOWN_CARD");
   const pool = transmutationPool(transmutationLevel([from.cardId, sacrificed.cardId]), withOpponents);
-  const to: CardInstance = { uid: `${from.uid}~t`, cardId: pool[Math.floor(draft.random() * pool.length)] };
+  const to: CardInstance = { uid: `${from.uid}~t`, cardId: randomItem(pool, draft.random) };
   updatePlayer(draft, playerId, (player) => ({
     hand: player.hand.filter((card) => card.uid !== sacrificed.uid).map((card) => (card.uid === from.uid ? to : card)),
   }));
@@ -51,7 +52,7 @@ function distil(draft: Draft, playerId: PlayerId, withOpponents: boolean): void 
   const pool = transmutationPool(TRANSMUTATION_FALLBACK_LEVEL, withOpponents);
   const card: CardInstance = {
     uid: `${playerId}:distilled${draft.state.turn}`,
-    cardId: pool[Math.floor(draft.random() * pool.length)],
+    cardId: randomItem(pool, draft.random),
   };
   conjureCard(draft, playerId, card);
 }

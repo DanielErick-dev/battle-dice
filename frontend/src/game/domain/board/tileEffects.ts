@@ -1,3 +1,4 @@
+import { at } from "../core/invariant";
 import { announceReady, chargeInDraft } from "../abilities/charge";
 import { BLESSING_ENERGY } from "./realms";
 import { crossSpecters } from "../characters/warden/specters";
@@ -36,15 +37,16 @@ export function applyTileEffect(
         break;
       }
       if (track) {
+        const entrance = at(track.tiles, 0);
         updatePlayer(draft, playerId, () => ({ realmEntry: { portal: landed, exit: effect.to } }));
         draft.events.push({
           type: "realmEntered",
           playerId,
           realm: track.realm,
           from: landed,
-          to: track.tiles[0],
+          to: entrance,
         });
-        moveTo(draft, playerId, track.tiles[0]);
+        moveTo(draft, playerId, entrance);
         break;
       }
       draft.events.push({ type: "portalEntered", playerId, from: landed, to: effect.to });

@@ -1,3 +1,4 @@
+import { at } from "../core/invariant";
 import { GameRuleError, type GameErrorCode } from "../core/errors";
 import { draftState, playerIn, type Draft } from "../core/draft";
 import { crownAndFall } from "../characters/seraphiel/seraph";
@@ -7,7 +8,7 @@ import type { GameState, Player, PlayerId } from "../core/state";
 import type { GameTransition } from "./types";
 
 export function currentPlayer(state: GameState): Player {
-  return state.players[state.currentPlayerIndex];
+  return at(state.players, state.currentPlayerIndex);
 }
 
 export function assertCanAct(state: GameState, playerId: PlayerId): void {

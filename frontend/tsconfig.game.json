@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "incremental": false,
+    "noUncheckedIndexedAccess": true,
+    "plugins": []
+  },
+  "include": ["src/game/**/*.ts"],
+  "exclude": ["node_modules", "src/game/**/*.test.ts"]
+}

@@ -1,3 +1,4 @@
+import { at } from "./invariant";
 export type DiceRoller = () => number;
 
 export const DICE_SIDES = 6;
@@ -8,7 +9,7 @@ export const randomDice: DiceRoller = () => Math.floor(Math.random() * DICE_SIDE
 export function sequenceDice(values: readonly number[]): DiceRoller {
   let index = 0;
   return () => {
-    const value = values[index % values.length];
+    const value = at(values, index % values.length);
     index += 1;
     return value;
   };
