@@ -1,4 +1,4 @@
-import type { PlayerId } from "../../core/state";
+import type { PlayerId } from "../../core/ids";
 
 /** Halt loses the target's next `rounds` turns; reverse walks their next `rounds` rolls back. */
 export type CronosEvent = {

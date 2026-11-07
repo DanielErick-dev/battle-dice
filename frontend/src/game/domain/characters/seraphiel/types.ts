@@ -1,5 +1,5 @@
 import type { TileId } from "../../board/types";
-import type { PlayerId } from "../../core/state";
+import type { PlayerId } from "../../core/ids";
 
 /** Seraphiel's crown: won coming out of heaven, turned infernal by the Fall. */
 export type Crown = "seraphic" | "infernal";

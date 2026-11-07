@@ -1,6 +1,7 @@
 import type { AbilityId } from "../abilities/ability";
 import type { ActiveBlessing, Board, RealmEntry, Threat, TileId } from "../board/types";
 import type { CardId } from "../cards/catalog";
+import type { PlayerId } from "./ids";
 import type { ScarletFlame } from "../characters/akane/types";
 import type { EnchantedTile, Winter } from "../characters/fairy/types";
 import type { BlackFlame } from "../characters/kage/types";
@@ -9,7 +10,7 @@ import type { Crown } from "../characters/seraphiel/types";
 import type { PendingPlunder, Specter } from "../characters/warden/types";
 import type { VoidItem, VoidScar } from "../characters/zarek/types";
 
-export type PlayerId = string;
+export type { PlayerId };
 
 export interface Player {
   id: PlayerId;
