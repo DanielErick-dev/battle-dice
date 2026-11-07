@@ -22,7 +22,7 @@ O `matchStore` executa os passos um atrás do outro e, no fim, encaixa a tela no
 - `types.ts`: `PlaybackStep` e o tipo `StepHandlers`, que obriga a existir um handler por evento.
 - `helpers.ts`: pequenas funções reaproveitadas, como "efeito em cima da casa do jogador".
 - Por tema: `turn.ts` (dado, andar, turnos), `tiles.ts` (casas e armadilhas), `cards.ts`, `abilities.ts`.
-- Por personagem (os mesmos nomes de `game/domain/`): `fairy.ts`, `seraph.ts`, `berserker.ts`, `kunoichi.ts`, `specters.ts`, `seals.ts`, `arrowRain.ts`, `cardGamble.ts`.
+- Por personagem (os mesmos nomes de `game/domain/`): `fairy.ts`, `seraphiel.ts`, `bjorn.ts`, `kage.ts`, `specters.ts`, `seals.ts`, `arrowRain.ts`, `cardGamble.ts`.
 
 ## Exemplo de leitura
 

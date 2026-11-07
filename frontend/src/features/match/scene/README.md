@@ -6,7 +6,7 @@ A cena só **lê** a `MatchView` (o que deve aparecer agora) e desenha. Ela nunc
 ## Entrada
 
 - `BoardScene.tsx`: o `<Canvas>`. Monta o ambiente, o tabuleiro, os bonecos e percorre o registro de efeitos.
-- `CameraRig.tsx`: a câmera, com os três enquadramentos (perto, médio, tabuleiro) e o "olhar em volta".
+- `camera/CameraRig.tsx`: a câmera, com os três enquadramentos (perto, médio, tabuleiro) e o "olhar em volta".
 - `PostEffects.tsx`: o pós-processamento (bloom, o brilho em volta das luzes).
 
 ## Pastas
@@ -15,16 +15,17 @@ A cena só **lê** a `MatchView` (o que deve aparecer agora) e desenha. Ela nunc
 |---|---|
 | `environment/` | O mundo em volta da trilha, por mapa (`maps.ts`), numa noite fechada e sombria: a ilha (`Island.tsx`), a masmorra (`Dungeon.tsx`, `dungeon.ts`) e a terra devastada (`Wasteland.tsx`, `wasteland.ts`), cada um com a sua estrada (`road.tsx`). A ilha onde a trilha serpenteia, com vila, acampamento na floresta, moinho d’água e castelo do kit KayKit (`settlements.ts`), costa com pedras e cais (`coast.ts`, kits em `kits.tsx`, escurecidos por `tint`), fumaça escura nas chaminés, estrada de terra com marcas de roda, relevo, riacho com pontes de madeira, pinheiros, pedras, tufos de grama e lanternas (`islandTerrain.ts` calcula o terreno), oceano, céu nublado (`SkyDome.tsx`) e pedras no mar. Sem figurantes andando |
 | `realm/` | Os corredores do céu e do inferno: paredes, portais, partículas |
-| `character/` | Tudo de personagem: modelo animado (`CharacterModel`), asas, cadeiras, e os efeitos de cada habilidade e intro |
-| `vfx/` | Efeitos feitos com a biblioteca wawa-vfx (partículas de cura) |
+| `features/characters/` (fora desta pasta) | Tudo de personagem: modelo animado (`CharacterModel`), asas, cadeiras, e os efeitos de cada habilidade e intro |
+| `vfx/` | Efeitos avulsos, sem pasta de personagem: rajadas (`AbilityBurst`, `TrapSmash`, `HiddenTrapBurst`), `CardEffects`, `EnergyAura`, `FrostAura`, `effectKey` e as partículas de cura (wawa-vfx) |
 | `effects/` | **O registro de efeitos**: quem monta cada efeito e quando (veja abaixo) |
-| `PlayerToken.tsx` | Um jogador no tabuleiro: liga o movimento e a pose (`token/`) ao Three.js a cada quadro e monta os efeitos do registro em volta dele |
+| `token/PlayerToken.tsx` | Um jogador no tabuleiro: liga o movimento e a pose (`token/`) ao Three.js a cada quadro e monta os efeitos do registro em volta dele |
 | `token/` | A lógica do boneco, sem React: `motion.ts` (o caminho casa a casa) e `pose.ts` (o clipe que toca e o corpo). Veja abaixo |
-| `tokenSignals.ts` | Lê a `MatchView` e diz o que cada boneco está fazendo (correndo, sendo empurrado, usando a habilidade…) |
-| `tokenPlacement.ts` | Onde cada boneco fica e para onde olha |
-| `cameraFocus.ts` | O que a câmera acompanha e onde o dado cai |
-| `TileMesh.tsx`, `tileTheme.ts`, `useTileFaceTexture.ts` | As casas: lajes da própria estrada (cortadas na curva por `layout.slab`), com uma runa acesa por tipo e o número na borda; o texto aparece numa etiqueta ao passar o mouse |
-| `DiceThrow.tsx` | O dado 3D rolando |
+| `token/tokenSignals.ts` | Lê a `MatchView` e diz o que cada boneco está fazendo (correndo, sendo empurrado, usando a habilidade…) |
+| `token/tokenPlacement.ts` | Onde cada boneco fica e para onde olha |
+| `camera/` | `CameraRig`, `cameraFocus.ts` (o que a câmera acompanha e onde o dado cai) e `spotlight.ts` (quem ela filma) |
+| `board/TileMesh.tsx`, `tileTheme.ts`, `useTileFaceTexture.ts` | As casas: lajes da própria estrada (cortadas na curva por `layout.slab`), com uma runa acesa por tipo e o número na borda; o texto aparece numa etiqueta ao passar o mouse |
+| `board/` (o resto) | `DiceThrow.tsx` (o dado 3D rolando), `TileLinks`, `PortalVortex`, `RelicCard`, `pickCursor.ts` (escolher casas: `BoardPicking`) |
+| `features/shared/board/` (fora desta pasta) | A geometria do tabuleiro: `boardLayout.ts` e `slab.ts`, usados também pelos efeitos dos personagens |
 
 ## O boneco (`PlayerToken` + `token/`)
 
@@ -32,11 +33,11 @@ A cada quadro o `PlayerToken` faz três passos, nesta ordem:
 
 1. **Movimento** (`token/motion.ts`). `followTarget` coloca o boneco no primeiro alvo e enfileira cada alvo novo como um *waypoint* (`travel`: `walk`, `teleport` ou `dash`). `advanceMotion` anda pelo *segmento* atual e pega o próximo waypoint quando ele acaba. O segmento é uma união discriminada por `motion`: `run` (com `arriving` na última casa da caminhada, que desacelera até parar), `leap` (o arco de um teleporte ou de um movimento longo demais para correr), `dash` (o raio do Sábio) e `slide` (sentado, só abre espaço na própria casa, sem levantar nem virar). O movimento também decide para onde o boneco olha (`heading`).
 2. **Pose** (`token/pose.ts`). `stepPose` recebe os sinais do `tokenSignals`, o que o movimento fez neste quadro (`MotionFrame`), a duração dos clipes do modelo e o relógio, e devolve uma `Pose`: o clipe que toca, o `heading` corrigido (o Berserker de costas para o caminho ao empurrar, a Têmis olhando para quem ela julga), o que some (`hidden` dentro do raio, `gone` no Arrasto do Inferno), os deslocamentos do corpo (`spin`, `lunge`, `reel`, `sunk`) e os atos que começaram agora (`landingAt`, `shoveAt`, `hopBurst`). O estado de cada ato (quando começou, qual id já tocou) fica em `TokenActs`. A ordem dos atos dentro de `stepPose` importa: cada um lê o que os anteriores decidiram.
-3. **Three.js** (`PlayerToken.tsx`). Aplica a pose: escreve o clipe na ref que o `CharacterModel` lê, atualiza as refs `live` dos efeitos, gira o boneco aos poucos até o `heading` e move o corpo.
+3. **Three.js** (`token/PlayerToken.tsx`). Aplica a pose: escreve o clipe na ref que o `CharacterModel` lê, atualiza as refs `live` dos efeitos, gira o boneco aos poucos até o `heading` e move o corpo.
 
 Prioridade dos clipes, do mais forte ao mais fraco: `knocked` → `hop` → `shove` → `dash` → `land` → reação da Têmis (`guard` → `cast` → `scoff`) → `brake` → `run`/`float` → `sit` → `cast` → `rest`/`float`/`idle`.
 
-O `CharacterModel` toca o clipe pedido. Como cada clipe toca (velocidade, se toca uma vez só) e quanto dura a transição entre dois clipes ficam em `character/clipPlayback.ts`, numa tabela com uma linha por clipe: um clipe novo em `CharacterClip` não compila até ganhar a sua linha.
+O `CharacterModel` toca o clipe pedido. Como cada clipe toca (velocidade, se toca uma vez só) e quanto dura a transição entre dois clipes ficam em `features/characters/core/clipPlayback.ts`, numa tabela com uma linha por clipe: um clipe novo em `CharacterClip` não compila até ganhar a sua linha.
 
 `motion.ts`, `pose.ts` e `clipPlayback.ts` têm testes vitest ao lado (`*.test.ts`). Para mudar como um boneco se comporta, mexa neles e no teste, não no componente.
 
@@ -48,8 +49,8 @@ O `CharacterModel` toca o clipe pedido. Como cada clipe toca (velocidade, se toc
 
 ## O registro de efeitos (`effects/`)
 
-Cada efeito visual é um componentezinho que decide **se** aparece e **com quais props**, e chama o componente de verdade (que mora em `character/`, por exemplo).
-Eles ficam num arquivo por dono, com os mesmos nomes do domínio: `berserker.tsx`, `fairy.tsx`, `seraph.tsx`, `kunoichi.tsx`, `cards.tsx`, `tiles.tsx`…
+Cada efeito visual é um componentezinho que decide **se** aparece e **com quais props**, e chama o componente de verdade (que mora em `features/characters/`, por exemplo).
+Eles ficam num arquivo por dono, com os mesmos nomes do domínio: `bjorn.tsx`, `fairy.tsx`, `seraphiel.tsx`, `kage.tsx`, `cards.tsx`, `tiles.tsx`…
 
 O `effects/index.ts` junta tudo em listas, por lugar:
 
@@ -68,7 +69,7 @@ O `effects/index.ts` junta tudo em listas, por lugar:
 
 ### Adicionando um efeito
 
-1. Escreva o componente do efeito em `character/` (se for novo).
+1. Escreva o componente do efeito em `features/characters/` (se for novo).
 2. No arquivo do dono em `effects/`, exporte a regra: `export function MeuEfeito({ token }) { return token.x && <Efeito /> }`.
 3. Adicione uma linha na lista certa do `effects/index.ts`.
 

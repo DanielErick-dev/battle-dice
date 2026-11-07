@@ -1,7 +1,14 @@
-# scene/character: os personagens em 3D
+# characters: as fichas e os personagens em 3D
 
 Tudo que desenha um personagem no tabuleiro (ou no menu): o modelo animado, os objetos que ele segura e os efeitos de cada habilidade.
-Só visual: as regras ficam em `game/domain/`, e quem decide **quando** cada efeito aparece é `scene/effects/`.
+Só visual: as regras ficam em `game/domain/`, e quem decide **quando** cada efeito aparece é `features/match/scene/effects/`.
+Menu e partida usam esta pasta; ela não importa nenhum dos dois.
+
+## As fichas
+
+`sheets/<id>.ts` tem a ficha visual de um personagem (modelo, clipes, cores, efeitos, intro). `index.ts` monta o elenco (`CHARACTERS`, a ordem do seletor) e tem os ajudantes de jogador local; `types.ts` tem os tipos, incluindo `SceneryId`, a lista de palcos que `features/menu/stage/scenery` desenha.
+
+Personagem novo = uma ficha em `sheets/` e uma linha em `CHARACTERS`.
 
 ## Pastas
 

@@ -8,7 +8,7 @@ import { getTile } from "@/game/domain/board/board";
 import { withRifts } from "@/game/domain/characters/zarek/void";
 import { DICE_SIDES } from "@/game/domain/core/dice";
 import { frozenTiles } from "@/game/domain/characters/fairy/winter";
-import type { Board, Player, PlayerId, TileId } from "@/game/domain/types";
+import type { Board, Player, PlayerId } from "@/game/domain/types";
 import { INNER_FLAME_MAX } from "@/game/domain/characters/akane/fire";
 import { characterFor, playerColor } from "@/features/characters";
 import type { EffectsQuality } from "@/features/shared/config";
