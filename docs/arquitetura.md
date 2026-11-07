@@ -22,7 +22,7 @@ frontend/src/
 │   ├── menu/                ← seleção de personagem com as intros
 │   └── settings/            ← configurações
 ├── app/                     ← rotas do Next.js (/, /jogar, /partida, /configuracoes)
-├── components/ui/           ← peças visuais genéricas (button, card, badge) no estilo shadcn/ui
+├── components/ui/           ← peças visuais genéricas (button) no estilo shadcn/ui
 └── lib/                     ← utilitários
 ```
 
