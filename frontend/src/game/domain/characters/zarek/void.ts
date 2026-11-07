@@ -1,6 +1,7 @@
 import { chargeAbility, isAbilityReady } from "../../abilities/charge";
 import { FLAME_TURNS } from "../kage/flames";
 import { getTile, linkRift } from "../../board/board";
+import { inHellTrack, isSpellGround } from "../../board/tileGround";
 import { frozenTiles } from "../fairy/winter";
 import { GameRuleError } from "../../core/errors";
 import { playerIn, updatePlayer, type Draft } from "../../core/draft";
@@ -84,11 +85,6 @@ type SpellBoard = Pick<GameState, "board" | "blackFlames" | "enchantedTiles" | "
   specters: readonly { tile: TileId; owner: PlayerId }[];
 };
 
-/** Hell takes the Void's impurity, heaven never does; a track has no room for a new tile, so harms mark one there. */
-function inHellTrack(board: Board, tile: TileId): boolean {
-  return getTile(board, tile).track?.realm === "infernal";
-}
-
 function occupied(state: SpellBoard): Set<TileId> {
   return new Set([
     ...spellTiles(state),
@@ -101,7 +97,7 @@ function occupied(state: SpellBoard): Set<TileId> {
 export function spellGround(state: SpellBoard): TileId[] {
   const taken = occupied(state);
   return state.board.tiles
-    .filter(({ id, role, track }) => (role === "regular" && !track) || inHellTrack(state.board, id))
+    .filter(isSpellGround)
     .filter(({ id }) => !taken.has(id))
     .map(({ id }) => id);
 }
@@ -118,16 +114,14 @@ export function seizableTiles(state: SpellBoard, owner: PlayerId): TileId[] {
     ...others(state.seals),
     ...others(state.specters),
   ];
-  return [...new Set(spells)].filter((tile) => {
-    const { role, track } = getTile(state.board, tile);
-    return (role === "regular" && !track) || inHellTrack(state.board, tile);
-  });
+  return [...new Set(spells)].filter((tile) => isSpellGround(getTile(state.board, tile)));
 }
 
 /** Where a held harm may go: a rift after a main-path tile, or a mark on a free hell tile. */
 export function harmGround(state: SpellBoard): TileId[] {
   const taken = occupied(state);
-  const hell = state.board.tiles.filter(({ id }) => inHellTrack(state.board, id) && !taken.has(id));
+  // A track has no room for a new tile, so harms mark one there.
+  const hell = state.board.tiles.filter((tile) => inHellTrack(tile) && !taken.has(tile.id));
   return [...riftAnchors(state.board), ...hell.map(({ id }) => id)];
 }
 
@@ -165,7 +159,7 @@ export function placeVoid(
   if (doubled && player.energy < VOID_DOUBLE_ENERGY) throw new GameRuleError("NOT_ENOUGH_ENERGY");
   release(draft, playerId, index);
   if (doubled) updatePlayer(draft, playerId, (current) => ({ energy: current.energy - VOID_DOUBLE_ENERGY }));
-  if (inHellTrack(board, tile)) {
+  if (inHellTrack(getTile(board, tile))) {
     draft.voidScars = [...draft.voidScars, { tile, owner: playerId, harm: item, doubled }];
     draft.events.push({ type: "voidCast", playerId, tile, item });
     return board;

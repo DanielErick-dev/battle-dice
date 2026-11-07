@@ -1,5 +1,6 @@
 import { at } from "../../core/invariant";
 import { getTile } from "../../board/board";
+import { byDistanceFrom } from "../../board/tileGround";
 import { cardCost } from "../../cards/catalog";
 import { MAX_ENERGY } from "../../core/energy";
 import { GameRuleError } from "../../core/errors";
@@ -35,7 +36,7 @@ export function sealableTiles(board: Board, position: TileId, taken: readonly Ti
       const { role, effect } = getTile(board, tile);
       return role === "regular" && (effect.kind === "none" || isBoon(effect));
     })
-    .sort((a, b) => Math.abs(a - position) - Math.abs(b - position) || a - b);
+    .sort(byDistanceFrom(position));
 }
 
 /** Energy and charge tiles only give, so they count as plain. */
