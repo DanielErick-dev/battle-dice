@@ -1,8 +1,8 @@
 # Regras do Battle Dice
 
-O livro de regras completo: como a partida funciona, o que cada casa, carta e proteção faz, e a ficha de cada um dos 20 personagens.
+O livro de regras completo: como a partida funciona, o que cada casa, carta e proteção faz, e a ficha de cada um dos 21 personagens.
 
-Tudo aqui foi conferido no código das regras (`frontend/src/game/domain/`, outubro de 2026). Se o código mudar, este arquivo precisa mudar junto. Quando um texto da tela e o código discordarem, **vale o código**, e a divergência deve ser corrigida.
+Tudo aqui foi conferido no código das regras (`frontend/src/game/domain/`, revisado em novembro de 2026). Se o código mudar, este arquivo precisa mudar junto. Quando um texto da tela e o código discordarem, **vale o código**, e a divergência deve ser corrigida.
 
 ## Sumário
 
@@ -64,7 +64,7 @@ Algumas escolhas pausam o jogo até serem respondidas: descartar com a mão chei
 - Um dado comum de **6** faces.
 - Cartas de **lançamento** mudam o jeito de rolar (2 dados somados, 2 dados ficando com o maior, valor escolhido). Só uma pode esperar a rolagem de cada vez.
 - Cartas de **bônus** somam casas e se acumulam entre si e com uma carta de lançamento (combo).
-- Ordem do cálculo: dado (ou dados) → **+** bônus de cartas, Vento a Favor, Asas Celestiais e coroa de Seraphiel → **×** Fúria Adormecida, se estiver em uso.
+- Ordem do cálculo: dado (ou dados) → **+** bônus de cartas, Vento a Favor, Asas Celestiais, coroa de Seraphiel e Ímpeto do Akane → **×** Fúria Adormecida, se estiver em uso → **÷ 2**, arredondando para baixo, se quem rola estiver pegando fogo.
 - Todo efeito de carta no dado vale para a **próxima rolagem** e fica esperando até ela acontecer, mesmo que você perca vezes no caminho.
 
 ### Energia
@@ -75,7 +75,7 @@ Algumas escolhas pausam o jogo até serem respondidas: descartar com a mão chei
 | Máximo | **10** |
 | Ganho natural | **+1 a cada 2 vezes suas** (vezes extras contam; vezes perdidas, não) |
 
-Energia paga as cartas. Também vem de casas de energia (+2), da Fonte de Luz (+1 por vez), da Erva Curativa e de alguns personagens. Ela se perde em armadilhas de dreno (−2), na maldição de dreno, no fogo negro, nos selos e nas aparições.
+Energia paga as cartas. Também vem de casas de energia (+2), da Fonte de Luz (+1 por vez), da Erva Curativa e de alguns personagens. Ela se perde em armadilhas de dreno (−2), na maldição de dreno, no fogo negro, nos selos, nas aparições e no fogo escarlate do Akane (que também impede qualquer ganho enquanto queima).
 
 ### Carga da habilidade
 
@@ -83,7 +83,7 @@ Energia paga as cartas. Também vem de casas de energia (+2), da Fonte de Luz (+
 - Usar esvazia a carga, que recomeça do zero.
 - A sua primeira vez já conta: uma habilidade de ciclo 3 fica pronta na sua **3ª vez** de jogar.
 - Atalhos: a **casa de habilidade** dá +1 de carga; a **Inspiração Divina** carrega em dobro; a carta **Ascensão** deixa a habilidade pronta na hora (e, se a carga encher de novo na mesma vez, dá para usar outra vez).
-- Duas habilidades seguram a carga depois de usadas (Indomável e Engrenagem do Tempo; ver as fichas). Mesmo assim, a casa de habilidade sempre carrega.
+- Três habilidades seguram a carga depois de usadas (Indomável, Engrenagem do Tempo e Zona de Incêndio; ver as fichas). Mesmo assim, a casa de habilidade sempre carrega.
 
 | Ciclo | Habilidades |
 |---|---|
@@ -118,7 +118,7 @@ Energia paga as cartas. Também vem de casas de energia (+2), da Fonte de Luz (+
 | **Perde a vez** | Você perde a próxima vez. |
 | **Carta** | Você compra 1 carta do seu baralho. |
 | **Energia** | **+2** de energia (até o máximo). |
-| **Habilidade** | **+1** de carga. Funciona até quando a carga está segurada (Indomável, Engrenagem do Tempo). |
+| **Habilidade** | **+1** de carga. Funciona até quando a carga está segurada (Indomável, Engrenagem do Tempo, Zona de Incêndio). |
 | **Armadilha escondida** | Parece uma casa lisa (ver abaixo). |
 | **Maldição** (só no inferno) | Descarta 1 carta aleatória ou drena **2** de energia, sem mandar você de volta. |
 | **Bênção** (só no céu) | Uma das quatro bênçãos do céu (ver abaixo). |
@@ -201,16 +201,17 @@ As 18 casas alternam as **quatro bênçãos** e as **três relíquias** (ver [Re
 
 Para quem quer o detalhe exato, nesta ordem:
 
-1. **Enquanto anda**: o atropelo do Bjorn e as aparições do Guardião das Sombras agem casa por casa.
+1. **Enquanto anda**: o atropelo do Bjorn, o Ímpeto do Akane e as aparições do Guardião das Sombras agem casa por casa.
 2. **Ao parar**:
    1. A casa tem a **Kage Rubra com Susanoo**? Você é jogado **1** casa para trás e nada mais acontece.
    2. Se *você* é a Kage com Susanoo, empurra quem está na casa **1** para a frente.
    3. **Levitando?** Nada da casa te afeta.
    4. Seraphiel pisando no inferno **cai** (vira o Anjo Caído).
-   5. **Fogo negro** na casa: só o fogo age.
+   5. **Fogo negro** ou **fogo escarlate** na casa: só o fogo age.
    6. **Neve da Fada** ou **gelo do Inverno Eterno** na casa: só a neve age (o gelo é a mesma neve).
-   8. **Selo** na casa: o selo quebra e nada mais acontece.
-   9. **Ameaça** (armadilha, escondida, maldição) ou **perde a vez**. Quem protege, nesta ordem: Anjo Caído no inferno, Indomável, Susanoo (não contra a escondida), Auréola (não contra perde a vez), o Vazio do Zarek (ele escolhe; também engole o perde a vez), Escudo Arcano (só armadilhas).
+   7. **Selo** na casa: o selo quebra e nada mais acontece.
+   8. **Marca do Vazio** na casa: só ela age (nunca contra o Zarek).
+   9. **Ameaça** (armadilha, escondida, maldição) ou **perde a vez**. A fenda do próprio Zarek não o atinge, e o Vinicius capina a armadilha antes de tudo. Quem protege, nesta ordem: Anjo Caído no inferno, Indomável, Susanoo (não contra a escondida), Auréola (não contra perde a vez), o Vazio do Zarek (ele escolhe; também engole o perde a vez), Escudo Arcano (só armadilhas).
    10. Senão, o efeito normal da casa (portal, bênção, carta…).
 3. **Depois**: as armadilhas presas por flechas que você atravessou voltam a funcionar.
 
@@ -225,7 +226,7 @@ Para quem quer o detalhe exato, nesta ordem:
 | Mão inicial | **6** cartas |
 | Limite da mão | **8** cartas |
 | Cartas por vez | **1** (2 com Conjuração Dupla); fundir não conta |
-| Baralho padrão | **26** cartas com oponentes, **20** sozinho (cartas que miram oponentes ficam de fora), mais as **4 exclusivas** do personagem (1 cópia de cada) |
+| Baralho padrão | **26** cartas com oponentes, **20** sozinho (cartas que miram oponentes ficam de fora), mais as **exclusivas** do personagem, se ele já as tiver (1 cópia de cada) |
 
 **Custo por raridade** (algumas cartas têm custo próprio):
 
@@ -256,13 +257,14 @@ Para quem quer o detalhe exato, nesta ordem:
 - **Chamado do Abismo** num tabuleiro sem inferno.
 - Uma **carta exclusiva** de outro personagem (roubada): só o dono a joga.
 - **Fome do Vazio** com a habilidade já pronta; **Fenda Faminta** com o Vazio cheio ou sem armadilha à vista; **Eco do Vazio** com o Vazio vazio ou cheio.
+- **Sangue Quente** sem Chamas Internas; **Supernova Escarlate** sem nenhum fogo.
 
 ### O catálogo
 
 | Carta | Raridade | Custo | Efeito |
 |---|---|---|---|
 | **Passo do Vento** | Comum | 1 | Avance **3** casas. A casa onde parar tem efeito. Sob o tempo invertido do Cronos, você recua 3 casas. |
-| **Erva Curativa** | Comum | 1 | **+6** de energia e cancela todas as vezes perdidas (inclusive neve e correntes). |
+| **Erva Curativa** | Comum | 1 | **+6** de energia e cancela todas as vezes perdidas (inclusive neve e correntes). Também apaga o fogo do Akane em quem a joga. |
 | **Amuleto da Sorte** | Comum | 1 | Bônus: **+2** na próxima rolagem. |
 | **Escudo Arcano** | Incomum | 2 | A próxima armadilha (escondida ou do inferno também) não tem efeito. Não bloqueia maldições. |
 | **Pergaminho Antigo** | Incomum | 2 | Compre **2** cartas. |
@@ -270,7 +272,7 @@ Para quem quer o detalhe exato, nesta ordem:
 | **Rajada Arcana** | Incomum | 2 | Mira: empurre um oponente **7** casas para trás. |
 | **Fúria Selvagem** | Rara | 2 | Lançamento: role 2 dados e some os dois. |
 | **Clarão Ofuscante** | Rara | 2 | Mira: o oponente perde a próxima vez. |
-| **Portal Místico** | Épica | 3 | Vá direto ao próximo portal do caminho principal e atravesse-o (dentro de um reino, conta a partir do portal por onde você entrou). Um portal coberto por fogo negro ou gelo do Inverno é pulado. |
+| **Portal Místico** | Épica | 3 | Vá direto ao próximo portal do caminho principal e atravesse-o (dentro de um reino, conta a partir do portal por onde você entrou). Um portal coberto por fogo negro, neve ou gelo do Inverno é pulado. |
 | **Runa do Destino** | Épica | 3 | Lançamento: escolha o valor (1 a 6) da próxima rolagem. |
 | **Despertar Ancestral** | Épica | 3 | Bônus: **+3** nas próximas **2** rolagens. |
 | **Chamado do Abismo** | Épica | 3 | Mira: arraste ao inferno um oponente que esteja no caminho principal. Ele anda o inferno inteiro e sai na casa de onde foi tirado (é a carta do [Arrastar ao Inferno](#18b-anjo-caído-a-queda-de-seraphiel)). |
@@ -283,7 +285,7 @@ Cartas de **mira** escolhem um oponente no mesmo lugar (caminho principal ou o m
 
 ### Cartas exclusivas
 
-Cada personagem tem **5 cartas próprias** (a Têmis e o Akane já têm as 5; o Zarek ainda está com 4), embaralhadas só no baralho de quem o escolheu (1 cópia de cada). Só o dono as joga: roubadas, ficam mortas na mão de quem pegou. Não saem da Transmutação nem do jackpot da Aposta, e não se fundem. A lista completa (e as propostas dos outros personagens) está em [cartas-exclusivas.md](cartas-exclusivas.md).
+A meta é **5 cartas próprias** por personagem. Hoje só três têm cartas no jogo: Têmis e Akane (5 cada) e Zarek (4). Elas são embaralhadas só no baralho de quem escolheu o personagem (1 cópia de cada). Só o dono as joga: roubadas, ficam mortas na mão de quem pegou. Não saem da Transmutação nem do jackpot da Aposta, e não se fundem. A lista completa (e as propostas dos outros personagens) está em [cartas-exclusivas.md](cartas-exclusivas.md).
 
 | Carta | Dono | Raridade | Custo | Efeito |
 |---|---|---|---|---|
@@ -342,8 +344,8 @@ Só as cartas dessa tabela fundem. O baralho tem 3 cópias de Passo do Vento, Er
 | Proteção | De onde vem | Duração | O que bloqueia | O que **não** bloqueia |
 |---|---|---|---|---|
 | **Escudo Arcano** | Carta; Égide Arcana; Santuário Celestial | Até a próxima armadilha | Uma armadilha (comum, escondida ou do inferno), e aí se gasta | Maldições, perde a vez, nada mirado |
-| **Armadura Espectral** | Égide Arcana (2); Égide Celestial (3/6) | Rodadas, contando a atual | Tudo o que os **outros** fazem contra você: cartas e habilidades miradas, selos, aparições, neve e gelo da Fada, fogo negro, atropelo, o empurrão do Susanoo quando a Kage para na sua casa, Chuva de Flechas, Canhão de Plasma | Armadilhas, maldições e perde a vez do tabuleiro |
-| **Égide Celestial** | Relíquia | 3 rodadas (6 fundida) | O mesmo que a Armadura Espectral (ela vem junto) | O mesmo |
+| **Armadura Espectral** | Égide Arcana (4); Égide Celestial (3/9) | Rodadas, contando a atual | Tudo o que os **outros** fazem contra você: cartas e habilidades miradas, selos, aparições, neve e gelo da Fada, fogo negro, atropelo, o empurrão do Susanoo quando a Kage para na sua casa, Chuva de Flechas, Canhão de Plasma | Armadilhas, maldições e perde a vez do tabuleiro |
+| **Égide Celestial** | Relíquia | 3 rodadas (9 fundida) | O mesmo que a Armadura Espectral (ela vem junto) | O mesmo |
 | **Susanoo** | Despertar Ocular da Kage Rubra | 3 rodadas | Tudo o que a Armadura bloqueia, **mais** armadilhas, maldições e perde a vez do tabuleiro. Ninguém para na casa dela. | A **armadilha escondida** e o **fogo negro** de outra pessoa (atacam por dentro) |
 | **Indomável** | Habilidade do Bjorn | 3 rodadas | Tudo o que a Armadura bloqueia, **mais** armadilhas (escondidas também), maldições e perde a vez. Desfaz o tempo invertido. | Bênçãos continuam valendo (é bom) |
 | **Auréola Sagrada** | Bênção do céu | 3 rodadas | Armadilhas (escondidas também) e maldições | Perde a vez, nada mirado |
@@ -718,22 +720,22 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 **Marca da Justiça**
 - Todo oponente que **mirar** uma carta ou habilidade em alguém ganha **1 marca**, e o ataque acontece normalmente (menos quando mira nela com o Veredito armado: aí ele volta, ver abaixo). As marcas se acumulam.
 - Quem está marcado tem um **anel de runas dourado** girando nos pés (mais rápido e mais forte a cada marca) e o selo "⚖ Marcado ×N" no painel.
-- Contam só os ataques **mirados**: Rajada Arcana, Clarão Ofuscante, Chamado do Abismo, Troca de Destinos, Chamado da Fenda, Distorção Temporal, Arrastar ao Inferno, o roubo da Aposta. Chuva de Flechas, atropelo do Bjorn, selos, aparições, neve, gelo, fogo e fendas não marcam.
+- Contam só os ataques **mirados**: Rajada Arcana, Clarão Ofuscante, Chamado do Abismo, Troca de Destinos, Chamado da Fenda, Engrenagem do Tempo, Arrastar ao Inferno, o roubo da Aposta. Chuva de Flechas, atropelo do Bjorn, selos, aparições, neve, gelo, fogo e fendas não marcam.
 - A Têmis nunca é marcada. Sem a Têmis na partida, ninguém é marcado.
 
 **O que faz o Veredito**
 1. Ao carregar, o veredito **se arma sozinho, em segredo**: os oponentes veem `?` no lugar da carga dela (só aparece na vez dela), e nem banner nem log anunciam que ficou pronto.
 2. Armado, volta **em dobro contra quem atacou**: qualquer ataque mirado **nela** (com ou sem marca), e o ataque de um oponente **já marcado** (o 2º ataque dele) contra **qualquer outro jogador**, que vem para ela. O veredito se gasta e as marcas de quem atacou somem.
    - **Rajada Arcana:** quem jogou é que recua o **dobro** de casas (uma Rajada de 7 vira 14).
-   - **Clarão Ofuscante** e **Distorção Temporal:** quem mirou é que perde **2** vezes (ou anda de ré o dobro de rodadas). Como acontece antes de rolar, a vez dele acaba na hora.
+   - **Clarão Ofuscante** e **Engrenagem do Tempo:** quem mirou é que perde **2** vezes (ou anda de ré o dobro de rodadas). Como acontece antes de rolar, a vez dele acaba na hora.
    - **Chamado do Abismo** e **Arrastar ao Inferno:** quem mirou é que desce ao inferno (não tem como dobrar).
    - **Aposta do Coringa** (quando ganha): o Coringa é que entrega o **dobro** de cartas para ela.
    - **Troca de Destinos** e **Chamado da Fenda:** só são anulados.
 3. Contra outro jogador, o 1º ataque **passa**, mesmo com o veredito armado: só dá a marca. O 2º já é julgado. O número de marcas necessário fica em `MARKS_TO_JUDGE` (hoje 1).
 4. Cada julgamento **paga a Têmis**: **+2 de energia** e a carga recomeça em **1** (em vez de zero).
-5. Se o 3º ataque chega com ela **desarmada**, ele passa e as marcas do atacante **se apagam**: a contagem recomeça. Dá para fazer estratégia (atacar quando ela acabou de gastar o veredito), e o apagar das marcas acaba revelando que ela estava desarmada.
+5. Se um atacante já marcado ataca com ela **desarmada**, o ataque passa e as marcas do atacante **se apagam**: a contagem recomeça. Dá para fazer estratégia (atacar quando ela acabou de gastar o veredito), e o apagar das marcas acaba revelando que ela estava desarmada.
 
-**Desarmado**, o ataque passa normalmente e quem atacou ganha mais uma marca.
+**Desarmado**, o ataque de quem ainda não tem marca passa normalmente e dá a marca.
 
 **Passiva:** a própria Marca da Justiça (a Balança Cega foi removida em 01/11/2026).
 
@@ -810,10 +812,12 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 1. Uma onda varre a **sua casa e as 20 à frente**.
 2. Tudo o que foi lançado ali some, **de quem quer que seja** (seu também):
    - fogo negro;
+   - fogo escarlate do Akane (e o "pegando fogo" de quem estiver ali);
    - neve da Fada;
    - aparições;
    - selos;
-   - flechas que prendem armadilhas.
+   - flechas que prendem armadilhas;
+   - marcas do Vazio.
 
 **Detalhes e exceções**
 - Varre feitiços, não o tabuleiro: armadilhas comuns, maldições e escondidas ficam.
@@ -915,6 +919,7 @@ Personagem de zoeira (o primo do Daniel), com a enxada sempre na mão.
 - **Capina** (passiva, sempre ligada, não carrega nem tem botão): se ele **parar numa armadilha**, mesmo escondida, capina ela pela raiz antes que ela pegue. A armadilha some do tabuleiro para sempre e nada acontece com ele. Vale antes de qualquer proteção (não gasta escudo).
 - Conta como armadilha destruída para o Vazio do Zarek.
 - Maldições, perder a vez e as fendas do Vazio não são armadilhas: essas o pegam normalmente.
+
 ---
 
 ## 6. Glossário

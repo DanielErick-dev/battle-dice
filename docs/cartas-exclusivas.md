@@ -1,7 +1,7 @@
 # Cartas exclusivas por personagem
 
 Item do MVP: cada personagem soma **5 cartas próprias** ao baralho, no estilo da habilidade dele (decisão do Daniel em 01/11/2026: eram 4, passaram a 5). A 5ª pode ser um **Triunfo**: forte, cara, com custo extra.
-**Feitas e testadas no código:** Têmis (5) e Zarek (4, falta a 5ª). Os outros personagens ainda são **proposta**, esperando a aprovação do Daniel antes de serem implementados.
+**Feitas e testadas no código:** Têmis (5), Akane (5) e Zarek (4, falta a 5ª). Os outros personagens ainda são **proposta**, esperando a aprovação do Daniel antes de serem implementados.
 
 ## Regras gerais
 
@@ -12,7 +12,7 @@ Item do MVP: cada personagem soma **5 cartas próprias** ao baralho, no estilo d
 - **Fusão:** como só existe 1 cópia de cada, as exclusivas não se fundem.
 - **Custo e raridade:** seguem a tabela comum (Comum 1, Incomum 2, Rara 2, Épica 3, Lendária 4), salvo quando a carta define outro custo. Um Triunfo pode pedir também **cartas queimadas** da mão. O rodapé da carta mostra "Rara · Exclusiva".
 - **Mira:** as exclusivas que miram seguem as regras de sempre. Um oponente protegido gasta a carta ("BLOQUEADO"). Se quem jogou já tem a Marca da Justiça e o **Veredito Silencioso** está armado, a carta vai para a Têmis e volta dobrada para quem a jogou.
-- **Visual:** nenhuma carta pede asset novo do Meshy. Elas usam a arte procedural das cartas e os efeitos que já existem (empurrão, teletransporte, Vazio, balança do Veredito, desarme).
+- **Visual:** nenhuma carta pede asset novo do Meshy. As da Têmis e do Akane têm arte pintada (`public/cards/`); as do Zarek usam a arte procedural. Os efeitos são os que já existem (empurrão, teletransporte, Vazio, balança do Veredito, desarme).
 
 ## Implementadas
 
@@ -34,6 +34,16 @@ Item do MVP: cada personagem soma **5 cartas próprias** ao baralho, no estilo d
 | **Fenda Faminta** | Rara · 2 | O Vazio engole a primeira armadilha, maldição ou "perde a vez" **visível** nas próximas **15** casas, **sem gastar a carga**. | Pula casas cobertas (neve, gelo, fogo negro, presas por flecha, já destruídas). Armadilhas escondidas continuam secretas. Bloqueada com o Vazio cheio ou sem nada à vista. |
 | **Eco do Vazio** | Épica · 3 | A última coisa guardada no Vazio vira duas. | Bloqueada com o Vazio vazio ou cheio (4). |
 | **Chamado da Fenda** | Épica · 3 | Mira: puxa um oponente de volta até a fenda do Zarek mais próxima **atrás dele**, e ela o atinge. | Só aparecem como alvo os oponentes com uma fenda dele atrás. Escudo Arcano, Auréola etc. protegem normalmente. Contra a Têmis armada, a carta só é **anulada** (as fendas nunca ferem o Zarek). |
+
+### Akane (Zona de Incêndio)
+
+| Carta | Raridade · custo | Efeito | Interações |
+|---|---|---|---|
+| **Sangue Quente** | Comum · 1 | Gasta as Chamas Internas: todo oponente a até **7** casas (à frente ou atrás) volta **3** casas por chama. | Sem chamas, não dá para jogar. Não é mirada. |
+| **Passo de Brasa** | Comum · 1 | Neste turno, se a rolagem parar numa casa em chamas, ele desliza mais **5** casas. | A nova casa tem efeito. |
+| **Febre Escarlate** | Rara · 2 | Mirada automaticamente no oponente mais à frente: ele pega fogo e **5** casas antes e depois dele queimam. | Protegido: BLOQUEADO. O Veredito da Têmis só a anula. |
+| **Combustível Puro** | Rara · 3 | Nas próximas **2** rolagens dele, 2 dados somados sempre que algum oponente estiver pegando fogo. | Só sem outra carta de lançamento. |
+| **Supernova Escarlate** (Triunfo) | Épica · 5 + queimar 1 carta | Absorve todo o fogo escarlate e o fogo de quem queima: anda **2** casas por casa em chamas e por oponente queimando. | Sem teto. Sem fogo nenhum, não dá para jogar. |
 
 ## Propostas (aguardando aprovação)
 
@@ -96,7 +106,7 @@ Resolve a queixa de "não ter carta para transmutar".
 | Toque da Morte | Rara · 2 | Mira: o oponente descarta a carta mais cara da mão. |
 | Exército de Ossos | Épica · 3 | Bônus: +1 na próxima rolagem para cada carta no seu descarte (máx. +5). |
 
-### Escriba da Carne (Selos Proibidos)
+### Escriba da Carne (Escritura dos 4 Selos)
 | Carta | Raridade · custo | Efeito |
 |---|---|---|
 | Assinatura | Comum · 1 | Escreve 1 selo do Dízimo numa casa a até 10 de você. |
@@ -120,7 +130,7 @@ Resolve a queixa de "não ter carta para transmutar".
 | Chama Negra | Rara · 2 | Acende fogo negro numa casa à frente (até 8), por 5 rodadas. |
 | Amaterasu Concentrado | Épica · 3 | Todas as suas chamas acesas ganham +3 rodadas. |
 
-### Fada Cristalina (Florescer da Fada)
+### Fada Cristalina (Florescimento Feérico)
 | Carta | Raridade · custo | Efeito |
 |---|---|---|
 | Floco | Comum · 1 | Encanta (neve dela) a próxima casa nociva à frente, até 6 casas. |
@@ -136,15 +146,6 @@ Pode mudar quando ele ganhar as 4 habilidades dos elementos.
 | Sopro | Incomum · 2 | Mira: empurra 4 casas. |
 | Redemoinho | Rara · 2 | Mira: troca de lugar com um oponente a até 3 casas de você. |
 | Furacão | Épica · 3 | Todos os oponentes no seu alcance voltam 3 casas. |
-
-### Akane (Zona de Incêndio) — implementado em 02/11/2026
-| Carta | Raridade · custo | Efeito |
-|---|---|---|
-| Sangue Quente | Comum · 1 | Gasta as Chamas Internas: oponentes a até 7 casas voltam 3 por chama. |
-| Passo de Brasa | Comum · 1 | Se a rolagem do turno parar no fogo, desliza +5. |
-| Febre Escarlate | Rara · 2 | O líder pega fogo e 5 casas de cada lado dele queimam. |
-| Combustível Puro | Rara · 3 | 2 rolagens com 2 dados enquanto algum oponente queima. |
-| Supernova Escarlate | Épica · 5 + 1 carta | Absorve todo o fogo e anda 2 por casa em chamas ou oponente queimando. |
 
 ### Bjorn Presa-Gélida (Indomável)
 | Carta | Raridade · custo | Efeito |
@@ -162,7 +163,7 @@ Pode mudar quando ele ganhar as 4 habilidades dos elementos.
 | Onda | Rara · 2 | Mira: empurra 5 casas. |
 | Tesouro Afundado | Épica · 3 | Compre 2 cartas e ganhe +2 de energia. |
 
-### Seraphiel (Bênção Seráfica → Arrastar ao Inferno depois da Queda)
+### Seraphiel (Bênção do Serafim → Arrastar ao Inferno depois da Queda)
 **Decidido pelo Daniel (29/10):** o Seraphiel tem **dois jogos de 4 cartas**.
 - Começa com as **4 angelicais** no baralho.
 - Quando cai no inferno e vira Anjo Caído, as angelicais são **jogadas fora automaticamente**: saem da mão, do baralho e do descarte. As **4 caídas** entram embaralhadas no baralho dele.
@@ -184,7 +185,7 @@ Pode mudar quando ele ganhar as 4 habilidades dos elementos.
 | Asa Quebrada | Rara · 2 | Mira: o oponente desce até o portal infernal mais próximo atrás dele (se houver). |
 | Coroa de Cinzas | Épica · 3 | Uma maldição do inferno aleatória cai num oponente à sua escolha. |
 
-### Cronos (Distorção Temporal)
+### Cronos (Engrenagem do Tempo)
 | Carta | Raridade · custo | Efeito |
 |---|---|---|
 | Tique-Taque | Comum · 1 | +1 de carga na habilidade. |
@@ -203,10 +204,10 @@ Pode mudar quando ele ganhar as 4 habilidades dos elementos.
 ## Próximos passos (Daniel, 29/10)
 
 1. **Repensar as 4 cartas de cada personagem**, uma por uma, junto com o Daniel. As propostas acima são só ponto de partida e várias se repetem ("empurra X casas", "+carga"). A ideia é que cada carta só faça sentido naquele personagem.
-2. **Design visual das cartas:** hoje a arte é desenhada em código (SVG em `CardArt.tsx`). As cartas precisam de um visual bem trabalhado: moldura por raridade, arte de cada carta e marca de exclusiva com a cor do personagem. Definir o estilo (ilustração gerada, render 3D do Meshy ou outra coisa) antes de produzir as artes.
+2. **Design visual das cartas:** hoje quase toda a arte é desenhada em código (SVG em `CardArt.tsx`); só as cartas da Têmis e do Akane têm arte pintada. As cartas precisam de um visual bem trabalhado: moldura por raridade, arte de cada carta e marca de exclusiva com a cor do personagem. Definir o estilo (ilustração gerada, render 3D do Meshy ou outra coisa) antes de produzir as artes.
 
 ## Pontos em aberto
 
 - **Seraphiel:** decidido, são dois jogos (angelical e caído), veja acima. No código, a carta caída pertence à habilidade `hellsDrag` e a troca acontece no `fallIfInHell`.
 - **Repetições:** várias propostas repetem "empurra X casas" ou "+carga". Vale trocar algumas por algo mais único antes de implementar.
-- **Equilíbrio:** a Balança da Justiça e o Eco do Vazio são as mais fortes das já feitas. Observar nos testes.
+- **Equilíbrio:** o Eco do Vazio é uma das mais fortes das já feitas. Observar nos testes.
