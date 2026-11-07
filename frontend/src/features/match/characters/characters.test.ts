@@ -1,12 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  characterFor,
-  CHARACTERS,
-  DEFAULT_CHARACTER_ID,
-  MAX_LOCAL_PLAYERS,
-  parseCharacterList,
-  rosterOf,
-} from "./characters";
+import { characterFor, CHARACTERS, DEFAULT_CHARACTER_ID, MAX_LOCAL_PLAYERS, parseCharacterList, rosterOf } from ".";
 
 describe("local players", () => {
   it("keeps the playable characters of a list, in order, at most MAX_LOCAL_PLAYERS", () => {
