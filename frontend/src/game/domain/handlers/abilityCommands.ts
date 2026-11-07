@@ -1,58 +1,13 @@
-import { abilityBlocker, type AbilityId } from "../abilities/ability";
-import { LEVITATION_TURNS } from "../abilities/basic";
-import { fireZone } from "../characters/akane/fire";
-import { loseArrowRain } from "../characters/archer/arrowRain";
-import { unleash } from "../characters/bjorn/untamed";
-import { playCardGamble } from "../characters/jester/cardGamble";
+import { abilityBlocker } from "../abilities/ability";
+import { ABILITY_EFFECTS } from "../abilities/effects";
 import { GameRuleError } from "../core/errors";
-import { playerIn, startDraft, updatePlayer, type Draft } from "../core/draft";
-import { bloom, freezeTiles } from "../characters/fairy/winter";
-import { lightFlames, raiseArmour } from "../characters/kage/flames";
+import { playerIn, startDraft, updatePlayer } from "../core/draft";
 import { resolveWard } from "../board/harm";
-import { cleansingTide } from "../characters/auric/cleansingTide";
-import { plasmaCannon } from "../characters/alva/plasmaCannon";
-import { seraphBlessing } from "../characters/seraphiel/blessing";
-import { timeWarp } from "../characters/cronos/timeWarp";
-import { resurrectCards } from "../characters/necromancer/resurrection";
-import { writeSeals } from "../characters/scribe/seals";
-import { hellsDrag, receiveGrace } from "../characters/seraphiel/seraph";
-import { summonSpecters, takePlunder } from "../characters/warden/specters";
-import { transmuteCards } from "../characters/alchemist/transmutation";
-import { placeVoid, seize } from "../characters/zarek/void";
-import type { PlayerId } from "../types";
+import { receiveGrace } from "../characters/seraphiel/seraph";
+import { takePlunder } from "../characters/warden/specters";
+import { placeVoid } from "../characters/zarek/void";
 import { assertCanAct, KEEPS_TURN, pendingAnswer, settle } from "./shared";
-import type { CommandHandlers, CommandOf, GameDependencies } from "./types";
-
-type AbilityEffect = (
-  draft: Draft,
-  playerId: PlayerId,
-  choice: CommandOf<"activateAbility">,
-  deps: GameDependencies,
-) => void;
-
-/** What each activated ability does; reactive ones (the Void's swallowing, Tailwind…) only answer prompts or boost rolls. */
-const ABILITY_EFFECTS: Partial<Record<AbilityId, AbilityEffect>> = {
-  fireZone: (draft, playerId) => fireZone(draft, playerId),
-  seraphBlessing: (draft, playerId) => seraphBlessing(draft, playerId),
-  hellsDrag: (draft, playerId, { targetId }) => hellsDrag(draft, playerId, targetId),
-  cleansingTide: (draft, playerId) => cleansingTide(draft, playerId),
-  untamed: (draft, playerId) => unleash(draft, playerId),
-  timeWarp: (draft, playerId, { power, targetId }) => timeWarp(draft, playerId, power, targetId),
-  plasmaCannon: (draft, playerId) => plasmaCannon(draft, playerId),
-  levitation: (draft, playerId) => updatePlayer(draft, playerId, () => ({ levitating: LEVITATION_TURNS })),
-  transmutation: (draft, playerId, { cardUids = [] }) => transmuteCards(draft, playerId, cardUids),
-  resurrection: (draft, playerId, { cardUids = [] }) => resurrectCards(draft, playerId, cardUids),
-  forbiddenSeals: (draft, playerId, { sealTiles = [] }) => writeSeals(draft, playerId, sealTiles),
-  spectralApparitions: (draft, playerId, { specterTiles = [] }) => summonSpecters(draft, playerId, specterTiles),
-  arrowRain: (draft, playerId, { volley }) => loseArrowRain(draft, playerId, volley),
-  cardGamble: (draft, playerId, { targetId, power }, deps) =>
-    playCardGamble(draft, playerId, deps.rollDice, targetId, power),
-  fairyBloom: (draft, playerId, { frostTiles = [] }) =>
-    draft.winter ? freezeTiles(draft, playerId, frostTiles) : bloom(draft, playerId),
-  theVoid: (draft, playerId, { seizeTile }) => seize(draft, playerId, seizeTile),
-  ocularAwakening: (draft, playerId, { power, flameTiles = [] }) =>
-    power === "armour" ? raiseArmour(draft, playerId) : lightFlames(draft, playerId, flameTiles),
-};
+import type { CommandHandlers } from "./types";
 
 export const abilityCommands: CommandHandlers<
   "activateAbility" | "plunderCards" | "answerWard" | "chooseGrace" | "placeVoid"
