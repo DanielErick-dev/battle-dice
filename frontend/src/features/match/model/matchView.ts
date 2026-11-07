@@ -168,7 +168,7 @@ interface VolleyView {
 }
 
 /**
- * The Berserker steps ahead of `victim`, shoves (`shove`), they fly back (`flying`), then he turns to
+ * Bjorn steps ahead of `victim`, shoves (`shove`), they fly back (`flying`), then he turns to
  * run on (`over`, until he moves again).
  */
 interface TrampleView {
@@ -263,7 +263,7 @@ export interface MatchFx {
   dash: DashView | null;
   volley: VolleyView | null;
   tide: TideView | null;
-  /** Null once the Berserker runs on. */
+  /** Null once Bjorn runs on. */
   trample: TrampleView | null;
   drag: DragView | null;
   /** The camera follows it to each tile. */

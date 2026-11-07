@@ -3,11 +3,11 @@
 import { ContactShadows } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Suspense, useRef, useState } from "react";
-import { CHARACTERS, type CharacterDefinition, type CharacterId } from "@/features/match/characters";
+import { CHARACTERS, type CharacterDefinition, type CharacterId } from "@/features/characters";
 import { preferences, usePreference } from "@/features/settings/preferences";
 import { cn } from "@/lib/utils";
 import { useStageSounds } from "../audio/useStageSounds";
-import { GreekColumns } from "@/features/match/scene/character/themis/GreekColumns";
+import { GreekColumns } from "@/features/characters/themis/GreekColumns";
 import { FIGURE_HEIGHT, FLOOR_Y } from "./layout";
 import { Presentation } from "./Presentation";
 import { RisingMotes } from "./RisingMotes";

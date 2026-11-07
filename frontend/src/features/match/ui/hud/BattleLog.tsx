@@ -2,7 +2,7 @@ import { ChevronDown, ScrollText } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Player } from "@/game/domain/types";
 import { cn } from "@/lib/utils";
-import { playerColor } from "../../characters";
+import { playerColor } from "@/features/characters";
 import type { LogEntry } from "../../model/matchView";
 import { battleLogLine } from "../battleLogText";
 

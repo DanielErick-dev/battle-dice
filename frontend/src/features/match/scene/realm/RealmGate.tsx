@@ -5,7 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { AdditiveBlending, DoubleSide, type Group, type ShaderMaterial } from "three";
 import type { RealmKind } from "@/game/domain/types";
-import { TILE_HEIGHT, type Vec3 } from "../boardLayout";
+import { TILE_HEIGHT, type Vec3 } from "@/features/shared/board/boardLayout";
 import { NOISE_GLSL } from "./noise";
 
 const UV_VERTEX = /* glsl */ `

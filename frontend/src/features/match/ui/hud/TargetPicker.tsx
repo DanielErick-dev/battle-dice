@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { Player, PlayerId } from "@/game/domain/types";
 import { cn } from "@/lib/utils";
-import { playerColor } from "../../characters";
+import { playerColor } from "@/features/characters";
 
 interface TargetPickerProps {
   title: string;

@@ -1,9 +1,9 @@
 /** Card effects on the figures and the board: auras, orbs, the shield and the one-shot casts. */
 import { AWAKENING_BONUS } from "@/game/domain/cards/play";
 import type { DiceBonus, DiceBoost } from "@/game/domain/types";
-import { ArcaneBeam, BoostOrb, HealBurst, ShieldBubble, WindCloud, type OrbPalette } from "../CardEffects";
-import { EnergyAura } from "../EnergyAura";
-import { tokenPosition } from "../tokenPlacement";
+import { ArcaneBeam, BoostOrb, HealBurst, ShieldBubble, WindCloud, type OrbPalette } from "../vfx/CardEffects";
+import { EnergyAura } from "../vfx/EnergyAura";
+import { tokenPosition } from "../token/tokenPlacement";
 import type { BoardFx, TokenFx } from "./types";
 
 export function PoweredAura({ token }: { token: TokenFx }) {

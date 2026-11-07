@@ -1,7 +1,7 @@
 import { Vector3 } from "three";
 import { describe, expect, it } from "vitest";
-import { DEFAULT_TIMINGS } from "../../config";
-import { TILE_PITCH, type Vec3 } from "../boardLayout";
+import { DEFAULT_TIMINGS } from "@/features/shared/config";
+import { TILE_PITCH, type Vec3 } from "@/features/shared/board/boardLayout";
 import {
   advanceMotion,
   ARRIVE_SECONDS,

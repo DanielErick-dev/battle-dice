@@ -3,16 +3,16 @@ import { currentPlayer } from "@/game/domain/handlers/shared";
 import type { GameEvent } from "@/game/domain/core/events";
 import type { GameState } from "@/game/domain/types";
 import { riftsOf } from "@/game/domain/characters/zarek/void";
-import type { PlaybackTimings } from "../../config";
+import type { PlaybackTimings } from "@/features/shared/config";
 import { sealViews, specterViews, withPlayerAt, type MatchView } from "../matchView";
 import { turnSteps } from "./turn";
 import { tilesSteps } from "./tiles";
 import { cardsSteps } from "./cards";
 import { abilitiesSteps } from "./abilities";
-import { berserkerSteps } from "./berserker";
-import { kunoichiSteps } from "./kunoichi";
+import { bjornSteps } from "./bjorn";
+import { kageSteps } from "./kage";
 import { fairySteps } from "./fairy";
-import { seraphSteps } from "./seraph";
+import { seraphielSteps } from "./seraphiel";
 import { spectersSteps } from "./specters";
 import { sealsSteps } from "./seals";
 import { arrowRainSteps } from "./arrowRain";
@@ -30,10 +30,10 @@ const HANDLERS: StepHandlers<GameEvent["type"]> = {
   ...tilesSteps,
   ...cardsSteps,
   ...abilitiesSteps,
-  ...berserkerSteps,
-  ...kunoichiSteps,
+  ...bjornSteps,
+  ...kageSteps,
   ...fairySteps,
-  ...seraphSteps,
+  ...seraphielSteps,
   ...spectersSteps,
   ...sealsSteps,
   ...arrowRainSteps,

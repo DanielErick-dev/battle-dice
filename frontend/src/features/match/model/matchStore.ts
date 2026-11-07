@@ -5,7 +5,7 @@ import type { CardId } from "@/game/domain/cards/catalog";
 import { GameRuleError, type GameErrorCode } from "@/game/domain/core/errors";
 import type { GameCommand } from "@/game/domain/core/commands";
 import type { Board, TimedBlessing } from "@/game/domain/types";
-import { DEFAULT_TIMINGS, type PlaybackTimings } from "../config";
+import { DEFAULT_TIMINGS, type PlaybackTimings } from "@/features/shared/config";
 import { canActivateAbility, canPlayCard, canRoll, createInitialView, type MatchView } from "./matchView";
 import { updateSteps, type PlaybackStep } from "./playback";
 

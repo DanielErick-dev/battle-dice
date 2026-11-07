@@ -16,14 +16,17 @@ frontend/src/
 │   │   ├── ui/              ← HUD, cartas, banners, menus de escolha (HTML/CSS)
 │   │   │   └── abilities/   ← registro: o que "Usar" faz em cada habilidade que pergunta algo
 │   │   ├── scene/           ← mundo 3D (React Three Fiber): tabuleiro, personagens, efeitos
-│   │   ├── audio/           ← som sintetizado: efeitos, música, ambiente, falas
-│   │   └── characters.ts    ← ficha visual de cada personagem (modelo, clipes, cores, efeitos)
+│   │   └── audio/           ← som sintetizado: efeitos, música, ambiente, falas
+│   ├── characters/          ← fichas (`sheets/<id>.ts`) e visuais 3D de cada personagem; usado por menu e partida
+│   ├── shared/              ← base neutra: `config.ts` (tempos), `board/` (geometria do tabuleiro), `three/` (texturas de canvas, `useAge`)
 │   ├── menu/                ← seleção de personagem com as intros
 │   └── settings/            ← configurações
 ├── app/                     ← rotas do Next.js (/, /jogar, /partida, /configuracoes)
 ├── components/ui/           ← peças visuais genéricas (button, card, badge) no estilo shadcn/ui
 └── lib/                     ← utilitários
 ```
+
+**Direção das dependências em `features/`:** `menu` e `match` importam `characters`, que importa `shared`. `characters` e `shared` não importam `menu` nem `match`, e `match` não importa `menu`.
 
 **Regra de ouro:** `game/` não importa nada de `features/`. As regras do jogo não sabem que existe 3D, som ou React. O ESLint garante isso: em `src/game/**`, importar `features/`, `app/`, `components/`, React, Next ou Three.js dá erro, e `game/domain/` também não pode importar `game/application/`. Isso permite:
 

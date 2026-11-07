@@ -1,6 +1,6 @@
 import { Vector3 } from "three";
 import { describe, expect, it } from "vitest";
-import type { ClipLengths } from "../../characters";
+import type { ClipLengths } from "@/features/characters";
 import { KNOCKED_LANDING_SECONDS, LUNGE_DISTANCE, LUNGE_SECONDS } from "./trample";
 import type { MotionFrame, Segment } from "./motion";
 import {
@@ -166,7 +166,7 @@ describe("the clip a figure plays", () => {
 });
 
 describe("a trample", () => {
-  it("waits for the Berserker to settle, turns him against the path and lunges without a shove clip", () => {
+  it("waits for Bjorn to settle, turns him against the path and lunges without a shove clip", () => {
     const acts = createTokenActs();
     const shove = signals({ shove: 4 });
     const moving = stepPose(acts, input(0, { signals: shove, motion: run(false) }));

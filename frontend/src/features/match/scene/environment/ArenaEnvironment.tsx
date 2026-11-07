@@ -4,7 +4,7 @@ import { Stars } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import type { Group } from "three";
-import type { BoardLayout } from "../boardLayout";
+import type { BoardLayout } from "@/features/shared/board/boardLayout";
 import type { MapId } from "../../maps";
 import { Dungeon } from "./Dungeon";
 import { Island } from "./Island";

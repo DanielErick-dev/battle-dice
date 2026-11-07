@@ -1,6 +1,6 @@
 /** Tile effects anyone can set off: a realm's gate opening and a hidden trap springing. */
-import { effectKey } from "../effectKey";
-import { HiddenTrapBurst } from "../HiddenTrapBurst";
+import { effectKey } from "../vfx/effectKey";
+import { HiddenTrapBurst } from "../vfx/HiddenTrapBurst";
 import { RealmGate } from "../realm/RealmGate";
 import type { BoardFx } from "./types";
 

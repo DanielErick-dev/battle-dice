@@ -1,5 +1,5 @@
 import { seededRandom } from "@/game/domain/core/random";
-import type { Vec3 } from "../boardLayout";
+import type { Vec3 } from "@/features/shared/board/boardLayout";
 import {
   groundAt,
   riverX,

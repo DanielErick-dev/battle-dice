@@ -16,9 +16,9 @@ import {
   SphereGeometry,
 } from "three";
 import { seededRandom } from "@/game/domain/core/random";
-import type { Vec3 } from "../boardLayout";
-import { PROP_HEIGHT, usePropMesh, type PropId } from "../character/core/props";
-import { useSoftDisc } from "../character/shared/softDisc";
+import type { Vec3 } from "@/features/shared/board/boardLayout";
+import { PROP_HEIGHT, usePropMesh, type PropId } from "@/features/characters/core/props";
+import { useSoftDisc } from "@/features/characters/shared/softDisc";
 import { planCoast } from "./coast";
 import { paintDirtRoad, TrailRoad } from "./road";
 import { Instances, type Placed } from "./instances";

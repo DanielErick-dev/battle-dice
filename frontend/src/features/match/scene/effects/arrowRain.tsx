@@ -1,10 +1,10 @@
 /** Elven Archer: her bow, the volley and the traps its arrows pin down. */
 import { useMemo } from "react";
 import type { Object3D } from "three";
-import { playerColor } from "../../characters";
-import { ArrowVolley } from "../character/archer/ArrowVolley";
-import { PinnedTrapMark } from "../character/archer/PinnedTrapMark";
-import { BackBow } from "../character/archer/BackBow";
+import { playerColor } from "@/features/characters";
+import { ArrowVolley } from "@/features/characters/archer/ArrowVolley";
+import { PinnedTrapMark } from "@/features/characters/archer/PinnedTrapMark";
+import { BackBow } from "@/features/characters/archer/BackBow";
 import type { BoardFx, TokenFx } from "./types";
 
 /** The leaf green of the archer who shot them. */

@@ -2,7 +2,7 @@
 import { cardCost } from "@/game/domain/cards/catalog";
 import { throwOnPile } from "@/game/domain/cards/decks";
 import type { CardInstance, Player, PlayerId } from "@/game/domain/types";
-import type { PlaybackTimings } from "../../config";
+import type { PlaybackTimings } from "@/features/shared/config";
 import { nextFxId, withFx, withPlayer, withPlayerAt, type MatchView } from "../matchView";
 import type { PlaybackStep, StepHandlers } from "./types";
 

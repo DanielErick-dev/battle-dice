@@ -211,7 +211,7 @@ export class SynthSounds implements MatchSounds {
   abilityVoice = (ability: AbilityId): void => {
     const line = ABILITY_VOICES[ability];
     if (!line) return;
-    // Until the recording is in, the Berserker roars all the same.
+    // Until the recording is in, Bjorn roars all the same.
     void this.engine.playSample(voiceTake(line), "voice", line.delay).then((played) => {
       if (!played && ability === "untamed") this.roar(line.delay);
     });

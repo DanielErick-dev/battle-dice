@@ -1,4 +1,4 @@
-import { DEFAULT_TIMINGS } from "../../config";
+import { DEFAULT_TIMINGS } from "@/features/shared/config";
 
 /** Without a shove clip: a lunge this far forward and back, over this long. */
 export const LUNGE_DISTANCE = 0.45;

@@ -2,7 +2,7 @@
 
 import { Layers, Lock, Play, Settings, ShoppingBag, Users, type LucideIcon } from "lucide-react";
 import Link from "next/link";
-import { CHARACTERS, parseCharacterList } from "@/features/match/characters";
+import { CHARACTERS, parseCharacterList } from "@/features/characters";
 import { ABILITY_TEXT } from "@/features/match/ui/abilityText";
 import { preferences, usePreference } from "@/features/settings/preferences";
 import { LazyCharacterStage as CharacterStage } from "../stage/LazyCharacterStage";

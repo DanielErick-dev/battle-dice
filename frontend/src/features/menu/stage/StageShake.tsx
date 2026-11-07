@@ -7,7 +7,7 @@ import { Vector3 } from "three";
 /** How far the view jolts in the strongest gust (stage units). */
 const SHAKE = 0.035;
 
-/** Shakes the camera with the wind of an entrance's wingbeats (see seraphEntrance). */
+/** Shakes the camera with the wind of an entrance's wingbeats (see seraphielEntrance). */
 export function StageShake({ gust }: { gust: RefObject<number> }) {
   const applied = useRef(new Vector3());
   useFrame(({ camera, clock }) => {

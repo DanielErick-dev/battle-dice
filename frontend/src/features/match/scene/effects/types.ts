@@ -1,9 +1,9 @@
 import type { ComponentType, RefObject } from "react";
 import type { Object3D, Vector3 } from "three";
 import type { Board, Player, PlayerId, TileId } from "@/game/domain/types";
-import type { CharacterClip, CharacterDefinition } from "../../characters";
+import type { CharacterClip, CharacterDefinition } from "@/features/characters";
 import type { CardCastView, MatchView } from "../../model/matchView";
-import type { BoardLayout } from "../boardLayout";
+import type { BoardLayout } from "@/features/shared/board/boardLayout";
 
 /** What the view says a figure is doing now (see tokenSignals). */
 export interface TokenSignals {
@@ -19,7 +19,7 @@ export interface TokenSignals {
   isPowered: boolean;
   /** Sits on its chair while it has lost turns (not while snowbound or chained). */
   isResting: boolean;
-  /** A fresh id per trample this figure acts out as the Berserker. */
+  /** A fresh id per trample this figure acts out as Bjorn. */
   shove: number | null;
   /** A fresh id per trample (or Susanoo) that sends this figure flying. */
   knocked: number | null;
@@ -71,7 +71,7 @@ export interface TokenFx extends TokenSignals {
   hopBurst: number | null;
   shoveAt: number | null;
   landing: number | null;
-  /** The model has a shove clip (else the Berserker lunges in code). */
+  /** The model has a shove clip (else Bjorn lunges in code). */
   hasShoveClip: boolean;
 }
 

@@ -1,7 +1,7 @@
 /** What a figure is acting out each frame: the clip it plays and how its body leans, spins and hides. */
-import type { CharacterClip, CharacterDefinition, ClipLengths } from "../../characters";
-import { DEFAULT_TIMINGS } from "../../config";
-import type { Vec3 } from "../boardLayout";
+import type { CharacterClip, CharacterDefinition, ClipLengths } from "@/features/characters";
+import { DEFAULT_TIMINGS } from "@/features/shared/config";
+import type { Vec3 } from "@/features/shared/board/boardLayout";
 import { KNOCKED_LANDING_SECONDS, LUNGE_DISTANCE, LUNGE_SECONDS } from "./trample";
 import type { TokenSignals } from "../effects/types";
 import { easeInOut, headingOf, type MotionFrame } from "./motion";
@@ -38,7 +38,7 @@ export interface TokenActs {
   lastCast: number | null;
   castStartedAt: number | null;
   lastShove: number | null;
-  /** Waiting for the Berserker to reach his spot ahead of them. */
+  /** Waiting for Bjorn to reach his spot ahead of them. */
   shovePending: boolean;
   shoveStartedAt: number | null;
   lastKnocked: number | null;
@@ -203,7 +203,7 @@ export function stepPose(acts: TokenActs, input: PoseInput): Pose {
   if (castProgress >= 1) acts.castStartedAt = null;
   const casting = acts.castStartedAt !== null;
 
-  // A trample: the Berserker reaches his spot, turns on them and shoves, then faces the path again.
+  // A trample: Bjorn reaches his spot, turns on them and shoves, then faces the path again.
   let shoveAt: number | null = null;
   if (signals.shove !== acts.lastShove) {
     acts.shovePending = signals.shove !== null;

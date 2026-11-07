@@ -25,7 +25,7 @@ Linhas = código da própria pasta (sem subpastas e sem testes), contadas em 29/
 
 | Pasta | Status | Linhas | Feito | Falta |
 |---|---|---|---|---|
-| `match/` (raiz) | ⬜ | 807 | | `characters.ts` (528 linhas) com a ficha de 20 personagens: etapa 5, uma ficha por personagem. |
+| `match/` (raiz) | 🟡 | | Fichas e `config.ts` saíram daqui (07/11). | Revisar `boards.ts`, `maps.ts` e `diceFaces.ts`. |
 | `match/model/` | ✅ | 1178 | `view.fx` separado do estado de jogo (etapa 3). | |
 | `match/model/playback/` | ✅ | 1720 | Um arquivo por tema, mapa tipado de eventos (etapa 1). | |
 | `match/audio/` | ⬜ | 991 | Tem README. | Revisar. |
@@ -34,10 +34,10 @@ Linhas = código da própria pasta (sem subpastas e sem testes), contadas em 29/
 | `match/ui/abilities/` | ✅ | 433 | Registro `ABILITY_FLOWS` (etapa 2). | |
 | `match/ui/cards/` | ⬜ | 1416 | | Revisar. |
 | `match/ui/hud/` | ⬜ | 1423 | | Revisar. |
-| `match/scene/` (raiz) | ✅ | 4380 | Efeitos fora do `PlayerToken`/`BoardScene` (etapa 4). `PlayerToken` 571 → 243 linhas: movimento e pose viraram funções puras e testadas em `token/` (29/10). | |
+| `match/scene/` (raiz) | ✅ | | Raiz separada em `board/`, `camera/`, `token/` e `vfx/` (07/11). Efeitos fora do `PlayerToken`/`BoardScene` (etapa 4). `PlayerToken` 571 → 243 linhas: movimento e pose viraram funções puras e testadas em `token/` (29/10). | |
 | `match/scene/token/` | ✅ | 538 | Criada em 29/10: `motion.ts` (caminho e segmentos) e `pose.ts` (qual clipe toca), com 41 testes. | |
 | `match/scene/effects/` | ✅ | 801 | Registro de efeitos por lugar (etapa 4). | |
-| `match/scene/character/` | ✅ | 9442 | `clipPlayback.ts` testado (29/10). Separada em 01/11: `core/` (modelo, ossos, props, mão), `accessories/` (asas, coroa, cadeira), `shared/` (texturas, hash, brilho) e uma pasta por personagem; contas puras com teste (`frostSlamLayout`, `limbBolts`, `levitation`, `verdictTimeline`). Tem README. | `ScribeIntro`, `SealScroll` e `TidalWave` ainda com ~340 linhas. |
+| `features/characters/` (ex-`match/scene/character/`) | ✅ | | Fichas em `sheets/` e pasta movida para fora da partida (etapa 5, 07/11). `clipPlayback.ts` testado (29/10). Separada em 01/11: `core/` (modelo, ossos, props, mão), `accessories/` (asas, coroa, cadeira), `shared/` (texturas, hash, brilho) e uma pasta por personagem; contas puras com teste (`frostSlamLayout`, `limbBolts`, `levitation`, `verdictTimeline`). Tem README. | `ScribeIntro`, `SealScroll` e `TidalWave` ainda com ~340 linhas. |
 | `match/scene/environment/` | ⬜ | 2474 | Mapas escurecidos e sem figurantes (29/10, só visual). | Revisar a estrutura. |
 | `match/scene/realm/` | ⬜ | 1124 | | Revisar. |
 | `match/scene/vfx/` | ⬜ | 58 | | Revisar. |

@@ -1,9 +1,9 @@
 /** Emerald Alchemist: the vial held through the cast, then thrown. */
 import type { Object3D } from "three";
-import { HeldVial } from "../character/alchemist/HeldVial";
-import { VialShatter } from "../character/alchemist/VialShatter";
-import { FIGURE_HEIGHT } from "../character/core/figure";
-import { Delayed } from "../TrapSmash";
+import { HeldVial } from "@/features/characters/alchemist/HeldVial";
+import { VialShatter } from "@/features/characters/alchemist/VialShatter";
+import { FIGURE_HEIGHT } from "@/features/characters/core/figure";
+import { Delayed } from "../vfx/TrapSmash";
 import type { TokenFx } from "./types";
 
 export function HandVial({ token, figure }: { token: TokenFx; figure: Object3D }) {

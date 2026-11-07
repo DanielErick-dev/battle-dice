@@ -3,8 +3,8 @@
 import { Sparkles } from "@react-three/drei";
 import { useEffect, useMemo } from "react";
 import { BackSide, PlaneGeometry } from "three";
-import { useCanvasTexture, type Painter } from "@/features/menu/stage/scenery/kit/textures";
-import type { Vec3 } from "../boardLayout";
+import { useCanvasTexture, type Painter } from "@/features/shared/three/canvasTexture";
+import type { Vec3 } from "@/features/shared/board/boardLayout";
 import { Flames } from "./Dungeon";
 import { ChimneySmoke } from "./Island";
 import { TRAIL_GROUND } from "./islandTerrain";

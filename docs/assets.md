@@ -10,7 +10,7 @@
 
 ## Padrão da pasta de origem
 
-**O nome da pasta é o id do personagem no código** (o mesmo de `characters.ts` e do GLB final).
+**O nome da pasta é o id do personagem no código** (o mesmo de `features/characters/sheets/` e do GLB final).
 
 ```
 battle-dice-personagens/

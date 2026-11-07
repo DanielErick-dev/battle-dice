@@ -1,6 +1,6 @@
 /** The burst any ability goes off with, unless the character acts it out in a way of their own. */
-import { AbilityBurst } from "../AbilityBurst";
-import { Delayed, SwordImpact } from "../TrapSmash";
+import { AbilityBurst } from "../vfx/AbilityBurst";
+import { Delayed, SwordImpact } from "../vfx/TrapSmash";
 import type { TokenFx } from "./types";
 
 /** The Fallen Angel's fire. */

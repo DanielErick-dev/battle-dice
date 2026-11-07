@@ -1,4 +1,6 @@
-import type { ComponentType, RefObject } from "react";
+import type { ComponentType } from "react";
+import type { SceneryId } from "@/features/characters/types";
+import type { SceneryProps } from "./types";
 import { AlchemyLab } from "./alchemyLab/AlchemyLab";
 import { BloodRoseGarden } from "./bloodRoseGarden/BloodRoseGarden";
 import { BurningShrine } from "./burningShrine/BurningShrine";
@@ -20,13 +22,6 @@ import { SunkenTemple } from "./sunkenTemple/SunkenTemple";
 import { VoidRift } from "./voidRift/VoidRift";
 import { WindPeak } from "./windPeak/WindPeak";
 import { WitchHollow } from "./witchHollow/WitchHollow";
-
-export interface SceneryProps {
-  /** How hard the wind blows through the stage (0 to 1): Seraphiel's wingbeats. */
-  gust: RefObject<number>;
-  /** A fresh key per intro played (each pick and each replay), for scenery that acts on its beats. */
-  intro: string;
-}
 
 /** A character's own ground on the menu stage, in place of the rune pedestal (origin on the floor). */
 export interface Scenery {
@@ -66,6 +61,4 @@ export const SCENERY = {
   sakuraCourtyard: { component: SakuraCourtyard, weather: true },
   // Warm afternoon sun over the soil.
   farmPlot: { component: FarmPlot, light: "#ffd58a" },
-} as const satisfies Record<string, Scenery>;
-
-export type SceneryId = keyof typeof SCENERY;
+} as const satisfies Record<SceneryId, Scenery>;

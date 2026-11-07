@@ -1,20 +1,27 @@
 /** Akane: the flames on his body, scarlet fire on the board, people on fire, his Inner Flame and his cards' fire. */
 import { Sparkles } from "@react-three/drei";
 import type { Object3D } from "three";
-import { tokenPosition } from "../tokenPlacement";
-import { BOLT_FLIGHT, FireBolt, FireRing, FlamePillar, STRIKE_IMPACT, Supernova } from "../character/akane/Blaze";
-import { FuelDice } from "../character/akane/FuelDice";
-import { FIRE_RACE_STEP, fireTrack } from "../character/akane/fireTrack";
+import { tokenPosition } from "../token/tokenPlacement";
+import {
+  BOLT_FLIGHT,
+  FireBolt,
+  FireRing,
+  FlamePillar,
+  STRIKE_IMPACT,
+  Supernova,
+} from "@/features/characters/akane/Blaze";
+import { FuelDice } from "@/features/characters/akane/FuelDice";
+import { FIRE_RACE_STEP, fireTrack } from "@/features/characters/akane/fireTrack";
 import { useFrame } from "@react-three/fiber";
 import { useState } from "react";
-import { useAge } from "../useAge";
-import type { Vec3 } from "../boardLayout";
-import { BodyFlames } from "../character/akane/BodyFlames";
-import { ClothFire } from "../character/akane/ClothFire";
-import { SnapFlare } from "../character/akane/ChairIntro";
-import { HandFireball } from "../character/akane/HandFireball";
-import { BurningAura, InnerFlames } from "../character/akane/BurningAura";
-import { ScarletFlameMark } from "../character/akane/ScarletFlameMark";
+import { useAge } from "@/features/shared/three/useAge";
+import type { Vec3 } from "@/features/shared/board/boardLayout";
+import { BodyFlames } from "@/features/characters/akane/BodyFlames";
+import { ClothFire } from "@/features/characters/akane/ClothFire";
+import { SnapFlare } from "@/features/characters/akane/ChairIntro";
+import { HandFireball } from "@/features/characters/akane/HandFireball";
+import { BurningAura, InnerFlames } from "@/features/characters/akane/BurningAura";
+import { ScarletFlameMark } from "@/features/characters/akane/ScarletFlameMark";
 import type { BoardFx, TokenFx } from "./types";
 
 export function HandFlame({ token, figure }: { token: TokenFx; figure: Object3D }) {

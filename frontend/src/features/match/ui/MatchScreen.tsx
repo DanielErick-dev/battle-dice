@@ -22,7 +22,13 @@ import { useTurnState } from "@/lib/useTurnState";
 import { cn } from "@/lib/utils";
 import { boardPresetFor, isLargeBoard, type BoardPreset } from "../boards";
 import type { MapId } from "../maps";
-import { CHARACTERS, rosterOf, type CharacterDefinition, type CharacterId, type RosterEntry } from "../characters";
+import {
+  CHARACTERS,
+  rosterOf,
+  type CharacterDefinition,
+  type CharacterId,
+  type RosterEntry,
+} from "@/features/characters";
 import { blessingTurns, inHeaven } from "@/game/domain/board/blessings";
 import { DIVINE_CARDS } from "@/game/domain/cards/catalog";
 import { PLUNDER_CARDS } from "@/game/domain/characters/warden/specters";
@@ -30,11 +36,11 @@ import { activePlayerOf, canActivateAbility, canPlayCard, canRoll, cardsLeftThis
 import { useMatch } from "../hooks/useMatch";
 import { useGameAudio, type GameAudio } from "../hooks/useGameAudio";
 import { useMatchAudio } from "../hooks/useMatchAudio";
-import type { BoardPicking } from "../scene/BoardScene";
-import type { CameraFraming } from "../scene/CameraRig";
+import type { BoardPicking } from "../scene/board/pickCursor";
+import type { CameraFraming } from "../scene/camera/CameraRig";
 import type { TileId } from "@/game/domain/types";
-import { preloadCharacterModel } from "../scene/character/core/CharacterModel";
-import { preloadChairs, type ChairId } from "../scene/character/accessories/chairs";
+import { preloadCharacterModel } from "@/features/characters/core/CharacterModel";
+import { preloadChairs, type ChairId } from "@/features/characters/accessories/chairs";
 import { CardHand } from "./cards/CardHand";
 import { CastOverlay } from "./cards/CastOverlay";
 import { DiscardPicker } from "./cards/DiscardPicker";

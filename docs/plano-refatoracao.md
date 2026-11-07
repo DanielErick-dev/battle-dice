@@ -16,7 +16,7 @@ O problema é de **crescimento**. Com 20 personagens, alguns arquivos viraram "c
 | ~~`features/match/ui/MatchScreen.tsx`~~ | 657 → 409 | ~~`ability === "…"` repetido~~ ✅ etapa 2 |
 | ~~`features/match/scene/BoardScene.tsx`~~ | 615 → 287 | ~~42 imports~~ ✅ etapa 4 |
 | ~~`features/match/model/matchView.ts`~~ | 409 → 386 | ~~`MatchView` com 38 campos~~ ✅ etapa 3 |
-| `features/match/characters.ts` | 460 | ficha visual de 20 personagens num arquivo só |
+| ~~`features/match/characters.ts`~~ | 584 → 21 fichas | ~~ficha visual de todos os personagens num arquivo só~~ ✅ etapa 5 |
 | ~~`game/domain/engine.ts`~~ | 600 → 44 | ~~roteador de comandos crescendo~~ ✅ etapa 6 |
 
 **Princípio que vamos aplicar:** *aberto para extensão, fechado para modificação*. Adicionar o personagem 21 deveria significar **criar arquivos novos**, não editar 7 arquivos centrais.
@@ -62,8 +62,9 @@ O problema é de **crescimento**. Com 20 personagens, alguns arquivos viraram "c
 - **Ligação com o backend:** nenhuma regra mudou de lugar: os efeitos só leem a `MatchView` (o que o servidor mandou, já animado pelo playback). No online, cada cliente desenha os mesmos efeitos a partir dos mesmos eventos.
 - A etapa 5 pode levar as flags da ficha (`wand`, `wings`, `castAura`…) para o arquivo de cada personagem junto com as regras de `effects/`.
 
-### 5. Uma ficha por personagem
-- `features/match/characters/<id>.ts` reunindo modelo, clipes, cores, efeitos e intro; `characters/index.ts` monta o elenco.
+### 5. Uma ficha por personagem ✅
+- `features/characters/sheets/<id>.ts` reúne modelo, clipes, cores, efeitos e intro; `characters/index.ts` monta o elenco na mesma ordem.
+- **Junto veio a fronteira entre menu e partida:** `scene/character/` foi para `features/characters/`, e o que os dois lados usavam foi para `features/shared/`. A ficha agora é dona de `SceneryId`, e `SCENERY` é conferido contra ele.
 
 ### 6. Revisar o `engine.ts` ✅
 - Mesmo padrão da etapa 1: `domain/handlers/` com um arquivo por tema (`turnCommands`, `cardCommands`, `abilityCommands`), `shared.ts` (`assertCanAct`, `settle`), `setup.ts` (montar a partida) e `index.ts` com o mapa tipado `CommandHandlers<GameCommand["type"]>`.
@@ -95,3 +96,4 @@ O problema é de **crescimento**. Com 20 personagens, alguns arquivos viraram "c
 | 18/10 | 7 | Testes de `domain/` → um arquivo por tema, com helpers em `domain/testing/`. `cards.test.ts` (604 linhas) dividido; 281 testes mantidos. |
 | 01/11 | — | Fim dos 3 agentes de 29/10, juntados no `main`. `game/domain/` (60 arquivos soltos) → `core/`, `board/`, `cards/`, `abilities/`, `characters/<nome>/`; os números de cada habilidade foram morar com a mecânica do personagem. `scene/character/` (48 arquivos) → `core/`, `accessories/`, `shared/` + uma pasta por personagem. Cenários do menu → uma pasta por habitat com `textures`/`layout`/peças. Nenhum comportamento mudou; 409 testes verdes. |
 | 07/11 | — | Limpeza do domínio: removidos `core/moves.ts` e `board/tilePicks.ts`; `ABILITY_EFFECTS` único e exaustivo; `abilityBlocker` em `abilities/blocker.ts` (fim do ciclo com `charge.ts`); `domain/` não passa mais pela vitrine `types.ts`; regra de fronteira no ESLint; `tsconfig.game.json` com `noUncheckedIndexedAccess` e os helpers `at`/`randomItem`. |
+| 07/11 | 5 | Uma ficha por personagem; `features/characters/` e `features/shared/` criadas; `match` não importa mais `menu`, e os ciclos de `features/` acabaram. Raiz de `scene/` → `board/`, `camera/`, `token/`, `vfx/`. Apelidos `berserker`, `kunoichi` e `seraph` → ids. |

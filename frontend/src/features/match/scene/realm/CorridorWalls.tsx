@@ -3,7 +3,13 @@
 import { useMemo } from "react";
 import { Color, DoubleSide } from "three";
 import type { RealmKind } from "@/game/domain/types";
-import { CORRIDOR_HALF_WIDTH, TILE_HEIGHT, TILE_PITCH, TILE_SIZE, type Vec3 } from "../boardLayout";
+import {
+  CORRIDOR_HALF_WIDTH,
+  TILE_HEIGHT,
+  TILE_PITCH,
+  TILE_SIZE,
+  type Vec3,
+} from "@/features/shared/board/boardLayout";
 
 /** How tall the walls stand over the tiles, and how thick they are. */
 const WALL_HEIGHT = 2.6;

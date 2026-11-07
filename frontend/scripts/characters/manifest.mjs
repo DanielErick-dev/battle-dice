@@ -1,5 +1,5 @@
 // Clips each character's GLB is built from. Folder layout and naming: docs/assets.md.
-// Ids match CHARACTERS in src/features/match/characters.ts and name the source folders.
+// Ids match CHARACTERS in src/features/characters/index.ts and name the source folders.
 
 export const REQUIRED_CLIPS = ["idle", "run"];
 export const OPTIONAL_CLIPS = [
