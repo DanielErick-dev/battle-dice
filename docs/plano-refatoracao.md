@@ -13,9 +13,9 @@ O problema é de **crescimento**. Com 20 personagens, alguns arquivos viraram "c
 |---|---|---|
 | ~~`features/match/model/playback.ts`~~ | 1275 | ~~um único `switch` com 63 casos~~ ✅ etapa 1 |
 | ~~`features/match/scene/PlayerToken.tsx`~~ | 718 → 473 | ~~todos os efeitos de todos os personagens~~ ✅ etapa 4 |
-| ~~`features/match/ui/MatchScreen.tsx`~~ | 657 → 409 | ~~`ability === "…"` repetido~~ ✅ etapa 2 |
+| ~~`features/match/ui/MatchScreen.tsx`~~ | 657 → 231 | ~~`ability === "…"` repetido~~ ✅ etapa 2 |
 | ~~`features/match/scene/BoardScene.tsx`~~ | 615 → 287 | ~~42 imports~~ ✅ etapa 4 |
-| ~~`features/match/model/matchView.ts`~~ | 409 → 386 | ~~`MatchView` com 38 campos~~ ✅ etapa 3 |
+| ~~`features/match/model/matchView.ts`~~ | 511 → pasta `matchView/`, maior arquivo 174 | ~~`MatchView` com 38 campos~~ ✅ etapa 3 |
 | ~~`features/match/characters.ts`~~ | 584 → 21 fichas | ~~ficha visual de todos os personagens num arquivo só~~ ✅ etapa 5 |
 | ~~`game/domain/engine.ts`~~ | 600 → 44 | ~~roteador de comandos crescendo~~ ✅ etapa 6 |
 
@@ -98,3 +98,4 @@ O problema é de **crescimento**. Com 20 personagens, alguns arquivos viraram "c
 | 07/11 | — | Limpeza do domínio: removidos `core/moves.ts` e `board/tilePicks.ts`; `ABILITY_EFFECTS` único e exaustivo; `abilityBlocker` em `abilities/blocker.ts` (fim do ciclo com `charge.ts`); `domain/` não passa mais pela vitrine `types.ts`; regra de fronteira no ESLint; `tsconfig.game.json` com `noUncheckedIndexedAccess` e os helpers `at`/`randomItem`. |
 | 07/11 | 5 | Uma ficha por personagem; `features/characters/` e `features/shared/` criadas; `match` não importa mais `menu`, e os ciclos de `features/` acabaram. Raiz de `scene/` → `board/`, `camera/`, `token/`, `vfx/`. Apelidos `berserker`, `kunoichi` e `seraph` → ids. |
 | 07/11 | — | Sobras: `board/tileGround.ts` com a ordenação e os filtros de casa; testes de `game/` também sob `noUncheckedIndexedAccess`; `core/ids.ts` acaba com o último ciclo de tipos; menu importa as texturas de `features/shared`; `badge` e `card` apagados. |
+| 07/11 | — | `MatchScreen` 499 → 231 (`ui/screen/`). `EffectBanner` 522 → 50 (`hud/effectCopy/`). `battleLogText.ts` → `ui/battleLog/`, mapa exaustivo por tema. `matchView.ts` → `model/matchView/`, mesmo caminho de import. `CardArt` 614 → 64 (`cards/art/`). Snapshots fixam o texto do banner e do log e a arte das cartas. |

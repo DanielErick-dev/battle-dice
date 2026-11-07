@@ -26,14 +26,14 @@ Linhas = código da própria pasta (sem subpastas e sem testes), contadas em 29/
 | Pasta | Status | Linhas | Feito | Falta |
 |---|---|---|---|---|
 | `match/` (raiz) | 🟡 | | Fichas e `config.ts` saíram daqui (07/11). | Revisar `boards.ts`, `maps.ts` e `diceFaces.ts`. |
-| `match/model/` | ✅ | 1178 | `view.fx` separado do estado de jogo (etapa 3). | |
+| `match/model/` | ✅ | 1178 | `view.fx` separado do estado de jogo (etapa 3). `matchView/` dividida por tema (07/11). | |
 | `match/model/playback/` | ✅ | 1720 | Um arquivo por tema, mapa tipado de eventos (etapa 1). | |
 | `match/audio/` | ✅ | 991 | Tem README. Revisada em 07/11: nada a mudar. | |
 | `match/hooks/` | ⬜ | 107 | | Revisar. |
-| `match/ui/` | 🟡 | 1130 | `MatchScreen` sem lógica de habilidade (etapa 2). | `MatchScreen` ainda com 409 linhas. |
+| `match/ui/` | ✅ | 1130 | `MatchScreen` sem lógica de habilidade (etapa 2). Hooks e painéis em `screen/`, texto do log em `battleLog/` (07/11). | |
 | `match/ui/abilities/` | ✅ | 433 | Registro `ABILITY_FLOWS` (etapa 2). | |
-| `match/ui/cards/` | ⬜ | 1416 | | Revisar. |
-| `match/ui/hud/` | ⬜ | 1423 | | Revisar. |
+| `match/ui/cards/` | 🟡 | 1416 | Arte desenhada em `art/`, com snapshot (07/11). | Revisar o resto. A arte desenhada das cartas com imagem em `CARD_IMAGES` nunca aparece. |
+| `match/ui/hud/` | 🟡 | 1423 | Texto do banner em `effectCopy/`, com snapshot (07/11). | Revisar o resto. |
 | `match/scene/` (raiz) | ✅ | | Raiz separada em `board/`, `camera/`, `token/` e `vfx/` (07/11). Efeitos fora do `PlayerToken`/`BoardScene` (etapa 4). `PlayerToken` 571 → 243 linhas: movimento e pose viraram funções puras e testadas em `token/` (29/10). | |
 | `match/scene/token/` | ✅ | 538 | Criada em 29/10: `motion.ts` (caminho e segmentos) e `pose.ts` (qual clipe toca), com 41 testes. | |
 | `match/scene/effects/` | ✅ | 801 | Registro de efeitos por lugar (etapa 4). | |

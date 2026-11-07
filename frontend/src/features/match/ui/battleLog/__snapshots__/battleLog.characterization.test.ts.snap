@@ -1,0 +1,1061 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`battle log lines, one per branch > abilityBlocked > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) usou Levitação Carmesim em J2 (Bjorn), mas não funcionou: estava Indomável",
+}
+`;
+
+exports[`battle log lines, one per branch > abilityBlocked > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) usou Levitação Carmesim em J2 (Bjorn), mas não funcionou: estava no Susanoo",
+}
+`;
+
+exports[`battle log lines, one per branch > abilityBlocked > case 2 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) usou Levitação Carmesim em J2 (Bjorn), mas não funcionou: estava de armadura",
+}
+`;
+
+exports[`battle log lines, one per branch > abilityBlocked > case 3 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) usou Levitação Carmesim em J2 (Bjorn), mas não funcionou: estava sob a Égide",
+}
+`;
+
+exports[`battle log lines, one per branch > abilityBlocked > case 4 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) usou Levitação Carmesim em J2 (Bjorn), mas não funcionou: estava fora de alcance",
+}
+`;
+
+exports[`battle log lines, one per branch > abilityReady > case 0 1`] = `null`;
+
+exports[`battle log lines, one per branch > abilityReady > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "Levitação Carmesim de J1 (Bruxa Carmesim) está pronta",
+}
+`;
+
+exports[`battle log lines, one per branch > abilityUsed > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) usou Levitação Carmesim",
+}
+`;
+
+exports[`battle log lines, one per branch > advanceTriggered > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) avançou até a casa 9",
+}
+`;
+
+exports[`battle log lines, one per branch > armourHeld > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "A armadura de J1 (Bruxa Carmesim) resistiu",
+}
+`;
+
+exports[`battle log lines, one per branch > armourRaised > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) vestiu a armadura espectral por 1 turno",
+}
+`;
+
+exports[`battle log lines, one per branch > armourRaised > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) vestiu a armadura espectral por 2 turnos",
+}
+`;
+
+exports[`battle log lines, one per branch > arrowsLoosed > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) fez chover flechas sobre 1 casa de oponentes",
+}
+`;
+
+exports[`battle log lines, one per branch > arrowsLoosed > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) fez chover flechas sobre 2 casas de oponentes",
+}
+`;
+
+exports[`battle log lines, one per branch > arrowsLoosed > case 2 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) cravou flechas em 1 armadilha à frente",
+}
+`;
+
+exports[`battle log lines, one per branch > arrowsLoosed > case 3 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) cravou flechas em 2 armadilhas à frente",
+}
+`;
+
+exports[`battle log lines, one per branch > blessingReceived > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) recebeu a bênção: energia",
+}
+`;
+
+exports[`battle log lines, one per branch > blessingReceived > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) recebeu a bênção: carga de habilidade",
+}
+`;
+
+exports[`battle log lines, one per branch > blessingReceived > case 2 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) recebeu a bênção: Escudo Arcano",
+}
+`;
+
+exports[`battle log lines, one per branch > blessingReceived > case 3 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) recebeu a bênção: Asas Celestiais",
+}
+`;
+
+exports[`battle log lines, one per branch > blessingReceived > case 4 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) recebeu a bênção: Auréola Sagrada",
+}
+`;
+
+exports[`battle log lines, one per branch > blessingReceived > case 5 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) recebeu a bênção: Inspiração Divina",
+}
+`;
+
+exports[`battle log lines, one per branch > blessingReceived > case 6 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) recebeu a bênção: Fonte de Luz",
+}
+`;
+
+exports[`battle log lines, one per branch > boardCleansed > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) limpou 1 casa à frente",
+}
+`;
+
+exports[`battle log lines, one per branch > boardCleansed > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) limpou 2 casas à frente",
+}
+`;
+
+exports[`battle log lines, one per branch > cardBlocked > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) jogou Passo do Vento em J2 (Bjorn), mas não funcionou: estava sob a Égide",
+}
+`;
+
+exports[`battle log lines, one per branch > cardDiscarded > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) descartou Passo do Vento",
+}
+`;
+
+exports[`battle log lines, one per branch > cardDiscarded > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) descartou Vendaval",
+}
+`;
+
+exports[`battle log lines, one per branch > cardDrawn > case 0 1`] = `null`;
+
+exports[`battle log lines, one per branch > cardPlayed > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) jogou Passo do Vento",
+}
+`;
+
+exports[`battle log lines, one per branch > cardPlayed > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) jogou Vendaval em J2 (Bjorn)",
+}
+`;
+
+exports[`battle log lines, one per branch > cardTeleported > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) se teletransportou para a casa 9",
+}
+`;
+
+exports[`battle log lines, one per branch > cardTransmuted > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) transmutou Passo do Vento em Vendaval",
+}
+`;
+
+exports[`battle log lines, one per branch > cardsFused > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) fundiu cartas em Vendaval",
+}
+`;
+
+exports[`battle log lines, one per branch > cardsResurrected > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) ressuscitou 1 carta",
+}
+`;
+
+exports[`battle log lines, one per branch > cardsResurrected > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) ressuscitou 2 cartas",
+}
+`;
+
+exports[`battle log lines, one per branch > cardsStolen > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) roubou 1 carta de J2 (Bjorn)",
+}
+`;
+
+exports[`battle log lines, one per branch > cardsStolen > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) roubou 2 cartas de J2 (Bjorn)",
+}
+`;
+
+exports[`battle log lines, one per branch > cardsStolen > case 2 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) tentou roubar J2 (Bjorn), mas a mão estava vazia",
+}
+`;
+
+exports[`battle log lines, one per branch > crownGained > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) ganhou a Coroa Infernal",
+}
+`;
+
+exports[`battle log lines, one per branch > crownGained > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) ganhou a Coroa Seráfica",
+}
+`;
+
+exports[`battle log lines, one per branch > deckReshuffled > case 0 1`] = `null`;
+
+exports[`battle log lines, one per branch > decreeIssued > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "⚖ Decreto de Contenção: nas próximas 2 rolagens, o dado dos oponentes não passa de 3",
+}
+`;
+
+exports[`battle log lines, one per branch > diceRolled > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) rolou 4",
+}
+`;
+
+exports[`battle log lines, one per branch > diceRolled > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) rolou 9 (4 + 5)",
+}
+`;
+
+exports[`battle log lines, one per branch > diceRolled > case 2 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) rolou 5 (4 ou 5)",
+}
+`;
+
+exports[`battle log lines, one per branch > diceRolled > case 3 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) rolou 6 (4 + 2)",
+}
+`;
+
+exports[`battle log lines, one per branch > diceRolled > case 4 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) rolou 12 (4 × 3)",
+}
+`;
+
+exports[`battle log lines, one per branch > diceRolled > case 5 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) rolou 4",
+}
+`;
+
+exports[`battle log lines, one per branch > diceRolled > case 6 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) rolou 2 (4 ÷ 2, pegando fogo)",
+}
+`;
+
+exports[`battle log lines, one per branch > diceRolled > case 7 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) rolou 4, de ré",
+}
+`;
+
+exports[`battle log lines, one per branch > discardRequired > case 0 1`] = `null`;
+
+exports[`battle log lines, one per branch > emberSlid > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) deslizou pelas chamas (Passo de Brasa)",
+}
+`;
+
+exports[`battle log lines, one per branch > emberStepReady > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) preparou o Passo de Brasa",
+}
+`;
+
+exports[`battle log lines, one per branch > enchantmentStirred > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) deslizou pela própria neve",
+}
+`;
+
+exports[`battle log lines, one per branch > enchantmentStirred > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) ficou preso na neve de J2 (Bjorn) por 1 rodada",
+}
+`;
+
+exports[`battle log lines, one per branch > enchantmentStirred > case 2 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) ficou preso na neve de J2 (Bjorn) por 2 rodadas",
+}
+`;
+
+exports[`battle log lines, one per branch > energySacrificed > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) sacrificou 2 de energia por uma carta",
+}
+`;
+
+exports[`battle log lines, one per branch > extraTurnGranted > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) ganhou uma jogada extra",
+}
+`;
+
+exports[`battle log lines, one per branch > finalJudgment > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "⚖ Julgamento Final: 4 de distância de J2 (Bjorn), Dado da Justiça 2 → J1 (Bruxa Carmesim) avança 8 casas",
+}
+`;
+
+exports[`battle log lines, one per branch > fireFed > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "🔥 J1 (Bruxa Carmesim) queimou mais uma rodada: J2 (Bjorn) ganhou 1",
+}
+`;
+
+exports[`battle log lines, one per branch > fireFed > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "🔥 J1 (Bruxa Carmesim) queimou mais uma rodada: perdeu 1 de energia e J2 (Bjorn) ganhou 1",
+}
+`;
+
+exports[`battle log lines, one per branch > fireQuenched > case 0 1`] = `
+{
+  "actor": "p2",
+  "text": "💧 J1 (Bruxa Carmesim) não está mais pegando fogo",
+}
+`;
+
+exports[`battle log lines, one per branch > fireQuenched > case 1 1`] = `
+{
+  "actor": "p2",
+  "text": "💧 J1 (Bruxa Carmesim), J3 (Zarek) não estão mais pegando fogo",
+}
+`;
+
+exports[`battle log lines, one per branch > flamesFaded > case 0 1`] = `null`;
+
+exports[`battle log lines, one per branch > flamesLit > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) acendeu o fogo negro em 1 casa",
+}
+`;
+
+exports[`battle log lines, one per branch > flamesLit > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) acendeu o fogo negro em 2 casas",
+}
+`;
+
+exports[`battle log lines, one per branch > flamesScorched > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) se queimou no fogo negro de J2 (Bjorn)",
+}
+`;
+
+exports[`battle log lines, one per branch > flamesScorched > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) se queimou no fogo negro de J2 (Bjorn) e perdeu 2 de energia",
+}
+`;
+
+exports[`battle log lines, one per branch > fuelPoured > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) jogou Combustível Puro por 2 rolagens",
+}
+`;
+
+exports[`battle log lines, one per branch > gambleRolled > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) apostou na sorte, tirou 5 e ganhou",
+}
+`;
+
+exports[`battle log lines, one per branch > gambleRolled > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) apostou contra um oponente, tirou 1 e perdeu",
+}
+`;
+
+exports[`battle log lines, one per branch > gameRestarted > case 0 1`] = `null`;
+
+exports[`battle log lines, one per branch > graceOffered > case 0 1`] = `null`;
+
+exports[`battle log lines, one per branch > heavenBarred > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) foi acorrentado pelo céu por 1 rodada",
+}
+`;
+
+exports[`battle log lines, one per branch > heavenBarred > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) foi acorrentado pelo céu por 2 rodadas",
+}
+`;
+
+exports[`battle log lines, one per branch > hellDragged > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) arrastou J2 (Bjorn) para o inferno",
+}
+`;
+
+exports[`battle log lines, one per branch > hiddenTrapSprung > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) pisou numa armadilha escondida",
+}
+`;
+
+exports[`battle log lines, one per branch > hotBloodBurst > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) explodiu de Sangue Quente: ninguém por perto",
+}
+`;
+
+exports[`battle log lines, one per branch > hotBloodBurst > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) explodiu de Sangue Quente: J2 (Bjorn) voltam 1 casa",
+}
+`;
+
+exports[`battle log lines, one per branch > hotBloodBurst > case 2 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) explodiu de Sangue Quente: J2 (Bjorn), J3 (Zarek) voltam 2 casas",
+}
+`;
+
+exports[`battle log lines, one per branch > impetusUnleashed > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) liberou o Ímpeto Brilhante por 1 rolagem",
+}
+`;
+
+exports[`battle log lines, one per branch > impetusUnleashed > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) liberou o Ímpeto Brilhante por 2 rolagens",
+}
+`;
+
+exports[`battle log lines, one per branch > innerFlameKindled > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) acendeu uma Chama Interna (2/3)",
+}
+`;
+
+exports[`battle log lines, one per branch > justiceMarchEnded > case 0 1`] = `null`;
+
+exports[`battle log lines, one per branch > justiceMarched > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "⚖ Justiça Cega: J1 (Bruxa Carmesim) anda 1 casa, os outros 2 casas",
+}
+`;
+
+exports[`battle log lines, one per branch > justiceMarked > case 0 1`] = `
+{
+  "actor": "p2",
+  "text": "⚖ J1 (Bruxa Carmesim) escapou do Veredito: as marcas dele se apagaram",
+}
+`;
+
+exports[`battle log lines, one per branch > justiceMarked > case 1 1`] = `
+{
+  "actor": "p2",
+  "text": "⚖ J1 (Bruxa Carmesim) recebeu a Marca da Justiça",
+}
+`;
+
+exports[`battle log lines, one per branch > justiceMarked > case 2 1`] = `
+{
+  "actor": "p2",
+  "text": "⚖ J1 (Bruxa Carmesim) recebeu a Marca da Justiça (2 marcas)",
+}
+`;
+
+exports[`battle log lines, one per branch > levitatedOver > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) flutuou por cima de uma armadilha",
+}
+`;
+
+exports[`battle log lines, one per branch > marks an unknown player 1`] = `
+{
+  "actor": "nobody",
+  "text": "? perdeu a vez",
+}
+`;
+
+exports[`battle log lines, one per branch > playerIgnited > case 0 1`] = `
+{
+  "actor": "p2",
+  "text": "🔥 J1 (Bruxa Carmesim) pegou fogo por 1 rodada: dado pela metade e sem energia",
+}
+`;
+
+exports[`battle log lines, one per branch > playerIgnited > case 1 1`] = `
+{
+  "actor": "p2",
+  "text": "🔥 J1 (Bruxa Carmesim) pegou fogo por 2 rodadas: dado pela metade e sem energia",
+}
+`;
+
+exports[`battle log lines, one per branch > playerMoved > case 0 1`] = `null`;
+
+exports[`battle log lines, one per branch > playerPushed > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) voltou 1 casa",
+}
+`;
+
+exports[`battle log lines, one per branch > playerPushed > case 1 1`] = `
+{
+  "actor": "p2",
+  "text": "J2 (Bjorn) empurrou J1 (Bruxa Carmesim) 2 casas para trás",
+}
+`;
+
+exports[`battle log lines, one per branch > playerTrampled > case 0 1`] = `
+{
+  "actor": "p2",
+  "text": "J2 (Bjorn) atropelou J1 (Bruxa Carmesim) e o mandou 1 casa para trás",
+}
+`;
+
+exports[`battle log lines, one per branch > playerTrampled > case 1 1`] = `
+{
+  "actor": "p2",
+  "text": "J2 (Bjorn) passou em chamas por J1 (Bruxa Carmesim) e o mandou 2 casas para trás",
+}
+`;
+
+exports[`battle log lines, one per branch > playerWon > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "🏆 J1 (Bruxa Carmesim) venceu a partida!",
+}
+`;
+
+exports[`battle log lines, one per branch > plunderOffered > case 0 1`] = `null`;
+
+exports[`battle log lines, one per branch > portalEntered > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) entrou num portal",
+}
+`;
+
+exports[`battle log lines, one per branch > realmEntered > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) entrou no céu",
+}
+`;
+
+exports[`battle log lines, one per branch > realmEntered > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) entrou no inferno",
+}
+`;
+
+exports[`battle log lines, one per branch > riftOpened > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) abriu uma fenda do Vazio no caminho",
+}
+`;
+
+exports[`battle log lines, one per branch > scarletFaded > case 0 1`] = `null`;
+
+exports[`battle log lines, one per branch > scarletLit > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "🔥 J1 (Bruxa Carmesim) incendiou 1 casa",
+}
+`;
+
+exports[`battle log lines, one per branch > scarletLit > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "🔥 J1 (Bruxa Carmesim) incendiou 2 casas (derreteu 1 casa de neve/gelo)",
+}
+`;
+
+exports[`battle log lines, one per branch > scarletLit > case 2 1`] = `
+{
+  "actor": "p1",
+  "text": "🔥 J1 (Bruxa Carmesim) incendiou 2 casas (derreteu 2 casas de neve/gelo)",
+}
+`;
+
+exports[`battle log lines, one per branch > sealBroken > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) rompeu o Selo do Dízimo de J2 (Bjorn)",
+}
+`;
+
+exports[`battle log lines, one per branch > sealBroken > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) rompeu o Selo da Ruína de J2 (Bjorn)",
+}
+`;
+
+exports[`battle log lines, one per branch > sealBroken > case 2 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) rompeu o Selo do Silêncio de J2 (Bjorn)",
+}
+`;
+
+exports[`battle log lines, one per branch > sealBroken > case 3 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) rompeu o Pacto de Sangue de J2 (Bjorn)",
+}
+`;
+
+exports[`battle log lines, one per branch > sealsWritten > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) escreveu 1 selo proibidos",
+}
+`;
+
+exports[`battle log lines, one per branch > sealsWritten > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) escreveu 2 selos proibidos",
+}
+`;
+
+exports[`battle log lines, one per branch > seraphFell > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) pisou no inferno e virou o Anjo Caído",
+}
+`;
+
+exports[`battle log lines, one per branch > skipTurnGained > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) vai perder a próxima vez",
+}
+`;
+
+exports[`battle log lines, one per branch > skipTurnGained > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) vai perder a próxima vez",
+}
+`;
+
+exports[`battle log lines, one per branch > skipTurnGained > case 2 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) vai perder 2 vezes",
+}
+`;
+
+exports[`battle log lines, one per branch > snowDrained > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) ficou preso na neve: 1 de energia foi para J2 (Bjorn)",
+}
+`;
+
+exports[`battle log lines, one per branch > specterStruck > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) esbarrou na Espectro da Pilhagem de J2 (Bjorn)",
+}
+`;
+
+exports[`battle log lines, one per branch > specterStruck > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) esbarrou na Espectro da Fome de J2 (Bjorn) e perdeu 2 de energia",
+}
+`;
+
+exports[`battle log lines, one per branch > spectersDispelled > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) desfez as aparições de J2 (Bjorn)",
+}
+`;
+
+exports[`battle log lines, one per branch > spectersSummoned > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) invocou 1 aparição",
+}
+`;
+
+exports[`battle log lines, one per branch > spectersSummoned > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) invocou 2 aparições",
+}
+`;
+
+exports[`battle log lines, one per branch > supernova > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "💥 Supernova Escarlate: 3 casas em chamas e 1 oponente queimando → J1 (Bruxa Carmesim) avança 5 casas",
+}
+`;
+
+exports[`battle log lines, one per branch > susanooRepelled > case 0 1`] = `
+{
+  "actor": "p2",
+  "text": "O Susanoo de J2 (Bjorn) repeliu J1 (Bruxa Carmesim)",
+}
+`;
+
+exports[`battle log lines, one per branch > tilesEnchanted > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) cobriu 1 casa de neve",
+}
+`;
+
+exports[`battle log lines, one per branch > tilesEnchanted > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) cobriu 2 casas de neve",
+}
+`;
+
+exports[`battle log lines, one per branch > tilesFrozen > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) congelou 1 casa",
+}
+`;
+
+exports[`battle log lines, one per branch > tilesFrozen > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) congelou 2 casas",
+}
+`;
+
+exports[`battle log lines, one per branch > timeBent > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) parou o tempo de J2 (Bjorn) por 2 rodadas",
+}
+`;
+
+exports[`battle log lines, one per branch > timeBent > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) fez J2 (Bjorn) andar de ré nas próximas 1 rolagem",
+}
+`;
+
+exports[`battle log lines, one per branch > trapBlocked > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) escapou da armadilha graças ao Escudo Arcano",
+}
+`;
+
+exports[`battle log lines, one per branch > trapBlocked > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) escapou da armadilha graças à habilidade",
+}
+`;
+
+exports[`battle log lines, one per branch > trapBlocked > case 2 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) escapou da armadilha graças à Auréola",
+}
+`;
+
+exports[`battle log lines, one per branch > trapBlocked > case 3 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) escapou da armadilha por estar Indomável",
+}
+`;
+
+exports[`battle log lines, one per branch > trapBlocked > case 4 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) escapou da armadilha graças ao Susanoo",
+}
+`;
+
+exports[`battle log lines, one per branch > trapBlocked > case 5 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) escapou da armadilha porque o inferno não fere o Caído",
+}
+`;
+
+exports[`battle log lines, one per branch > trapCursed > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) foi amaldiçoado e perdeu a carta Passo do Vento",
+}
+`;
+
+exports[`battle log lines, one per branch > trapCursed > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) foi amaldiçoado e perdeu a carta Vendaval",
+}
+`;
+
+exports[`battle log lines, one per branch > trapCursed > case 2 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) foi amaldiçoado, mas estava sem cartas",
+}
+`;
+
+exports[`battle log lines, one per branch > trapCursed > case 3 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) foi amaldiçoado e perdeu 2 de energia",
+}
+`;
+
+exports[`battle log lines, one per branch > trapDestroyed > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) destruiu uma armadilha escondida",
+}
+`;
+
+exports[`battle log lines, one per branch > trapDestroyed > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) destruiu a armadilha da casa 7",
+}
+`;
+
+exports[`battle log lines, one per branch > trapTriggered > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) caiu numa armadilha e voltou para a casa 3",
+}
+`;
+
+exports[`battle log lines, one per branch > trapUnpinned > case 0 1`] = `null`;
+
+exports[`battle log lines, one per branch > trapWeeded > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "🌱 J1 (Bruxa Carmesim) capinou uma armadilha escondida",
+}
+`;
+
+exports[`battle log lines, one per branch > trapWeeded > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "🌱 J1 (Bruxa Carmesim) capinou a armadilha da casa 7",
+}
+`;
+
+exports[`battle log lines, one per branch > turnChanged > case 0 1`] = `
+{
+  "actor": "p1",
+  "divider": true,
+  "text": "Vez de J1 (Bruxa Carmesim)",
+}
+`;
+
+exports[`battle log lines, one per branch > turnSkipped > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) perdeu a vez",
+}
+`;
+
+exports[`battle log lines, one per branch > turnTimedOut > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "⌛ J1 (Bruxa Carmesim) ficou sem tempo e perdeu a vez",
+}
+`;
+
+exports[`battle log lines, one per branch > untamedUnleashed > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) ficou Indomável por 2 turnos",
+}
+`;
+
+exports[`battle log lines, one per branch > verdictPassed > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "⚖ J1 (Bruxa Carmesim) tomou para si o ataque de J2 (Bjorn) contra J3 (Zarek): voltou dobrado contra ele",
+}
+`;
+
+exports[`battle log lines, one per branch > verdictPassed > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "⚖ J1 (Bruxa Carmesim) julgou J2 (Bjorn): o ataque voltou dobrado contra ele",
+}
+`;
+
+exports[`battle log lines, one per branch > voidCast > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) soltou do Vazio: fogo negro, na casa 7",
+}
+`;
+
+exports[`battle log lines, one per branch > voidEchoed > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "O Vazio de J1 (Bruxa Carmesim) duplicou: maldição (drena energia)",
+}
+`;
+
+exports[`battle log lines, one per branch > voidFed > case 0 1`] = `null`;
+
+exports[`battle log lines, one per branch > voidSeized > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "O Vazio de J1 (Bruxa Carmesim) absorveu: neve, da casa 7 (virou armadilha roxa)",
+}
+`;
+
+exports[`battle log lines, one per branch > voidSwallowed > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "O Vazio de J1 (Bruxa Carmesim) engoliu: perde a vez",
+}
+`;
+
+exports[`battle log lines, one per branch > wardOffered > case 0 1`] = `null`;
+
+exports[`battle log lines, one per branch > winterBegan > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) trouxe o Inverno Eterno",
+}
+`;
+
+exports[`battle log lines, one per branch > winterSpread > case 0 1`] = `null`;

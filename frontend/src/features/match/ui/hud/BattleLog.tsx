@@ -4,7 +4,7 @@ import type { Player } from "@/game/domain/types";
 import { cn } from "@/lib/utils";
 import { playerColor } from "@/features/characters";
 import type { LogEntry } from "../../model/matchView";
-import { battleLogLine } from "../battleLogText";
+import { battleLogLine } from "../battleLog";
 
 /** Lines kept on screen; the view holds more. */
 const SHOWN_LINES = 80;
