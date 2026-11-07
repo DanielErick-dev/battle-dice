@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { BOARD_PRESETS, DEFAULT_BOARD_ID } from "../match/boards";
 import { DEFAULT_MAP_ID, MAP_PRESETS } from "../match/maps";
-import { DEFAULT_CHARACTER_ID } from "../match/characters";
+import { DEFAULT_CHARACTER_ID } from "@/features/characters";
 import type { EffectsQuality } from "../match/config";
 
 /** A setting remembered per browser, kept in memory when storage is blocked (private mode, site data off). */

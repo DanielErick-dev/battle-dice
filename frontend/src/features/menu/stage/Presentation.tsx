@@ -9,37 +9,33 @@ import {
   type CharacterDefinition,
   type CharacterId,
   type ClipLengths,
-} from "@/features/match/characters";
-import { CharacterModel } from "@/features/match/scene/character/core/CharacterModel";
-import { HeldVial } from "@/features/match/scene/character/alchemist/HeldVial";
-import { PourStream } from "@/features/match/scene/character/alchemist/PourStream";
-import { SmokeCloud } from "@/features/match/scene/character/alchemist/SmokeCloud";
-import { Wings } from "@/features/match/scene/character/accessories/Wings";
-import { HeadCrown } from "@/features/match/scene/character/accessories/HeadCrown";
-import { FrostWand } from "@/features/match/scene/character/fairy/FrostWand";
-import { BodyFlames } from "@/features/match/scene/character/akane/BodyFlames";
-import { ClothFire } from "@/features/match/scene/character/akane/ClothFire";
-import { ChairIntro, SnapFlare } from "@/features/match/scene/character/akane/ChairIntro";
-import { BackBow } from "@/features/match/scene/character/archer/BackBow";
-import { PlantedHoe } from "@/features/match/scene/character/vinicius/HeldHoe";
-import { JusticeSword } from "@/features/match/scene/character/themis/JusticeSword";
-import { ThemisIntro } from "@/features/match/scene/character/themis/ThemisIntro";
-import { EnergyBlades } from "@/features/match/scene/character/zarek/EnergyBlades";
-import { ArcherIntro } from "@/features/match/scene/character/archer/ArcherIntro";
-import { BoneRise } from "@/features/match/scene/character/necromancer/BoneRise";
-import { FrostSlam } from "@/features/match/scene/character/bjorn/FrostSlam";
-import {
-  DESCENT_SECONDS,
-  HeavenDescent,
-  descentHeight,
-} from "@/features/match/scene/character/seraphiel/HeavenDescent";
-import { ScribeIntro } from "@/features/match/scene/character/scribe/ScribeIntro";
-import { JesterCards } from "@/features/match/scene/character/jester/JesterCards";
-import { LimbLightning } from "@/features/match/scene/character/monk/LimbLightning";
-import { levitationLift, stepLevitation } from "@/features/match/scene/character/witch/levitation";
-import { LevitationAura } from "@/features/match/scene/character/witch/LevitationAura";
-import { LevitationBurst } from "@/features/match/scene/character/witch/LevitationBurst";
-import { WitchStaff } from "@/features/match/scene/character/witch/WitchStaff";
+} from "@/features/characters";
+import { CharacterModel } from "@/features/characters/core/CharacterModel";
+import { HeldVial } from "@/features/characters/alchemist/HeldVial";
+import { PourStream } from "@/features/characters/alchemist/PourStream";
+import { SmokeCloud } from "@/features/characters/alchemist/SmokeCloud";
+import { Wings } from "@/features/characters/accessories/Wings";
+import { HeadCrown } from "@/features/characters/accessories/HeadCrown";
+import { FrostWand } from "@/features/characters/fairy/FrostWand";
+import { BodyFlames } from "@/features/characters/akane/BodyFlames";
+import { ClothFire } from "@/features/characters/akane/ClothFire";
+import { ChairIntro, SnapFlare } from "@/features/characters/akane/ChairIntro";
+import { BackBow } from "@/features/characters/archer/BackBow";
+import { PlantedHoe } from "@/features/characters/vinicius/HeldHoe";
+import { JusticeSword } from "@/features/characters/themis/JusticeSword";
+import { ThemisIntro } from "@/features/characters/themis/ThemisIntro";
+import { EnergyBlades } from "@/features/characters/zarek/EnergyBlades";
+import { ArcherIntro } from "@/features/characters/archer/ArcherIntro";
+import { BoneRise } from "@/features/characters/necromancer/BoneRise";
+import { FrostSlam } from "@/features/characters/bjorn/FrostSlam";
+import { DESCENT_SECONDS, HeavenDescent, descentHeight } from "@/features/characters/seraphiel/HeavenDescent";
+import { ScribeIntro } from "@/features/characters/scribe/ScribeIntro";
+import { JesterCards } from "@/features/characters/jester/JesterCards";
+import { LimbLightning } from "@/features/characters/monk/LimbLightning";
+import { levitationLift, stepLevitation } from "@/features/characters/witch/levitation";
+import { LevitationAura } from "@/features/characters/witch/LevitationAura";
+import { LevitationBurst } from "@/features/characters/witch/LevitationBurst";
+import { WitchStaff } from "@/features/characters/witch/WitchStaff";
 import { useAge } from "@/features/match/scene/useAge";
 import type { StageSounds } from "../audio/stageSounds";
 import { FIGURE_HEIGHT, FLOOR_Y } from "./layout";

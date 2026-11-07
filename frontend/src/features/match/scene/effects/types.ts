@@ -1,7 +1,7 @@
 import type { ComponentType, RefObject } from "react";
 import type { Object3D, Vector3 } from "three";
 import type { Board, Player, PlayerId, TileId } from "@/game/domain/types";
-import type { CharacterClip, CharacterDefinition } from "../../characters";
+import type { CharacterClip, CharacterDefinition } from "@/features/characters";
 import type { CardCastView, MatchView } from "../../model/matchView";
 import type { BoardLayout } from "../boardLayout";
 

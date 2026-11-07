@@ -1,10 +1,10 @@
 /** Themis: the sword in her hand, the marks she hands out and the Silent Verdict's giant scale. */
 import type { Object3D } from "three";
 import { TILE_HEIGHT } from "../boardLayout";
-import { EFFECT_SCALE } from "../character/core/figure";
-import { JusticeSword } from "../character/themis/JusticeSword";
-import { JusticeMarkRing } from "../character/themis/JusticeMarkRing";
-import { VerdictScale } from "../character/themis/VerdictScale";
+import { EFFECT_SCALE } from "@/features/characters/core/figure";
+import { JusticeSword } from "@/features/characters/themis/JusticeSword";
+import { JusticeMarkRing } from "@/features/characters/themis/JusticeMarkRing";
+import { VerdictScale } from "@/features/characters/themis/VerdictScale";
 import type { BoardFx, TokenFx } from "./types";
 
 export function HeldSword({ token, figure }: { token: TokenFx; figure: Object3D }) {

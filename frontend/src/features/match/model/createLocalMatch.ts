@@ -3,7 +3,7 @@ import { randomDice } from "@/game/domain/core/dice";
 import { abilityCycle } from "@/game/domain/abilities/charge";
 import { createGame } from "@/game/domain/core/engine";
 import type { BoardDefinition } from "@/game/domain/board/board";
-import type { RosterEntry } from "../characters";
+import type { RosterEntry } from "@/features/characters";
 import { MatchStore } from "./matchStore";
 
 export interface LocalMatchOptions {

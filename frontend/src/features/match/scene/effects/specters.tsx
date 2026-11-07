@@ -1,7 +1,7 @@
 /** Shadow Warden: his apparitions on the board. */
-import { characterFor } from "../../characters";
+import { characterFor } from "@/features/characters";
 import { SPECTER_TEXT } from "../../ui/placementText";
-import { SpecterFigure } from "../character/warden/SpecterFigure";
+import { SpecterFigure } from "@/features/characters/warden/SpecterFigure";
 import { headingAlong, pathDirection } from "../tokenPlacement";
 import type { BoardFx } from "./types";
 

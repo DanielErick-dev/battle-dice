@@ -13,7 +13,7 @@ import { paintCourtyardFloor, paintNotebookPage } from "./textures";
 import { Courtyard, StoneLantern } from "./CourtyardPieces";
 import { SmoulderingCorner } from "./SmoulderingPage";
 import { SnapFires } from "./SnapFires";
-import { CHARACTERS } from "@/features/match/characters";
+import { CHARACTERS } from "@/features/characters";
 import type { SceneryProps } from "..";
 
 /** The petals in the air all catch at the snap of his fingers in his intro. */

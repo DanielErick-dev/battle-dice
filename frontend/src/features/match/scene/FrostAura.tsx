@@ -18,8 +18,8 @@ import {
   type Sprite,
 } from "three";
 import { seededRandom } from "@/game/domain/core/random";
-import { GLACIER, ICE, iceShard, useCrackTexture } from "./character/shared/ice";
-import { useSoftDisc } from "./character/shared/softDisc";
+import { GLACIER, ICE, iceShard, useCrackTexture } from "@/features/characters/shared/ice";
+import { useSoftDisc } from "@/features/characters/shared/softDisc";
 
 const VERTEX = /* glsl */ `
   varying vec2 vUv;

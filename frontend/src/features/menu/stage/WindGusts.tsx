@@ -13,7 +13,7 @@ import {
   type Group,
   type InstancedMesh,
 } from "three";
-import { useFeatherTexture } from "@/features/match/scene/character/seraphiel/HeavenDescent";
+import { useFeatherTexture } from "@/features/characters/seraphiel/HeavenDescent";
 import { seededRandom } from "@/game/domain/core/random";
 import { useAge } from "@/features/match/scene/useAge";
 import { GUSTS } from "./seraphEntrance";

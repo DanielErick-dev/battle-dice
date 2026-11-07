@@ -1,6 +1,6 @@
 import { Vector3 } from "three";
 import { describe, expect, it } from "vitest";
-import type { ClipLengths } from "../../characters";
+import type { ClipLengths } from "@/features/characters";
 import { KNOCKED_LANDING_SECONDS, LUNGE_DISTANCE, LUNGE_SECONDS } from "./trample";
 import type { MotionFrame, Segment } from "./motion";
 import {

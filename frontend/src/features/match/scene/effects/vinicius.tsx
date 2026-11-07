@@ -1,6 +1,6 @@
 /** Vinicius: the hoe that comes out to hack at each trap he weeds out. */
 import type { Object3D } from "three";
-import { HeldHoe } from "../character/vinicius/HeldHoe";
+import { HeldHoe } from "@/features/characters/vinicius/HeldHoe";
 import type { TokenFx } from "./types";
 
 export function Hoe({ token, figure }: { token: TokenFx; figure: Object3D }) {

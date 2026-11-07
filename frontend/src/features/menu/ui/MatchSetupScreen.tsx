@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { BOARD_PRESETS } from "@/features/match/boards";
 import { MAP_PRESETS } from "@/features/match/maps";
-import { CHARACTER_IDS, CHARACTERS, MAX_LOCAL_PLAYERS, parseCharacterList } from "@/features/match/characters";
+import { CHARACTER_IDS, CHARACTERS, MAX_LOCAL_PLAYERS, parseCharacterList } from "@/features/characters";
 import { ABILITY_TEXT } from "@/features/match/ui/abilityText";
 import { PAUSES_PER_PLAYER, TURN_SECONDS } from "@/features/match/ui/hud/Hourglass";
 import { preferences, usePreference } from "@/features/settings/preferences";

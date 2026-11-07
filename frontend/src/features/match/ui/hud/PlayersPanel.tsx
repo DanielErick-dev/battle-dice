@@ -6,7 +6,7 @@ import { getTile, trackOf } from "@/game/domain/board/board";
 import { MAX_ENERGY } from "@/game/domain/core/energy";
 import type { Board, Player, PlayerId } from "@/game/domain/types";
 import { cn } from "@/lib/utils";
-import { playerColor } from "../../characters";
+import { playerColor } from "@/features/characters";
 import { ABILITY_TEXT } from "../abilityText";
 import { BlessingBadges } from "./BlessingBadges";
 import { EnergyOrbs, useShownEnergy } from "../cards/EnergyMeter";

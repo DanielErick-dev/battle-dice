@@ -1,5 +1,5 @@
 /** What a figure is acting out each frame: the clip it plays and how its body leans, spins and hides. */
-import type { CharacterClip, CharacterDefinition, ClipLengths } from "../../characters";
+import type { CharacterClip, CharacterDefinition, ClipLengths } from "@/features/characters";
 import { DEFAULT_TIMINGS } from "../../config";
 import type { Vec3 } from "../boardLayout";
 import { KNOCKED_LANDING_SECONDS, LUNGE_DISTANCE, LUNGE_SECONDS } from "./trample";

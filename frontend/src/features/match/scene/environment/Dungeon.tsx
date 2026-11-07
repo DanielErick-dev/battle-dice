@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { AdditiveBlending, BackSide, Color, PlaneGeometry, SpriteMaterial, type Sprite } from "three";
 import { useCanvasTexture, type Painter } from "@/features/menu/stage/scenery/kit/textures";
 import type { Vec3 } from "../boardLayout";
-import { useSoftDisc } from "../character/shared/softDisc";
+import { useSoftDisc } from "@/features/characters/shared/softDisc";
 import { planDungeon } from "./dungeon";
 import { TRAIL_GROUND } from "./islandTerrain";
 import { KitPieces } from "./kits";

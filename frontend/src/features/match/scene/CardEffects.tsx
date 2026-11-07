@@ -13,7 +13,7 @@ import {
   type MeshStandardMaterial,
 } from "three";
 import type { Vec3 } from "./boardLayout";
-import { CHEST_HEIGHT } from "./character/core/figure";
+import { CHEST_HEIGHT } from "@/features/characters/core/figure";
 import { useAge } from "./useAge";
 import { HealingEmitter } from "./vfx/healing";
 
