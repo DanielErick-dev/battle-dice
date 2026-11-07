@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { at } from "../../core/invariant";
 import { TRAINING_BOARD } from "../../board/presets";
 import { startDraft, draftState } from "../../core/draft";
 import { ENCHANT_ADVANCE, HELL_ICE_ROUNDS, HELL_ICE_WEAK_ADVANCE, HELL_ICE_WEAK_AT, spreadWinter } from "./winter";
@@ -10,7 +11,9 @@ const hellTiles = (state: GameState) => state.board.tracks.find((track) => track
 /** The fairy in hell under Eternal Winter, her ice laid on hell's second tile. */
 function icedHell() {
   const start = newGame(TRAINING_BOARD, { fairy: "fairyBloom", rival: null });
-  const [first, second] = hellTiles(start);
+  const tiles = hellTiles(start);
+  const first = at(tiles, 0);
+  const second = at(tiles, 1);
   const realmEntry = { portal: 5, exit: 10 };
   const inHell = withPlayer(readyAbility(start, "fairy"), "fairy", { position: first, realmEntry });
   const winter = { ...inHell, winter: { owner: "fairy", frontier: 1, iced: [] } };

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { at } from "../../core/invariant";
 import { ABILITY_CYCLE, abilityCycle } from "../../abilities/charge";
 import {
   TRANSMUTATION_CARDS,
@@ -21,7 +22,8 @@ describe("Transmutation", () => {
     // Two uncommon (level 2) cards make an epic (level 4).
     const { state, events } = transmute(holding("windStep", "arcaneShield", "oracleEye"), "c1", "c2");
     const { hand, abilityCharge } = playerOf(state, "p1");
-    const [kept, changed] = hand;
+    const [kept] = hand;
+    const changed = at(hand, 1);
     expect(hand).toHaveLength(2);
     expect(kept).toEqual({ uid: "c0", cardId: "windStep" });
     expect(CARD_CATALOG[changed.cardId].rarity).toBe("epic");
@@ -51,7 +53,7 @@ describe("Transmutation", () => {
   it(`with fewer than ${TRANSMUTATION_CARDS} cards in hand, distils one of level ${TRANSMUTATION_FALLBACK_LEVEL}`, () => {
     const { hand } = playerOf(transmute(holding("windStep")).state, "p1");
     expect(hand).toHaveLength(2);
-    expect(rarityLevel(hand[1].cardId)).toBe(TRANSMUTATION_FALLBACK_LEVEL);
+    expect(rarityLevel(at(hand, 1).cardId)).toBe(TRANSMUTATION_FALLBACK_LEVEL);
   });
 
   it("charges over the short cycle", () => {

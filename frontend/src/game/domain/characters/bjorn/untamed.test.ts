@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { at } from "../../core/invariant";
 import { ARMOUR_TURNS } from "../kage/flames";
 import { LONG_ABILITY_CYCLE, abilityCycle } from "../../abilities/charge";
 import { TRAMPLE_PUSH, UNTAMED_TURNS } from "./untamed";
@@ -53,7 +54,7 @@ describe("the Berserker's trample", () => {
       expect.objectContaining({ playerId: "rival", by: "wolf", tile: 22 }),
       expect.objectContaining({ playerId: "third", by: "wolf", tile: 24 }),
     ]);
-    expect(events.indexOf(trampled[0])).toBe(events.findIndex((event) => event.type === "playerMoved") + 1);
+    expect(events.indexOf(at(trampled, 0))).toBe(events.findIndex((event) => event.type === "playerMoved") + 1);
   });
 
   it("knocks back the one he stops on too, but not those on the tile he leaves", () => {
