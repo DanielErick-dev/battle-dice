@@ -4,7 +4,7 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import { Color, DoubleSide, InstancedMesh, MeshStandardMaterial, Object3D, PlaneGeometry } from "three";
 import { seededRandom } from "@/game/domain/core/random";
-import { useCanvasTexture } from "../kit/textures";
+import { useCanvasTexture } from "@/features/shared/three/canvasTexture";
 import { HALF_WIDTH } from "./layout";
 import { paintLeaf } from "./textures";
 

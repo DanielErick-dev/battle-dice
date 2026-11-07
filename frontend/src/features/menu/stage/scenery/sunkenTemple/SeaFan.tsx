@@ -3,7 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import { DoubleSide, type Mesh } from "three";
-import { useCanvasTexture } from "../kit/textures";
+import { useCanvasTexture } from "@/features/shared/three/canvasTexture";
 import { LATTICE } from "./textures";
 
 /** A violet sea fan on the right, rocking in the current. */

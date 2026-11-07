@@ -1,5 +1,6 @@
 import { withDressing, type GroundDressing } from "../kit/groundDressing";
-import { type NoiseLook, type Painter } from "../kit/textures";
+import { type Painter } from "@/features/shared/three/canvasTexture";
+import { type NoiseLook } from "../kit/textures";
 
 /** Moss in mottled greens, bare earth showing through, blades of grass and a few fallen leaves. */
 const paintMossFloor: Painter = (context, size, random) => {

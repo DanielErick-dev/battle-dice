@@ -20,7 +20,7 @@ import { useSoftDisc } from "../kit/matchAssets";
 import { HOT_GLOW } from "../kit/materials";
 import { wave } from "../kit/motion";
 import { useRefList } from "../kit/refs";
-import { useCanvasTexture } from "../kit/textures";
+import { useCanvasTexture } from "@/features/shared/three/canvasTexture";
 import { useSpin } from "../kit/useSpin";
 import { paintFissures, paintRiftFloor, paintVeins, paintVortex } from "./textures";
 

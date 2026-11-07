@@ -1,5 +1,5 @@
 import { withDressing, type GroundDressing } from "../kit/groundDressing";
-import { type Painter } from "../kit/textures";
+import { type Painter } from "@/features/shared/three/canvasTexture";
 
 /** Soft snow over moss: pale blue-white with teal moss and lilac shadows showing through, and frost glints. */
 const paintFrostMoss: Painter = (context, size, random) => {

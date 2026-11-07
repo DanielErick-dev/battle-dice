@@ -1,5 +1,6 @@
 import { withDressing, type GroundDressing } from "../kit/groundDressing";
-import { type NoiseLook, type Painter } from "../kit/textures";
+import { type Painter } from "@/features/shared/three/canvasTexture";
+import { type NoiseLook } from "../kit/textures";
 
 /** Big square slabs worn smooth in the middle, mossy joints and cracks, fading out towards the rim. */
 const paintTerraceSlabs: Painter = (context, size, random) => {

@@ -3,7 +3,8 @@
 import { useEffect, useMemo } from "react";
 import { DodecahedronGeometry, MeshStandardMaterial } from "three";
 import { GROUND_RADIUS } from "../kit/geometry";
-import { useCanvasTexture, useNoiseTexture } from "../kit/textures";
+import { useCanvasTexture } from "@/features/shared/three/canvasTexture";
+import { useNoiseTexture } from "../kit/textures";
 import { Elements } from "./Elements";
 import { LeafSpiral } from "./LeafSpiral";
 import { LowClouds } from "./LowClouds";

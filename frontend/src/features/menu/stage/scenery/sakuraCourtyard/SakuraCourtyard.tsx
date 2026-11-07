@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { DoubleSide, MeshStandardMaterial, type Group } from "three";
 import { GROUND_RADIUS } from "../kit/geometry";
 import { usePropMesh } from "../kit/matchAssets";
-import { useCanvasTexture } from "../kit/textures";
+import { useCanvasTexture } from "@/features/shared/three/canvasTexture";
 import { FallingPetals, type Crown } from "./FallingPetals";
 import { Notebook } from "./Notebook";
 import { NOTEBOOK_SIZE } from "./layout";

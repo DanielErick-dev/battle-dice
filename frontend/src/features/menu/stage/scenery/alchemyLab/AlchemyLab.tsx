@@ -15,7 +15,7 @@ import {
   type Texture,
 } from "three";
 import { GROUND_RADIUS, taperedTube } from "../kit/geometry";
-import { useCanvasTexture } from "../kit/textures";
+import { useCanvasTexture } from "@/features/shared/three/canvasTexture";
 import { Flask } from "./Flask";
 import { FlaskBubbles } from "./FlaskBubbles";
 import { BENCH, BENCH_TOP, flaskHeight, FLASKS } from "./layout";

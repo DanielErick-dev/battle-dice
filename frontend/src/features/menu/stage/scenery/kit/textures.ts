@@ -3,8 +3,6 @@ import type { CanvasTexture } from "three";
 import { useCanvasTexture, type Painter } from "@/features/shared/three/canvasTexture";
 import { dressGround, type GroundDressing } from "./groundDressing";
 
-export * from "@/features/shared/three/canvasTexture";
-
 export interface NoiseLook {
   /** [r, g, b] of the base colour and of the darker and lighter flecks. */
   base: [number, number, number];

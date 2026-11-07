@@ -4,7 +4,7 @@ import { useDisposal } from "../kit/dispose";
 import { withDressing, type GroundDressing } from "../kit/groundDressing";
 import { drawParchment, pageStrokes } from "../kit/matchAssets";
 import { speckle } from "../kit/painting";
-import type { Painter } from "../kit/textures";
+import type { Painter } from "@/features/shared/three/canvasTexture";
 
 /** Staggered slabs with dark joints and flecks, fading out towards the rim. */
 const paintFlagstones: Painter = (context, size, random) => {

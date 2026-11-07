@@ -1,5 +1,5 @@
 import { withDressing, type GroundDressing } from "../kit/groundDressing";
-import { type Painter } from "../kit/textures";
+import { type Painter } from "@/features/shared/three/canvasTexture";
 
 /** Pale pavers in staggered rows, mossy joints, the odd fallen petal; tinted by the dusk. */
 const paintPaving: Painter = (context, size, random) => {

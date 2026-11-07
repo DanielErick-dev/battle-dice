@@ -1,7 +1,8 @@
 import { seededRandom } from "@/game/domain/core/random";
 import { withDressing, type GroundDressing } from "../kit/groundDressing";
 import { blot } from "../kit/painting";
-import { type CanvasLook, type NoiseLook, type Painter } from "../kit/textures";
+import { type CanvasLook, type Painter } from "@/features/shared/three/canvasTexture";
+import { type NoiseLook } from "../kit/textures";
 
 /**
  * The seabed he rules: rippled blue-green sand, seagrass meadows, his gold sigil round his feet and a few temple

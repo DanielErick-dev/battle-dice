@@ -1,6 +1,7 @@
 import { seededRandom } from "@/game/domain/core/random";
 import { withDressing, type GroundDressing } from "../kit/groundDressing";
-import { type CanvasLook, type NoiseLook } from "../kit/textures";
+import { type CanvasLook } from "@/features/shared/three/canvasTexture";
+import { type NoiseLook } from "../kit/textures";
 import { CLOCK_BAND, CLOCK_RADIUS } from "./layout";
 
 /** Riveted iron plates, scuffed and oiled, fading out towards the rim. */
