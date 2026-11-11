@@ -4,9 +4,9 @@ import type { GameEvent } from "../core/events";
 import type { RandomSource } from "../core/random";
 import type { GameState } from "../core/state";
 
+/** Built by resolveCommand from `state.rng`; handlers never see the stream itself. */
 export interface GameDependencies {
   rollDice: DiceRoller;
-  /** Injected like the dice so games replay exactly. */
   random: RandomSource;
 }
 

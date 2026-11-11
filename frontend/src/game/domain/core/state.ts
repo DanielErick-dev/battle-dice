@@ -2,6 +2,7 @@ import type { AbilityId } from "../abilities/ability";
 import type { ActiveBlessing, Board, RealmEntry, Threat, TileId } from "../board/types";
 import type { CardId } from "../cards/catalog";
 import type { PlayerId } from "./ids";
+import type { RngState } from "./random";
 import type { ScarletFlame } from "../characters/akane/types";
 import type { EnchantedTile, Winter } from "../characters/fairy/types";
 import type { BlackFlame } from "../characters/kage/types";
@@ -174,4 +175,6 @@ export interface GameState {
   /** Tiles Zarek's Void marked purple (see VoidScar). */
   voidScars: readonly VoidScar[];
   pendingPlunder: PendingPlunder | null;
+  /** Every die and shuffle draws from here, so a stateless server can resolve any command. */
+  rng: RngState;
 }

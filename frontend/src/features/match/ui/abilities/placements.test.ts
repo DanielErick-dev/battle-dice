@@ -15,10 +15,14 @@ import { fairyBloom, forbiddenSeals, placementOf, spectralApparitions, theVoid }
 import type { AbilityScene } from "./types";
 
 function sceneWith(patch: { player?: Partial<Player>; view?: Partial<MatchView> } = {}): AbilityScene {
-  const state = createGame(CLASSIC_BOARD, [
-    { id: "p1", name: "Aria" },
-    { id: "p2", name: "Bran" },
-  ]);
+  const state = createGame(
+    CLASSIC_BOARD,
+    [
+      { id: "p1", name: "Aria" },
+      { id: "p2", name: "Bran" },
+    ],
+    { seed: 1 },
+  );
   const view = { ...createInitialView(state), ...patch.view };
   const player = { ...state.players[0], position: 5, ...patch.player };
   return { board: state.board, view, player };

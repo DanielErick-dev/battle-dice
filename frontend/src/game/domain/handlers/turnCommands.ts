@@ -91,7 +91,7 @@ export const turnCommands: CommandHandlers<"rollDice" | "forfeitTurn" | "restart
   },
 
   restart: (state, _command, deps) => ({
-    state: openingState(closeRifts(state.board), state.players, state.decks, deps.random),
+    state: { ...openingState(closeRifts(state.board), state.players, state.decks, deps.random), rng: state.rng },
     events: [{ type: "gameRestarted" }, { type: "turnChanged", playerId: at(state.players, 0).id }],
   }),
 };

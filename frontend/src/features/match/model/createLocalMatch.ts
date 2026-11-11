@@ -1,6 +1,4 @@
 import { LocalGameClient } from "@/game/application/localGameClient";
-import { randomDice } from "@/game/domain/core/dice";
-import { abilityCycle } from "@/game/domain/abilities/charge";
 import { createGame } from "@/game/domain/core/engine";
 import type { BoardDefinition } from "@/game/domain/board/board";
 import type { RosterEntry } from "@/features/characters";
@@ -17,12 +15,7 @@ export function createLocalMatch(
   roster: readonly RosterEntry[],
   { chargedAbilities = false }: LocalMatchOptions = {},
 ): MatchStore {
-  const created = createGame(board, roster, { random: Math.random });
-  const game = chargedAbilities
-    ? {
-        ...created,
-        players: created.players.map((player) => ({ ...player, abilityCharge: abilityCycle(player.ability) })),
-      }
-    : created;
-  return new MatchStore(new LocalGameClient(game, { rollDice: randomDice, random: Math.random }));
+  // Offline the browser hosts the match, so it picks the seed; online the server will.
+  const seed = Math.floor(Math.random() * 2 ** 32);
+  return new MatchStore(new LocalGameClient(createGame(board, roster, { seed, chargedAbilities })));
 }

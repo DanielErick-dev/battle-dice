@@ -10,10 +10,14 @@ const positions = (state: ReturnType<typeof duo>) => state.players.map((player) 
 
 describe("createGame", () => {
   it("places every player on the start tile and gives the turn to the first one", () => {
-    const game = createGame(CLASSIC_BOARD, [
-      { id: "p1", name: "Aria" },
-      { id: "p2", name: "Bran" },
-    ]);
+    const game = createGame(
+      CLASSIC_BOARD,
+      [
+        { id: "p1", name: "Aria" },
+        { id: "p2", name: "Bran" },
+      ],
+      { seed: 1 },
+    );
     expect(positions(game)).toEqual([1, 1]);
     expect(game.currentPlayerIndex).toBe(0);
     expect(game.status).toBe("playing");

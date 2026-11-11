@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CLASSIC_BOARD } from "../domain/board/presets";
-import { sequenceDice } from "../domain/core/dice";
 import { createGame } from "../domain/core/engine";
-import { seededRandom } from "../domain/core/random";
+import { loadedDice } from "../domain/testing";
 import type { GameUpdate } from "./gameClient";
 import { LocalGameClient } from "./localGameClient";
 
@@ -11,8 +10,7 @@ const PLAYERS = [
   { id: "p2", name: "Bran" },
 ];
 
-const local = () =>
-  new LocalGameClient(createGame(CLASSIC_BOARD, PLAYERS), { rollDice: sequenceDice([3, 2]), random: seededRandom(1) });
+const local = () => new LocalGameClient(createGame(CLASSIC_BOARD, PLAYERS, { seed: 1 }), loadedDice([3, 2]));
 
 describe("LocalGameClient", () => {
   it("connects at once as a hot-seat, at seq 0", async () => {

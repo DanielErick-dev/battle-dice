@@ -8,10 +8,14 @@ import { LOG_LIMIT, eventToSteps, logged, updateSteps } from "./playback";
 
 const initial = () =>
   createInitialView(
-    createGame(CLASSIC_BOARD, [
-      { id: "p1", name: "Aria" },
-      { id: "p2", name: "Bjorn" },
-    ]),
+    createGame(
+      CLASSIC_BOARD,
+      [
+        { id: "p1", name: "Aria" },
+        { id: "p2", name: "Bjorn" },
+      ],
+      { seed: 1 },
+    ),
   );
 
 const logAll = (view: MatchView, events: readonly GameEvent[]) =>
@@ -30,7 +34,7 @@ describe("battle log steps", () => {
   });
 
   it("logs each event as its first step plays, adding no steps of its own", () => {
-    const state = createGame(CLASSIC_BOARD, [{ id: "p1", name: "Aria" }]);
+    const state = createGame(CLASSIC_BOARD, [{ id: "p1", name: "Aria" }], { seed: 1 });
     const events: GameEvent[] = [
       { type: "turnSkipped", playerId: "p1" },
       { type: "turnChanged", playerId: "p1" },

@@ -1,19 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LocalGameClient } from "@/game/application/localGameClient";
 import { CLASSIC_BOARD } from "@/game/domain/board/presets";
-import { sequenceDice } from "@/game/domain/core/dice";
-import { seededRandom } from "@/game/domain/core/random";
+import { loadedDice } from "@/game/domain/testing";
 import { createGame } from "@/game/domain/core/engine";
 import { MatchStore } from "../model/matchStore";
 import { connectMatchAudio } from "./matchAudio";
 import type { MatchSounds } from "./soundEffects";
 
 async function setup(rolls: number[], start = 1) {
-  const game = createGame(CLASSIC_BOARD, [{ id: "p1", name: "Aria" }]);
+  const game = createGame(CLASSIC_BOARD, [{ id: "p1", name: "Aria" }], { seed: 1 });
   const positioned = { ...game, players: game.players.map((player) => ({ ...player, position: start })) };
-  const store = new MatchStore(
-    new LocalGameClient(positioned, { rollDice: sequenceDice(rolls), random: seededRandom(1) }),
-  );
+  const store = new MatchStore(new LocalGameClient(positioned, loadedDice(rolls)));
   await store.open();
 
   const played: string[] = [];

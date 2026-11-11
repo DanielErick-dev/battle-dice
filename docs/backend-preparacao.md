@@ -4,12 +4,14 @@ Pendências levantadas na inspeção de arquitetura de 07/11/2026, pensando na *
 
 **Legenda:** ⬜ a fazer · 🔄 em andamento · ✅ feito
 
-## 1. Sorteio dentro do estado 🔄
+## 1. Sorteio dentro do estado ✅
 
-- Hoje `GameDependencies { rollDice, random }` são funções de fora (`handlers/types.ts`), `createGame` cai em `Math.random` (`core/engine.ts`) e o dado também (`core/dice.ts`).
-- Um engine que não guarda nada precisa do sorteio no estado: `rng { seed, counter }` no `GameState`, dado e cartas saindo dele, `seed` obrigatório.
-- Teste: mesmo seed + mesmos comandos = mesmo estado (replay pelo log de comandos).
-- Lint em `game/`: proibir `Math.random`, `Date.now`, `new Date`, `performance.now`, `window`, `document`.
+- `GameState.rng = { seed, counter }` (mulberry32 em `core/random.ts`); dado, embaralhamentos e sorteios saem dele. `createGame(board, players, { seed })` exige a semente; `applyCommand(state, command)` não recebe mais funções de fora.
+- `handlers/resolve.ts` monta o sorteio a partir de `state.rng` a cada comando e grava o `counter` avançado.
+- Dado viciado só nos testes: `send`/`roll` e `loadedDice` em `testing/`.
+- `core/replay.test.ts`: mesmo seed + mesmo log de comandos (com `restart`) = mesmo estado.
+- Lint em `src/game/**` proíbe `Math.random`, `Date.now`, `new Date`, `performance.now`, `window`, `document`.
+- `chargedAbilities` virou opção do `createGame` (o `restart` volta ao normal, como antes).
 
 ## 2. Visão por jogador (segredos) ⬜
 
@@ -26,9 +28,9 @@ Pendências levantadas na inspeção de arquitetura de 07/11/2026, pensando na *
 - Erro como `{ code }` (não `instanceof`, que não atravessa a rede).
 - `localPlayerId` no `MatchStore` (hoje todo comando sai como o jogador da vez).
 - `restart` e o tempo esgotado do turno decididos pelo servidor; a tela só mostra o relógio.
-- Modo teste `chargedAbilities` vira opção do `createGame`.
+- ✅ Modo teste `chargedAbilities` vira opção do `createGame` (feito no item 1).
 - **Feito em 11/11/2026**: `connect(): Promise<Snapshot { seq, state, localPlayerId }>`, `GameUpdate { seq, state, events }`, `send` devolve `{ ok: true } | { ok: false, code }` e só rejeita em falha de transporte. O `MatchStore` abre com `open()` (a tela mostra a cortina até o `Snapshot`), ignora `seq` repetido e guarda o `localPlayerId` (`null` = jogo local, segue o jogador da vez; assento preso só manda comando do próprio jogador). Detalhes em `game/application/README.md`.
-- **Ficou de fora**: o relógio continua na tela (para nas animações e pausas, que só ela vê) e só manda o `forfeitTurn` do próprio assento; o prazo do servidor para quem cair nasce com o `WebSocketGameClient`. O `chargedAbilities` no `createGame` ficou para depois do item 1, que mexe no `createGame`.
+- **Ficou de fora**: o relógio continua na tela (para nas animações e pausas, que só ela vê) e só manda o `forfeitTurn` do próprio assento; o prazo do servidor para quem cair nasce com o `WebSocketGameClient`.
 
 ## 4. Contrato TS ↔ Python ⬜
 

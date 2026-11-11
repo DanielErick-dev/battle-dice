@@ -6,7 +6,7 @@ import { DEFAULT_TIMINGS } from "@/features/shared/config";
 import { cardsLeftThisTurn, createInitialView, type MatchView } from "./matchView";
 import { eventToSteps } from "./playback";
 
-const initial = () => createInitialView(createGame(CLASSIC_BOARD, [{ id: "p1", name: "Aria" }]));
+const initial = () => createInitialView(createGame(CLASSIC_BOARD, [{ id: "p1", name: "Aria" }], { seed: 1 }));
 
 /** The view after every step of an event. */
 function replay(view: MatchView, event: GameEvent): MatchView[] {

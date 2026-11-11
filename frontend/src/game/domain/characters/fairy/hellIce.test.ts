@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { at } from "../../core/invariant";
 import { TRAINING_BOARD } from "../../board/presets";
 import { startDraft, draftState } from "../../core/draft";
+import { seededRandom } from "../../core/random";
 import { ENCHANT_ADVANCE, HELL_ICE_ROUNDS, HELL_ICE_WEAK_ADVANCE, HELL_ICE_WEAK_AT, spreadWinter } from "./winter";
 import { activate, newGame, playerOf, readyAbility, roll, withPlayer } from "../../testing";
 import type { GameState } from "../../core/state";
@@ -23,7 +24,7 @@ function icedHell() {
 const rounds = (state: GameState, count: number) => {
   let current = state;
   for (let round = 0; round < count; round++) {
-    const draft = startDraft(current, Math.random);
+    const draft = startDraft(current, seededRandom(round));
     spreadWinter(draft);
     current = draftState(draft);
   }

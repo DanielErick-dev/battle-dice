@@ -10,8 +10,7 @@ import { LocalGameClient } from "@/game/application/localGameClient";
 import type { GameCommand } from "@/game/domain/core/commands";
 import { CLASSIC_BOARD } from "@/game/domain/board/presets";
 import { HAND_LIMIT } from "@/game/domain/cards/hand";
-import { sequenceDice } from "@/game/domain/core/dice";
-import { seededRandom } from "@/game/domain/core/random";
+import { loadedDice } from "@/game/domain/testing";
 import { createGame } from "@/game/domain/core/engine";
 import type { CardInstance, GameState } from "@/game/domain/types";
 import { DEFAULT_TIMINGS } from "@/features/shared/config";
@@ -23,10 +22,7 @@ const PLAYERS = [
 ];
 
 async function setup(rolls: number[], patch: (state: GameState) => GameState = (state) => state) {
-  const client = new LocalGameClient(patch(createGame(CLASSIC_BOARD, PLAYERS)), {
-    rollDice: sequenceDice(rolls),
-    random: seededRandom(1),
-  });
+  const client = new LocalGameClient(patch(createGame(CLASSIC_BOARD, PLAYERS, { seed: 1 })), loadedDice(rolls));
   const store = new MatchStore(client);
   await store.open();
   return { store, disconnect: store.close };
@@ -226,7 +222,7 @@ describe("MatchStore", () => {
       emit = (update: GameUpdate) => this.listeners.forEach((listener) => listener(update));
     }
 
-    const game = createGame(CLASSIC_BOARD, PLAYERS);
+    const game = createGame(CLASSIC_BOARD, PLAYERS, { seed: 1 });
     const at = (position: number): GameState => ({
       ...game,
       players: game.players.map((player) => (player.id === "p1" ? { ...player, position } : player)),
