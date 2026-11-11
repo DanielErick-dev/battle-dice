@@ -12,22 +12,19 @@ import {
   type ShaderMaterial,
 } from "three";
 import { getTile } from "@/game/domain/board/board";
+import { easeOutCubic } from "@/features/characters/shared/easing";
 import type { Board, RealmTrack } from "@/game/domain/types";
 import type { BoardPicking } from "../board/pickCursor";
 import { TILE_HEIGHT, type BoardLayout, type Vec3 } from "@/features/shared/board/boardLayout";
 import { TileMesh } from "../board/tile/TileMesh";
 import { REALM_PALETTES } from "../board/tile/theme/palettes";
-import { CorridorWalls } from "./CorridorWalls";
-import { FlameWall } from "./FlameWall";
-import { RIBBON_FRAGMENT, RIBBON_VERTEX } from "./ribbonShader";
-import { TrackSparkles } from "./TrackSparkles";
-import { HaloUnderside, MoltenUnderside } from "./TrackUndersides";
-
-/** How fast the track rises into view and sinks away (presence per second). */
-const APPEAR_RATE = 0.8;
-const VANISH_RATE = 0.7;
-/** Where tiles come from: up out of the lava below, or down from the sky. */
-const ARRIVAL_OFFSET = { infernal: -5, celestial: 7 } as const;
+import { CorridorWalls } from "./corridor/CorridorWalls";
+import { UV_VERTEX } from "./glsl";
+import { ARRIVAL_OFFSET, stepPresence, tileArrival, wallRise } from "./track/arrival";
+import { FlameWall } from "./track/FlameWall";
+import { RIBBON_FRAGMENT } from "./track/ribbonShader";
+import { TrackSparkles } from "./track/TrackSparkles";
+import { HaloUnderside, MoltenUnderside } from "./track/TrackUndersides";
 
 interface RealmTrackViewProps {
   track: RealmTrack;
@@ -85,8 +82,7 @@ export function RealmTrackView({
   );
 
   useFrame(({ clock }, delta) => {
-    const rate = open ? APPEAR_RATE : VANISH_RATE;
-    presence.current += ((open ? 1 : 0) - presence.current) * Math.min(1, delta * rate * 3);
+    presence.current = stepPresence(presence.current, open, delta);
     const amount = presence.current;
     if (root.current) root.current.visible = amount > 0.005;
     if (amount <= 0.005) return;
@@ -94,16 +90,15 @@ export function RealmTrackView({
     const count = positions.length;
     tiles.current.forEach((tile, i) => {
       if (!tile) return;
-      // Tiles arrive in order from the portal; each eases in over its own slice of the reveal.
-      const local = Math.min(1, Math.max(0, amount * (count + 1.5) - i));
-      const eased = 1 - (1 - local) ** 3;
+      const local = tileArrival(amount, i, count);
+      const eased = easeOutCubic(local);
       tile.position.set(positions[i][0], positions[i][1] + (1 - eased) * ARRIVAL_OFFSET[track.realm], positions[i][2]);
       tile.scale.setScalar(0.25 + 0.75 * eased);
       tile.visible = local > 0.01;
     });
 
     // The corridor's walls rise out of its floor as the track appears, and sink back into it.
-    if (walls.current) walls.current.scale.y = Math.max(0.001, 1 - (1 - Math.min(1, amount * 1.2)) ** 3);
+    if (walls.current) walls.current.scale.y = wallRise(amount);
 
     flames.forEach((material) => {
       material.uniforms.uTime.value = clock.elapsedTime;
@@ -121,7 +116,7 @@ export function RealmTrackView({
       <mesh geometry={ribbonGeometry}>
         <shaderMaterial
           ref={ribbon}
-          vertexShader={RIBBON_VERTEX}
+          vertexShader={UV_VERTEX}
           fragmentShader={RIBBON_FRAGMENT}
           uniforms={ribbonUniforms}
           transparent

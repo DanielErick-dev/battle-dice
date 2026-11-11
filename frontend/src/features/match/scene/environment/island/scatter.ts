@@ -1,30 +1,20 @@
 import { seededRandom } from "@/game/domain/core/random";
 import type { Vec3 } from "@/features/shared/board/boardLayout";
-import type { Placed } from "../instances";
-import {
-  groundAt,
-  RIVER_HALF_WIDTH,
-  riverDistance,
-  trailDistance,
-  TRAIL_EARTH,
-  TRAIL_GROUND,
-  type IslandShape,
-} from "../islandTerrain";
-import type { Settlements } from "../settlements";
+import type { Placed } from "../shared/Instances";
+import { hidesTiles, TRAIL_GROUND, type Blocker } from "../shared/trailPlan";
+import { groundAt, RIVER_HALF_WIDTH, riverDistance, trailDistance, TRAIL_EARTH, type IslandShape } from "./terrain";
 
 /** A lantern by the trail every this many tiles. */
 const LANTERN_EVERY = 9;
 
 /** Big pines, at most: each a heavy model, so the woods stay light. */
 const MAX_PINES = 90;
-/** How far behind it (towards the far side) a tree of height h hides the ground, with the camera up at 45°. */
-const SHADE_REACH = 1.15;
 
 /**
  * Pines and rocky knolls full size, only where no tile hides behind them (the camera looks from the
  * front); bushes in their place between the rows; boulders and tufts. The same every time for a board.
  */
-export function scatterProps(shape: IslandShape, trail: readonly Vec3[], blockers: Settlements["blockers"]) {
+export function scatterProps(shape: IslandShape, trail: readonly Vec3[], blockers: readonly Blocker[]) {
   const random = seededRandom(31);
   const trees: Placed[] = [];
   const groves: Placed[] = [];
@@ -52,9 +42,6 @@ export function scatterProps(shape: IslandShape, trail: readonly Vec3[], blocker
     turn: random() * Math.PI * 2,
     tilt: 0,
   });
-  // A tile hides behind a tree when it lies a little behind it and not far to either side.
-  const hidesTiles = (x: number, z: number, height: number, spread: number) =>
-    trail.some(([tx, , tz]) => tz < z + 1 && z - tz < height * SHADE_REACH && Math.abs(tx - x) < spread + 1.4);
 
   for (let attempt = Math.round(area * 0.6); attempt > 0; attempt--) {
     const { x, z, height, cover, clear } = spot();
@@ -71,7 +58,7 @@ export function scatterProps(shape: IslandShape, trail: readonly Vec3[], blocker
       const size = grove ? tall * 0.75 : tall;
       // Its crown spreads about a third of its height each way.
       const spread = size * (grove ? 0.5 : 0.35);
-      if (clear > spread && !hidesTiles(x, z, size, spread) && (grove || trees.length < MAX_PINES)) {
+      if (clear > spread && !hidesTiles(trail, x, z, size, spread) && (grove || trees.length < MAX_PINES)) {
         (grove ? groves : trees).push({ ...item, size });
       } else if (clear > 0.8) bushes.push({ ...item, size: 0.5 + random() * 0.5 });
     } else if (roll < 0.63) rocks.push({ ...item, tilt: random() * 0.6 });

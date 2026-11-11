@@ -2,17 +2,19 @@
 
 import { useMemo } from "react";
 import type { Vec3 } from "@/features/shared/board/boardLayout";
-import { ChimneySmoke } from "../ChimneySmoke";
-import { planCoast } from "../coast";
-import { groundAt, islandShape } from "../islandTerrain";
-import { KitPieces } from "../kits";
-import { paintDirtRoad, TrailRoad } from "../road";
-import { KIT_SCALE, planSettlements } from "../settlements";
+import { ChimneySmoke } from "../shared/ChimneySmoke";
+import { KitPieces } from "../shared/KitPieces";
+import { TrailRoad } from "../shared/TrailRoad";
 import { Bridges } from "./Bridges";
+import { planCoast } from "./coast";
+import { paintDirtRoad } from "./dirtRoad";
 import { GrassTufts } from "./GrassTufts";
 import { useIslandGround } from "./ground";
 import { Lantern } from "./Lantern";
 import { bridgeSpans, lanternSpots, scatterProps } from "./scatter";
+import { planSettlements } from "./settlements";
+import { groundAt, type IslandShape } from "./terrain";
+import { KIT_SCALE } from "./townPieces";
 import { Woods } from "./Woods";
 
 /** Cools and darkens the cartoon kits' bright colours (blue roofs, green bushes) into the night. */
@@ -25,8 +27,7 @@ const COUNTRY_TINT = "#7a8279";
  * trail crosses on wooden bridges; tall pines where they hide no tile (Meshy models), bushes, boulders and
  * grass tufts in between, and lanterns along the way.
  */
-export function Island({ trail }: { trail: readonly Vec3[] }) {
-  const shape = useMemo(() => islandShape(trail), [trail]);
+export function Island({ trail, shape }: { trail: readonly Vec3[]; shape: IslandShape }) {
   const ground = useIslandGround(shape);
   const town = useMemo(() => planSettlements(shape, trail), [shape, trail]);
   const scatter = useMemo(() => scatterProps(shape, trail, town.blockers), [shape, trail, town]);

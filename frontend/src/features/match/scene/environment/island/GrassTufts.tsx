@@ -2,7 +2,7 @@
 
 import { ConeGeometry, MeshStandardMaterial } from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import { Instances, type Placed } from "../instances";
+import { Instances, type Placed } from "../shared/Instances";
 
 /** Three blades leaning apart, merged into one tuft. */
 const tuftGeometry = mergeGeometries(
