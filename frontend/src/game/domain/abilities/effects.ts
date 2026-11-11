@@ -1,4 +1,5 @@
-import { bloom, freezeTiles } from "../characters/fairy/winter";
+import { bloom } from "../characters/fairy/bloom";
+import { freezeTiles } from "../characters/fairy/winter";
 import { cleansingTide } from "../characters/auric/cleansingTide";
 import { hellsDrag } from "../characters/seraphiel/seraph";
 import { levitate } from "./basic";

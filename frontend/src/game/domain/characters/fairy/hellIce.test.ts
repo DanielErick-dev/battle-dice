@@ -3,7 +3,8 @@ import { at } from "../../core/invariant";
 import { TRAINING_BOARD } from "../../board/presets";
 import { startDraft, draftState } from "../../core/draft";
 import { seededRandom } from "../../core/random";
-import { ENCHANT_ADVANCE, HELL_ICE_ROUNDS, HELL_ICE_WEAK_ADVANCE, HELL_ICE_WEAK_AT, spreadWinter } from "./winter";
+import { HELL_ICE_ROUNDS, spreadWinter } from "./winter";
+import { ENCHANT_ADVANCE, HELL_ICE_WEAK_ADVANCE, HELL_ICE_WEAK_AT } from "./snow";
 import { activate, newGame, playerOf, readyAbility, roll, withPlayer } from "../../testing";
 import type { GameState } from "../../core/state";
 

@@ -37,14 +37,9 @@ import {
   FLAME_TURNS,
 } from "@/game/domain/characters/kage/flames";
 import { VOID_CAPACITY, VOID_DOUBLE_ENERGY, VOID_SCAR_BACK } from "@/game/domain/characters/zarek/void";
-import {
-  ENCHANT_ADVANCE,
-  ENCHANT_FREEZE,
-  SNOW_DRAIN,
-  ENCHANT_TILES,
-  WINTER_PICKS,
-  WINTER_TILES,
-} from "@/game/domain/characters/fairy/winter";
+import { ENCHANT_TILES } from "@/game/domain/characters/fairy/bloom";
+import { ENCHANT_ADVANCE, ENCHANT_FREEZE, SNOW_DRAIN } from "@/game/domain/characters/fairy/snow";
+import { WINTER_PICKS, WINTER_TILES } from "@/game/domain/characters/fairy/winter";
 import { MAX_RARITY_LEVEL } from "@/game/domain/cards/catalog";
 import { BLESSING_TURNS, SERAPHIEL_BLESSING_TURNS } from "@/game/domain/board/blessings";
 import { CROWN_BONUS, DRAG_TRAPS } from "@/game/domain/characters/seraphiel/seraph";

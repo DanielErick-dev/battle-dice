@@ -1,4 +1,5 @@
-import { ENCHANT_ADVANCE, WINTER_TILES } from "@/game/domain/characters/fairy/winter";
+import { ENCHANT_ADVANCE } from "@/game/domain/characters/fairy/snow";
+import { WINTER_TILES } from "@/game/domain/characters/fairy/winter";
 import type { TileEffectView } from "../../../model/matchView";
 import type { Copy, CopyEntries } from "./types";
 
