@@ -2,6 +2,7 @@ import type { RandomSource } from "@/game/domain/core/random";
 import { paintPath, type PathLook } from "./groundPath";
 import { blot } from "./painting";
 import type { Painter } from "@/features/shared/three/canvasTexture";
+import { cycle } from "@/features/shared/collections/items";
 
 /** Bits scattered over the ground: petals, leaves, shards… */
 interface LitterLook {
@@ -45,7 +46,7 @@ export function dressGround(
     const { colours, count, radius } = look.patches;
     for (let index = 0; index < count; index++) {
       const r = (radius[0] + random() * (radius[1] - radius[0])) * scale;
-      blot(context, random() * size, random() * size, r, colours[index % colours.length]);
+      blot(context, random() * size, random() * size, r, cycle(colours, index));
     }
   }
   if (look.path) paintPath(context, size, random, look.path);
@@ -61,7 +62,7 @@ function scatter(context: CanvasRenderingContext2D, size: number, random: Random
     const x = size * (x0 + random() * (x1 - x0));
     const y = size * (y0 + random() * (y1 - y0));
     const r = litter.size * scale * (0.6 + random() * 0.8);
-    const colour = litter.colours[index % litter.colours.length];
+    const colour = cycle(litter.colours, index);
     context.save();
     context.translate(x, y);
     context.rotate(random() * Math.PI * 2);

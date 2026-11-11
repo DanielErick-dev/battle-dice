@@ -3,6 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo } from "react";
 import { BufferAttribute, MeshStandardMaterial, PlaneGeometry } from "three";
+import { itemAt } from "@/features/shared/collections/items";
 
 const FRONDS = [
   { x: -0.84, z: -0.14, height: 0.42, phase: 0 },
@@ -21,7 +22,7 @@ const FROND_SEGMENTS = 8;
 export function Seaweed({ weed, darkWeed }: { weed: MeshStandardMaterial; darkWeed: MeshStandardMaterial }) {
   const fronds = useMemo(
     () =>
-      FRONDS.map(({ height }) => {
+      FRONDS.map(({ height, phase }) => {
         const geometry = new PlaneGeometry(0.05, height, 1, FROND_SEGMENTS);
         geometry.translate(0, height / 2, 0);
         const positions = geometry.getAttribute("position") as BufferAttribute;
@@ -29,7 +30,7 @@ export function Seaweed({ weed, darkWeed }: { weed: MeshStandardMaterial; darkWe
         for (let index = 0; index < positions.count; index++) {
           positions.setX(index, positions.getX(index) * (1 - (positions.getY(index) / height) * 0.75));
         }
-        return { geometry, rest: Float32Array.from(positions.array) };
+        return { geometry, rest: Float32Array.from(positions.array), height, phase };
       }),
     [],
   );
@@ -37,13 +38,12 @@ export function Seaweed({ weed, darkWeed }: { weed: MeshStandardMaterial; darkWe
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
-    fronds.forEach(({ geometry, rest }, frond) => {
-      const { height, phase } = FRONDS[frond];
+    fronds.forEach(({ geometry, rest, height, phase }) => {
       const positions = geometry.getAttribute("position") as BufferAttribute;
       for (let index = 0; index < positions.count; index++) {
-        const y = rest[index * 3 + 1];
+        const y = rest[index * 3 + 1] ?? 0;
         const reach = (y / height) ** 1.5;
-        positions.setX(index, rest[index * 3] + Math.sin(t * 1.1 + phase + y * 6) * 0.06 * reach);
+        positions.setX(index, (rest[index * 3] ?? 0) + Math.sin(t * 1.1 + phase + y * 6) * 0.06 * reach);
         positions.setZ(index, Math.cos(t * 0.8 + phase + y * 4) * 0.04 * reach);
       }
       positions.needsUpdate = true;
@@ -55,7 +55,7 @@ export function Seaweed({ weed, darkWeed }: { weed: MeshStandardMaterial; darkWe
       {FRONDS.map(({ x, z, phase }, index) => (
         <mesh
           key={`${x}:${z}`}
-          geometry={fronds[index].geometry}
+          geometry={itemAt(fronds, index).geometry}
           material={index % 2 ? darkWeed : weed}
           position={[x, 0, z]}
           rotation-y={phase}

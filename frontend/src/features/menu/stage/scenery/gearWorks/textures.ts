@@ -23,7 +23,7 @@ function drawPlates(context: CanvasRenderingContext2D, size: number) {
         [plate - 12, plate - 12],
         [plate / 2, 12],
         [plate / 2, plate - 12],
-      ]) {
+      ] as const) {
         context.beginPath();
         context.arc(x + rx, y + ry, 3.5, 0, Math.PI * 2);
         context.fill();

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { seededRandom } from "@/game/domain/core/random";
 import { evenAngles, scatterAround } from "./geometry";
 import { petalPose, settle, type Petal } from "./petals";
+import { itemAt } from "@/features/shared/collections/items";
 
 describe("scatterAround", () => {
   const spots = scatterAround(seededRandom(5), 40, 0.3, 0.9);
@@ -32,7 +33,7 @@ describe("evenAngles", () => {
     const angles = evenAngles(4, 0.3);
     expect(angles).toHaveLength(4);
     expect(angles[0]).toBe(0.3);
-    expect(angles[2] - angles[1]).toBeCloseTo(Math.PI / 2);
+    expect(itemAt(angles, 2) - itemAt(angles, 1)).toBeCloseTo(Math.PI / 2);
   });
 });
 

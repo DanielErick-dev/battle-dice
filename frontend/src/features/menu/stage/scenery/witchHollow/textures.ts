@@ -1,6 +1,7 @@
 import { withDressing, type GroundDressing } from "../kit/groundDressing";
 import { type Painter } from "@/features/shared/three/canvasTexture";
 import { type NoiseLook } from "../kit/textures";
+import { pick } from "@/features/shared/collections/items";
 
 /** Dark loam with moss patches, fallen leaves and grit. */
 const paintForestFloor: Painter = (context, size, random) => {
@@ -22,7 +23,7 @@ const paintForestFloor: Painter = (context, size, random) => {
   }
   const leaves = ["#4a2312", "#5c1a14", "#3a2a14", "#6b2a16", "#2e1f12"];
   for (let leaf = 0; leaf < 170; leaf++) {
-    context.fillStyle = leaves[Math.floor(random() * leaves.length)];
+    context.fillStyle = pick(leaves, random());
     context.globalAlpha = 0.55 + random() * 0.35;
     context.beginPath();
     context.ellipse(

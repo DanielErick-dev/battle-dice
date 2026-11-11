@@ -113,9 +113,10 @@ export function CrystalGrove() {
     materials.lilac.setValues({ emissiveIntensity: 0.55 - 0.2 * pulse });
     materials.cyanGlow.setValues({ opacity: 0.26 + 0.1 * pulse });
     materials.lilacGlow.setValues({ opacity: 0.26 - 0.1 * pulse });
-    floaters.current.forEach((floater, index) => {
+    FLOATERS.forEach(({ y }, index) => {
+      const floater = floaters.current[index];
       if (!floater) return;
-      floater.position.y = FLOATERS[index].y + 0.05 * Math.sin(t * 0.8 + index * 2.1);
+      floater.position.y = y + 0.05 * Math.sin(t * 0.8 + index * 2.1);
       floater.rotation.y = t * (0.6 + index * 0.2);
     });
   });

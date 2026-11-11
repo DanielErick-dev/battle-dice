@@ -1,6 +1,7 @@
 import { seededRandom } from "@/game/domain/core/random";
 import { withDressing, type GroundDressing } from "../kit/groundDressing";
 import { speckle } from "../kit/painting";
+import { itemAt } from "@/features/shared/collections/items";
 
 interface Crack {
   points: [number, number][];
@@ -46,13 +47,14 @@ function strokeCracks(context: CanvasRenderingContext2D, size: number, cracks: C
   context.lineCap = context.lineJoin = "round";
   cracks.forEach(({ points, width }) => {
     // Each crack thins as it runs out, drawn a segment at a time.
-    for (let index = 1; index < points.length; index++) {
-      context.lineWidth = Math.max(0.6, width * (1 - (index / points.length) * 0.75)) * widen;
+    points.slice(1).forEach(([x, y], step) => {
+      const [fromX, fromY] = itemAt(points, step);
+      context.lineWidth = Math.max(0.6, width * (1 - ((step + 1) / points.length) * 0.75)) * widen;
       context.beginPath();
-      context.moveTo(points[index - 1][0] * size, points[index - 1][1] * size);
-      context.lineTo(points[index][0] * size, points[index][1] * size);
+      context.moveTo(fromX * size, fromY * size);
+      context.lineTo(x * size, y * size);
       context.stroke();
-    }
+    });
   });
 }
 

@@ -10,7 +10,7 @@ const TARGET = { x: 0.58, z: -0.4, turn: -0.6, height: 0.55 };
 const TARGET_ARROWS = [
   { x: 0.02, y: 0.03, tilt: [0.08, -0.1] },
   { x: -0.06, y: -0.04, tilt: [-0.05, 0.12] },
-];
+] as const;
 
 /** Her target on its easel (PROPS.archerTarget), with a couple of her arrows in it. */
 export function Target({ arrow }: { arrow: ReturnType<typeof usePropMesh> }) {

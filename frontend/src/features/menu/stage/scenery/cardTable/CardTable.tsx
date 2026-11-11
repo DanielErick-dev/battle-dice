@@ -52,7 +52,10 @@ const STACKS = [
   { x: 0.3, z: 0.62, colour: 0, count: 1 },
 ];
 
-const STACKS_BY_COLOUR = CHIP_COLOURS.map((_, index) => STACKS.filter((stack) => stack.colour === index));
+const STACKS_BY_COLOUR = CHIP_COLOURS.map((colour, index) => ({
+  colour,
+  stacks: STACKS.filter((stack) => stack.colour === index),
+}));
 
 const DIE_SIZE = 0.07;
 
@@ -112,9 +115,9 @@ export function CardTable() {
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
-    floating.current.forEach((card, index) => {
+    FLOATING.forEach(({ y, speed }, index) => {
+      const card = floating.current[index];
       if (!card) return;
-      const { y, speed } = FLOATING[index];
       card.rotation.y = t * speed + index * 2;
       card.position.y = y + Math.sin(t * 0.9 + index * 1.7) * 0.035;
     });
@@ -187,8 +190,8 @@ export function CardTable() {
           </group>
         </group>
       ))}
-      {CHIP_COLOURS.map((colour, index) => (
-        <ChipStacks key={colour} colour={colour} stacks={STACKS_BY_COLOUR[index]} />
+      {STACKS_BY_COLOUR.map(({ colour, stacks }) => (
+        <ChipStacks key={colour} colour={colour} stacks={stacks} />
       ))}
       {DICE.map(({ x, z, turn, tumbling }) => (
         <group key={`${x}:${z}`} ref={tumbling ? tumbler : undefined} position={[x, DIE_SIZE / 2, z]} rotation-y={turn}>

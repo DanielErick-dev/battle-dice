@@ -8,7 +8,7 @@ interface MapPreset {
 
 export type MapId = "island" | "dungeon" | "wasteland";
 
-export const MAP_PRESETS: readonly MapPreset[] = [
+export const MAP_PRESETS: readonly [MapPreset, ...MapPreset[]] = [
   {
     id: "island",
     name: "Ilha Encantada",

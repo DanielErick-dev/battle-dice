@@ -50,13 +50,13 @@ export const ABOVE_FLOOR = [new Plane(new Vector3(0, 1, 0), -FLOOR_Y)];
 /** Moves each corner by a random amount, the same for every face sharing it, so a rock stays closed. */
 export function roughen<T extends BufferGeometry>(geometry: T, random: RandomSource, amount: number): T {
   const position = geometry.getAttribute("position");
-  const offsets = new Map<string, number[]>();
+  const offsets = new Map<string, [number, number, number]>();
   for (let index = 0; index < position.count; index++) {
     const [x, y, z] = [position.getX(index), position.getY(index), position.getZ(index)];
     const key = `${x.toFixed(3)},${y.toFixed(3)},${z.toFixed(3)}`;
     let offset = offsets.get(key);
     if (!offset) {
-      offset = [0, 0, 0].map(() => (random() - 0.5) * amount);
+      offset = [(random() - 0.5) * amount, (random() - 0.5) * amount, (random() - 0.5) * amount];
       offsets.set(key, offset);
     }
     position.setXYZ(index, x + offset[0], y + offset[1], z + offset[2]);
@@ -88,7 +88,7 @@ export function grassTuft(
     const width = height * (0.035 + random() * 0.025);
     const brightness = 0.8 + random() * 0.35;
     // The blade's flat side faces across its lean, so it bends like a strap.
-    const side = [-Math.sin(angle), Math.cos(angle)];
+    const side = [-Math.sin(angle), Math.cos(angle)] as const;
     const ring = Array.from({ length: levels + 1 }, (_, level) => {
       const t = level / levels;
       const out = foot + reach * t * t;
@@ -106,6 +106,7 @@ export function grassTuft(
     for (let level = 0; level < levels; level++) {
       const a = ring[level];
       const b = ring[level + 1];
+      if (!a || !b) continue;
       positions.push(...a.left, ...a.right, ...b.left, ...a.right, ...b.right, ...b.left);
       colors.push(...a.colour, ...a.colour, ...b.colour, ...a.colour, ...b.colour, ...b.colour);
     }

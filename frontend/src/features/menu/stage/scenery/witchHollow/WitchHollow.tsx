@@ -202,8 +202,8 @@ export function WitchHollow() {
       (sigil.current.material as MeshBasicMaterial).opacity =
         0.14 + 0.07 * Math.sin(t * 1.4) + 0.03 * Math.sin(t * 3.7);
     }
-    spores.current.forEach((spore, index) =>
-      spore?.scale.setScalar(SPORE_GLOWS[index].size * (1 + 0.18 * Math.sin(t * 0.9 + index * 1.3))),
+    SPORE_GLOWS.forEach(({ size }, index) =>
+      spores.current[index]?.scale.setScalar(size * (1 + 0.18 * Math.sin(t * 0.9 + index * 1.3))),
     );
     flames.current.forEach((flame, index) => {
       if (!flame) return;
