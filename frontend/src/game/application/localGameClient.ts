@@ -1,17 +1,20 @@
 import type { GameCommand } from "../domain/core/commands";
-import { applyCommand, type GameDependencies } from "../domain/core/engine";
+import { applyCommand, type GameTransition } from "../domain/core/engine";
 import { GameRuleError } from "../domain/core/errors";
 import type { GameState } from "../domain/types";
 import type { CommandResult, GameClient, GameUpdate, GameUpdateListener, Snapshot } from "./gameClient";
+
+type Resolve = (state: GameState, command: GameCommand) => GameTransition;
 
 /** Runs the rules in the browser: one hot-seat match, everyone at this screen. */
 export class LocalGameClient implements GameClient {
   private readonly listeners = new Set<GameUpdateListener>();
   private seq = 0;
 
+  /** `resolve` is swapped only by tests that need loaded dice. */
   constructor(
     private state: GameState,
-    private readonly deps: GameDependencies,
+    private readonly resolve: Resolve = applyCommand,
   ) {}
 
   async connect(): Promise<Snapshot> {
@@ -21,7 +24,7 @@ export class LocalGameClient implements GameClient {
   async send(command: GameCommand): Promise<CommandResult> {
     let update: GameUpdate;
     try {
-      const { state, events } = applyCommand(this.state, command, this.deps);
+      const { state, events } = this.resolve(this.state, command);
       update = { seq: this.seq + 1, state, events };
     } catch (error) {
       if (error instanceof GameRuleError) return { ok: false, code: error.code };

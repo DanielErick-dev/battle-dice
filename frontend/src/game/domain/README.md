@@ -13,10 +13,10 @@ Aqui mora **tudo o que o jogo decide**: quanto o dado anda, o que uma armadilha 
 | **Engine**  | `core/engine.ts` → `applyCommand`                                                                                         | A porta de entrada: `(estado, comando) → (novo estado, eventos)`. Só repassa o comando ao handler certo. |
 
 ```ts
-const { state: next, events } = applyCommand(state, { type: "rollDice", playerId: "p1" }, deps);
+const { state: next, events } = applyCommand(state, { type: "rollDice", playerId: "p1" });
 ```
 
-`applyCommand` é uma **função pura**: com o mesmo estado, o mesmo comando e os mesmos dados sorteados, o resultado é sempre igual.
+`applyCommand` é uma **função pura**: com o mesmo estado e o mesmo comando, o resultado é sempre igual (até o dado, que sai do próprio estado).
 Ela não altera o estado antigo; devolve um novo. É isso que permite:
 
 - testar tudo sem abrir o navegador (`*.test.ts` ao lado de cada arquivo);
@@ -26,14 +26,15 @@ Ela não altera o estado antigo; devolve um novo. É isso que permite:
 
 Cada comando tem um **handler** (a função que o resolve) na pasta `handlers/`:
 
-| Arquivo              | Comandos                                                                                                        |
-| -------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `turnCommands.ts`    | `rollDice`, `forfeitTurn` (o tempo do turno acabou), `restart`                                                  |
-| `cardCommands.ts`    | `playCard`, `discardCard`, `fuseCards`                                                                          |
-| `abilityCommands.ts` | `activateAbility`, `plunderCards`, `answerWard`, `chooseGrace` |
-| `shared.ts`          | `assertCanAct` (é a vez dele?), `settle` (fecha o rascunho: vitória, pausa ou fim de turno)                     |
-| `setup.ts`           | a partida do zero: distribui as cartas e esconde as armadilhas (usado por `createGame` e `restart`)             |
-| `index.ts`           | `COMMAND_HANDLERS`, o mapa `comando → handler`                                                                  |
+| Arquivo              | Comandos                                                                                               |
+| -------------------- | ------------------------------------------------------------------------------------------------------ |
+| `turnCommands.ts`    | `rollDice`, `forfeitTurn` (o tempo do turno acabou), `restart`                                         |
+| `cardCommands.ts`    | `playCard`, `discardCard`, `fuseCards`                                                                 |
+| `abilityCommands.ts` | `activateAbility`, `plunderCards`, `answerWard`, `chooseGrace`                                         |
+| `shared.ts`          | `assertCanAct` (é a vez dele?), `settle` (fecha o rascunho: vitória, pausa ou fim de turno)            |
+| `setup.ts`           | a partida do zero: distribui as cartas e esconde as armadilhas (usado por `createGame` e `restart`)    |
+| `index.ts`           | `COMMAND_HANDLERS`, o mapa `comando → handler`                                                         |
+| `resolve.ts`         | `resolveCommand`: monta o sorteio a partir de `state.rng`, chama o handler e guarda o sorteio avançado |
 
 O tipo `CommandHandlers` exige um handler para cada `GameCommand`: comando novo sem handler não compila.
 
@@ -45,20 +46,31 @@ Dentro de um handler:
 
 ## Aleatoriedade
 
-Dado e embaralhamento chegam por `GameDependencies` (`deps.rollDice`, `deps.random`), em vez de chamar `Math.random()` direto.
-Nos testes passamos um dado "viciado" e conferimos o resultado exato. No servidor, o dado vai ser sorteado lá, para ninguém trapacear.
+O sorteio mora **dentro do estado**: `state.rng = { seed, counter }` (`core/random.ts`, gerador mulberry32).
+`seed` é a semente da partida e `counter` quantos números já saíram dela; `randomStream(rng)` retoma a sequência exatamente dali.
+
+- `createGame(board, players, { seed })` exige a semente: quem hospeda a partida escolhe (hoje o navegador, em `features/match/model/createLocalMatch.ts`; depois, o servidor). O domínio nunca chama `Math.random()`.
+- A cada comando, `resolveCommand` (`handlers/resolve.ts`) cria o gerador a partir de `state.rng`, entrega aos handlers o dado (`diceFrom`, em `core/dice.ts`) e o `random` dos embaralhamentos, e devolve o estado com o `counter` avançado.
+- Por isso o engine não guarda nada entre um comando e outro: mesmo seed + mesmos comandos = mesmo estado (`core/replay.test.ts`). Um servidor pode refazer a partida só com o log de comandos.
+- A lint proíbe em `game/` `Math.random`, `Date.now`, `new Date`, `performance.now`, `window` e `document`.
+
+**Dado viciado nos testes:** só os helpers de `testing/` passam um dado fixo, chamando `resolveCommand(state, command, dados)` direto; a API pública (`applyCommand`) não tem esse parâmetro.
+`send(state, comando, [3, 4])` rola 3 e depois 4; os embaralhamentos continuam saindo de `state.rng`, e o `seed` opcional do `send` reinicia esse sorteio para testar outros resultados.
+Para um `LocalGameClient` em teste, `loadedDice([3, 4])` substitui o `applyCommand`.
+
+**Modo teste da tela:** `createGame(..., { seed, chargedAbilities: true })` começa com todas as habilidades carregadas.
 
 ## Onde está cada coisa
 
 | Pasta                | O que tem                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `core/`              | A base: `state.ts` (o `GameState` e o jogador), `commands.ts`, `events.ts`, `errors.ts`, `engine.ts`, `draft.ts` (o rascunho), `turn.ts` (fim de turno e rodadas), `dice.ts`, `energy.ts`, `random.ts`, `playerStatus.ts` (proteções e mira).                                                                                                                                                                                                                                        |
+| `core/`              | A base: `state.ts` (o `GameState` e o jogador), `commands.ts`, `events.ts`, `errors.ts`, `engine.ts`, `draft.ts` (o rascunho), `turn.ts` (fim de turno e rodadas), `dice.ts`, `energy.ts`, `random.ts`, `playerStatus.ts` (proteções e mira).                                                                                                                                                                                                                                                    |
 | `handlers/`          | Um handler por comando (tabela acima).                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `board/`             | O tabuleiro: `board.ts`, `generator.ts`, `paths.ts` (andar e empurrar), `reach.ts` (quem está no alcance), `landing.ts` (parar numa casa), `traps.ts`, `hiddenTraps.ts`, `harm.ts`, `tileEffects.ts`, `realms.ts` (céu e inferno), `blessings.ts`, `presets.ts`.                                                                                                                                                                                                                 |
+| `board/`             | O tabuleiro: `board.ts`, `generator.ts`, `paths.ts` (andar e empurrar), `reach.ts` (quem está no alcance), `landing.ts` (parar numa casa), `traps.ts`, `hiddenTraps.ts`, `harm.ts`, `tileEffects.ts`, `realms.ts` (céu e inferno), `blessings.ts`, `presets.ts`.                                                                                                                                                                                                                                 |
 | `cards/`             | As cartas: `catalog.ts` (a lista), `play.ts` (o efeito de cada uma e seus números), `exclusive.ts` (as exclusivas de personagem), `hand.ts`, `decks.ts`, `fusion.ts`.                                                                                                                                                                                                                                                                                                                            |
-| `abilities/`         | O que vale para toda habilidade: `ability.ts` (os ids), `blocker.ts` (por que não dá para usar agora), `charge.ts` (quantos turnos para carregar), `aim.ts` (quem pode ser alvo), `basic.ts` (as habilidades simples), `effects.ts` (`ABILITY_EFFECTS`: o que cada habilidade faz).                                                                                                                                                                                                                                                                                                            |
+| `abilities/`         | O que vale para toda habilidade: `ability.ts` (os ids), `blocker.ts` (por que não dá para usar agora), `charge.ts` (quantos turnos para carregar), `aim.ts` (quem pode ser alvo), `basic.ts` (as habilidades simples), `effects.ts` (`ABILITY_EFFECTS`: o que cada habilidade faz).                                                                                                                                                                                                              |
 | `characters/<nome>/` | A mecânica própria de cada personagem, com seus números de balanceamento no topo do arquivo e seus tipos em `types.ts`: `zarek/void.ts` (o Vazio e as fendas), `fairy/winter.ts`, `kage/flames.ts`, `seraphiel/seraph.ts`, `scribe/seals.ts`, `warden/specters.ts`, `themis/verdict.ts`, `archer/arrowRain.ts`, `jester/cardGamble.ts`, `bjorn/untamed.ts`, `alchemist/transmutation.ts`, `necromancer/resurrection.ts`, `auric/cleansingTide.ts`, `cronos/timeWarp.ts`, `alva/plasmaCannon.ts`. |
-| `testing/`           | Helpers de teste (`newGame`, `withPlayer`, `roll`, `activate`, `play`) e tabuleiros prontos.                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `testing/`           | Helpers de teste (`newGame`, `withPlayer`, `send`, `roll`, `activate`, `play`, `loadedDice`) e tabuleiros prontos.                                                                                                                                                                                                                                                                                                                                                                               |
 
 `types.ts` na raiz é só a **vitrine para `features/`**: reexporta os tipos de cada pasta, para a tela importar tudo de `@/game/domain/types`. Dentro do domínio, cada arquivo importa o tipo direto de onde ele mora.
 

@@ -4,11 +4,15 @@ import { createGame } from "@/game/domain/core/engine";
 import type { GameEvent } from "@/game/domain/core/events";
 import { battleLogLine } from ".";
 
-const { players } = createGame(CLASSIC_BOARD, [
-  { id: "p1", name: "Bruxa Carmesim" },
-  { id: "p2", name: "Bjorn" },
-  { id: "p3", name: "Zarek" },
-]);
+const { players } = createGame(
+  CLASSIC_BOARD,
+  [
+    { id: "p1", name: "Bruxa Carmesim" },
+    { id: "p2", name: "Bjorn" },
+    { id: "p3", name: "Zarek" },
+  ],
+  { seed: 1 },
+);
 
 type Fields = Readonly<Record<string, unknown>>;
 

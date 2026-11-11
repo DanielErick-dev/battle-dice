@@ -22,7 +22,7 @@ export function openingState(
   players: readonly NewPlayer[],
   decks: GameState["decks"],
   random: RandomSource,
-): GameState {
+): Omit<GameState, "rng"> {
   const dealt = players.map((player, index) => {
     const cards = decks[player.id];
     if (!cards) throw new GameRuleError("UNKNOWN_PLAYER");

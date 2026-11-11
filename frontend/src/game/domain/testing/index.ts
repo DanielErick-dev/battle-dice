@@ -5,11 +5,12 @@ import type { BoardDefinition } from "../board/board";
 import type { CardId } from "../cards/catalog";
 import { GameRuleError, type GameErrorCode } from "../core/errors";
 import type { GameCommand } from "../core/commands";
-import { sequenceDice } from "../core/dice";
-import { applyCommand, createGame } from "../core/engine";
+import type { DiceRoller } from "../core/dice";
+import { at } from "../core/invariant";
+import { createGame } from "../core/engine";
+import { resolveCommand } from "../handlers/resolve";
 import type { GameTransition } from "../handlers/types";
 import type { GameEvent } from "../core/events";
-import { seededRandom } from "../core/random";
 import type { TileEffect, TileId } from "../board/types";
 import type { CardInstance, GameState, Player, PlayerId } from "../core/state";
 
@@ -17,8 +18,6 @@ export * from "./boards";
 
 /** Seed for dealing and hiding traps when a test game is created. */
 const GAME_SEED = 7;
-/** Seed for the shuffles and random picks made while a command resolves. */
-const COMMAND_SEED = 3;
 
 export type ActivateOptions = Omit<Extract<GameCommand, { type: "activateAbility" }>, "type" | "playerId">;
 type PlayOptions = Omit<Extract<GameCommand, { type: "playCard" }>, "type" | "playerId" | "cardUid">;
@@ -30,7 +29,7 @@ export function newGame(
   seed = GAME_SEED,
 ): GameState {
   const players = Object.entries(seats).map(([id, ability]) => ({ id, name: id, ability }));
-  return createGame(board, players, { random: seededRandom(seed) });
+  return createGame(board, players, { seed });
 }
 
 export function withPlayer(state: GameState, id: PlayerId, patch: Partial<Player>): GameState {
@@ -72,14 +71,34 @@ export const cards = (...ids: CardId[]): CardInstance[] => ids.map((cardId, i) =
 export const copies = (cardId: CardId, count: number, uidPrefix: string): CardInstance[] =>
   Array.from({ length: count }, (_, i) => ({ uid: `${uidPrefix}${i}`, cardId }));
 
-/** Resolves a command with loaded dice: each roll takes the next value of `dice`. */
+/**
+ * Resolves a command with loaded dice: each roll takes the next value of `dice`.
+ * Shuffles and picks keep drawing from `state.rng`, unless `seed` restarts that stream to try other draws.
+ */
 export function send(
   state: GameState,
   command: GameCommand,
   dice: readonly number[] = [1],
-  seed = COMMAND_SEED,
+  seed?: number,
 ): GameTransition {
-  return applyCommand(state, command, { rollDice: sequenceDice([...dice]), random: seededRandom(seed) });
+  const start = seed === undefined ? state : { ...state, rng: { seed, counter: 0 } };
+  return resolveCommand(start, command, sequenceDice([...dice]));
+}
+
+/** Loaded dice: each roll takes the next value, cycling. */
+function sequenceDice(values: readonly number[]): DiceRoller {
+  let index = 0;
+  return () => {
+    const value = at(values, index % values.length);
+    index += 1;
+    return value;
+  };
+}
+
+/** A drop-in for applyCommand whose dice roll `rolls` in order, for clients driven in tests. */
+export function loadedDice(rolls: readonly number[]) {
+  const dice = sequenceDice(rolls);
+  return (state: GameState, command: GameCommand): GameTransition => resolveCommand(state, command, dice);
 }
 
 export const roll = (state: GameState, playerId: PlayerId, ...dice: number[]) =>
