@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { cardBlocker, cardTargets, type CardChoice, type CardTable } from "@/game/domain/cards/play";
+import { cardBlocker, type CardTable } from "@/game/domain/cards/blocker";
+import { cardTargets, type CardChoice } from "@/game/domain/cards/choice";
 import { CARD_CATALOG, cardCost, type CardId } from "@/game/domain/cards/catalog";
 import { HAND_LIMIT, SACRIFICE_ENERGY } from "@/game/domain/cards/hand";
 import { DICE_SIDES } from "@/game/domain/core/dice";

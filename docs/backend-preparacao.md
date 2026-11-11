@@ -18,7 +18,7 @@ Pendências levantadas na inspeção de arquitetura de 07/11/2026, pensando na *
 - Mão, deck, `hiddenTraps` e tipo dos selos vão no estado; `cardDrawn` leva a carta inteira; o `uid` (`p1:3`) entrega a carta.
 - Fazer `projectState(state, viewerId)` e `projectEvents(events, viewerId)` no domínio, com testes de "nada secreto vaza".
 - `uid` opaco gerado pelo sorteio do item 1.
-- Funções que a tela usa sobre o estado (`ui/abilities/placements.ts`, `isHarmful` em `fairy/winter.ts`) não podem depender de campos secretos.
+- Funções que a tela usa sobre o estado (`ui/abilities/placements.ts`, `isHarmful` em `fairy/bloom.ts`) não podem depender de campos secretos.
 - Depende do item 1.
 
 ## 3. `GameClient` pronto para cliente remoto ✅
@@ -60,5 +60,4 @@ Pendências levantadas na inspeção de arquitetura de 07/11/2026, pensando na *
 - ✅ `frontend/.env.example` (`NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_WS_URL`), liberado nos `.gitignore`.
 - ✅ `npm run format:check` no CI.
 - ✅ Docs: `forfeitTurn` no README do domínio; contagem de linhas no `backend-plano.md`.
-- Domínio ainda grande: `cards/play.ts`, `characters/zarek/void.ts`, `fairy/winter.ts`.
 - Cena não revisada: `scene/environment` e `scene/realm` (os arquivos grandes de cena foram divididos em 07/11).

@@ -11,7 +11,7 @@ import { resolveLanding } from "../board/landing";
 import { CROWN_BONUS } from "../characters/seraphiel/seraph";
 import { crossSpecters } from "../characters/warden/specters";
 import { CONTAINED_DIE, containedFace } from "../characters/themis/cards";
-import { closeRifts } from "../characters/zarek/void";
+import { closeRifts } from "../characters/zarek/rifts";
 import { burntRoll, prepareRoll, settleRoll } from "../characters/akane/fire";
 import { slideOnEmbers } from "../characters/akane/cards";
 import type { DiceBoost, PlayerId } from "../core/state";

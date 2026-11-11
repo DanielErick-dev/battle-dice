@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { POWER_TOURNAMENT_BOARD, TRAINING_BOARD } from "@/game/domain/board/presets";
 import { createBoard, linkRift } from "@/game/domain/board/board";
-import { openRift, riftsOf, withRifts } from "@/game/domain/characters/zarek/void";
+import { openRift, riftsOf, withRifts } from "@/game/domain/characters/zarek/rifts";
 import type { Board, TileId } from "@/game/domain/types";
 import { createBoardLayout, startSlot, TILE_PITCH, TILE_SIZE, withRiftPositions } from "./boardLayout";
 

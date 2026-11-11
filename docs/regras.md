@@ -333,7 +333,7 @@ A regra dos números: juntar 3 cartas tem que valer bem mais do que jogar as 3 s
 
 Só as cartas dessa tabela fundem. O baralho tem 3 cópias de Passo do Vento, Erva e Amuleto, mas só 2 de Escudo, Pergaminho e Rajada: a terceira tem que vir de outro jeito (Transmutação, roubo, Ressurreição).
 
-> no código: `cards/catalog.ts` (catálogo), `cards/play.ts` (efeitos e números), `cards/fusion.ts`, `cards/decks.ts`, `cards/hand.ts` (compra e mão cheia)
+> no código: `cards/catalog.ts` (catálogo), `cards/play.ts` (jogar), `cards/effects.ts` (efeitos e números), `cards/blocker.ts`, `cards/choice.ts`, `cards/fusion.ts`, `cards/decks.ts`, `cards/hand.ts` (compra e mão cheia)
 
 ---
 
@@ -432,7 +432,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - Com o Vazio cheio (4), ele não engole: solte algo antes.
 - A sombra do Vazio aparece de vez em quando vagando pelo mapa, e é ela que abre as fendas.
 
-> no código: `characters/zarek/void.ts` (`swallow`, `placeVoid`, `seize`, `feedTheVoid`), `board/board.ts` (`linkRift`), `board/landing.ts`
+> no código: `characters/zarek/` (`void.ts`: `swallow`; `place.ts`: `placeVoid`; `seize.ts`: `seize`; `feed.ts`: `feedTheVoid`; `rifts.ts`; `ground.ts`), `board/board.ts` (`linkRift`), `board/landing.ts`
 
 ---
 
@@ -692,7 +692,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - A **Erva Curativa** (e a Aurora Divina) solta quem está preso.
 - O fogo negro derrete a neve. A **Maré Purificadora** também lava a neve, e aí a armadilha que estava debaixo **volta a funcionar** (uma escondida encantada, não: ela já tinha sumido). O gelo do Inverno não é lavado.
 
-> no código: `characters/fairy/winter.ts`
+> no código: `characters/fairy/` (`bloom.ts`, `winter.ts`, `snow.ts`)
 
 ---
 

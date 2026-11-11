@@ -3,7 +3,8 @@ import { chargeAbility } from "../abilities/charge";
 import { blessingCount, isBlessed, SPRING_ENERGY, wearBlessings } from "../board/blessings";
 import { MAX_ENERGY, TURNS_PER_ENERGY } from "./energy";
 import type { Draft } from "./draft";
-import { drainSnow, spreadWinter } from "../characters/fairy/winter";
+import { drainSnow } from "../characters/fairy/snow";
+import { spreadWinter } from "../characters/fairy/winter";
 import { burnDown } from "../characters/kage/flames";
 import { burnDownScarlet, feedTheFire } from "../characters/akane/fire";
 

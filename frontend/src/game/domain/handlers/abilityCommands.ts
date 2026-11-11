@@ -5,7 +5,7 @@ import { playerIn, startDraft, updatePlayer } from "../core/draft";
 import { resolveWard } from "../board/harm";
 import { receiveGrace } from "../characters/seraphiel/seraph";
 import { takePlunder } from "../characters/warden/specters";
-import { placeVoid } from "../characters/zarek/void";
+import { placeVoid } from "../characters/zarek/place";
 import { assertCanAct, KEEPS_TURN, pendingAnswer, settle } from "./shared";
 import type { CommandHandlers } from "./types";
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { cardBlocker, HEALING_HERB_ENERGY } from "./play";
+import { cardBlocker } from "./blocker";
+import { HEALING_HERB_ENERGY } from "./effects";
 import { HAND_LIMIT } from "./hand";
 import { cardCost, type CardId } from "./catalog";
 import { CARD_PORTAL_TRAP_BOARD } from "../testing/boards";

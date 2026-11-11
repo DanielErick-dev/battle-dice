@@ -1,4 +1,5 @@
-import { bloom, freezeTiles } from "../characters/fairy/winter";
+import { bloom } from "../characters/fairy/bloom";
+import { freezeTiles } from "../characters/fairy/winter";
 import { cleansingTide } from "../characters/auric/cleansingTide";
 import { hellsDrag } from "../characters/seraphiel/seraph";
 import { levitate } from "./basic";
@@ -8,7 +9,7 @@ import { loseArrowRain } from "../characters/archer/arrowRain";
 import { plasmaCannon } from "../characters/alva/plasmaCannon";
 import { playCardGamble } from "../characters/jester/cardGamble";
 import { resurrectCards } from "../characters/necromancer/resurrection";
-import { seize } from "../characters/zarek/void";
+import { seize } from "../characters/zarek/seize";
 import { seraphielBlessing } from "../characters/seraphiel/blessing";
 import { summonSpecters } from "../characters/warden/specters";
 import { timeWarp } from "../characters/cronos/timeWarp";

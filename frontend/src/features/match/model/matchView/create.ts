@@ -1,5 +1,5 @@
 import { currentPlayer } from "@/game/domain/handlers/shared";
-import { riftsOf } from "@/game/domain/characters/zarek/void";
+import { riftsOf } from "@/game/domain/characters/zarek/rifts";
 import type { GameState } from "@/game/domain/types";
 import { NO_FX } from "./fx";
 import type { MatchView, SealView, SpecterView } from "./view";

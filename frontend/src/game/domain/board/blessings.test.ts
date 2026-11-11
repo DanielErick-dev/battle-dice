@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { at } from "../core/invariant";
 import { abilityCycle } from "../abilities/charge";
 import { createBoard, type BoardDefinition } from "./board";
-import { AEGIS_TURNS } from "../cards/play";
+import { AEGIS_TURNS } from "../cards/effects";
 import { MAX_ENERGY } from "../core/energy";
 import { standardDeck } from "../cards/decks";
 import { BLESSING_TURNS, inHeaven, SPRING_ENERGY, WINGS_BONUS } from "./blessings";

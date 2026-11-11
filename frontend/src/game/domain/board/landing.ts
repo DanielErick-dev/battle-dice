@@ -8,7 +8,7 @@ import { isBlessed } from "./blessings";
 import { moveHiddenTrap, strike, strikeScar, threatAt } from "./harm";
 import { moveTo, playerIn, type Draft } from "../core/draft";
 import { repelledBySusanoo, scorch, sweptBySusanoo } from "../characters/kage/flames";
-import { stirEnchantment } from "../characters/fairy/winter";
+import { stirEnchantment } from "../characters/fairy/snow";
 import { landOnScarlet } from "../characters/akane/fire";
 import { weedOut } from "../characters/vinicius/weeding";
 import type { Threat, TileId } from "./types";

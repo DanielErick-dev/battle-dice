@@ -7,7 +7,7 @@ import {
   FUSED_SHIELD_ARMOUR,
   FUSED_WIND_STEP_TILES,
 } from "@/game/domain/cards/fusion";
-import { AEGIS_TURNS, ARCANE_BLAST_PUSH, HEALING_HERB_ENERGY } from "@/game/domain/cards/play";
+import { AEGIS_TURNS, ARCANE_BLAST_PUSH, HEALING_HERB_ENERGY } from "@/game/domain/cards/effects";
 import type { CardId, Rarity } from "@/game/domain/cards/catalog";
 import { HUNGRY_RIFT_RANGE, VOID_HUNGER_CHARGE } from "@/game/domain/cards/exclusive";
 import {

@@ -10,7 +10,8 @@ import {
   SUSANOO_PUSH,
   flammableTiles,
 } from "./kage/flames";
-import { ENCHANT_ADVANCE, ENCHANT_FREEZE, WINTER_PICKS, WINTER_TILES, frozenTiles } from "./fairy/winter";
+import { WINTER_PICKS, WINTER_TILES, frozenTiles } from "./fairy/winter";
+import { ENCHANT_ADVANCE, ENCHANT_FREEZE } from "./fairy/snow";
 import { abilityCycle } from "../abilities/charge";
 import type { AbilityId } from "../abilities/ability";
 import { GameRuleError } from "../core/errors";

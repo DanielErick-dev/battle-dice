@@ -5,7 +5,7 @@ import { freezableTiles } from "@/game/domain/characters/fairy/winter";
 import { flammableTiles } from "@/game/domain/characters/kage/flames";
 import { sealableTiles } from "@/game/domain/characters/scribe/seals";
 import { hauntableTiles } from "@/game/domain/characters/warden/specters";
-import { harmGround, seizableTiles, spellGround } from "@/game/domain/characters/zarek/void";
+import { harmGround, seizableTiles, spellGround } from "@/game/domain/characters/zarek/ground";
 import type { VoidItem } from "@/game/domain/characters/zarek/types";
 import type { Player } from "@/game/domain/types";
 import type { MatchStore } from "../../model/matchStore";
