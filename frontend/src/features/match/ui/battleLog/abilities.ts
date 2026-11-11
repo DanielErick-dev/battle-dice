@@ -1,5 +1,5 @@
 import type { AimWard } from "@/game/domain/core/playerStatus";
-import { ABILITY_TEXT } from "../abilityText";
+import { ABILITY_TEXT } from "@/features/shared/text/abilityText";
 import { plural, type LogLines } from "./lines";
 
 export const AIM_WARDS: Readonly<Record<AimWard | "away", string>> = {

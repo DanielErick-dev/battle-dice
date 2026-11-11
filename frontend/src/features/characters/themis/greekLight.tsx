@@ -36,7 +36,7 @@ export function useRayParts(glow: Color): { material: MeshBasicMaterial; geometr
   return { material, geometry };
 }
 
-export interface RayDirection {
+interface RayDirection {
   /** Round the vertical, and down from it (radians). */
   turn: number;
   tilt: number;

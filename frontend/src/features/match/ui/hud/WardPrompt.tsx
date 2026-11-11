@@ -1,7 +1,7 @@
 import { ShieldAlert } from "lucide-react";
 import type { AbilityId } from "@/game/domain/abilities/ability";
 import type { Threat } from "@/game/domain/types";
-import { ABILITY_TEXT } from "../abilityText";
+import { ABILITY_TEXT } from "@/features/shared/text/abilityText";
 
 interface WardPromptProps {
   ability: AbilityId;

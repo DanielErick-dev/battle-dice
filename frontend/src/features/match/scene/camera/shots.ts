@@ -1,0 +1,84 @@
+import type { CardId } from "@/game/domain/cards/catalog";
+import type { TileEffectKind } from "../../model/matchView";
+
+/** How a tile effect is filmed: an optional close-up, a shake and/or a field-of-view kick. */
+export interface Shot {
+  closeUp?: { distance: number; seconds: number };
+  trauma?: number;
+  fovKick?: number;
+}
+
+export const SHOTS: Record<TileEffectKind, Shot> = {
+  portal: { closeUp: { distance: 0.62, seconds: 1.5 } },
+  advance: { closeUp: { distance: 0.78, seconds: 1.2 }, fovKick: 1 },
+  trap: { trauma: 0.8 },
+  hiddenTrap: { closeUp: { distance: 0.62, seconds: 1.2 }, trauma: 1 },
+  skipTurn: { trauma: 0.3 },
+  turnSkipped: { trauma: 0.2 },
+  snowDrained: {},
+  voidSwallowed: { closeUp: { distance: 0.7, seconds: 1.2 }, trauma: 0.3 },
+  riftOpened: { closeUp: { distance: 0.75, seconds: 1.2 }, trauma: 0.4 },
+  voidCast: { closeUp: { distance: 0.75, seconds: 1 } },
+  voidSeized: { closeUp: { distance: 0.75, seconds: 1 }, trauma: 0.2 },
+  voidEchoed: { closeUp: { distance: 0.75, seconds: 1 } },
+  extraTurn: { fovKick: 0.6 },
+  trapBlocked: { fovKick: 0.4 },
+  abilityBlocked: { fovKick: 0.4 },
+  trapCurse: { trauma: 0.4 },
+  realmEnter: {
+    closeUp: { distance: 0.5, seconds: 2.4 },
+    trauma: 0.55,
+    fovKick: 1,
+  },
+  blessing: { fovKick: 0.5 },
+  teleport: { closeUp: { distance: 0.62, seconds: 1.5 } },
+  abilityReady: { fovKick: 0.4 },
+  abilityUsed: { fovKick: 0.8 },
+  levitated: { fovKick: 0.3 },
+  gamble: { fovKick: 0.7 },
+  seal: { closeUp: { distance: 0.62, seconds: 1.2 }, trauma: 0.5 },
+  specter: { closeUp: { distance: 0.62, seconds: 1.2 }, trauma: 0.35 },
+  enchanted: { closeUp: { distance: 0.7, seconds: 1 } },
+  flames: { closeUp: { distance: 0.62, seconds: 1.2 }, trauma: 0.45 },
+  winter: { closeUp: { distance: 0.8, seconds: 1.2 } },
+  armour: { fovKick: 0.3 },
+  cleansed: { fovKick: 0.9, trauma: 0.3 },
+  trampled: { trauma: 0.7 },
+  repelled: { trauma: 0.6 },
+  timeBent: { closeUp: { distance: 0.7, seconds: 2.6 }, fovKick: 0.8 },
+  fallen: { closeUp: { distance: 0.5, seconds: 2.4 }, trauma: 0.6, fovKick: 1 },
+  crown: { closeUp: { distance: 0.62, seconds: 1.2 }, fovKick: 0.5 },
+  heavenBarred: { trauma: 0.3 },
+  dragged: { closeUp: { distance: 0.62, seconds: 1.2 }, trauma: 0.5 },
+  // Pulled well back so the whole giant scale fits in, from Themis to the one judged.
+  verdict: { closeUp: { distance: 1.8, seconds: 4 }, trauma: 0.35 },
+  marked: { closeUp: { distance: 0.7, seconds: 1.2 } },
+  marched: { fovKick: 0.6 },
+  scarletLit: { fovKick: 0.8, trauma: 0.25 },
+  ignited: { closeUp: { distance: 0.7, seconds: 1.2 }, trauma: 0.2 },
+  quenched: {},
+  // Close on him stomping in a fury at a low roll.
+  kindled: { closeUp: { distance: 0.7, seconds: 1.3 } },
+  impetus: { closeUp: { distance: 0.62, seconds: 1.4 }, fovKick: 0.8 },
+  emberSlid: { fovKick: 0.5 },
+  emberStep: {},
+  hotBlood: { trauma: 0.7, fovKick: 0.6 },
+  // Close on him hacking the trap out.
+  weeded: { closeUp: { distance: 0.7, seconds: 1.2 } },
+  burntRoll: { closeUp: { distance: 0.75, seconds: 1.1 } },
+  fireFed: {},
+  fuel: {},
+  supernova: { closeUp: { distance: 0.62, seconds: 1.6 }, trauma: 0.6, fovKick: 1 },
+  timedOut: { trauma: 0.2 },
+  decree: { fovKick: 0.6, trauma: 0.2 },
+  judgment: { closeUp: { distance: 0.62, seconds: 1.6 }, trauma: 0.5, fovKick: 1 },
+};
+
+/** Cards whose cast is filmed too (the rest are covered by the effects they cause). */
+export const CAST_SHOTS: Partial<Record<CardId, Shot>> = {
+  arcaneBlast: { trauma: 0.9 },
+  blindingFlash: { fovKick: 1 },
+  berserkFury: { trauma: 0.35 },
+  windStep: { closeUp: { distance: 0.8, seconds: 2 } },
+  ancestralAwakening: { trauma: 0.45, fovKick: 0.8 },
+};

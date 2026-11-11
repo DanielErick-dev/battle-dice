@@ -1,7 +1,8 @@
 import { useState } from "react";
 import type { MatchStore } from "../../model/matchStore";
 import { canRoll, type MatchView } from "../../model/matchView";
-import { PAUSES_PER_PLAYER, useHourglass } from "../hud/Hourglass";
+import { PAUSES_PER_PLAYER } from "@/features/shared/config";
+import { useHourglass } from "../hud/Hourglass";
 
 /** The hourglass of each turn and the pauses each player may spend (see Hourglass). */
 export function useMatchClock(store: MatchStore, view: MatchView, hourglass: boolean, ready: boolean) {

@@ -5,7 +5,7 @@ const WIDTH = 64;
 const HEIGHT = 128;
 
 /** How a column of light is painted: its fade up the column, and the darker streaks cut down it. */
-export interface BeamLook {
+interface BeamLook {
   /** Where up the column (0 at the ground) the fade passes `midAlpha`. */
   midStop: number;
   midAlpha: number;

@@ -1,4 +1,4 @@
-import { ABILITY_TEXT } from "../../abilityText";
+import { ABILITY_TEXT } from "@/features/shared/text/abilityText";
 import { CARD_TEXT } from "../../cards/cardText";
 import type { TileEffectView } from "../../../model/matchView";
 import type { Copy, CopyEntries } from "./types";

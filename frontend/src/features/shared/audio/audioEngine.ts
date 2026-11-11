@@ -1,4 +1,4 @@
-export type AudioBus = "sfx" | "voice" | "music" | "ambience";
+type AudioBus = "sfx" | "voice" | "music" | "ambience";
 
 const BUS_VOLUME: Record<AudioBus, number> = {
   sfx: 1,

@@ -46,7 +46,7 @@ export function dustVelocities(): Vector3[] {
   });
 }
 
-export interface Chunk {
+interface Chunk {
   velocity: Vector3;
   size: number;
   spin: Vector3;

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { preferences, usePreference } from "@/features/settings/preferences";
 import { Ambience } from "../audio/ambience";
-import { AudioEngine } from "../audio/audioEngine";
+import { AudioEngine } from "@/features/shared/audio/audioEngine";
 import { GenerativeMusic } from "../audio/music";
 import { SynthSounds } from "../audio/soundEffects";
 

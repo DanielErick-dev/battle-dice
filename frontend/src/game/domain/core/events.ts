@@ -43,7 +43,7 @@ export type GameEvent =
   | ZarekEvent;
 
 /** Rolling, moving and passing the turn. */
-export type TurnEvent =
+type TurnEvent =
   /** `value` is how far the player walks: the dice summed (or the higher when `best`), plus `bonus`. */
   | {
       type: "diceRolled";
@@ -81,7 +81,7 @@ export type TurnEvent =
   | { type: "gameRestarted" };
 
 /** Charging, using and turning away abilities, and the armour that turns them away. */
-export type AbilityEvent =
+type AbilityEvent =
   | { type: "abilityReady"; playerId: PlayerId; ability: AbilityId }
   | { type: "abilityUsed"; playerId: PlayerId; ability: AbilityId }
   /** Spent for nothing; "away" when the target is out of reach (another realm). */

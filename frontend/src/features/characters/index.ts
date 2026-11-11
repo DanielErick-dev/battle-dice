@@ -54,14 +54,13 @@ export type CharacterId = keyof typeof CHARACTERS;
 
 export const CHARACTER_IDS = Object.keys(CHARACTERS) as CharacterId[];
 /** The characters that can be picked right now. */
-export const PLAYABLE_CHARACTER_IDS = CHARACTER_IDS.filter((id) => CHARACTERS[id].playable);
 export const DEFAULT_CHARACTER_ID: CharacterId = "witch";
 
-export function isCharacterId(id: string): id is CharacterId {
+function isCharacterId(id: string): id is CharacterId {
   return Object.hasOwn(CHARACTERS, id);
 }
 
-export function isPlayableCharacter(id: string): id is CharacterId {
+function isPlayableCharacter(id: string): id is CharacterId {
   return isCharacterId(id) && CHARACTERS[id].playable;
 }
 

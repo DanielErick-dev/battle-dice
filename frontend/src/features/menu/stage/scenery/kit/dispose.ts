@@ -6,7 +6,7 @@ export interface Disposable {
 }
 
 /** A disposable, or arrays and records of them nested any way (a habitat's `materials`, `geometries`). */
-export type DisposableTree = Disposable | readonly DisposableTree[] | { readonly [key: string]: DisposableTree };
+type DisposableTree = Disposable | readonly DisposableTree[] | { readonly [key: string]: DisposableTree };
 
 function isDisposable(tree: DisposableTree): tree is Disposable {
   return typeof (tree as Partial<Disposable>).dispose === "function";

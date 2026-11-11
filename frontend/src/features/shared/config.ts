@@ -134,3 +134,8 @@ export const DEFAULT_TIMINGS: PlaybackTimings = {
 /** Seconds Akane's fireballs fly (Blaze), and between one tile of his Fire Zone catching and the next. */
 export const FIRE_BOLT_SECONDS = 0.5;
 export const FIRE_RACE_STEP = 0.2;
+
+/** Each turn's time to think; out of it, the turn is lost. */
+export const TURN_SECONDS = 60;
+/** How many times each player may stop the match. */
+export const PAUSES_PER_PLAYER = 3;

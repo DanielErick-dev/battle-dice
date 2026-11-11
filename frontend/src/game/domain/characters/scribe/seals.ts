@@ -21,7 +21,7 @@ export const BLOOD_PACT_ENERGY = 2;
 export const SILENCE_TURNS = 2;
 /** Alone on the board, the player's own seals reward them. */
 export const SOLO_RUIN_ADVANCE = 3;
-export const SOLO_SILENCE_ENERGY = 1;
+const SOLO_SILENCE_ENERGY = 1;
 export const SOLO_PACT_ENERGY = 2;
 
 /** In the order their tiles are picked. */

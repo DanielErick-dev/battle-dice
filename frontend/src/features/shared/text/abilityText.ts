@@ -46,7 +46,7 @@ import {
   WINTER_TILES,
 } from "@/game/domain/characters/fairy/winter";
 import { MAX_RARITY_LEVEL } from "@/game/domain/cards/catalog";
-import { BLESSING_TURNS, SERAPH_BLESSING_TURNS } from "@/game/domain/board/blessings";
+import { BLESSING_TURNS, SERAPHIEL_BLESSING_TURNS } from "@/game/domain/board/blessings";
 import { CROWN_BONUS, DRAG_TRAPS } from "@/game/domain/characters/seraphiel/seraph";
 import { MARKS_TO_JUDGE } from "@/game/domain/characters/themis/verdict";
 
@@ -75,9 +75,9 @@ export const ABILITY_TEXT: Readonly<Record<AbilityId, { name: string; descriptio
     description: `Carrega em ${abilityCycle("fireZone")} turnos, contados só depois que todo o seu fogo escarlate apagar. Ao usar, as ${FIRE_ZONE_RANGE} casas à sua frente pegam fogo escarlate por ${SCARLET_ROUNDS} rodadas. Quem estiver nelas ou parar nelas pega fogo por ${BURN_ROUNDS} rodadas: o dado anda a metade (para baixo), não ganha energia e te dá ${FIRE_TOLL} de energia por rodada. O fogo derrete a neve e o gelo da Fada; a Maré do Auric o apaga. Passiva, Ímpeto Brilhante: tirar 1 ou 2 no dado ou cair numa armadilha acende 1 Chama Interna (até ${INNER_FLAME_MAX}). Com ${INNER_FLAME_MAX}, as suas próximas ${IMPETUS_ROLLS} rolagens andam +${IMPETUS_BONUS}, e quem você atravessar pega fogo e volta ${IMPETUS_PUSH} casas.`,
     active: "O caminho está em chamas",
   },
-  seraphBlessing: {
+  seraphielBlessing: {
     name: "Bênção do Serafim",
-    description: `Carrega em ${abilityCycle("seraphBlessing")} turnos. Ao usar, recebe um presente do céu aleatório: uma bênção (Asas, Auréola, Inspiração ou Fonte de Luz) ou uma carta do céu na mão (Luz Celestial, Égide Celestial ou Ascensão). Passivas: suas bênçãos duram ${SERAPH_BLESSING_TURNS} rodadas (as dos outros, ${BLESSING_TURNS}); no céu, você escolhe a bênção e a relíquia de cada casa; ao sair do céu ganha a Coroa Seráfica (+${CROWN_BONUS} casa em toda rolagem até o fim). Cuidado: se pisar no inferno, cai para sempre e vira o Anjo Caído.`,
+    description: `Carrega em ${abilityCycle("seraphielBlessing")} turnos. Ao usar, recebe um presente do céu aleatório: uma bênção (Asas, Auréola, Inspiração ou Fonte de Luz) ou uma carta do céu na mão (Luz Celestial, Égide Celestial ou Ascensão). Passivas: suas bênçãos duram ${SERAPHIEL_BLESSING_TURNS} rodadas (as dos outros, ${BLESSING_TURNS}); no céu, você escolhe a bênção e a relíquia de cada casa; ao sair do céu ganha a Coroa Seráfica (+${CROWN_BONUS} casa em toda rolagem até o fim). Cuidado: se pisar no inferno, cai para sempre e vira o Anjo Caído.`,
     active: "Uma bênção desce do céu",
   },
   hellsDrag: {

@@ -14,11 +14,6 @@ export function seededRandom(seed: number): RandomSource {
   };
 }
 
-/** One of `items` at random (undefined when empty), drawing a single number either way. */
-export function pickRandom<T>(items: readonly T[], random: RandomSource): T | undefined {
-  return items[Math.floor(random() * items.length)];
-}
-
 /** One of `items` at random, when the rules guarantee there is one. */
 export function randomItem<T>(items: readonly T[], random: RandomSource): T {
   return at(items, Math.floor(random() * items.length));

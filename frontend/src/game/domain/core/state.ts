@@ -105,7 +105,7 @@ export interface DiceBonus {
 }
 
 /** Waiting on the player's choice to spend their reactive ability on a trap or curse. */
-export interface PendingWard {
+interface PendingWard {
   playerId: PlayerId;
   tile: TileId;
   threat: Threat;
@@ -116,7 +116,7 @@ export interface PendingWard {
 }
 
 /** Seraphiel picks which blessing or relic of the heaven tile he receives (see characters/seraphiel/). */
-export interface PendingGrace {
+interface PendingGrace {
   playerId: PlayerId;
   tile: TileId;
   offer: "blessing" | "relic";
@@ -138,7 +138,7 @@ export interface PendingDiscard {
   extraTurn: boolean;
 }
 
-export type GameStatus = "playing" | "finished";
+type GameStatus = "playing" | "finished";
 
 export interface GameState {
   board: Board;

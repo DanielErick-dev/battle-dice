@@ -1,7 +1,7 @@
 import { ArrowLeft, Maximize, Minimize, Music, Volume2, VolumeX } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import type { BoardPreset } from "../../boards";
+import type { BoardPreset } from "@/features/shared/presets/boards";
 import type { GameAudio } from "../../hooks/useGameAudio";
 
 interface MatchTitleBarProps {

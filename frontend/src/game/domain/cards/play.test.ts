@@ -67,6 +67,11 @@ describe("movement cards", () => {
     expect(cardBlocker(pastPortals, aria(pastPortals), "mysticGate")).toBe("NO_PORTAL_AHEAD");
   });
 
+  it("Mystic Gate passes a portal under scarlet fire by", () => {
+    const ablaze = { ...holding("mysticGate"), scarletFlames: [{ tile: 10, owner: "p2", turnsLeft: 2 }] };
+    expect(cardBlocker(ablaze, aria(ablaze), "mysticGate")).toBe("NO_PORTAL_AHEAD");
+  });
+
   it("Mystic Gate passes a portal under black fire or ice by: it's no portal while covered", () => {
     const burning = { ...holding("mysticGate"), blackFlames: [{ tile: 10, owner: "p2", turnsLeft: 3, hits: 0 }] };
     expect(cardBlocker(burning, aria(burning), "mysticGate")).toBe("NO_PORTAL_AHEAD");

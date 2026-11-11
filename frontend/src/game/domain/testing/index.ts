@@ -16,12 +16,12 @@ import type { CardInstance, GameState, Player, PlayerId } from "../core/state";
 export * from "./boards";
 
 /** Seed for dealing and hiding traps when a test game is created. */
-export const GAME_SEED = 7;
+const GAME_SEED = 7;
 /** Seed for the shuffles and random picks made while a command resolves. */
-export const COMMAND_SEED = 3;
+const COMMAND_SEED = 3;
 
 export type ActivateOptions = Omit<Extract<GameCommand, { type: "activateAbility" }>, "type" | "playerId">;
-export type PlayOptions = Omit<Extract<GameCommand, { type: "playCard" }>, "type" | "playerId" | "cardUid">;
+type PlayOptions = Omit<Extract<GameCommand, { type: "playCard" }>, "type" | "playerId" | "cardUid">;
 
 /** A game in seat order, e.g. `newGame(BOARD, { hero: "fairyBloom", rival: null })`. */
 export function newGame(

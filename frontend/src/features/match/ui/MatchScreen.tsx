@@ -4,8 +4,8 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { preferences, usePreference } from "@/features/settings/preferences";
 import { useFullscreen } from "@/lib/useFullscreen";
-import { boardPresetFor, isLargeBoard, type BoardPreset } from "../boards";
-import type { MapId } from "../maps";
+import { boardPresetFor, isLargeBoard, type BoardPreset } from "@/features/shared/presets/boards";
+import type { MapId } from "@/features/shared/presets/maps";
 import { rosterOf, type CharacterId, type RosterEntry } from "@/features/characters";
 import { activePlayerOf, canActivateAbility } from "../model/matchView";
 import { useMatch } from "../hooks/useMatch";
@@ -40,7 +40,7 @@ const BoardScene = dynamic(() => import("../scene/BoardScene"), {
   loading: () => <div className="grid h-full place-items-center text-sm text-zinc-500">Carregando arena…</div>,
 });
 
-export interface MatchScreenProps {
+interface MatchScreenProps {
   boardId: string;
   /** The world it's played in (see maps.ts): scenery only. */
   mapId: MapId;

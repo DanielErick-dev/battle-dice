@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AudioEngine } from "@/features/match/audio/audioEngine";
+import { AudioEngine } from "@/features/shared/audio/audioEngine";
 import { preferences, usePreference } from "@/features/settings/preferences";
 import { StageSounds } from "./stageSounds";
 

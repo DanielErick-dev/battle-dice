@@ -6,43 +6,36 @@ import { Suspense, useMemo } from "react";
 import { Vector3 } from "three";
 import { getTile } from "@/game/domain/board/board";
 import { withRifts } from "@/game/domain/characters/zarek/void";
-import { DICE_SIDES } from "@/game/domain/core/dice";
 import { frozenTiles } from "@/game/domain/characters/fairy/winter";
-import type { Board, Player, PlayerId } from "@/game/domain/types";
-import { INNER_FLAME_MAX } from "@/game/domain/characters/akane/fire";
+import type { Board, PlayerId } from "@/game/domain/types";
 import { characterFor, playerColor } from "@/features/characters";
 import type { EffectsQuality } from "@/features/shared/config";
-import type { MatchView, TileEffectKind } from "../model/matchView";
-import { createBoardLayout, withRiftPositions, type BoardLayout, type Vec3 } from "@/features/shared/board/boardLayout";
-import {
-  boardScaleFor,
-  CameraRig,
-  type CameraChase,
-  type CameraFraming,
-  type CameraSpotlight,
-} from "./camera/CameraRig";
+import type { MatchView } from "../model/matchView";
+import { createBoardLayout, withRiftPositions } from "@/features/shared/board/boardLayout";
+import { boardScaleFor, CameraRig, type CameraFraming } from "./camera/CameraRig";
+import { cameraSpotlight, fireChase, voidChase } from "./camera/cameraCues";
 import { diceLanding, dieRoll, focusPoint, focusTile, realmAt } from "./camera/cameraFocus";
 import { PickedTileMark } from "@/features/characters/shared/PickedTileMark";
-import { wraithTrack } from "@/features/characters/zarek/wraithTrack";
-import { fireTrack } from "@/features/characters/akane/fireTrack";
-import { FIRE_BOLT_SECONDS, FIRE_RACE_STEP } from "@/features/shared/config";
 import { DiceThrow } from "./board/DiceThrow";
 import { BOARD_EFFECTS, OVERLAY_EFFECTS, type BoardFx } from "./effects";
 import { ArenaEnvironment, HORIZON_COLOR } from "./environment/ArenaEnvironment";
-import type { MapId } from "../maps";
+import type { MapId } from "@/features/shared/presets/maps";
 import type { BoardPicking } from "./board/pickCursor";
 import { PlayerToken } from "./token/PlayerToken";
 import { PostEffects } from "./PostEffects";
 import { RealmAtmosphere } from "./realm/RealmAtmosphere";
 import { RealmTrackView } from "./realm/RealmTrackView";
 import { SceneWarmup } from "./SceneWarmup";
+import { directionBetween, openTrackPortals, reachableTiles } from "./board/boardState";
 import { TileLinks } from "./board/TileLinks";
-import { TileMesh } from "./board/TileMesh";
-import { pathColor } from "./board/tileTheme";
-import { spotlightOf } from "./camera/spotlight";
+import { TileMesh } from "./board/tile/TileMesh";
+import { pathColor } from "./board/tile/theme/pathColor";
+import { SceneLights } from "./SceneLights";
+import { fireStatus, judgedBy, tileSeat } from "./token/tokenCues";
 import { pathDirection, tokenTarget } from "./token/tokenPlacement";
 import { tokenSignals } from "./token/tokenSignals";
 import { HealingParticles } from "./vfx/healing";
+import { watchContext } from "./watchContext";
 
 /** Tiles being picked for an ability, right on the board (see TilePicking). */
 interface BoardSceneProps {
@@ -152,21 +145,7 @@ export default function BoardScene({
       {/* Nothing shows until every model has loaded; then it's all compiled before the match starts. */}
       <Suspense fallback={null}>
         <RealmAtmosphere realm={focusRealm}>
-          {/* Cold moonlight; warmth comes only from fires, torches and lanterns. */}
-          <directionalLight
-            position={[7 * scale, 14 * scale, 8 * scale]}
-            intensity={2}
-            color="#c6d1e6"
-            castShadow
-            shadow-mapSize={[2048, 2048]}
-            shadow-camera-left={-shadowExtent}
-            shadow-camera-right={shadowExtent}
-            shadow-camera-top={shadowExtent}
-            shadow-camera-bottom={-shadowExtent}
-            shadow-camera-far={60 * scale}
-          />
-          {/* Cool rim light from the moon's side of the sky. */}
-          <directionalLight position={[-0.3, 0.28, -0.8]} intensity={0.7} color="#8da0c2" />
+          <SceneLights scale={scale} shadowExtent={shadowExtent} />
 
           <ArenaEnvironment layout={roadLayout} scale={scale} mapId={mapId} />
           {/* Pools of particles in world space, fed by emitters on the tokens. */}
@@ -270,110 +249,4 @@ export default function BoardScene({
       <PostEffects quality={quality} />
     </Canvas>
   );
-}
-
-const VOID_EFFECTS: readonly (TileEffectKind | undefined)[] = [
-  "voidSwallowed",
-  "riftOpened",
-  "voidCast",
-  "voidSeized",
-  "voidEchoed",
-];
-
-/** While the Void works on a tile (swallowing, opening, setting down, taking), the camera rides along with it. */
-function voidChase(view: MatchView): CameraChase | null {
-  const rift = view.fx.voidRift;
-  return rift && VOID_EFFECTS.includes(view.effect?.kind) ? { key: rift.id, position: wraithTrack.position } : null;
-}
-
-/** Akane's Fire Zone: the camera rides along with the fire as it races down the tiles. */
-function fireChase(view: MatchView): CameraChase | null {
-  const blaze = view.fx.blaze;
-  return blaze?.kind === "lob" && view.effect?.kind === "scarletLit"
-    ? {
-        key: 10_000 + blaze.id,
-        position: fireTrack.position,
-        seconds: FIRE_BOLT_SECONDS + blaze.tiles.length * FIRE_RACE_STEP + 0.3,
-      }
-    : null;
-}
-
-/** Tracks showing: someone is on them, or their gate is opening right now. */
-function openTrackPortals(view: MatchView, board: Board): Set<number> {
-  const portals = new Set<number>();
-  for (const player of view.players) {
-    const portal = getTile(board, player.position).track?.portal;
-    if (portal !== undefined) portals.add(portal);
-  }
-  if (view.effect?.kind === "realmEnter") {
-    const { from } = view.effect;
-    const track = board.tracks.find((candidate) => candidate.entries.some((entry) => entry.portal === from));
-    portals.add(track?.portal ?? from);
-  }
-  return portals;
-}
-
-/** Tiles the active player can land on with the next roll, shown only while waiting for it. */
-function reachableTiles(view: MatchView, board: Board): Set<number> {
-  if (view.isAnimating || view.winnerId !== null) return new Set();
-  let tile: number | null =
-    view.players.find((player) => player.id === view.activePlayerId)?.position ?? board.startTile;
-  const tiles = new Set<number>();
-  for (let step = 1; step <= DICE_SIDES; step++) {
-    tile = getTile(board, tile).next;
-    if (tile === null) break;
-    tiles.add(tile);
-  }
-  return tiles;
-}
-
-/** Angle from one tile to another on the face texture (canvas x = world x, canvas y = world z). */
-/** Only figures sharing a tile lift their tags apart; one alone keeps its tag right over its head. */
-function tileSeat(players: readonly Player[], seat: number): number {
-  const { position } = players[seat];
-  return players.slice(0, seat).filter((other) => other.position === position).length;
-}
-
-/** Where whoever Themis's verdict judges stands, for her to point at; null for anyone else. */
-function judgedBy(view: MatchView, layout: BoardLayout, playerId: string): Vec3 | null {
-  const verdict = view.fx.verdict;
-  if (verdict?.judgeId !== playerId) return null;
-  const attacker = view.players.find((player) => player.id === verdict.attackerId);
-  return attacker ? layout.position(attacker.position) : null;
-}
-
-function directionBetween(layout: BoardLayout, from: number, to: number): number {
-  const [x1, , z1] = layout.position(from);
-  const [x2, , z2] = layout.position(to);
-  return Math.atan2(z2 - z1, x2 - x1);
-}
-
-/** Logs lost/restored WebGL contexts: the canvas blanks for a moment, kept to track down screen blinks. */
-function watchContext(canvas: HTMLCanvasElement): void {
-  canvas.addEventListener("webglcontextlost", () =>
-    console.warn(`[battle-dice] contexto WebGL perdido ${new Date().toLocaleTimeString()}`),
-  );
-  canvas.addEventListener("webglcontextrestored", () =>
-    console.warn(`[battle-dice] contexto WebGL restaurado ${new Date().toLocaleTimeString()}`),
-  );
-}
-
-/** The move being filmed from the front, placed where its figure stands and facing the way it does. */
-function cameraSpotlight(view: MatchView, board: Board, layout: BoardLayout): CameraSpotlight | null {
-  const shot = spotlightOf(view);
-  const player = shot && view.players.find((candidate) => candidate.id === shot.playerId);
-  if (!shot || !player) return null;
-  return {
-    ...shot,
-    position: tokenTarget(player, view, board, layout),
-    facing: pathDirection(board, layout, player.position),
-  };
-}
-
-/** Fire worth seeing at a glance over a figure: rounds left on fire, or Akane's Inner Flame. */
-function fireStatus({ burning, innerFlame, impetusRolls }: Player): string {
-  if (burning > 0) return ` · 🔥${burning}`;
-  if (impetusRolls > 0) return ` · ÍMPETO ${impetusRolls}`;
-  if (innerFlame > 0) return ` · CHAMA ${innerFlame}/${INNER_FLAME_MAX}`;
-  return "";
 }

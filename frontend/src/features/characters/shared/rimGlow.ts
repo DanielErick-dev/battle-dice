@@ -6,7 +6,7 @@ import type { Color } from "three";
  * `uRimColor` (Color) and `uRimStrength` (number). Where it glows it's also more opaque, so a
  * see-through spirit keeps a clear outline.
  */
-export const RIM_GLSL = /* glsl */ `
+const RIM_GLSL = /* glsl */ `
   #include <emissivemap_fragment>
   float rimFacing = 1.0 - abs(dot(normalize(vViewPosition), normal));
   float rimGlow = pow(rimFacing, 2.2) * uRimStrength;

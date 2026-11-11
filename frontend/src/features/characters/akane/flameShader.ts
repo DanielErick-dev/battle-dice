@@ -69,7 +69,7 @@ const FLAME_FRAGMENT = /* glsl */ `
 `;
 
 /** A camera-facing flame card, 1 wide and FLAME_ASPECT tall with its foot at the origin: a live fire, not a sprite. */
-export const FLAME_ASPECT = 1.7;
+const FLAME_ASPECT = 1.7;
 
 export function createFlameGeometry(): PlaneGeometry {
   const geometry = new PlaneGeometry(1, FLAME_ASPECT, 8, 16);

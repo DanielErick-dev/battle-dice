@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.game.json",
-    "format": "prettier --write \"src/**/*.{ts,tsx}\""
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,mjs}\" \"scripts/**/*.{ts,js,mjs}\" \"*.{ts,mjs}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,mjs}\" \"scripts/**/*.{ts,js,mjs}\" \"*.{ts,mjs}\""
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",

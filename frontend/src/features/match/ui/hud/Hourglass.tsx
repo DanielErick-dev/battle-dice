@@ -3,11 +3,8 @@
 import { Hourglass as HourglassIcon, Pause, Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { TURN_SECONDS } from "@/features/shared/config";
 
-/** Each turn's time to think; out of it, the turn is lost. */
-export const TURN_SECONDS = 60;
-/** How many times each player may stop the match. */
-export const PAUSES_PER_PLAYER = 3;
 /** Under this the sand runs red. */
 const HURRY_SECONDS = 10;
 

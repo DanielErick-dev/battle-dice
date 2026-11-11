@@ -4,9 +4,9 @@ import { playerTileEffect } from "./helpers";
 import type { StepHandlers } from "./types";
 
 export const seraphielSteps: StepHandlers<
-  "seraphFell" | "crownGained" | "heavenBarred" | "graceOffered" | "hellDragged"
+  "seraphielFell" | "crownGained" | "heavenBarred" | "graceOffered" | "hellDragged"
 > = {
-  seraphFell: (event, timings) => {
+  seraphielFell: (event, timings) => {
     return [
       {
         apply: (view) => ({

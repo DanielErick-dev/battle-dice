@@ -7,7 +7,7 @@ import { useDisposable } from "../shared/disposal";
 
 export const ARROW_LENGTH = 1.25;
 
-export interface ArrowMaterials {
+interface ArrowMaterials {
   /** The elven arrow's mesh (see PROPS.elvenArrow). */
   geometry: BufferGeometry;
   /** Its own textured material, as modelled, faded with the rest. */

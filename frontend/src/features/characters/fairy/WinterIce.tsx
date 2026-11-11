@@ -23,7 +23,7 @@ const TILE_TOP = TILE_HEIGHT / 2;
 const FLOOR_Y = 0.075;
 const GROW_SECONDS = 0.6;
 
-export interface FrozenTile {
+interface FrozenTile {
   tile: number;
   position: Vec3;
   /** The slab it covers (see BoardLayout.slab). */

@@ -161,7 +161,7 @@ export const FUSED_LABEL = "Fundida · 3 em 1";
 export const EXCLUSIVE_LABEL = "Exclusiva";
 
 /** What a fused card is called and says instead (see fusion.ts); only the cards that fuse. */
-export const FUSED_TEXT: Readonly<Partial<Record<CardId, { name: string; description: string }>>> = {
+const FUSED_TEXT: Readonly<Partial<Record<CardId, { name: string; description: string }>>> = {
   windStep: {
     name: "Vendaval",
     description: `Avance ${FUSED_WIND_STEP_TILES} casas. A casa onde parar tem efeito.`,

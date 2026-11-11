@@ -24,7 +24,7 @@ export function shade(hex: string, factor: number): string {
   return `rgb(${channel(16)},${channel(8)},${channel(0)})`;
 }
 
-export interface SpeckleLook {
+interface SpeckleLook {
   count: number;
   /** Chance a speck takes the first colour rather than the second. */
   odds: number;
@@ -41,42 +41,5 @@ export function speckle(context: CanvasRenderingContext2D, size: number, random:
   for (let fleck = 0; fleck < count; fleck++) {
     context.fillStyle = random() < odds ? colours[0] : colours[1];
     context.fillRect(random() * size, random() * size, 1 + random() * spread, flat ? 1 : 1 + random() * spread);
-  }
-}
-
-export interface CrackLook {
-  count: number;
-  steps: number;
-  /** Pixels per step. */
-  stride: number;
-  /** How far (radians) each step may turn either way. */
-  bend: number;
-  colour: string;
-  /** Line width is 1 to 1 + `thickness`. */
-  thickness: number;
-}
-
-/** Hairline cracks wandering from random points, each step turning a little off the last. */
-export function wanderingCracks(
-  context: CanvasRenderingContext2D,
-  size: number,
-  random: RandomSource,
-  look: CrackLook,
-) {
-  for (let crack = 0; crack < look.count; crack++) {
-    let x = random() * size;
-    let y = random() * size;
-    let angle = random() * Math.PI * 2;
-    context.strokeStyle = look.colour;
-    context.lineWidth = 1 + random() * look.thickness;
-    context.beginPath();
-    context.moveTo(x, y);
-    for (let step = 0; step < look.steps; step++) {
-      angle += (random() - 0.5) * look.bend;
-      x += Math.cos(angle) * look.stride;
-      y += Math.sin(angle) * look.stride;
-      context.lineTo(x, y);
-    }
-    context.stroke();
   }
 }

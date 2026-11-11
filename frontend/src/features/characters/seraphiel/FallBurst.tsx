@@ -9,7 +9,7 @@ import { useAge } from "@/features/shared/three/useAge";
 import { useGlowColor } from "../shared/glowColor";
 
 /** Over the head, in the token effects' units (a figure stands 1.9 tall in them). */
-export const CROWN_HEIGHT = 2.02;
+const CROWN_HEIGHT = 2.02;
 const RADIUS = 0.17;
 const SPIKES = 8;
 /** Spike heights round the band: even points for heaven's crown, jagged and broken for hell's. */

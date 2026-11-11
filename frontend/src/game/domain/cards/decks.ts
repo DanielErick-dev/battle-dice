@@ -5,7 +5,7 @@ import type { CardId } from "./catalog";
 import type { CardInstance, PlayerId } from "../core/state";
 
 /** Copies per card in the standard deck (relics are never in it). */
-export const COPIES_BY_RARITY: Readonly<Record<Rarity, number>> = {
+const COPIES_BY_RARITY: Readonly<Record<Rarity, number>> = {
   common: 3,
   uncommon: 2,
   rare: 2,
@@ -25,7 +25,7 @@ export function standardDeck({ withOpponents }: { withOpponents: boolean }): Car
 }
 
 /** A character's own cards, one copy each, shuffled into the standard deck of whoever has `ability`. */
-export function exclusiveCards(ability: AbilityId | null, { withOpponents }: { withOpponents: boolean }): CardId[] {
+function exclusiveCards(ability: AbilityId | null, { withOpponents }: { withOpponents: boolean }): CardId[] {
   return Object.values(CARD_CATALOG)
     .filter(
       (definition) =>

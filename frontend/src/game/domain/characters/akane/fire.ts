@@ -16,7 +16,7 @@ export const BURN_ROUNDS = 2;
 export const FIRE_TOLL = 1;
 /** Brilliant Impetus: Inner Flame he can hold, and a die this low (or a trap) kindles one more. */
 export const INNER_FLAME_MAX = 3;
-export const LOW_DIE = 2;
+const LOW_DIE = 2;
 /** Unleashed at INNER_FLAME_MAX: his next IMPETUS_ROLLS rolls walk IMPETUS_BONUS further and scorch the way. */
 export const IMPETUS_BONUS = 3;
 export const IMPETUS_ROLLS = 2;

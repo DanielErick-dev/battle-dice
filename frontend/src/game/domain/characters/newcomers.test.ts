@@ -41,7 +41,7 @@ const activate = (state: GameState, options: ActivateOptions = {}) => activateFo
 describe("the newcomers' abilities", () => {
   it("Seraph's Blessing gives one of heaven's blessings, or a heaven card, at random", () => {
     const gifts = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => {
-      const start = ready(withPlayer(duel("seraphBlessing"), "hero", { hand: [] }));
+      const start = ready(withPlayer(duel("seraphielBlessing"), "hero", { hand: [] }));
       const { state, events } = send(start, { type: "activateAbility", playerId: "hero" }, [1], seed);
       const { blessings, hand } = playerOf(state, "hero");
       if (blessings.length === 1) {

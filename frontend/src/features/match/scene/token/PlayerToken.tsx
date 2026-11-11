@@ -15,7 +15,8 @@ import { RestChair } from "@/features/characters/accessories/RestChair";
 import { TOKEN_EFFECTS } from "../effects";
 import type { TokenEffect, TokenFx, TokenSignals } from "../effects/types";
 import { advanceMotion, createTokenMotion, easeInOut, followTarget, turnTowards } from "./motion";
-import { actTraits, createTokenActs, stepPose } from "./pose";
+import { stepPose } from "./pose";
+import { actTraits, createTokenActs } from "./poseModel";
 
 interface PlayerTokenProps {
   player: Player;

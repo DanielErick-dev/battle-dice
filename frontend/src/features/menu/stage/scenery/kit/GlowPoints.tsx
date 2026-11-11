@@ -6,11 +6,7 @@ import { useDisposal } from "./dispose";
 import { HOT_GLOW } from "./materials";
 
 /** A point cloud's buffers: positions (zeros unless given) and, when `coloured`, a colour per point. */
-export function pointBuffers(
-  count: number,
-  coloured: boolean,
-  positions = new Float32Array(count * 3),
-): BufferGeometry {
+function pointBuffers(count: number, coloured: boolean, positions = new Float32Array(count * 3)): BufferGeometry {
   const geometry = new BufferGeometry();
   geometry.setAttribute("position", new BufferAttribute(positions, 3));
   if (coloured) geometry.setAttribute("color", new BufferAttribute(new Float32Array(count * 3), 3));

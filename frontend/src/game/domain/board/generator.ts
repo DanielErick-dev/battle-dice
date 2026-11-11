@@ -4,7 +4,7 @@ import { seededRandom, shuffle } from "../core/random";
 import type { RealmKind, TileEffect, TileId, TrapCurse } from "./types";
 
 /** "energy" and "charge" become blessing tiles. */
-export type GeneratedEffect = "portal" | "trap" | "advance" | "extraTurn" | "skipTurn" | "card" | "energy" | "charge";
+type GeneratedEffect = "portal" | "trap" | "advance" | "extraTurn" | "skipTurn" | "card" | "energy" | "charge";
 
 export interface BoardRecipe {
   size: number;

@@ -1,13 +1,13 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { BOARD_PRESETS, DEFAULT_BOARD_ID } from "../match/boards";
-import { DEFAULT_MAP_ID, MAP_PRESETS } from "../match/maps";
+import { BOARD_PRESETS, DEFAULT_BOARD_ID } from "@/features/shared/presets/boards";
+import { DEFAULT_MAP_ID, MAP_PRESETS } from "@/features/shared/presets/maps";
 import { DEFAULT_CHARACTER_ID } from "@/features/characters";
 import type { EffectsQuality } from "@/features/shared/config";
 
 /** A setting remembered per browser, kept in memory when storage is blocked (private mode, site data off). */
-export interface Preference<T> {
+interface Preference<T> {
   subscribe: (listener: () => void) => () => void;
   get: () => T;
   set: (value: T) => void;

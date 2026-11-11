@@ -5,10 +5,10 @@ import { playerIn, type Draft } from "../../core/draft";
 import { grantBlessing, TIMED_BLESSINGS } from "../../board/blessings";
 import type { PlayerId } from "../../core/state";
 
-export const SERAPH_CARD_CHANCE = 0.5;
+const SERAPH_CARD_CHANCE = 0.5;
 
 /** A random timed blessing or heaven card. */
-export function seraphBlessing(draft: Draft, playerId: PlayerId): void {
+export function seraphielBlessing(draft: Draft, playerId: PlayerId): void {
   if (draft.random() < SERAPH_CARD_CHANCE) {
     giveCard(draft, playerId, {
       uid: `${playerId}:grace${draft.state.turn}`,

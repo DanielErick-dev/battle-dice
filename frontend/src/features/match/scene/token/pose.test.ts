@@ -3,21 +3,18 @@ import { describe, expect, it } from "vitest";
 import type { ClipLengths } from "@/features/characters";
 import { KNOCKED_LANDING_SECONDS, LUNGE_DISTANCE, LUNGE_SECONDS } from "./trample";
 import type { MotionFrame, Segment } from "./motion";
+import { sequenceStep } from "./clipSequence";
+import { stepPose } from "./pose";
+import { actTraits, createTokenActs, type PoseInput, type TokenActs } from "./poseModel";
 import {
-  actTraits,
   CAST_HOLD_SECONDS,
   CHAIR_AT,
-  createTokenActs,
   DASH_VANISH_SECONDS,
   EMERGE_SECONDS,
   HOP_SECONDS,
   RUN_LINGER_SECONDS,
-  sequenceStep,
   SINK_SECONDS,
-  stepPose,
-  type PoseInput,
-  type TokenActs,
-} from "./pose";
+} from "./poseTimings";
 
 const SETTLED: MotionFrame = { segment: null, travelling: false, settled: true };
 const IDLE_SIGNALS: PoseInput["signals"] = {

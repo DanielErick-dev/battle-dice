@@ -1,7 +1,7 @@
 /** Bjorn: Untamed's frost aura and the trample's blows. */
 import { useState } from "react";
 import { AbilityBurst } from "../vfx/AbilityBurst";
-import { FrostAura } from "../vfx/FrostAura";
+import { FrostAura } from "../vfx/frostAura/FrostAura";
 import { Delayed, SwordImpact } from "../vfx/TrapSmash";
 import { KNOCKED_LANDING_SECONDS, LUNGE_SECONDS } from "../token/trample";
 import type { TokenFx } from "./types";

@@ -6,7 +6,7 @@ import { BackSide, PlaneGeometry } from "three";
 import { useCanvasTexture, type Painter } from "@/features/shared/three/canvasTexture";
 import type { Vec3 } from "@/features/shared/board/boardLayout";
 import { Flames } from "./Dungeon";
-import { ChimneySmoke } from "./Island";
+import { ChimneySmoke } from "./ChimneySmoke";
 import { TRAIL_GROUND } from "./islandTerrain";
 import { KitPieces } from "./kits";
 import { paintCrackedRoad, TrailRoad } from "./road";

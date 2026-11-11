@@ -4,7 +4,7 @@ export type AbilityId =
   | "theVoid" // Zarek's: swallows the harm he stops on when offered, sets it down anew (characters/zarek/)
   | "tailwind" // this turn's roll walks TAILWIND_BONUS further
   | "fireZone" // Akane's: sets the tiles ahead alight; Brilliant Impetus is his passive (characters/akane/)
-  | "seraphBlessing" // a random heaven blessing or heaven card (characters/seraphiel/)
+  | "seraphielBlessing" // a random heaven blessing or heaven card (characters/seraphiel/)
   | "hellsDrag" // the Fallen Angel pulls an opponent into hell; alone, hell swallows traps ahead
   | "cleansingTide" // clears every spell off the TIDE_RANGE tiles ahead, whoever cast it
   | "untamed" // nothing harms the Berserker for a while; trampling is his passive (characters/bjorn/)

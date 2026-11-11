@@ -1,5 +1,5 @@
 import { MARKS_TO_JUDGE } from "@/game/domain/characters/themis/verdict";
-import { ABILITY_TEXT } from "../../abilityText";
+import { ABILITY_TEXT } from "@/features/shared/text/abilityText";
 import { CARD_TEXT } from "../../cards/cardText";
 import type { CopyEntries } from "./types";
 

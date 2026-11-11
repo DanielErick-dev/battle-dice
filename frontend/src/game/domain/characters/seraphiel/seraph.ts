@@ -22,7 +22,7 @@ export const DRAG_TRAPS = 2;
 export const GRACE_BLESSINGS = TIMED_BLESSINGS;
 
 export function isSeraph(player: Player): boolean {
-  return player.ability === "seraphBlessing";
+  return player.ability === "seraphielBlessing";
 }
 
 export function isFallen(player: Player): boolean {
@@ -41,7 +41,7 @@ export function fallIfInHell(draft: Draft, playerId: PlayerId): void {
   const player = playerIn(draft, playerId);
   if (!isSeraph(player) || !inHell(draft.state.board, player.position)) return;
   updatePlayer(draft, playerId, () => ({ ability: "hellsDrag", blessings: [], crown: "infernal" }));
-  draft.events.push({ type: "seraphFell", playerId, tile: player.position });
+  draft.events.push({ type: "seraphielFell", playerId, tile: player.position });
 }
 
 /** Runs after every command, so he's crowned or falls however the command moved him. */

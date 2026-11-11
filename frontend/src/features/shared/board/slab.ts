@@ -45,7 +45,7 @@ export function slabBody(outline: SlabOutline, height: number, bevel: number, gr
 }
 
 /** UVs from x and z across the geometry's extent (0 to 1 each way). */
-export function spanUvs(geometry: BufferGeometry): void {
+function spanUvs(geometry: BufferGeometry): void {
   geometry.computeBoundingBox();
   const { min, max } = geometry.boundingBox!;
   const position = geometry.getAttribute("position");

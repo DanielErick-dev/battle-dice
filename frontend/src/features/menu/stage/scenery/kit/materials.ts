@@ -5,6 +5,3 @@ export const GLOW = { transparent: true, depthWrite: false, blending: AdditiveBl
 
 /** A glow bright enough to burn past white: left out of tone mapping (flames, bulbs, fissures). */
 export const HOT_GLOW = { ...GLOW, toneMapped: false } as const;
-
-/** See-through and never hiding what's drawn after it: smoke, mist, decals lying on the floor. */
-export const SHEER = { transparent: true, depthWrite: false } as const;

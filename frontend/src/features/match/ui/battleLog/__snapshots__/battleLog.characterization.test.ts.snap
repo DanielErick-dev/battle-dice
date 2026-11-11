@@ -743,7 +743,7 @@ exports[`battle log lines, one per branch > sealsWritten > case 1 1`] = `
 }
 `;
 
-exports[`battle log lines, one per branch > seraphFell > case 0 1`] = `
+exports[`battle log lines, one per branch > seraphielFell > case 0 1`] = `
 {
   "actor": "p1",
   "text": "J1 (Bruxa Carmesim) pisou no inferno e virou o Anjo Caído",

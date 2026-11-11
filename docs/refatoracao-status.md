@@ -25,7 +25,7 @@ Linhas = código da própria pasta (sem subpastas e sem testes), contadas em 29/
 
 | Pasta | Status | Linhas | Feito | Falta |
 |---|---|---|---|---|
-| `match/` (raiz) | 🟡 | | Fichas e `config.ts` saíram daqui (07/11). | Revisar `boards.ts`, `maps.ts` e `diceFaces.ts`. |
+| `match/` (raiz) | 🟡 | | Fichas e `config.ts` saíram daqui (07/11). `boards.ts` e `maps.ts` foram para `shared/presets/` (07/11). | Revisar `diceFaces.ts`. |
 | `match/model/` | ✅ | 1178 | `view.fx` separado do estado de jogo (etapa 3). `matchView/` dividida por tema (07/11). | |
 | `match/model/playback/` | ✅ | 1720 | Um arquivo por tema, mapa tipado de eventos (etapa 1). | |
 | `match/audio/` | ✅ | 991 | Tem README. Revisada em 07/11: nada a mudar. | |
@@ -34,24 +34,26 @@ Linhas = código da própria pasta (sem subpastas e sem testes), contadas em 29/
 | `match/ui/abilities/` | ✅ | 433 | Registro `ABILITY_FLOWS` (etapa 2). | |
 | `match/ui/cards/` | 🟡 | 1416 | Arte desenhada em `art/`, com snapshot (07/11). | Revisar o resto. A arte desenhada das cartas com imagem em `CARD_IMAGES` nunca aparece. |
 | `match/ui/hud/` | 🟡 | 1423 | Texto do banner em `effectCopy/`, com snapshot (07/11). | Revisar o resto. |
-| `match/scene/` (raiz) | ✅ | | Raiz separada em `board/`, `camera/`, `token/` e `vfx/` (07/11). Efeitos fora do `PlayerToken`/`BoardScene` (etapa 4). `PlayerToken` 571 → 243 linhas: movimento e pose viraram funções puras e testadas em `token/` (29/10). | |
-| `match/scene/token/` | ✅ | 538 | Criada em 29/10: `motion.ts` (caminho e segmentos) e `pose.ts` (qual clipe toca), com 41 testes. | |
+| `match/scene/` (raiz) | ✅ | | Raiz separada em `board/`, `camera/`, `token/` e `vfx/` (07/11). Efeitos fora do `PlayerToken`/`BoardScene` (etapa 4). `PlayerToken` 571 → 243 linhas: movimento e pose viraram funções puras e testadas em `token/` (29/10). `BoardScene` 379 → 252 (07/11): luzes em `SceneLights`, contas do tabuleiro em `board/boardState.ts`, câmera em `camera/cameraCues.ts`, etiquetas em `token/tokenCues.ts`. | |
+| `match/scene/board/` | 🟡 | | Casas em `board/tile/` (07/11): `TileMesh` 447 → 193, com `theme/`, `face/` e `ornaments/` (um enfeite por arquivo). | Revisar `DiceThrow.tsx` e `TileLinks.tsx`. |
+| `match/scene/camera/` | ✅ | 550 | `CameraRig` 383 → 267 (07/11): ajustes em `rigTuning.ts`, tomadas em `shots.ts`, tipos em `types.ts`. O laço de quadro ficou inteiro no componente. | |
+| `match/scene/token/` | ✅ | 538 | Criada em 29/10: `motion.ts` (caminho e segmentos) e `pose.ts` (qual clipe toca), com 41 testes. Em 07/11 `pose.ts` 376 → 212: tipos em `poseModel.ts`, tempos em `poseTimings.ts`, `sequenceStep` em `clipSequence.ts`. | `stepPose` ainda tem ~160 linhas (a ordem dos atos importa, não foi mexida). |
 | `match/scene/effects/` | ✅ | 801 | Registro de efeitos por lugar (etapa 4). | |
 | `features/characters/` (ex-`match/scene/character/`) | ✅ | | Fichas em `sheets/` e pasta movida para fora da partida (etapa 5, 07/11). `clipPlayback.ts` testado (29/10). Separada em 01/11: `core/` (modelo, ossos, props, mão), `accessories/` (asas, coroa, cadeira), `shared/` (texturas, hash, brilho) e uma pasta por personagem; contas puras com teste (`frostSlamLayout`, `limbBolts`, `levitation`, `verdictTimeline`). Tem README. | `ScribeIntro`, `SealScroll` e `TidalWave` ainda com ~340 linhas. |
-| `match/scene/environment/` | ⬜ | 2474 | Mapas escurecidos e sem figurantes (29/10, só visual). | Revisar a estrutura. |
-| `match/scene/realm/` | ⬜ | 1124 | | Revisar. |
-| `match/scene/vfx/` | ⬜ | 58 | | Revisar. |
+| `match/scene/environment/` | 🟡 | 2474 | Mapas escurecidos e sem figurantes (29/10, só visual). Ilha em `island/` (07/11): `Island.tsx` 403 → 56, chão, espalhamento e uma peça por arquivo; `ChimneySmoke` em arquivo próprio. | Revisar o resto (`Dungeon`, `Wasteland`, `coast.ts`, `settlements.ts`). |
+| `match/scene/realm/` | 🟡 | 1124 | `RealmTrackView` 330 → 180 (07/11): `FlameWall`, `TrackUndersides`, `TrackSparkles` e `ribbonShader.ts` ao lado. | Revisar `CorridorWalls` (254), `RealmParticles` (252) e `RealmGate`. |
+| `match/scene/vfx/` | 🟡 | 58 | `FrostAura` 409 → 190 em `frostAura/` (07/11): shader, números e cristais, materiais e textura da estrela separados. | Revisar o resto. |
 
 ## Outras features
 
 | Pasta | Status | Linhas | Feito | Falta |
 |---|---|---|---|---|
-| `features/menu/` (raiz) | ✅ | 0 | README. | |
+| `features/menu/` (raiz) | ✅ | 0 | README. Não importa mais `match`: tabuleiros, mapas, áudio, texto das habilidades e relógio do turno vieram para `features/shared/` (07/11). | |
 | `features/menu/stage/` | 🟡 | 839 | | Revisar. |
 | `features/menu/stage/scenery/` | ✅ | 9404 | Kit em `kit/` (texturas, geometria, chão, movimento, peças prontas, com testes). Em 01/11 cada habitat virou uma pasta: componente principal + `textures.ts` + `layout.ts` + um arquivo por peça. A arte da partida entra só por `kit/matchAssets.ts`. | `WitchHollow.tsx` ainda com 355 linhas (uma cena grande num JSX só). |
 | `features/menu/ui/` | ⬜ | 549 | | Revisar. |
 | `features/menu/audio/` | ⬜ | 85 | | Revisar. |
-| `features/settings/` | ✅ | 98 | Revisada em 07/11: nada a mudar. | |
+| `features/settings/` | ✅ | 98 | Revisada em 07/11. Não importa mais `match` (07/11). | |
 | `components/ui/` | ✅ | | `badge` e `card` sem uso apagados (07/11). | |
 | `app/` | ⬜ | ~100 | | Rotas do Next: revisar. |
 | `lib/` | ✅ | 49 | Revisada em 07/11. | |

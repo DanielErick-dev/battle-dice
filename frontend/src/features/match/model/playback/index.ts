@@ -114,7 +114,7 @@ function logEvent(view: MatchView, event: GameEvent): MatchView {
 }
 
 /** Final step of every update: snaps the view onto the authoritative state; `fx` is left to finish playing. */
-export function syncStep(state: GameState): PlaybackStep {
+function syncStep(state: GameState): PlaybackStep {
   return {
     apply: (view) => ({
       ...view,

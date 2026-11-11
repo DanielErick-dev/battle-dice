@@ -1,5 +1,5 @@
-import type { AudioEngine } from "@/features/match/audio/audioEngine";
-import { playSfx, type Synth } from "@/features/match/audio/synth";
+import type { AudioEngine } from "@/features/shared/audio/audioEngine";
+import { playSfx, type Synth } from "@/features/shared/audio/synth";
 
 /** Sounds of the characters' intros on the menu stage, synthesized like the match's. */
 export class StageSounds {

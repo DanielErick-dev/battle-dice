@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { boardPresetFor } from "@/features/match/boards";
+import { boardPresetFor } from "@/features/shared/presets/boards";
 import { parseCharacterList } from "@/features/characters";
-import { mapPresetFor } from "@/features/match/maps";
+import { mapPresetFor } from "@/features/shared/presets/maps";
 import { ClientMatchScreen } from "@/features/match/ui/ClientMatchScreen";
 
 export const metadata: Metadata = { title: "Partida · Battle Dice" };

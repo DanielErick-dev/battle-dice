@@ -4,147 +4,31 @@ import { OrbitControls } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef, type ComponentRef } from "react";
 import { MOUSE, PerspectiveCamera, TOUCH, Vector3 } from "three";
-import type { CardId } from "@/game/domain/cards/catalog";
-import type { CardCastView, TileEffectKind, TileEffectView } from "../../model/matchView";
+import type { CardCastView, TileEffectView } from "../../model/matchView";
 import type { BoardLayout, Vec3 } from "@/features/shared/board/boardLayout";
-import { FIGURE_HEIGHT } from "@/features/characters/core/figure";
+import {
+  BASE_DIRECTION,
+  BASE_DISTANCE,
+  BASE_FOV,
+  boardScaleFor,
+  CHASE_DISTANCE,
+  CHASE_SECONDS,
+  FIT_ASPECT,
+  FOLLOW_RATE,
+  FOV_KICK_DECAY,
+  FOV_KICK_DEGREES,
+  SHAKE_AMPLITUDE,
+  SPOT_ELEVATION,
+  SPOT_HEIGHT,
+  SPOT_RATE,
+  TRAUMA_DECAY,
+  VICTORY_DISTANCE,
+} from "./rigTuning";
+import { CAST_SHOTS, SHOTS, type Shot } from "./shots";
+import type { CameraChase, CameraFraming, CameraSpotlight } from "./types";
 
-const BASE_DIRECTION = new Vector3(0, 12, 12.5).normalize();
-const BASE_DISTANCE = Math.hypot(12, 12.5);
-const BASE_FOV = 40;
-/** Grid extent the base distance was tuned for (the 5×4 training board). */
-const BASE_WIDTH = 10.8;
-const BASE_DEPTH = 8.55;
-/** Below this width/height ratio the camera backs off so the framed area stays in view. */
-const FIT_ASPECT = 1.1;
-/** How quickly the camera catches up with its goal (higher = snappier). */
-const FOLLOW_RATE = 3;
-/** A spotlit figure is framed at its chest, from this far above the horizon (radians). */
-const SPOT_HEIGHT = FIGURE_HEIGHT * 0.55;
-const SPOT_ELEVATION = 0.42;
-/** Share of the follow distance the Void is chased from while it works on a tile. */
-const CHASE_DISTANCE = 0.8;
-const CHASE_SECONDS = 2.2;
-/** How quickly the camera swings round to the front of a spotlit figure, and back after. */
-const SPOT_RATE = 3.5;
-
-/** How a tile effect is filmed: an optional close-up, a shake and/or a field-of-view kick. */
-interface Shot {
-  closeUp?: { distance: number; seconds: number };
-  trauma?: number;
-  fovKick?: number;
-}
-
-const SHOTS: Record<TileEffectKind, Shot> = {
-  portal: { closeUp: { distance: 0.62, seconds: 1.5 } },
-  advance: { closeUp: { distance: 0.78, seconds: 1.2 }, fovKick: 1 },
-  trap: { trauma: 0.8 },
-  hiddenTrap: { closeUp: { distance: 0.62, seconds: 1.2 }, trauma: 1 },
-  skipTurn: { trauma: 0.3 },
-  turnSkipped: { trauma: 0.2 },
-  snowDrained: {},
-  voidSwallowed: { closeUp: { distance: 0.7, seconds: 1.2 }, trauma: 0.3 },
-  riftOpened: { closeUp: { distance: 0.75, seconds: 1.2 }, trauma: 0.4 },
-  voidCast: { closeUp: { distance: 0.75, seconds: 1 } },
-  voidSeized: { closeUp: { distance: 0.75, seconds: 1 }, trauma: 0.2 },
-  voidEchoed: { closeUp: { distance: 0.75, seconds: 1 } },
-  extraTurn: { fovKick: 0.6 },
-  trapBlocked: { fovKick: 0.4 },
-  abilityBlocked: { fovKick: 0.4 },
-  trapCurse: { trauma: 0.4 },
-  realmEnter: {
-    closeUp: { distance: 0.5, seconds: 2.4 },
-    trauma: 0.55,
-    fovKick: 1,
-  },
-  blessing: { fovKick: 0.5 },
-  teleport: { closeUp: { distance: 0.62, seconds: 1.5 } },
-  abilityReady: { fovKick: 0.4 },
-  abilityUsed: { fovKick: 0.8 },
-  levitated: { fovKick: 0.3 },
-  gamble: { fovKick: 0.7 },
-  seal: { closeUp: { distance: 0.62, seconds: 1.2 }, trauma: 0.5 },
-  specter: { closeUp: { distance: 0.62, seconds: 1.2 }, trauma: 0.35 },
-  enchanted: { closeUp: { distance: 0.7, seconds: 1 } },
-  flames: { closeUp: { distance: 0.62, seconds: 1.2 }, trauma: 0.45 },
-  winter: { closeUp: { distance: 0.8, seconds: 1.2 } },
-  armour: { fovKick: 0.3 },
-  cleansed: { fovKick: 0.9, trauma: 0.3 },
-  trampled: { trauma: 0.7 },
-  repelled: { trauma: 0.6 },
-  timeBent: { closeUp: { distance: 0.7, seconds: 2.6 }, fovKick: 0.8 },
-  fallen: { closeUp: { distance: 0.5, seconds: 2.4 }, trauma: 0.6, fovKick: 1 },
-  crown: { closeUp: { distance: 0.62, seconds: 1.2 }, fovKick: 0.5 },
-  heavenBarred: { trauma: 0.3 },
-  dragged: { closeUp: { distance: 0.62, seconds: 1.2 }, trauma: 0.5 },
-  // Pulled well back so the whole giant scale fits in, from Themis to the one judged.
-  verdict: { closeUp: { distance: 1.8, seconds: 4 }, trauma: 0.35 },
-  marked: { closeUp: { distance: 0.7, seconds: 1.2 } },
-  marched: { fovKick: 0.6 },
-  scarletLit: { fovKick: 0.8, trauma: 0.25 },
-  ignited: { closeUp: { distance: 0.7, seconds: 1.2 }, trauma: 0.2 },
-  quenched: {},
-  // Close on him stomping in a fury at a low roll.
-  kindled: { closeUp: { distance: 0.7, seconds: 1.3 } },
-  impetus: { closeUp: { distance: 0.62, seconds: 1.4 }, fovKick: 0.8 },
-  emberSlid: { fovKick: 0.5 },
-  emberStep: {},
-  hotBlood: { trauma: 0.7, fovKick: 0.6 },
-  // Close on him hacking the trap out.
-  weeded: { closeUp: { distance: 0.7, seconds: 1.2 } },
-  burntRoll: { closeUp: { distance: 0.75, seconds: 1.1 } },
-  fireFed: {},
-  fuel: {},
-  supernova: { closeUp: { distance: 0.62, seconds: 1.6 }, trauma: 0.6, fovKick: 1 },
-  timedOut: { trauma: 0.2 },
-  decree: { fovKick: 0.6, trauma: 0.2 },
-  judgment: { closeUp: { distance: 0.62, seconds: 1.6 }, trauma: 0.5, fovKick: 1 },
-};
-
-/** Cards whose cast is filmed too (the rest are covered by the effects they cause). */
-const CAST_SHOTS: Partial<Record<CardId, Shot>> = {
-  arcaneBlast: { trauma: 0.9 },
-  blindingFlash: { fovKick: 1 },
-  berserkFury: { trauma: 0.35 },
-  windStep: { closeUp: { distance: 0.8, seconds: 2 } },
-  ancestralAwakening: { trauma: 0.45, fovKick: 0.8 },
-};
-/** Winner close-up (distance factor) while the camera circles them. */
-const VICTORY_DISTANCE = 0.55;
-const TRAUMA_DECAY = 1.4;
-const SHAKE_AMPLITUDE = 0.45;
-const FOV_KICK_DEGREES = 9;
-const FOV_KICK_DECAY = 2.2;
-
-/** How much bigger than the training board this layout is; scales camera, fog and stars. */
-export function boardScaleFor(layout: BoardLayout): number {
-  return Math.max(1, layout.width / BASE_WIDTH, layout.depth / BASE_DEPTH);
-}
-
-/** A figure playing one of its own moves, filmed from the front (see spotlightOf). */
-export interface CameraSpotlight {
-  key: string;
-  /** Where the figure stands. */
-  position: Vec3;
-  /** The way it faces: the camera comes round to stand in front of it. */
-  facing: Vec3;
-  /** Share of the follow distance to film it from. */
-  distance: number;
-  seconds: number;
-  /** Radians above the horizon, when not the usual SPOT_ELEVATION. */
-  elevation?: number;
-}
-
-/** A live position to ride along with for CHASE_SECONDS after its `key` first shows, then back to the focus. */
-export interface CameraChase {
-  key: number;
-  position: Vector3;
-  /** How long to ride along, when not CHASE_SECONDS. */
-  seconds?: number;
-}
-
-/** Following the focus up close or from midway, or framing the whole board. */
-export type CameraFraming = "close" | "mid" | "board";
+export { boardScaleFor } from "./rigTuning";
+export type { CameraChase, CameraFraming, CameraSpotlight } from "./types";
 
 interface CameraRigProps {
   layout: BoardLayout;

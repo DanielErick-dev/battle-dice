@@ -15,10 +15,10 @@ export const MARKS_TO_JUDGE = 1;
 export const VERDICT_ENERGY = 2;
 export const VERDICT_CHARGE = 1;
 
-export type VerdictAim = { cardId: CardId } | { ability: AbilityId };
+type VerdictAim = { cardId: CardId } | { ability: AbilityId };
 
 /** Her Silent Verdict, charged: the next attack aimed at her, or a marked opponent's at anyone, turns on them. */
-export function verdictArmed(player: Player): boolean {
+function verdictArmed(player: Player): boolean {
   return player.ability === "silentVerdict" && isAbilityReady(player);
 }
 

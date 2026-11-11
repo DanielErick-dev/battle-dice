@@ -21,7 +21,7 @@ export interface CanvasLook {
 }
 
 /** Erases the canvas towards its rim, so a ground patch thins away instead of ending in a hard circle. */
-export function fadeRim(context: CanvasRenderingContext2D, size: number, from: number) {
+function fadeRim(context: CanvasRenderingContext2D, size: number, from: number) {
   const fade = context.createRadialGradient(size / 2, size / 2, (size / 2) * from, size / 2, size / 2, size / 2);
   fade.addColorStop(0, "rgba(0,0,0,1)");
   fade.addColorStop(1, "rgba(0,0,0,0)");

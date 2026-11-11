@@ -97,7 +97,7 @@ const CASES: Readonly<Record<GameEvent["type"], readonly Fields[]>> = {
     ward,
   })),
   cardBlocked: [{ cardId: "windStep", targetId: "p2", ward: "aegis" }],
-  seraphFell: none,
+  seraphielFell: none,
   crownGained: [{ crown: "infernal" }, { crown: "seraphic" }],
   heavenBarred: [{ rounds: 1 }, { rounds: 2 }],
   hellDragged: [{ targetId: "p2" }],

@@ -6,7 +6,7 @@ export const seraphiel = {
   color: "#fef3c7",
   model: model("seraphiel"),
   fallenModel: model("seraphielFallen"),
-  ability: "seraphBlessing",
+  ability: "seraphielBlessing",
   playable: true,
   shieldColor: "#fde68a",
   wings: "seraph",

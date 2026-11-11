@@ -20,7 +20,7 @@ export interface Winter {
   thawed?: readonly TileId[];
 }
 
-export interface MeltingIce {
+interface MeltingIce {
   tile: TileId;
   rounds: number;
 }

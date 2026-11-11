@@ -14,7 +14,7 @@ export const TIPPED = -0.38;
 const STRIKE_DELAY = 0.35;
 
 /** Where the Silent Verdict's scale is in its show, `t` seconds after it appeared. */
-export interface VerdictFrame {
+interface VerdictFrame {
   /** How solid the whole scale is (0 gone). */
   opacity: number;
   /** How far above its place it still is, coming down from the sky. */

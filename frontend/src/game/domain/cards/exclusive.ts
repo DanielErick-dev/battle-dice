@@ -57,7 +57,7 @@ export function exclusiveBlocker(table: HarmTable, player: Player, cardId: CardI
 }
 
 /** The first harm in sight within HUNGRY_RIFT_RANGE ahead: hidden traps stay secret, spent or covered ones are gone. */
-export function harmAhead(table: HarmTable, player: Player): { tile: TileId; threat: Threat } | null {
+function harmAhead(table: HarmTable, player: Player): { tile: TileId; threat: Threat } | null {
   const { board } = table;
   for (const tile of walkPath(board, player.position, HUNGRY_RIFT_RANGE, player.realmEntry)) {
     const threat = visibleHarm(table, tile);

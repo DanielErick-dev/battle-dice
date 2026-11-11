@@ -1,5 +1,4 @@
 import type { CardInstance, PlayerId, TileId } from "@/game/domain/types";
-import type { MatchView } from "./view";
 
 // Every animation below carries an `id` that changes with each one, so the scene and audio replay it once.
 
@@ -164,7 +163,8 @@ export const NO_FX: MatchFx = {
   march: null,
 };
 
-export function withFx(view: MatchView, patch: Partial<MatchFx>): MatchView {
+// Generic over the view so this module needn't import view.ts (which imports MatchFx from here).
+export function withFx<V extends { fx: MatchFx }>(view: V, patch: Partial<MatchFx>): V {
   return { ...view, fx: { ...view.fx, ...patch } };
 }
 

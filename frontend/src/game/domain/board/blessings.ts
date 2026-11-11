@@ -8,7 +8,7 @@ export const TIMED_BLESSINGS: readonly TimedBlessing[] = ["wings", "halo", "insp
 /** Own turns, not counting the one it's received in. */
 export const BLESSING_TURNS = 3;
 /** Heaven's own Seraphiel keeps them twice as long. */
-export const SERAPH_BLESSING_TURNS = 6;
+export const SERAPHIEL_BLESSING_TURNS = 6;
 export const WINGS_BONUS = 2;
 export const SPRING_ENERGY = 1;
 
@@ -35,7 +35,7 @@ export function grantBlessing(draft: Draft, playerId: PlayerId, kind: TimedBless
 }
 
 export function blessingTurns(player: Player): number {
-  return player.ability === "seraphBlessing" ? SERAPH_BLESSING_TURNS : BLESSING_TURNS;
+  return player.ability === "seraphielBlessing" ? SERAPHIEL_BLESSING_TURNS : BLESSING_TURNS;
 }
 
 /** As the player's turn ends; the one received this turn and anything in heaven don't wear. */

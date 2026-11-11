@@ -115,7 +115,7 @@ frontend/src/
 ## A decisão sobre o engine
 
 ### O que é o engine
-É o **livro de regras em forma de código**: a pasta `frontend/src/game/domain/` (cerca de 4.500 linhas de regras e 3.000 de testes).
+É o **livro de regras em forma de código**: a pasta `frontend/src/game/domain/` (cerca de 6.200 linhas de regras e 4.100 de testes, contagem de 07/11/2026).
 O coração dele é uma função:
 
 ```ts
@@ -136,7 +136,7 @@ Então o servidor precisa rodar essas mesmas regras. O problema: elas estão em 
 
 | Opção | Como funciona | A favor | Contra |
 |---|---|---|---|
-| **A. Portar para Python** | Reescrever as regras em Python dentro do FastAPI. | Um backend só, tudo em Python. | ~7.500 linhas para reescrever, e **toda regra nova teria que ser feita duas vezes** (TS e Python). Com as regras mudando toda semana, as duas versões iam divergir. |
+| **A. Portar para Python** | Reescrever as regras em Python dentro do FastAPI. | Um backend só, tudo em Python. | ~10.300 linhas para reescrever, e **toda regra nova teria que ser feita duas vezes** (TS e Python). Com as regras mudando toda semana, as duas versões iam divergir. |
 | **B. Serviço de engine em Node** | O FastAPI cuida de contas, salas e do WebSocket. A cada comando, ele repassa para um serviço pequeno em Node que só roda o `applyCommand` (o mesmo código TS) e devolve o resultado. | As regras continuam num lugar só. O FastAPI continua sendo o backend principal (é onde você aprende). | Dois processos para subir (o FastAPI e o Node), e uma chamada a mais por jogada. |
 | **C. Servidor de partidas em Node** | O FastAPI cuida só de contas e salas; um servidor Node separado cuida do WebSocket e das partidas. | Simples, regras num lugar só. | A parte mais interessante (tempo real) sai do FastAPI. |
 | **D. Navegador do anfitrião decide** | O engine roda no navegador de quem criou a sala; o FastAPI só repassa as mensagens. | O mais rápido de ter funcionando. | Dá para trapacear e os segredos vazam. Serve só como protótipo entre amigos. |

@@ -3,11 +3,11 @@
 import { Hourglass, Lock, Play, Plus, Sparkles, X, Zap } from "lucide-react";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
-import { BOARD_PRESETS } from "@/features/match/boards";
-import { MAP_PRESETS } from "@/features/match/maps";
+import { BOARD_PRESETS } from "@/features/shared/presets/boards";
+import { MAP_PRESETS } from "@/features/shared/presets/maps";
 import { CHARACTER_IDS, CHARACTERS, MAX_LOCAL_PLAYERS, parseCharacterList } from "@/features/characters";
-import { ABILITY_TEXT } from "@/features/match/ui/abilityText";
-import { PAUSES_PER_PLAYER, TURN_SECONDS } from "@/features/match/ui/hud/Hourglass";
+import { ABILITY_TEXT } from "@/features/shared/text/abilityText";
+import { PAUSES_PER_PLAYER, TURN_SECONDS } from "@/features/shared/config";
 import { preferences, usePreference } from "@/features/settings/preferences";
 import { cn } from "@/lib/utils";
 import { LazyCharacterStage as CharacterStage } from "../stage/LazyCharacterStage";

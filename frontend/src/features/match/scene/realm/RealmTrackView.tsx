@@ -1,6 +1,5 @@
 "use client";
 
-import { Billboard, Sparkles } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef, useState } from "react";
 import {
@@ -10,47 +9,25 @@ import {
   TubeGeometry,
   Vector3,
   type Group,
-  type Mesh,
   type ShaderMaterial,
 } from "three";
 import { getTile } from "@/game/domain/board/board";
 import type { Board, RealmTrack } from "@/game/domain/types";
 import type { BoardPicking } from "../board/pickCursor";
-import { TILE_HEIGHT, TILE_SIZE, type BoardLayout, type Vec3 } from "@/features/shared/board/boardLayout";
-import { TileMesh } from "../board/TileMesh";
-import { REALM_PALETTES } from "../board/tileTheme";
+import { TILE_HEIGHT, type BoardLayout, type Vec3 } from "@/features/shared/board/boardLayout";
+import { TileMesh } from "../board/tile/TileMesh";
+import { REALM_PALETTES } from "../board/tile/theme/palettes";
 import { CorridorWalls } from "./CorridorWalls";
-import { NOISE_GLSL } from "./noise";
+import { FlameWall } from "./FlameWall";
+import { RIBBON_FRAGMENT, RIBBON_VERTEX } from "./ribbonShader";
+import { TrackSparkles } from "./TrackSparkles";
+import { HaloUnderside, MoltenUnderside } from "./TrackUndersides";
 
 /** How fast the track rises into view and sinks away (presence per second). */
 const APPEAR_RATE = 0.8;
 const VANISH_RATE = 0.7;
 /** Where tiles come from: up out of the lava below, or down from the sky. */
 const ARRIVAL_OFFSET = { infernal: -5, celestial: 7 } as const;
-
-const RIBBON_VERTEX = /* glsl */ `
-  varying vec2 vUv;
-  void main() {
-    vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }
-`;
-
-/** Energy streaming along the ribbon from the portal towards the exit. */
-const RIBBON_FRAGMENT = /* glsl */ `
-  uniform float uTime;
-  uniform float uOpacity;
-  uniform float uReveal;
-  uniform vec3 uColor;
-  varying vec2 vUv;
-  void main() {
-    if (vUv.x > uReveal) discard;
-    float pulses = smoothstep(0.55, 1.0, sin(vUv.x * 90.0 - uTime * 7.0));
-    float core = 0.55 + 0.45 * sin(vUv.y * 6.2832 * 2.0);
-    vec3 color = uColor * (1.2 + pulses * 2.2) * core;
-    gl_FragColor = vec4(color, (0.45 + pulses * 0.55) * uOpacity);
-  }
-`;
 
 interface RealmTrackViewProps {
   track: RealmTrack;
@@ -199,132 +176,5 @@ export function RealmTrackView({
 
       <TrackSparkles positions={positions} color={track.realm === "infernal" ? "#ff7a2a" : "#fff1b8"} />
     </group>
-  );
-}
-
-/** Obsidian stalactites dripping lava-light under an infernal tile. */
-function MoltenUnderside({ color }: { color: string }) {
-  return (
-    <group position-y={-TILE_HEIGHT / 2}>
-      {[
-        [0, 0, 0.9],
-        [-0.45, 0.3, 0.6],
-        [0.4, -0.35, 0.55],
-      ].map(([x, z, length]) => (
-        <mesh key={`${x}:${z}`} position={[x, -length / 2, z]} rotation-x={Math.PI}>
-          <coneGeometry args={[0.28, length, 6]} />
-          <meshStandardMaterial
-            color="#120404"
-            emissive={color}
-            emissiveIntensity={0.9}
-            roughness={0.35}
-            metalness={0.4}
-          />
-        </mesh>
-      ))}
-    </group>
-  );
-}
-
-/** A slowly turning golden halo floating under a celestial tile. */
-function HaloUnderside({ color, phase }: { color: string; phase: number }) {
-  const halo = useRef<Mesh>(null);
-  useFrame(({ clock }) => {
-    if (halo.current) halo.current.rotation.z = clock.elapsedTime * 0.5 + phase;
-  });
-  return (
-    <mesh ref={halo} position-y={-TILE_HEIGHT / 2 - 0.35} rotation-x={-Math.PI / 2}>
-      <torusGeometry args={[TILE_SIZE * 0.42, 0.05, 8, 48]} />
-      <meshBasicMaterial
-        color={new Color(color).multiplyScalar(2.2)}
-        toneMapped={false}
-        transparent
-        opacity={0.9}
-        blending={AdditiveBlending}
-      />
-    </mesh>
-  );
-}
-
-/** Embers or motes drifting along the whole track. */
-function TrackSparkles({ positions, color }: { positions: readonly Vec3[]; color: string }) {
-  const { center, size } = useMemo(() => {
-    const xs = positions.map(([x]) => x);
-    const ys = positions.map(([, y]) => y);
-    const zs = positions.map(([, , z]) => z);
-    const span = (values: number[]) => Math.max(...values) - Math.min(...values);
-    const middle = (values: number[]) => (Math.max(...values) + Math.min(...values)) / 2;
-    return {
-      center: [middle(xs), middle(ys) + 1, middle(zs)] as Vec3,
-      size: [span(xs) + 3, span(ys) + 3, span(zs) + 3] as Vec3,
-    };
-  }, [positions]);
-  return <Sparkles count={80} scale={size} position={center} size={4} speed={1} color={color} />;
-}
-
-const FLAME_VERTEX = /* glsl */ `
-  varying vec2 vUv;
-  varying float vSeed;
-  void main() {
-    vUv = uv;
-    vec4 origin = modelMatrix * vec4(0.0, 0.0, 0.0, 1.0);
-    vSeed = origin.x * 1.7 + origin.z * 2.3;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }
-`;
-
-/** A licking flame: a noisy teardrop, white-hot at the root, fading to red at the tips. */
-const FLAME_FRAGMENT = /* glsl */ `
-  uniform float uTime;
-  uniform float uOpacity;
-  varying vec2 vUv;
-  varying float vSeed;
-  ${NOISE_GLSL}
-  void main() {
-    float y = vUv.y;
-    float n = fbm(vec2(vUv.x * 3.5 + vSeed, y * 2.8 - uTime * 3.2 + vSeed));
-    // Distance from the flame's wavering centre line (0) to the plane's edge (1).
-    float x = abs((vUv.x - 0.5) * 2.0 + (n - 0.5) * 0.7 * y);
-    float edge = (1.0 - y) * 0.85 + 0.05;
-    float body = 1.0 - smoothstep(edge * 0.3, edge, x);
-    body *= 1.0 - smoothstep(0.3, 1.0, y + (n - 0.5) * 0.45);
-    float heat = body * (1.0 - y);
-    vec3 color = mix(vec3(2.2, 0.3, 0.02), vec3(2.6, 1.25, 0.25), smoothstep(0.25, 0.8, heat));
-    float alpha = body * uOpacity;
-    if (alpha < 0.02) discard;
-    gl_FragColor = vec4(color, alpha);
-  }
-`;
-
-/** Flames licking up on both sides of an infernal tile, always facing the camera. */
-/** `flames` collects each flame's material so the track can animate and fade them all. */
-function FlameWall({ flames }: { flames: Set<ShaderMaterial> }) {
-  return (
-    <>
-      {[
-        [-1.3, 0.3, 1.9],
-        [1.3, -0.35, 1.5],
-        [-1.15, -0.75, 1.2],
-        [1.2, 0.7, 1.7],
-      ].map(([x, z, height]) => (
-        <Billboard key={`${x}:${z}`} position={[x, height / 2 - 0.2, z]} lockX lockZ>
-          <mesh>
-            <planeGeometry args={[1.1, height]} />
-            <shaderMaterial
-              ref={(material) => {
-                if (!material) return;
-                flames.add(material);
-                return () => flames.delete(material);
-              }}
-              vertexShader={FLAME_VERTEX}
-              fragmentShader={FLAME_FRAGMENT}
-              uniforms={{ uTime: { value: 0 }, uOpacity: { value: 0 } }}
-              transparent
-              depthWrite={false}
-            />
-          </mesh>
-        </Billboard>
-      ))}
-    </>
   );
 }

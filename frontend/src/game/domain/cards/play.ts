@@ -1,6 +1,6 @@
 import { CARD_CATALOG, cardCost, type CardId } from "./catalog";
 import { MAX_ENERGY } from "../core/energy";
-import { abilityCycle, announceReady, chargeInDraft, isAbilityReady } from "../abilities/charge";
+import { announceReady, chargeInDraft, fillAbility, isAbilityReady } from "../abilities/charge";
 import { cardsPerTurn } from "../abilities/basic";
 import { unpinPassed } from "../characters/archer/arrowRain";
 import { GameRuleError, type GameErrorCode } from "../core/errors";
@@ -34,13 +34,13 @@ import type { CardInstance, Player, PlayerId } from "../core/state";
 
 export const ARCANE_BLAST_PUSH = 7;
 export const HEALING_HERB_ENERGY = 6;
-export const ANCIENT_SCROLL_DRAWS = 2;
-export const LUCKY_CHARM_BONUS = 2;
+const ANCIENT_SCROLL_DRAWS = 2;
+const LUCKY_CHARM_BONUS = 2;
 /** Own turns, counting the one it's played in. */
 export const AEGIS_TURNS = 3;
 export const AWAKENING_BONUS = 3;
-export const AWAKENING_ROLLS = 2;
-export const WIND_STEP_TILES = 3;
+const AWAKENING_ROLLS = 2;
+const WIND_STEP_TILES = 3;
 
 export interface CardChoice {
   targetId?: PlayerId;
@@ -259,7 +259,7 @@ function applyEffect(
           skipTurns: 0,
           snowbound: null,
         }));
-        readyAbility(draft, playerId);
+        fillAbility(draft, playerId);
       }
       break;
     case "heavenlyAegis": {
@@ -274,7 +274,7 @@ function applyEffect(
       break;
     }
     case "ascension":
-      readyAbility(draft, playerId);
+      fillAbility(draft, playerId);
       // Fused (Apotheosis): another turn once this one is over.
       if (card.fused) draft.extraTurn = true;
       break;
@@ -340,29 +340,21 @@ export function nextPortalAhead(
   {
     board,
     blackFlames,
+    scarletFlames,
     winter,
     enchantedTiles,
-  }: Pick<CardTable, "board" | "blackFlames" | "winter" | "enchantedTiles">,
+  }: Pick<CardTable, "board" | "blackFlames" | "scarletFlames" | "winter" | "enchantedTiles">,
   position: TileId,
   entry?: RealmEntry | null,
 ): TileId | null {
   const from = mainTileOf(board, position, entry);
   const gone = (tile: TileId) =>
     blackFlames.some((flame) => flame.tile === tile) ||
+    scarletFlames.some((flame) => flame.tile === tile) ||
     enchantedTiles.some((enchanted) => enchanted.tile === tile) ||
     isFrozen(winter, board.startTile, tile);
   const portal = board.tiles.find(
     (tile) => tile.id > from && tile.id <= board.finishTile && tile.effect.kind === "portal" && !gone(tile.id),
   );
   return portal?.id ?? null;
-}
-
-/** Ascension and the Divine Dawn. */
-function readyAbility(draft: Draft, playerId: PlayerId): void {
-  const { ability } = playerIn(draft, playerId);
-  if (ability === null) return;
-  updatePlayer(draft, playerId, () => ({
-    abilityCharge: abilityCycle(ability),
-  }));
-  draft.events.push({ type: "abilityReady", playerId, ability });
 }

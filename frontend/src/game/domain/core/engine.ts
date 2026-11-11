@@ -12,7 +12,7 @@ export { currentPlayer } from "../handlers/shared";
 export type { NewPlayer } from "../handlers/setup";
 export type { GameDependencies, GameTransition } from "../handlers/types";
 
-export interface GameOptions {
+interface GameOptions {
   random?: RandomSource;
   /** Defaults to the standard deck plus each character's own cards; collections will fill this in. */
   decks?: Readonly<Record<PlayerId, readonly CardId[]>>;

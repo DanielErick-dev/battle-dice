@@ -19,7 +19,7 @@ import {
 import type { AbilityChoice, AbilityFlow, AbilityScene, Placement } from "./types";
 
 /** Picking tiles on the board for an ability: what's asked, where it may go, and what the picks are used as. */
-export interface PlacementSpec {
+interface PlacementSpec {
   title: string;
   tone: string;
   steps: readonly PlacementStep[];

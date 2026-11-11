@@ -7,7 +7,7 @@ import { createLocalMatch, type LocalMatchOptions } from "../model/createLocalMa
 import type { MatchStore } from "../model/matchStore";
 import type { MatchView } from "../model/matchView";
 
-export interface UseMatchResult {
+interface UseMatchResult {
   store: MatchStore;
   view: MatchView;
 }

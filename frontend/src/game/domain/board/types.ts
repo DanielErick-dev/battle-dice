@@ -45,7 +45,7 @@ export type TrapWard = "shield" | "ability" | "halo" | "untamed" | "susanoo" | "
 export type Threat = "trap" | "hiddenTrap" | "curse" | "skipTurn";
 
 /** "rift": a tile Zarek's Void opened into the path mid-match (see characters/zarek/rifts.ts). */
-export type TileRole = "start" | "finish" | "regular" | "track" | "rift";
+type TileRole = "start" | "finish" | "regular" | "track" | "rift";
 
 export interface Tile {
   id: TileId;
@@ -69,7 +69,7 @@ export interface Rift {
   back?: number;
 }
 
-export interface TrackPlacement {
+interface TrackPlacement {
   realm: RealmKind;
   /** The track's first portal when several open onto it (see RealmTrack.entries). */
   portal: TileId;

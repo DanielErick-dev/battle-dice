@@ -1,6 +1,6 @@
 import type { AudioEngine } from "./audioEngine";
 
-export interface ToneOptions {
+interface ToneOptions {
   /** Low-pass cutoff in Hz, to soften bright waveforms. */
   lowpass?: number;
   /** Seconds to reach full volume (default: a click-free 12 ms). */

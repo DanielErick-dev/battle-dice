@@ -9,7 +9,7 @@ import { plasmaCannon } from "../characters/alva/plasmaCannon";
 import { playCardGamble } from "../characters/jester/cardGamble";
 import { resurrectCards } from "../characters/necromancer/resurrection";
 import { seize } from "../characters/zarek/void";
-import { seraphBlessing } from "../characters/seraphiel/blessing";
+import { seraphielBlessing } from "../characters/seraphiel/blessing";
 import { summonSpecters } from "../characters/warden/specters";
 import { timeWarp } from "../characters/cronos/timeWarp";
 import { transmuteCards } from "../characters/alchemist/transmutation";
@@ -20,7 +20,7 @@ import type { PlayerId } from "../core/state";
 import type { CommandOf, GameDependencies } from "../handlers/types";
 import type { Draft } from "../core/draft";
 
-export type AbilityEffect = (
+type AbilityEffect = (
   draft: Draft,
   playerId: PlayerId,
   choice: CommandOf<"activateAbility">,
@@ -36,7 +36,7 @@ export const ABILITY_EFFECTS: Readonly<Record<AbilityId, AbilityEffect | null>> 
   weeding: null,
   fireZone: (draft, playerId) => fireZone(draft, playerId),
   levitation: (draft, playerId) => levitate(draft, playerId),
-  seraphBlessing: (draft, playerId) => seraphBlessing(draft, playerId),
+  seraphielBlessing: (draft, playerId) => seraphielBlessing(draft, playerId),
   hellsDrag: (draft, playerId, { targetId }) => hellsDrag(draft, playerId, targetId),
   cleansingTide: (draft, playerId) => cleansingTide(draft, playerId),
   untamed: (draft, playerId) => unleash(draft, playerId),

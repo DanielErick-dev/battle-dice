@@ -1,6 +1,6 @@
 # Arquitetura do Battle Dice
 
-Visão geral de como o jogo é montado hoje (outubro de 2026). Atualize este arquivo sempre que uma camada mudar.
+Visão geral de como o jogo é montado hoje (novembro de 2026). Atualize este arquivo sempre que uma camada mudar.
 
 ## Camadas
 
@@ -18,7 +18,7 @@ frontend/src/
 │   │   ├── scene/           ← mundo 3D (React Three Fiber): tabuleiro, personagens, efeitos
 │   │   └── audio/           ← som sintetizado: efeitos, música, ambiente, falas
 │   ├── characters/          ← fichas (`sheets/<id>.ts`) e visuais 3D de cada personagem; usado por menu e partida
-│   ├── shared/              ← base neutra: `config.ts` (tempos), `board/` (geometria do tabuleiro), `three/` (texturas de canvas, `useAge`)
+│   ├── shared/              ← base neutra: `config.ts` (tempos, relógio do turno), `presets/` (tabuleiros e mapas), `audio/` (motor e síntese), `text/` (texto das habilidades), `board/` (geometria do tabuleiro), `three/` (texturas de canvas, `useAge`)
 │   ├── menu/                ← seleção de personagem com as intros
 │   └── settings/            ← configurações
 ├── app/                     ← rotas do Next.js (/, /jogar, /partida, /configuracoes)
@@ -26,7 +26,7 @@ frontend/src/
 └── lib/                     ← utilitários
 ```
 
-**Direção das dependências em `features/`:** `menu` e `match` importam `characters`, que importa `shared`. `characters` e `shared` não importam `menu` nem `match`, e `match` não importa `menu`.
+**Direção das dependências em `features/`:** `menu` e `match` importam `characters`, que importa `shared`. `characters` e `shared` não importam `menu` nem `match`, e `match` não importa `menu`. `menu` e `settings` não importam `match`.
 
 **Regra de ouro:** `game/` não importa nada de `features/`. As regras do jogo não sabem que existe 3D, som ou React. O ESLint garante isso: em `src/game/**`, importar `features/`, `app/`, `components/`, React, Next ou Three.js dá erro, e `game/domain/` também não pode importar `game/application/`. Isso permite:
 

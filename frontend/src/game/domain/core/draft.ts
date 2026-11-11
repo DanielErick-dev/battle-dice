@@ -37,7 +37,7 @@ export interface Draft {
   random: RandomSource;
 }
 
-export interface OverflowCard {
+interface OverflowCard {
   playerId: PlayerId;
   card: CardInstance;
 }

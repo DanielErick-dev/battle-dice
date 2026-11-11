@@ -28,7 +28,7 @@ Cada comando tem um **handler** (a função que o resolve) na pasta `handlers/`:
 
 | Arquivo              | Comandos                                                                                                        |
 | -------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `turnCommands.ts`    | `rollDice`, `restart`                                                                                           |
+| `turnCommands.ts`    | `rollDice`, `forfeitTurn` (o tempo do turno acabou), `restart`                                                  |
 | `cardCommands.ts`    | `playCard`, `discardCard`, `fuseCards`                                                                          |
 | `abilityCommands.ts` | `activateAbility`, `plunderCards`, `answerWard`, `chooseGrace` |
 | `shared.ts`          | `assertCanAct` (é a vez dele?), `settle` (fecha o rascunho: vitória, pausa ou fim de turno)                     |

@@ -3,7 +3,7 @@ import { at } from "../../core/invariant";
 import { abilityCycle } from "../../abilities/charge";
 import type { AbilityId } from "../../abilities/ability";
 import type { BoardDefinition } from "../../board/board";
-import { SERAPH_BLESSING_TURNS } from "../../board/blessings";
+import { SERAPHIEL_BLESSING_TURNS } from "../../board/blessings";
 import { CROWN_BONUS, DIVINE_CHAINS_ROUNDS, dragTargets } from "./seraph";
 import { activate, card, newGame, onTurnOf, play, playerOf, readyAbility, roll, send, withPlayer } from "../../testing";
 import type { GameState } from "../../core/state";
@@ -31,14 +31,14 @@ const HEAVEN_SPRING = 80;
 const HEAVEN_LIGHT = 82;
 const HEAVEN_LAST = 96;
 
-const duel = (ability: AbilityId = "seraphBlessing") => newGame(BOARD, { hero: ability, rival: "doubleCast" });
-const solo = (ability: AbilityId = "seraphBlessing") => newGame(BOARD, { hero: ability });
+const duel = (ability: AbilityId = "seraphielBlessing") => newGame(BOARD, { hero: ability, rival: "doubleCast" });
+const solo = (ability: AbilityId = "seraphielBlessing") => newGame(BOARD, { hero: ability });
 const fallen = (state: GameState) => withPlayer(state, "hero", { ability: "hellsDrag" });
 const drag = (state: GameState, targetId?: string) =>
   activate(withPlayer(state, "hero", { abilityCharge: abilityCycle("hellsDrag") }), "hero", { targetId });
 
 describe("Seraphiel in heaven", () => {
-  it("picks which blessing he receives on a blessing tile, and it lasts SERAPH_BLESSING_TURNS rounds", () => {
+  it("picks which blessing he receives on a blessing tile, and it lasts SERAPHIEL_BLESSING_TURNS rounds", () => {
     const offered = roll(withPlayer(solo(), "hero", { position: HEAVEN_RELIC }), "hero", 1);
     expect(offered.events).toContainEqual({
       type: "graceOffered",
@@ -62,7 +62,7 @@ describe("Seraphiel in heaven", () => {
     expect(state.pendingGrace).toBeNull();
     // Still in heaven: it waits there, untouched, until he leaves.
     expect(playerOf(state, "hero").blessings).toEqual([
-      { kind: "halo", turnsLeft: SERAPH_BLESSING_TURNS, fresh: true },
+      { kind: "halo", turnsLeft: SERAPHIEL_BLESSING_TURNS, fresh: true },
     ]);
   });
 
@@ -97,9 +97,9 @@ describe("Seraphiel in heaven", () => {
     expect(playerOf(state, "hero").blessings.map((blessing) => blessing.kind)).toEqual(["spring"]);
   });
 
-  it("his ability's blessing lasts SERAPH_BLESSING_TURNS rounds too", () => {
+  it("his ability's blessing lasts SERAPHIEL_BLESSING_TURNS rounds too", () => {
     const { state } = activate(readyAbility(solo(), "hero"), "hero");
-    expect(at(playerOf(state, "hero").blessings, 0).turnsLeft).toBe(SERAPH_BLESSING_TURNS);
+    expect(at(playerOf(state, "hero").blessings, 0).turnsLeft).toBe(SERAPHIEL_BLESSING_TURNS);
   });
 
   it("comes out of heaven wearing the Seraphic Crown, CROWN_BONUS tiles on every roll", () => {
@@ -129,7 +129,7 @@ describe("the Fall", () => {
     expect(playerOf(state, "hero").blessings).toEqual([]);
     expect(playerOf(state, "hero").crown).toBe("infernal");
     expect(events).toContainEqual({
-      type: "seraphFell",
+      type: "seraphielFell",
       playerId: "hero",
       tile: HELL,
     });

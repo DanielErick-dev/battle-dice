@@ -136,7 +136,7 @@ export const CARD_CATALOG: Readonly<Record<CardId, CardDefinition>> = {
 /** One kind per celestial tile. */
 export const DIVINE_CARDS: readonly CardId[] = ["celestialLight", "heavenlyAegis", "ascension"];
 
-export const RARITY_COST: Readonly<Record<Rarity, number>> = {
+const RARITY_COST: Readonly<Record<Rarity, number>> = {
   common: 1,
   uncommon: 2,
   rare: 2,

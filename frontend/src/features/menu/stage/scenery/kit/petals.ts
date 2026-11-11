@@ -14,7 +14,7 @@ export interface Petal {
   flutter: { rate: number; phase: number };
 }
 
-export interface PetalPose {
+interface PetalPose {
   position: [number, number, number];
   rotation: [number, number, number];
 }

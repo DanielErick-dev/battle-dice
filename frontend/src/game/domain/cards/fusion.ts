@@ -7,7 +7,7 @@ import type { CardInstance, PlayerId } from "../core/state";
 export const FUSION_COPIES = 3;
 
 /** The everyday cards a deck holds several of, plus the relics; fused effects are in cardPlay.ts. */
-export const FUSIBLE_CARDS: readonly CardId[] = [
+const FUSIBLE_CARDS: readonly CardId[] = [
   "windStep",
   "healingHerb",
   "luckyCharm",

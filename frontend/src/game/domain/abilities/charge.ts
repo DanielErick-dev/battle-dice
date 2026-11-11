@@ -6,9 +6,9 @@ import { isPassive } from "./ability";
 export const ABILITY_CYCLE = 3;
 /** The strongest abilities take longer to come back. */
 export const LONG_ABILITY_CYCLE = 5;
-export const OCULAR_AWAKENING_CYCLE = 6;
+const OCULAR_AWAKENING_CYCLE = 6;
 /** Hell's Drag and Time Warp take a whole opponent out of the race: the slowest to return. */
-export const HELLS_DRAG_CYCLE = 7;
+const HELLS_DRAG_CYCLE = 7;
 export const TIME_WARP_CYCLE = 7;
 export const VERDICT_CYCLE = 4;
 /** Zarek's Void also feeds on every trap, and seizing empties it: it must come back fast. */
@@ -19,7 +19,7 @@ const ABILITY_CYCLES: Readonly<Record<AbilityId, number>> = {
   doubleCast: ABILITY_CYCLE,
   theVoid: VOID_CYCLE,
   tailwind: ABILITY_CYCLE,
-  seraphBlessing: ABILITY_CYCLE,
+  seraphielBlessing: ABILITY_CYCLE,
   transmutation: ABILITY_CYCLE,
   cardGamble: ABILITY_CYCLE,
   levitation: LONG_ABILITY_CYCLE,

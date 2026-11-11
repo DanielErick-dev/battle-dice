@@ -4,7 +4,7 @@ import { abilityBlocker } from "@/game/domain/abilities/blocker";
 import { abilityCycle, isAbilityReady } from "@/game/domain/abilities/charge";
 import type { Player } from "@/game/domain/types";
 import { cn } from "@/lib/utils";
-import { ABILITY_TEXT } from "../abilityText";
+import { ABILITY_TEXT } from "@/features/shared/text/abilityText";
 
 interface AbilityMeterProps {
   player: Player;

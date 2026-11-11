@@ -5,7 +5,7 @@ import type { Player, PlayerId } from "../core/state";
 import type { Draft } from "../core/draft";
 
 /** Who an aimed ability strikes, and who it comes from, once Themis and the target's protections have had their say. */
-export type Aim = { by: PlayerId; at: PlayerId; turned: boolean };
+type Aim = { by: PlayerId; at: PlayerId; turned: boolean };
 
 /** A marked attacker meets Themis's verdict (turned on them); otherwise null when a ward turned it away (spent). */
 export function aimAbility(draft: Draft, playerId: PlayerId, target: Player, ability: AbilityId): Aim | null {

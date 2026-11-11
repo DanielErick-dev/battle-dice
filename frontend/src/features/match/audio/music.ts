@@ -1,5 +1,5 @@
-import type { AudioEngine } from "./audioEngine";
-import { Synth } from "./synth";
+import type { AudioEngine } from "@/features/shared/audio/audioEngine";
+import { Synth } from "@/features/shared/audio/synth";
 
 const BPM = 96;
 const STEP_SECONDS = 60 / BPM / 4; // sixteenth notes

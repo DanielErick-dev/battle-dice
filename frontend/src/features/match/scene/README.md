@@ -5,26 +5,27 @@ A cena só **lê** a `MatchView` (o que deve aparecer agora) e desenha. Ela nunc
 
 ## Entrada
 
-- `BoardScene.tsx`: o `<Canvas>`. Monta o ambiente, o tabuleiro, os bonecos e percorre o registro de efeitos.
-- `camera/CameraRig.tsx`: a câmera, com os três enquadramentos (perto, médio, tabuleiro) e o "olhar em volta".
+- `BoardScene.tsx`: o `<Canvas>`. Monta o ambiente, o tabuleiro, os bonecos e percorre o registro de efeitos. As luzes ficam em `SceneLights.tsx` e o aviso de contexto WebGL perdido em `watchContext.ts`.
+- `camera/CameraRig.tsx`: a câmera, com os três enquadramentos (perto, médio, tabuleiro) e o "olhar em volta". O laço de quadro mora todo nele; números de ajuste em `rigTuning.ts`, a tomada de cada efeito e carta em `shots.ts` e os tipos (`CameraSpotlight`, `CameraChase`, `CameraFraming`) em `types.ts`.
 - `PostEffects.tsx`: o pós-processamento (bloom, o brilho em volta das luzes).
 
 ## Pastas
 
 | Pasta / arquivo | O que tem |
 |---|---|
-| `environment/` | O mundo em volta da trilha, por mapa (`maps.ts`), numa noite fechada e sombria: a ilha (`Island.tsx`), a masmorra (`Dungeon.tsx`, `dungeon.ts`) e a terra devastada (`Wasteland.tsx`, `wasteland.ts`), cada um com a sua estrada (`road.tsx`). A ilha onde a trilha serpenteia, com vila, acampamento na floresta, moinho d’água e castelo do kit KayKit (`settlements.ts`), costa com pedras e cais (`coast.ts`, kits em `kits.tsx`, escurecidos por `tint`), fumaça escura nas chaminés, estrada de terra com marcas de roda, relevo, riacho com pontes de madeira, pinheiros, pedras, tufos de grama e lanternas (`islandTerrain.ts` calcula o terreno), oceano, céu nublado (`SkyDome.tsx`) e pedras no mar. Sem figurantes andando |
-| `realm/` | Os corredores do céu e do inferno: paredes, portais, partículas |
+| `environment/` | O mundo em volta da trilha, por mapa (`maps.ts`), numa noite fechada e sombria: a ilha (`island/`: `Island.tsx` monta, `ground.ts` pinta o chão, `scatter.ts` decide onde ficam árvores, tufos, lanternas e pontes, e uma peça por arquivo: `Woods`, `Lantern`, `GrassTufts`, `Bridges`), a masmorra (`Dungeon.tsx`, `dungeon.ts`) e a terra devastada (`Wasteland.tsx`, `wasteland.ts`), cada um com a sua estrada (`road.tsx`). A ilha onde a trilha serpenteia, com vila, acampamento na floresta, moinho d’água e castelo do kit KayKit (`settlements.ts`), costa com pedras e cais (`coast.ts`, kits em `kits.tsx`, escurecidos por `tint`), fumaça escura nas chaminés (`ChimneySmoke.tsx`, usada também na terra devastada), estrada de terra com marcas de roda, relevo, riacho com pontes de madeira, pinheiros, pedras, tufos de grama e lanternas (`islandTerrain.ts` calcula o terreno), oceano, céu nublado (`SkyDome.tsx`) e pedras no mar. Sem figurantes andando |
+| `realm/` | Os corredores do céu e do inferno: paredes, portais, partículas. `RealmTrackView` monta a trilha e anima a chegada; as peças ficam ao lado (`FlameWall`, `TrackUndersides`, `TrackSparkles`, `ribbonShader.ts`) |
 | `features/characters/` (fora desta pasta) | Tudo de personagem: modelo animado (`CharacterModel`), asas, cadeiras, e os efeitos de cada habilidade e intro |
-| `vfx/` | Efeitos avulsos, sem pasta de personagem: rajadas (`AbilityBurst`, `TrapSmash`, `HiddenTrapBurst`), `CardEffects`, `EnergyAura`, `FrostAura`, `effectKey` e as partículas de cura (wawa-vfx) |
+| `vfx/` | Efeitos avulsos, sem pasta de personagem: rajadas (`AbilityBurst`, `TrapSmash`, `HiddenTrapBurst`), `CardEffects`, `EnergyAura`, `frostAura/` (a aura do Bjorn: `FrostAura.tsx` com o laço de quadro, `shader.ts`, `layout.ts` com números e cristais/flocos, `materials.ts` e `starTexture.ts`), `effectKey` e as partículas de cura (wawa-vfx) |
 | `effects/` | **O registro de efeitos**: quem monta cada efeito e quando (veja abaixo) |
 | `token/PlayerToken.tsx` | Um jogador no tabuleiro: liga o movimento e a pose (`token/`) ao Three.js a cada quadro e monta os efeitos do registro em volta dele |
-| `token/` | A lógica do boneco, sem React: `motion.ts` (o caminho casa a casa) e `pose.ts` (o clipe que toca e o corpo). Veja abaixo |
+| `token/` | A lógica do boneco, sem React: `motion.ts` (o caminho casa a casa) e `pose.ts` (o clipe que toca e o corpo; tipos e estado inicial em `poseModel.ts`, tempos em `poseTimings.ts`, clipes em sequência em `clipSequence.ts`). Veja abaixo |
 | `token/tokenSignals.ts` | Lê a `MatchView` e diz o que cada boneco está fazendo (correndo, sendo empurrado, usando a habilidade…) |
 | `token/tokenPlacement.ts` | Onde cada boneco fica e para onde olha |
-| `camera/` | `CameraRig`, `cameraFocus.ts` (o que a câmera acompanha e onde o dado cai) e `spotlight.ts` (quem ela filma) |
-| `board/TileMesh.tsx`, `tileTheme.ts`, `useTileFaceTexture.ts` | As casas: lajes da própria estrada (cortadas na curva por `layout.slab`), com uma runa acesa por tipo e o número na borda; o texto aparece numa etiqueta ao passar o mouse |
-| `board/` (o resto) | `DiceThrow.tsx` (o dado 3D rolando), `TileLinks`, `PortalVortex`, `RelicCard`, `pickCursor.ts` (escolher casas: `BoardPicking`) |
+| `token/tokenCues.ts` | O que a `BoardScene` passa a cada boneco: lugar da etiqueta na casa, status de fogo e para quem a Têmis aponta |
+| `camera/` | `CameraRig`, `cameraFocus.ts` (o que a câmera acompanha e onde o dado cai), `spotlight.ts` (quem ela filma) e `cameraCues.ts` (o destaque de frente e a câmera que acompanha o Vazio e o fogo da Akane) |
+| `board/tile/` | As casas: lajes da própria estrada (cortadas na curva por `layout.slab`), com uma runa acesa por tipo e o número na borda; o texto aparece numa etiqueta (`TileTag`) ao passar o mouse. `TileMesh.tsx` monta a laje e anima brilho e subida; `useSlabGeometry.ts` faz a geometria. `theme/`: a aparência de cada casa (`tileTheme.ts` com `themeFor`, cores em `palettes.ts`, legendas em `captions.ts`, casas de trilha e de fenda em `specialThemes.ts`, cor do caminho em `pathColor.ts`). `face/`: a textura da face (`useTileFaceTexture.ts`, pedra em `stone.ts`, runas em `rune.ts`, sulco e número em `carving.ts`). `ornaments/`: o que fica em cima da casa, um por arquivo, juntados em `TileOrnaments` (portal, espinhos, setas, dado, ampulheta, carta, troféu da chegada) |
+| `board/` (o resto) | `DiceThrow.tsx` (o dado 3D rolando), `TileLinks`, `pickCursor.ts` (escolher casas: `BoardPicking`) e `boardState.ts` (casas alcançáveis, trilhas abertas, direção entre casas) |
 | `features/shared/board/` (fora desta pasta) | A geometria do tabuleiro: `boardLayout.ts` e `slab.ts`, usados também pelos efeitos dos personagens |
 
 ## O boneco (`PlayerToken` + `token/`)
@@ -39,7 +40,7 @@ Prioridade dos clipes, do mais forte ao mais fraco: `knocked` → `hop` → `sho
 
 O `CharacterModel` toca o clipe pedido. Como cada clipe toca (velocidade, se toca uma vez só) e quanto dura a transição entre dois clipes ficam em `features/characters/core/clipPlayback.ts`, numa tabela com uma linha por clipe: um clipe novo em `CharacterClip` não compila até ganhar a sua linha.
 
-`motion.ts`, `pose.ts` e `clipPlayback.ts` têm testes vitest ao lado (`*.test.ts`). Para mudar como um boneco se comporta, mexa neles e no teste, não no componente.
+`motion.ts`, `pose.ts` (e `clipSequence.ts`) e `clipPlayback.ts` têm testes vitest ao lado (`*.test.ts`). Para mudar como um boneco se comporta, mexa neles e no teste, não no componente.
 
 ## Boas práticas que seguimos aqui
 

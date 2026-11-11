@@ -73,7 +73,7 @@ export function isHarm(item: VoidItem): item is VoidHarm {
 }
 
 /** Main-path tiles (and rifts) a rift may open right after: anywhere short of the finish. */
-export function riftAnchors(board: Board): TileId[] {
+function riftAnchors(board: Board): TileId[] {
   return board.tiles
     .filter(({ role, track, next }) => !track && next !== null && role !== "finish")
     .map(({ id }) => id);
@@ -126,7 +126,7 @@ export function harmGround(state: SpellBoard): TileId[] {
 }
 
 /** Tiles holding a spell the idle Void may take over: fire, snow, the fairy's picked ice, seals, apparitions. */
-export function spellTiles(state: Omit<SpellBoard, "board">) {
+function spellTiles(state: Omit<SpellBoard, "board">) {
   return [
     ...state.blackFlames.map(({ tile }) => tile),
     ...state.enchantedTiles.map(({ tile }) => tile),
@@ -298,11 +298,6 @@ function absorbSpell(draft: Draft, owner: PlayerId, tile: TileId): VoidItem | nu
     return { kind: "specter", specter: specter.found.kind };
   }
   return null;
-}
-
-/** Ending his turn, the Void has been idle a turn longer. */
-export function restlessVoid(player: Player): Player {
-  return player.ability === "theVoid" ? { ...player, voidIdle: player.voidIdle + 1 } : player;
 }
 
 /** Every trap fallen into, smashed or pinned this command feeds each Void a charge; its own swallowing doesn't. */

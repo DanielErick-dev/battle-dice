@@ -8,7 +8,7 @@ import { useDisposal } from "./dispose";
 import { grassTuft, scatterAround } from "./geometry";
 import { useRefList } from "./refs";
 
-export interface TuftLook {
+interface TuftLook {
   seed: number;
   /** Blade colour at the root and at the tip. */
   root: string;
@@ -28,7 +28,7 @@ export interface TuftLook {
   phased: boolean;
 }
 
-export interface Tuft {
+interface Tuft {
   x: number;
   z: number;
   variant: number;

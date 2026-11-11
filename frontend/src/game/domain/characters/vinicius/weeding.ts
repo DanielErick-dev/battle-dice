@@ -3,7 +3,7 @@ import { playerIn, type Draft } from "../../core/draft";
 import type { Threat, TileId } from "../../board/types";
 import type { PlayerId } from "../../core/state";
 
-export function isVinicius(player: { ability: string | null }): boolean {
+function isVinicius(player: { ability: string | null }): boolean {
   return player.ability === "weeding";
 }
 

@@ -59,7 +59,7 @@ export function slideOnEmbers(draft: Draft, playerId: PlayerId): void {
 }
 
 /** The opponent furthest along (ties: the first in seat order), wherever they are. */
-export function leadingOpponent(draft: Draft, playerId: PlayerId): Player | null {
+function leadingOpponent(draft: Draft, playerId: PlayerId): Player | null {
   const { board } = draft.state;
   const progress = (player: Player) => mainTileOf(board, player.position, player.realmEntry);
   return draft.players

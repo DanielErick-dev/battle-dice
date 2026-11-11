@@ -1,5 +1,5 @@
-import type { AudioEngine } from "./audioEngine";
-import { Synth } from "./synth";
+import type { AudioEngine } from "@/features/shared/audio/audioEngine";
+import { Synth } from "@/features/shared/audio/synth";
 
 const CRACKLE_TICK_MS = 70;
 /** Chance per tick that the braziers pop. */

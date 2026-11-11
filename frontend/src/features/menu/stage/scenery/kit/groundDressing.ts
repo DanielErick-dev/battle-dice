@@ -4,7 +4,7 @@ import { blot } from "./painting";
 import type { Painter } from "@/features/shared/three/canvasTexture";
 
 /** Bits scattered over the ground: petals, leaves, shards… */
-export interface LitterLook {
+interface LitterLook {
   shape: "petal" | "leaf" | "shard" | "pebble" | "coin" | "speck";
   colours: string[];
   count: number;

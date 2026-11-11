@@ -1,5 +1,5 @@
 /** The worlds a match can be played in: the same rules and tiles, only the scenery changes. */
-export interface MapPreset {
+interface MapPreset {
   id: MapId;
   name: string;
   /** One line for the picker. */

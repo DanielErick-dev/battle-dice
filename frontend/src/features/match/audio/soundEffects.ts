@@ -1,8 +1,8 @@
 import type { AbilityId } from "@/game/domain/abilities/ability";
 import type { CardId } from "@/game/domain/cards/catalog";
 import type { RealmKind } from "@/game/domain/types";
-import type { AudioEngine } from "./audioEngine";
-import { playSfx, type Synth } from "./synth";
+import type { AudioEngine } from "@/features/shared/audio/audioEngine";
+import { playSfx, type Synth } from "@/features/shared/audio/synth";
 import { ABILITY_VOICES, voiceTake } from "./voices";
 
 /** Sounds the match can play. Kept as an interface so tests and a future asset-based player can swap in. */
