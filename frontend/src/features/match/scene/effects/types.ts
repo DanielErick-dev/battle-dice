@@ -42,7 +42,7 @@ export interface TokenSignals {
 }
 
 /** Refs the token's frame loop fills every frame, for the effects that follow its motion. */
-export interface TokenLive {
+interface TokenLive {
   /** 0 on the ground, 1 hovering. */
   rise: RefObject<number>;
   levitating: RefObject<boolean>;

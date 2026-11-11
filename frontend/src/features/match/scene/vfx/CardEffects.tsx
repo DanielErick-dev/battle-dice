@@ -19,7 +19,7 @@ import { HealingEmitter } from "./healing";
 
 // Colours pushed past 1.0 glow through the bloom pass.
 /** The Arcane Shield's usual tint; a character may raise it in their own colour (see CharacterDefinition.shieldColor). */
-export const DEFAULT_SHIELD_COLOR = "#22d3ee";
+const DEFAULT_SHIELD_COLOR = "#22d3ee";
 const BEAM_COLOR = new Color("#60a5fa").multiplyScalar(3);
 const BEAM_CORE = new Color("#e0f2fe").multiplyScalar(3);
 const Y_AXIS = new Vector3(0, 1, 0);

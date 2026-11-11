@@ -33,7 +33,7 @@ export interface TokenActs {
 }
 
 /** What of the character's sheet shapes its acts. */
-export interface ActTraits {
+interface ActTraits {
   /** Uses the ability without moving: no cast clip, no leap. */
   castsStill: boolean;
   /** Without a cast clip, the ability is a leap with a full spin (not for prop or wand holders). */

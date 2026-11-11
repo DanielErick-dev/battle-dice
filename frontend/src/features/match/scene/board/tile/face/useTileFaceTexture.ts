@@ -6,8 +6,6 @@ import { engrave, paintNumber } from "./carving";
 import { runePath } from "./rune";
 import { paintEmberCracks, paintShattered, paintStone } from "./stone";
 
-export type { TileFace } from "./canvas";
-
 /** Paints a road slab's face (see TileMesh), laid along the way, into a texture so it lives in the 3D scene. */
 export function useTileFaceTexture({ tileId, theme, accent, arrowAngle, resolution }: TileFace): CanvasTexture {
   const texture = useMemo(() => {

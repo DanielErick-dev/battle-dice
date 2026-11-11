@@ -1,7 +1,7 @@
 import type { CharacterClip, ClipLengths } from "@/features/characters";
 import { CAST_HOLD_SECONDS } from "./poseTimings";
 
-export type SequenceStep = { kind: "playing"; clip: CharacterClip | null } | { kind: "over" };
+type SequenceStep = { kind: "playing"; clip: CharacterClip | null } | { kind: "over" };
 
 /** Where `elapsed` falls in clips played back to back: one of them, the last one's held pose, or over. */
 export function sequenceStep(

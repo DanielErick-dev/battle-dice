@@ -99,4 +99,4 @@ export const BOARD_EFFECTS: readonly BoardEffect[] = [
 /** Mounted after the figures. */
 export const OVERLAY_EFFECTS: readonly BoardEffect[] = [ArcaneBlastFx];
 
-export type { BoardFx, TokenFx, TokenSignals } from "./types";
+export type { BoardFx, TokenSignals } from "./types";

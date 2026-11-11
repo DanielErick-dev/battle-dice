@@ -4,7 +4,7 @@ import { DEFAULT_TIMINGS } from "@/features/shared/config";
 import { TILE_HEIGHT, TILE_PITCH, TILE_SIZE, type Vec3 } from "@/features/shared/board/boardLayout";
 
 /** How the view sends the figure to its next tile; a dash wins over a teleport. */
-export type Travel = "walk" | "teleport" | "dash";
+type Travel = "walk" | "teleport" | "dash";
 
 export interface Waypoint {
   to: Vector3;
@@ -29,9 +29,7 @@ interface SegmentBase {
 export type Segment =
   (SegmentBase & { motion: "run"; arriving: boolean }) | (SegmentBase & { motion: "leap" | "dash" | "slide" });
 
-export type Motion = Segment["motion"];
-
-export interface TokenMotion {
+interface TokenMotion {
   /** The last target followed, as a key; null until the figure is first placed. */
   lastTarget: string | null;
   waypoints: Waypoint[];

@@ -3,7 +3,7 @@ import type { MatchView } from "../../model/matchView";
 import { effectKey } from "../vfx/effectKey";
 
 /** A move worth seeing from the front: how close to film it (share of the follow distance) and for how long. */
-export interface SpotlightShot {
+interface SpotlightShot {
   /** Changes with every new move, so each one gets its shot once. */
   key: string;
   playerId: string;

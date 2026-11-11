@@ -3,7 +3,7 @@ import { BLESSING_CAPTION, CURSE_CAPTION } from "./captions";
 import { REALM_PALETTES, THEMES } from "./palettes";
 import { riftTheme, trackTheme } from "./specialThemes";
 
-export type TileKind =
+type TileKind =
   | "regular"
   | "start"
   | "finish"

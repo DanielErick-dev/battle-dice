@@ -28,7 +28,7 @@ import { CAST_SHOTS, SHOTS, type Shot } from "./shots";
 import type { CameraChase, CameraFraming, CameraSpotlight } from "./types";
 
 export { boardScaleFor } from "./rigTuning";
-export type { CameraChase, CameraFraming, CameraSpotlight } from "./types";
+export type { CameraFraming } from "./types";
 
 interface CameraRigProps {
   layout: BoardLayout;

@@ -51,7 +51,7 @@ const PALETTES = {
   red: ["#ff1f1f", "#ff8a7a", "#ff3b2f", "#ffc2b8"],
 } as const;
 
-export type AuraPalette = keyof typeof PALETTES;
+type AuraPalette = keyof typeof PALETTES;
 
 const HEIGHT = 2.3;
 /** Per second: how fast the aura flares up and dies down. */
