@@ -2,7 +2,6 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "incremental": false,
-    "noUncheckedIndexedAccess": true,
     "plugins": []
   },
   "include": ["src/game/**/*.ts"],

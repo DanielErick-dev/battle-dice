@@ -54,6 +54,7 @@ Linhas = código da própria pasta (sem subpastas e sem testes), contadas em 29/
 | `features/menu/ui/` | ⬜ | 549 | | Revisar. |
 | `features/menu/audio/` | ⬜ | 85 | | Revisar. |
 | `features/settings/` | ✅ | 98 | Revisada em 07/11. Não importa mais `match` (07/11). | |
+| `features/shared/collections/` | ✅ | 17 | Criada em 11/11, ao ligar `noUncheckedIndexedAccess` no frontend todo: `itemAt`, `cycle` e `pick`, com teste; junto veio `three/uniform.ts`. | |
 | `components/ui/` | ✅ | | `badge` e `card` sem uso apagados (07/11). | |
 | `app/` | ⬜ | ~100 | | Rotas do Next: revisar. |
 | `lib/` | ✅ | 49 | Revisada em 07/11. | |
