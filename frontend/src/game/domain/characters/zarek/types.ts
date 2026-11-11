@@ -1,6 +1,7 @@
 import type { Tile, TileId, TrapCurse } from "../../board/types";
 import type { SealKind } from "../scribe/types";
 import type { SpecterKind } from "../warden/types";
+import type { Hidden } from "../../core/hidden";
 import type { PlayerId } from "../../core/ids";
 
 /** What Zarek's Void holds: a board harm swallowed whole, or another's spell taken over. */
@@ -10,7 +11,8 @@ export type VoidItem =
   | { kind: "skipTurn" }
   | { kind: "flame" }
   | { kind: "snow" }
-  | { kind: "seal"; seal: SealKind }
+  /** HIDDEN to everyone but Zarek in a projected state, like the seal itself. */
+  | { kind: "seal"; seal: SealKind | Hidden }
   | { kind: "specter"; specter: SpecterKind };
 export type VoidHarm = Extract<VoidItem, { kind: "trap" | "curse" | "skipTurn" }>;
 export type VoidSpell = Exclude<VoidItem, VoidHarm>;

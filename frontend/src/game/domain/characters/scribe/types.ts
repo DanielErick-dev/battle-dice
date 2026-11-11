@@ -1,13 +1,14 @@
 import type { TileId } from "../../board/types";
+import type { Hidden } from "../../core/hidden";
 import type { PlayerId } from "../../core/ids";
 
 /** The Flesh Scribe's four forbidden seals. */
 export type SealKind = "tithe" | "ruin" | "silence" | "bloodPact";
 
-/** Only `owner` knows its `kind`; to everyone else all seals look alike. */
+/** Only `owner` knows its `kind`; to everyone else all seals look alike (HIDDEN in their projected state). */
 export interface Seal {
   tile: TileId;
-  kind: SealKind;
+  kind: SealKind | Hidden;
   owner: PlayerId;
 }
 

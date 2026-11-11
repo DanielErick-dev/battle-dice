@@ -7,7 +7,7 @@ import type {
   Player,
   PlayerId,
   ScarletFlame,
-  SealKind,
+  Seal,
   SpecterKind,
   Threat,
   Tile,
@@ -47,7 +47,7 @@ export interface SpecterView {
 export interface SealView {
   tile: TileId;
   owner: PlayerId;
-  kind: SealKind;
+  kind: Seal["kind"];
 }
 
 /** What the screen shows right now. Lags behind the authoritative state while animating. */

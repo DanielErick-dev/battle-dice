@@ -1,5 +1,6 @@
 /** Flesh Scribe: the forbidden seals on the board. */
 import { playerColor } from "@/features/characters";
+import { HIDDEN } from "@/game/domain/core/hidden";
 import { SEAL_TEXT } from "../../ui/placementText";
 import { SealScroll } from "@/features/characters/scribe/SealScroll";
 import type { BoardFx } from "./types";
@@ -13,7 +14,7 @@ export function Seals({ fx: { view, layout, viewerId, shown } }: { fx: BoardFx }
         key={`${seal.owner}:${seal.tile}`}
         position={layout.position(seal.tile)}
         color={playerColor(seal.owner)}
-        label={seal.owner === viewerId ? SEAL_TEXT[seal.kind].name : undefined}
+        label={seal.owner === viewerId && seal.kind !== HIDDEN ? SEAL_TEXT[seal.kind].name : undefined}
       />
     ));
 }
