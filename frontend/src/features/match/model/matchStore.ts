@@ -1,4 +1,4 @@
-import type { CardChoice } from "@/game/domain/cards/play";
+import type { CardChoice } from "@/game/domain/cards/choice";
 import type { GameClient, GameUpdate } from "@/game/application/gameClient";
 import type { AbilityPower } from "@/game/domain/abilities/ability";
 import type { CardId } from "@/game/domain/cards/catalog";

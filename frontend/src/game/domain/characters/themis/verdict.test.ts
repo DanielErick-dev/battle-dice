@@ -3,7 +3,7 @@ import { abilityCycle, VERDICT_CYCLE } from "../../abilities/charge";
 import { CARD_GAMBLE_STOLEN } from "../jester/cardGamble";
 import { TIME_ROUNDS } from "../cronos/timeWarp";
 import type { BoardDefinition } from "../../board/board";
-import { ARCANE_BLAST_PUSH } from "../../cards/play";
+import { ARCANE_BLAST_PUSH } from "../../cards/effects";
 import {
   activate,
   card,
