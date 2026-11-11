@@ -17,6 +17,7 @@ import { Reticle } from "./Reticle";
 import { LOCKED } from "./layout";
 import { CRATE, DECK, HAZARD, PAD, SCREEN, SEAMS } from "./textures";
 import { useSoftDisc } from "../kit/matchAssets";
+import { uniform } from "@/features/shared/three/uniform";
 
 const FLOOR_RADIUS = 1.4;
 
@@ -125,14 +126,15 @@ export function HangarBay() {
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
-    if (scan.current) (scan.current.material as ShaderMaterial).uniforms.uTime.value = t;
+    if (scan.current) uniform(scan.current.material as ShaderMaterial, "uTime").value = t;
     screen.offset.setY((t * 0.08) % 1);
     strips.current.forEach((strip) => {
       if (strip) (strip.material as MeshBasicMaterial).opacity = 0.55 + 0.35 * Math.sin(t * 2.2);
     });
-    beacons.current.forEach((beacon, index) => {
+    BEACONS.forEach(({ phase }, index) => {
+      const beacon = beacons.current[index];
       if (!beacon) return;
-      const on = Math.sin(t * 2.6 + BEACONS[index].phase) > 0.55 ? 1 : 0.15;
+      const on = Math.sin(t * 2.6 + phase) > 0.55 ? 1 : 0.15;
       beacon.scale.setScalar(0.07 * on + 0.02);
     });
   });

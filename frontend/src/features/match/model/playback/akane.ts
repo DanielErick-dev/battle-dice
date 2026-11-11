@@ -5,6 +5,7 @@ import { FIRE_BOLT_SECONDS, FIRE_RACE_STEP } from "@/features/shared/config";
 import { nextFxId, withFx, withPlayer, type BlazeView, type MatchView } from "../matchView";
 import { playerTileEffect } from "./helpers";
 import type { StepHandlers } from "./types";
+import { itemAt } from "@/features/shared/collections/items";
 
 function blaze(view: MatchView, blaze: Omit<BlazeView, "id" | "targetIds" | "tiles"> & Partial<BlazeView>): MatchView {
   return withFx(view, { blaze: { targetIds: [], tiles: [], ...blaze, id: nextFxId(view.fx.blaze) } });
@@ -75,7 +76,7 @@ export const akaneSteps: StepHandlers<
     {
       apply: (view) => ({
         ...event.playerIds.reduce((next, id) => withPlayer(next, id, () => ({ burning: 0 })), view),
-        effect: { ...playerTileEffect(view, event.playerIds[0], "quenched"), count: event.playerIds.length },
+        effect: { ...playerTileEffect(view, itemAt(event.playerIds, 0), "quenched"), count: event.playerIds.length },
       }),
       durationMs: timings.noticeMs,
     },

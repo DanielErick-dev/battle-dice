@@ -71,7 +71,8 @@ export function DriftingFeathers({ wind }: { wind: RefObject<number> }) {
         sway * 0.6 + feather.blown * 5,
       );
       // Faded in at the top and out on the ground.
-      materials[index].opacity = 0.9 * fadeAtEnds(feather.height, FEATHER_HEIGHT, 4, 3);
+      const material = materials[index];
+      if (material) material.opacity = 0.9 * fadeAtEnds(feather.height, FEATHER_HEIGHT, 4, 3);
     });
   });
 

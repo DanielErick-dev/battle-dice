@@ -1,6 +1,7 @@
 import { seededRandom } from "@/game/domain/core/random";
 import { withDressing, type GroundDressing } from "../kit/groundDressing";
 import { type CanvasLook } from "@/features/shared/three/canvasTexture";
+import { itemAt } from "@/features/shared/collections/items";
 
 /** Across-corners radius of a floor hex, in canvas pixels. */
 const HEX = 26;
@@ -42,8 +43,11 @@ function drawDeck(context: CanvasRenderingContext2D, size: number) {
     context.strokeStyle = "rgba(170,186,206,0.35)";
     context.lineWidth = 1.5;
     context.beginPath();
-    context.moveTo(...corners[3]);
-    [4, 5, 0].forEach((corner) => context.lineTo(...corners[corner]));
+    [3, 4, 5, 0].forEach((corner, step) => {
+      const [x, y] = itemAt(corners, corner);
+      if (step) context.lineTo(x, y);
+      else context.moveTo(x, y);
+    });
     context.stroke();
     const [x, y] = corners.reduce(([sx, sy], [px, py]) => [sx + px / 6, sy + py / 6], [0, 0]);
     if (random() < 0.4) {
@@ -148,7 +152,7 @@ function drawCrate(context: CanvasRenderingContext2D, size: number) {
   for (const [x, y] of [
     [frame, frame],
     [size - frame * 3, size - frame * 3],
-  ]) {
+  ] as const) {
     context.fillRect(x, y, frame * 2, frame * 2);
   }
   context.fillStyle = "rgba(30,34,42,0.85)";
@@ -218,7 +222,7 @@ function drawReticleBrackets(context: CanvasRenderingContext2D, size: number) {
     [1, -1],
     [1, 1],
     [-1, 1],
-  ]) {
+  ] as const) {
     const x = centre + sx * reach;
     const y = centre + sy * reach;
     context.beginPath();

@@ -9,6 +9,7 @@ import { TILE_HEIGHT, type Vec3 } from "@/features/shared/board/boardLayout";
 import { FIRE_FRAGMENT, PILLAR_FRAGMENT, PIT_FRAGMENT, SEAL_FRAGMENT } from "./gate/shaders";
 import { gateStrength, gateWidth } from "./gate/timeline";
 import { UV_VERTEX } from "./glsl";
+import { uniform } from "@/features/shared/three/uniform";
 
 /** Each realm's gate: a disc on the tile, a column over it (open-ended cylinder) and sparks. */
 const LOOK = {
@@ -48,8 +49,8 @@ export function RealmGate({ realm, position }: RealmGateProps) {
     const strength = gateStrength(age);
     materials.current.forEach((material) => {
       if (!material) return;
-      material.uniforms.uTime.value += delta;
-      material.uniforms.uOpacity.value = strength;
+      uniform(material, "uTime").value += delta;
+      uniform(material, "uOpacity").value = strength;
     });
     if (group.current) {
       group.current.visible = strength > 0.001;

@@ -17,7 +17,7 @@ describe.each(BOARD_PRESETS)("board preset $name", ({ definition }) => {
       const { to } = effect;
       expect(to).toBeGreaterThan(board.startTile);
       expect(to).toBeLessThan(board.finishTile);
-      expect(board.tiles[to - 1].effect.kind, `tile ${id} → ${to}`).toBe("none");
+      expect(getTile(board, to).effect.kind, `tile ${id} → ${to}`).toBe("none");
       if (effect.kind === "trap") expect(to).toBeLessThan(id);
       else expect(to).toBeGreaterThan(id);
     }

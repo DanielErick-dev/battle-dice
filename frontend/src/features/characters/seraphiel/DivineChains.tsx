@@ -10,7 +10,7 @@ const RINGS = [
   { height: 0.3, radius: 0.5, links: 16, spin: 0.35 },
   { height: 0.52, radius: 0.46, links: 14, spin: -0.28 },
   { height: 0.72, radius: 0.42, links: 12, spin: 0.22 },
-];
+] as const;
 /** Chains hanging from the middle ring to the floor, round the figure. */
 const ANCHORS = 4;
 const ANCHOR_RADIUS = 0.95;
@@ -55,9 +55,10 @@ export function DivineChains({ active }: { active: boolean }) {
     const time = clock.elapsedTime;
     // They close in from wide as they bind him.
     const grip = 1 + (1 - shown.current) * 1.5;
-    rings.current.forEach((ring, index) => {
+    RINGS.forEach(({ spin }, index) => {
+      const ring = rings.current[index];
       if (!ring) return;
-      ring.rotation.y = time * RINGS[index].spin;
+      ring.rotation.y = time * spin;
       ring.scale.set(grip, 1, grip);
     });
     node.scale.y = shown.current;

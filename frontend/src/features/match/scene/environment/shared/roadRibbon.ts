@@ -1,6 +1,8 @@
 import { CatmullRomCurve3, Vector3 } from "three";
 import { START_PLAZA, TILE_PITCH, type Vec3 } from "@/features/shared/board/boardLayout";
 
+const ORIGIN: Vec3 = [0, 0, 0];
+
 /** Half the road's width: wider than the slabs, its edges fading into the grass. */
 export const ROAD_HALF_WIDTH = 1.9;
 /** World units along the road per repeat of its texture. */
@@ -21,7 +23,7 @@ export interface RoadRibbon {
  */
 export function roadRibbon(trail: readonly Vec3[], heightAt: (x: number, z: number) => number): RoadRibbon {
   // Running on under the start's plaza and out through the village gate behind it.
-  const [first, second] = [trail[0], trail[1] ?? trail[0]];
+  const [first = ORIGIN, second = first] = trail;
   const [dx, dz] = [second[0] - first[0], second[2] - first[2]];
   const length = Math.hypot(dx, dz) || 1;
   const lead = START_PLAZA + TILE_PITCH * 1.5;

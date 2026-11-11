@@ -1,6 +1,7 @@
 import type { Vec3 } from "@/features/shared/board/boardLayout";
 import { TRAIL_GROUND } from "../shared/trailPlan";
 import { fbm, noise, smoothstep } from "./terrainNoise";
+import { itemAt } from "@/features/shared/collections/items";
 
 /** Water surface height (see IslandWorld). */
 export const WATER_LEVEL = -1.05;
@@ -46,7 +47,10 @@ export function islandShape(trail: readonly Vec3[]): IslandShape {
     halfWidth: (maxX - minX) / 2 + MARGIN.side,
     halfDepth: (front - back) / 2,
     backZ: minZ,
-    segments: trail.slice(1).map(([x, , z], index) => [trail[index][0], trail[index][2], x, z]),
+    segments: trail.slice(1).map(([x, , z], index) => {
+      const [fromX, , fromZ] = itemAt(trail, index);
+      return [fromX, fromZ, x, z];
+    }),
     river: { x: (maxX - minX) * 0.2, bend: Math.min(3, (maxX - minX) * 0.08) },
   };
 }

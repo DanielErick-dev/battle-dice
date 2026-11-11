@@ -6,6 +6,7 @@ import { AdditiveBlending, BufferAttribute, BufferGeometry } from "three";
 import { seededRandom } from "@/game/domain/core/random";
 import { useCanvasTexture } from "@/features/shared/three/canvasTexture";
 import { BUBBLE } from "./textures";
+import { pick } from "@/features/shared/collections/items";
 
 const BUBBLES = 40;
 
@@ -26,7 +27,7 @@ export function Bubbles() {
   const { geometry, bubbles } = useMemo(() => {
     const random = seededRandom(61);
     const bubbles = Array.from({ length: BUBBLES }, () => {
-      const [x, z] = VENTS[Math.floor(random() * VENTS.length)];
+      const [x, z] = pick(VENTS, random());
       return {
         x: x + (random() - 0.5) * 0.06,
         z: z + (random() - 0.5) * 0.06,

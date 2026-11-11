@@ -22,7 +22,7 @@ export function Wisps({ trail, aura }: { trail: SpriteMaterial[]; aura: SpriteMa
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
     WISPS.forEach(({ x, z, reach, height, speed }, wisp) => {
-      const place = (sprite: Sprite | null, at: number) => {
+      const place = (sprite: Sprite | null | undefined, at: number) => {
         if (!sprite) return;
         const angle = at * speed * 3 + wisp * 2;
         sprite.position.set(

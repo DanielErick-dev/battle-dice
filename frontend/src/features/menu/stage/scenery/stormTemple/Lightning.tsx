@@ -15,6 +15,7 @@ import {
 } from "three";
 import { seededRandom } from "@/game/domain/core/random";
 import { useSoftDisc } from "../kit/matchAssets";
+import { itemAt } from "@/features/shared/collections/items";
 
 /** Seconds between lightning strikes; each strike flickers a few times. */
 const STRIKE_EVERY = 6.5;
@@ -103,21 +104,20 @@ function boltGeometry(seed: number, x: number, drift: number): BufferGeometry {
   const ribbon = (points: Vector3[], width: number) => {
     // Each point's own sideways offset from its neighbours, so the segments join without gaps.
     const edges = points.map((point, index) => {
-      const ahead = points[Math.min(index + 1, points.length - 1)];
-      const behind = points[Math.max(index - 1, 0)];
+      const ahead = points[Math.min(index + 1, points.length - 1)] ?? point;
+      const behind = points[Math.max(index - 1, 0)] ?? point;
       const across = new Vector2(ahead.y - behind.y, behind.x - ahead.x)
         .normalize()
         .multiplyScalar(width * (1 - index / points.length));
       return [
         [point.x - across.x, point.y - across.y, point.z],
         [point.x + across.x, point.y + across.y, point.z],
-      ];
+      ] as const;
     });
-    for (let index = 0; index < edges.length - 1; index++) {
-      const [a, b] = edges[index];
-      const [c, d] = edges[index + 1];
+    edges.slice(1).forEach(([c, d], index) => {
+      const [a, b] = itemAt(edges, index);
       positions.push(...a, ...b, ...d, ...a, ...d, ...c);
-    }
+    });
   };
   const path = (from: Vector3, steps: number, length: number, lean: number) =>
     Array.from({ length: steps + 1 }, (_, index) => {
@@ -127,8 +127,7 @@ function boltGeometry(seed: number, x: number, drift: number): BufferGeometry {
     });
   const main = path(new Vector3(x, 2.7, -1.6), 9, 1.4, drift * 0.4);
   ribbon(main, 0.012);
-  const fork = main[4];
-  ribbon(path(fork.clone(), 5, 0.55, drift * 0.5), 0.007);
+  ribbon(path(itemAt(main, 4).clone(), 5, 0.55, drift * 0.5), 0.007);
   const geometry = new BufferGeometry();
   geometry.setAttribute("position", new Float32BufferAttribute(positions, 3));
   return geometry;

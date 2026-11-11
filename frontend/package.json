@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.game.json",
+    "typecheck": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,mjs}\" \"scripts/**/*.{ts,js,mjs}\" \"*.{ts,mjs}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,mjs}\" \"scripts/**/*.{ts,js,mjs}\" \"*.{ts,mjs}\"",
     "schema": "node scripts/contract/generate-schema.mjs",

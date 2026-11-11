@@ -73,11 +73,16 @@ export function createBoardLayout(board: Board, columns: number): BoardLayout {
   for (const track of board.tracks) {
     const lane = lanes[track.realm]++;
     const positions = corridorPositions(track, width, lane);
-    positions.forEach((position, index) => trackPositions.set(track.tiles[index], position));
+    track.tiles.forEach((tile, index) => {
+      const position = positions[index];
+      if (position) trackPositions.set(tile, position);
+    });
+    const [first] = positions;
+    if (!first) continue;
     corridors.push({
-      x: positions[0][0],
+      x: first[0],
       halfWidth: CORRIDOR_HALF_WIDTH[track.realm],
-      halfLength: Math.abs(positions[0][2]) + TILE_PITCH,
+      halfLength: Math.abs(first[2]) + TILE_PITCH,
     });
   }
 
@@ -88,7 +93,7 @@ export function createBoardLayout(board: Board, columns: number): BoardLayout {
     depth,
     position: (id) => trackPositions.get(id) ?? grid(id),
     trail,
-    slab: (id) => (trackPositions.has(id) || !trail[id - 1] ? null : tileSlab(trail, id - 1)),
+    slab: (id) => (trackPositions.has(id) ? null : tileSlab(trail, id - 1)),
     corridors,
   };
 }
@@ -102,17 +107,19 @@ const RIFT_OFFSET = TILE_PITCH * 0.95;
  */
 export function withRiftPositions(layout: BoardLayout, board: Board): BoardLayout {
   const rifts = new Map<TileId, Vec3>();
+  const tileAt = (id: TileId) => board.tiles[id - 1];
   for (const tile of board.tiles) {
     if (tile.role !== "rift" || tile.previous === null) continue;
     let from = tile.previous;
-    while (board.tiles[from - 1]?.role === "rift") from = board.tiles[from - 1].previous ?? from;
-    if (rifts.has(board.tiles[from - 1]?.next ?? -1)) continue;
+    for (let back = tileAt(from); back?.role === "rift"; back = tileAt(from)) from = back.previous ?? from;
+    if (rifts.has(tileAt(from)?.next ?? -1)) continue;
     // The run of rifts after `from`, up to the next road tile.
     const run: TileId[] = [];
-    let to = board.tiles[from - 1]?.next ?? null;
-    while (to !== null && board.tiles[to - 1]?.role === "rift") {
+    let to = tileAt(from)?.next ?? null;
+    for (let ahead = to === null ? undefined : tileAt(to); to !== null && ahead?.role === "rift";) {
       run.push(to);
-      to = board.tiles[to - 1].next;
+      to = ahead.next;
+      ahead = to === null ? undefined : tileAt(to);
     }
     const start = layout.position(from);
     const end = to === null ? start : layout.position(to);
@@ -182,10 +189,13 @@ function windingTrail(count: number, columns: number): Vec3[] {
   const tiles: Vec3[] = [];
   let walked = 0;
   let next = 0;
-  for (let i = 0; i < line.length && tiles.length < count; i++) {
-    if (i > 0) walked += Math.hypot(line[i][0] - line[i - 1][0], line[i][1] - line[i - 1][1]);
+  let previous: [number, number] | undefined;
+  for (const point of line) {
+    if (tiles.length >= count) break;
+    if (previous) walked += Math.hypot(point[0] - previous[0], point[1] - previous[1]);
+    previous = point;
     if (walked >= next - 1e-6) {
-      tiles.push([line[i][0], 0, line[i][1]]);
+      tiles.push([point[0], 0, point[1]]);
       next += TILE_PITCH;
     }
   }
@@ -197,7 +207,9 @@ function windingTrail(count: number, columns: number): Vec3[] {
 
 /** The slab of the road under trail tile `index` (see BoardLayout.slab). */
 function tileSlab(trail: readonly Vec3[], index: number) {
-  const [x, , z] = trail[index];
+  const here = trail[index];
+  if (!here) return null;
+  const [x, , z] = here;
   const before = trail[index - 1];
   const after = trail[index + 1];
   const unit = (dx: number, dz: number): [number, number] => {

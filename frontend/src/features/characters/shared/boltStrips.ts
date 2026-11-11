@@ -32,13 +32,18 @@ export function stripsGeometry(strips: number, points: number): BufferGeometry {
  * `seed`, so it reads as lightning rather than a smooth stroke. The ends stay put.
  */
 export function jag(points: Vector3[], seed: number, size: number) {
-  const segment = points[0].distanceTo(points.at(-1)!) / (points.length - 1);
+  const first = points[0];
+  const last = points.at(-1);
+  if (!first || !last) return;
+  const segment = first.distanceTo(last) / (points.length - 1);
   const reach = Math.min(segment * KINK, MAX_KINK * size);
   for (let k = 1; k < points.length - 1; k++) {
+    const point = points[k];
+    if (!point) continue;
     const sign = k % 2 === 0 ? 1 : -1;
     const amount = reach * (0.4 + 0.6 * noise(seed + k * 1.7));
     scratch.side.set(noise(seed + k * 3.1) - 0.5, noise(seed + k * 5.3) - 0.5, noise(seed + k * 7.9) - 0.5);
-    points[k].addScaledVector(scratch.side.normalize(), sign * amount);
+    point.addScaledVector(scratch.side.normalize(), sign * amount);
   }
 }
 
@@ -61,7 +66,7 @@ export function writeStrip(
   const last = points.length - 1;
   const base = strip * points.length * 2;
   points.forEach((here, k) => {
-    scratch.along.subVectors(points[Math.min(k + 1, last)], points[Math.max(k - 1, 0)]);
+    scratch.along.subVectors(points[Math.min(k + 1, last)] ?? here, points[Math.max(k - 1, 0)] ?? here);
     scratch.toCamera.subVectors(cameraPosition, here);
     scratch.side.crossVectors(scratch.along, scratch.toCamera).normalize();
     const half = !closed && (k === 0 || k === last) ? width * 0.3 : width;

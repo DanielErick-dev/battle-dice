@@ -3,6 +3,7 @@ import type { Vec3 } from "@/features/shared/board/boardLayout";
 import type { Placed } from "../shared/Instances";
 import { hidesTiles, TRAIL_GROUND, type Blocker } from "../shared/trailPlan";
 import { groundAt, RIVER_HALF_WIDTH, riverDistance, trailDistance, TRAIL_EARTH, type IslandShape } from "./terrain";
+import { itemAt } from "@/features/shared/collections/items";
 
 /** A lantern by the trail every this many tiles. */
 const LANTERN_EVERY = 9;
@@ -76,8 +77,8 @@ export function scatterProps(shape: IslandShape, trail: readonly Vec3[], blocker
 export function lanternSpots(trail: readonly Vec3[], shape: IslandShape): Vec3[] {
   const spots: Vec3[] = [];
   for (let index = 4; index < trail.length - 1; index += LANTERN_EVERY) {
-    const [x, , z] = trail[index];
-    const [nx, , nz] = trail[index + 1];
+    const [x, , z] = itemAt(trail, index);
+    const [nx, , nz] = itemAt(trail, index + 1);
     const [dx, dz] = [nx - x, nz - z];
     const length = Math.hypot(dx, dz) || 1;
     const side = index % 2 === 0 ? 1 : -1;
@@ -96,7 +97,7 @@ export interface BridgeSpan {
 /** Every step of the trail that crosses the stream, and the ones onto and off it. */
 export function bridgeSpans(trail: readonly Vec3[], shape: IslandShape): BridgeSpan[] {
   return trail.slice(1).flatMap((to, index) => {
-    const from = trail[index];
+    const from = itemAt(trail, index);
     const middle = riverDistance(shape, (from[0] + to[0]) / 2, (from[2] + to[2]) / 2);
     return middle < RIVER_HALF_WIDTH + 1.3 ? [{ from, to }] : [];
   });

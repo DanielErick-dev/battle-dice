@@ -5,7 +5,8 @@ import type { MatchView } from "../../model/matchView";
 
 /** Only figures sharing a tile lift their tags apart; one alone keeps its tag right over its head. */
 export function tileSeat(players: readonly Player[], seat: number): number {
-  const { position } = players[seat];
+  const position = players[seat]?.position;
+  if (position === undefined) return 0;
   return players.slice(0, seat).filter((other) => other.position === position).length;
 }
 

@@ -2,6 +2,7 @@
 import { SILENCE_TURNS, SEAL_KINDS } from "@/game/domain/characters/scribe/seals";
 import { withPlayer } from "../matchView";
 import type { StepHandlers } from "./types";
+import { itemAt } from "@/features/shared/collections/items";
 
 export const sealsSteps: StepHandlers<"sealsWritten" | "sealBroken"> = {
   sealsWritten: (event, timings) => {
@@ -12,7 +13,7 @@ export const sealsSteps: StepHandlers<"sealsWritten" | "sealBroken"> = {
           ...view,
           seals: [
             ...view.seals,
-            ...event.tiles.map((tile, index) => ({ tile, owner: event.playerId, kind: SEAL_KINDS[index] })),
+            ...event.tiles.map((tile, index) => ({ tile, owner: event.playerId, kind: itemAt(SEAL_KINDS, index) })),
           ],
         }),
         durationMs: timings.noticeMs,

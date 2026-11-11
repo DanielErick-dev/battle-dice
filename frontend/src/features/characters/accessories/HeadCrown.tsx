@@ -43,8 +43,9 @@ export function HeadCrown({ figure, crown }: { figure: Object3D; crown: CrownId 
     figure.traverse((node) => {
       const skin = node as SkinnedMesh;
       const index = skin.isSkinnedMesh ? skin.skeleton.bones.indexOf(head as never) : -1;
-      if (index < 0) return;
-      const bind = skin.skeleton.boneInverses[index].clone().invert();
+      const inverse = index < 0 ? undefined : skin.skeleton.boneInverses[index];
+      if (!inverse) return;
+      const bind = inverse.clone().invert();
       bind.decompose(new Vector3(), unbind, new Vector3());
       unbind.invert();
     });

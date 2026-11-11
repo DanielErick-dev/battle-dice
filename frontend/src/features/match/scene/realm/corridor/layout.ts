@@ -26,9 +26,8 @@ export interface CorridorSpan {
 
 /** The corridor round a track's tiles, all on one line along z (see corridorPositions). */
 export function corridorSpan(positions: readonly Vec3[]): CorridorSpan {
-  const [x, level] = positions[0];
-  const startZ = positions[0][2];
-  const endZ = positions.at(-1)![2];
+  const [x, level, startZ] = positions[0] ?? [0, 0, 0];
+  const endZ = positions.at(-1)?.[2] ?? startZ;
   const near = Math.max(startZ, endZ) + END_MARGIN;
   const far = Math.min(startZ, endZ) - END_MARGIN;
   return { x, near, far, length: near - far, centreZ: (near + far) / 2, floorY: level - TILE_HEIGHT / 2 - 0.08 };

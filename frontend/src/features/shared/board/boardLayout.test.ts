@@ -4,6 +4,7 @@ import { createBoard, linkRift } from "@/game/domain/board/board";
 import { openRift, riftsOf, withRifts } from "@/game/domain/characters/zarek/rifts";
 import type { Board, TileId } from "@/game/domain/types";
 import { createBoardLayout, startSlot, TILE_PITCH, TILE_SIZE, withRiftPositions } from "./boardLayout";
+import { itemAt } from "@/features/shared/collections/items";
 
 describe("the winding trail", () => {
   for (const [name, definition, columns] of [
@@ -17,10 +18,10 @@ describe("the winding trail", () => {
       layout.trail.forEach(([x, , z], index) => {
         expect(layout.position(index + 1)).toEqual([x, 0, z]);
         if (index === 0) return;
-        const [px, , pz] = layout.trail[index - 1];
+        const [px, , pz] = itemAt(layout.trail, index - 1);
         expect(Math.hypot(x - px, z - pz)).toBeCloseTo(TILE_PITCH, 0);
         for (let other = 0; other < index - 1; other++) {
-          const [ox, , oz] = layout.trail[other];
+          const [ox, , oz] = itemAt(layout.trail, other);
           expect(Math.hypot(x - ox, z - oz), `${index + 1} vs ${other + 1}`).toBeGreaterThan(TILE_SIZE);
         }
       });
@@ -34,7 +35,7 @@ describe("the start plaza", () => {
     expect(new Set(slots.map(([along]) => along)).size).toBe(1);
     const across = slots.map(([, side]) => side);
     expect(across).toEqual([...across].sort((a, b) => b - a));
-    expect(across[0]).toBeCloseTo(-across[3]);
+    expect(across[0]).toBeCloseTo(-itemAt(across, 3));
   });
 
   it("starts a second row further back past four players", () => {

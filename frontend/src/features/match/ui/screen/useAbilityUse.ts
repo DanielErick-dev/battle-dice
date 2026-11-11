@@ -54,11 +54,10 @@ export function useAbilityUse(
     tiles: new Set(
       picked.length < placement.steps.length ? placement.tiles.filter((tile) => !picked.includes(tile)) : [],
     ),
-    picked: picked.map((tile, index) => ({
-      tile,
-      tag: placement.steps[index].tag,
-      color: placement.steps[index].color,
-    })),
+    picked: picked.flatMap((tile, index) => {
+      const step = placement.steps[index];
+      return step ? [{ tile, tag: step.tag, color: step.color }] : [];
+    }),
     onPick: (tile) => setPicked((current) => (current.includes(tile) ? current : [...current, tile])),
     cursor: placement.cursor,
   };

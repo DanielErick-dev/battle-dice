@@ -11,7 +11,7 @@ export interface BoardPreset {
   columns: number;
 }
 
-export const BOARD_PRESETS: readonly BoardPreset[] = [
+export const BOARD_PRESETS: readonly [BoardPreset, ...BoardPreset[]] = [
   {
     id: "training",
     name: "Treino",

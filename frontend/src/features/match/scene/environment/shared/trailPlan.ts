@@ -47,6 +47,7 @@ export function trailNearest(
   let best = { distance: Infinity, dx: 1, dz: 0 };
   for (let index = 1; index < trail.length; index++) {
     const [a, b] = [trail[index - 1], trail[index]];
+    if (!a || !b) continue;
     const [dx, dz] = [b[0] - a[0], b[2] - a[2]];
     const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (z - a[2]) * dz) / (dx * dx + dz * dz || 1)));
     const distance = Math.hypot(x - a[0] - dx * t, z - a[2] - dz * t);
@@ -57,7 +58,8 @@ export function trailNearest(
 
 /** Clear of the start's plaza by `radius`. */
 export function clearOfStart(trail: readonly Vec3[], x: number, z: number, radius: number): boolean {
-  return Math.hypot(x - trail[0][0], z - trail[0][2]) > START_PLAZA + TILE_PITCH + radius;
+  const [start] = trail;
+  return !start || Math.hypot(x - start[0], z - start[2]) > START_PLAZA + TILE_PITCH + radius;
 }
 
 /** Further than `gap` from every blocker's reach. */

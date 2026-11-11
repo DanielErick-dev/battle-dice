@@ -1,5 +1,6 @@
 import { blot, speckle } from "../kit/painting";
 import type { Painter } from "@/features/shared/three/canvasTexture";
+import { cycle } from "@/features/shared/collections/items";
 
 /**
  * The shrine's ground: a path of dark red flagstones running back to the torii (the canvas's top is the back) through
@@ -53,7 +54,7 @@ export const paintShrineGround: Painter = (context, size, random) => {
     context.save();
     context.translate(x, y);
     context.rotate(random() * Math.PI);
-    context.fillStyle = ["rgba(196,22,40,0.85)", "rgba(150,12,30,0.85)", "rgba(230,60,70,0.8)"][petal % 3];
+    context.fillStyle = cycle(["rgba(196,22,40,0.85)", "rgba(150,12,30,0.85)", "rgba(230,60,70,0.8)"], petal);
     context.beginPath();
     context.ellipse(0, 0, 2.6 + random() * 2, 1.4 + random(), 0, 0, Math.PI * 2);
     context.fill();

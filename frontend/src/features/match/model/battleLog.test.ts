@@ -40,14 +40,14 @@ describe("battle log steps", () => {
       { type: "turnChanged", playerId: "p1" },
     ];
     const steps = updateSteps(events, state, DEFAULT_TIMINGS);
-    const own = events.map((event) => eventToSteps(event, DEFAULT_TIMINGS).length);
-    expect(steps).toHaveLength(own[0] + own[1] + 1);
+    const [ownSkipped = 0, ownChanged = 0] = events.map((event) => eventToSteps(event, DEFAULT_TIMINGS).length);
+    expect(steps).toHaveLength(ownSkipped + ownChanged + 1);
 
     const views: MatchView[] = [];
     let view = createInitialView(state);
     for (const step of steps) views.push((view = step.apply(view)));
-    expect(views[0].log.map((entry) => entry.event.type)).toEqual(["turnSkipped"]);
-    expect(views[own[0]].log.map((entry) => entry.event.type)).toEqual(["turnSkipped", "turnChanged"]);
+    expect(views[0]?.log.map((entry) => entry.event.type)).toEqual(["turnSkipped"]);
+    expect(views[ownSkipped]?.log.map((entry) => entry.event.type)).toEqual(["turnSkipped", "turnChanged"]);
   });
 
   it("keeps only the latest LOG_LIMIT entries", () => {

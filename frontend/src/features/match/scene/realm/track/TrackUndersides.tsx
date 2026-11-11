@@ -10,11 +10,13 @@ import { TILE_HEIGHT, TILE_SIZE } from "@/features/shared/board/boardLayout";
 export function MoltenUnderside({ color }: { color: string }) {
   return (
     <group position-y={-TILE_HEIGHT / 2}>
-      {[
-        [0, 0, 0.9],
-        [-0.45, 0.3, 0.6],
-        [0.4, -0.35, 0.55],
-      ].map(([x, z, length]) => (
+      {(
+        [
+          [0, 0, 0.9],
+          [-0.45, 0.3, 0.6],
+          [0.4, -0.35, 0.55],
+        ] as const
+      ).map(([x, z, length]) => (
         <mesh key={`${x}:${z}`} position={[x, -length / 2, z]} rotation-x={Math.PI}>
           <coneGeometry args={[0.28, length, 6]} />
           <meshStandardMaterial

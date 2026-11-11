@@ -85,6 +85,6 @@ Rodar dentro de `frontend/` a cada mudança:
 npm run typecheck && npm run lint && npm test && npm run build
 ```
 
-O `typecheck` roda duas vezes: o projeto todo e o `tsconfig.game.json`, que liga `noUncheckedIndexedAccess` só em `game/`, testes incluídos. Ali, ler uma lista por índice pode dar `undefined`, então o código usa `at` (`core/invariant.ts`) ou `randomItem` (`core/random.ts`), que falham na hora se a regra garantida não valer.
+O `tsconfig.json` liga `noUncheckedIndexedAccess` no frontend todo, testes incluídos: ler uma lista por índice pode dar `undefined`. Em `game/` o código usa `at` (`core/invariant.ts`) ou `randomItem` (`core/random.ts`), que falham na hora se a regra garantida não valer; em `features/` vale o mesmo com `itemAt`, `cycle` e `pick` (`features/shared/collections/items.ts`) e, para uniforms de shader, `uniform` (`features/shared/three/uniform.ts`). Fora isso, prefira tratar a falta de verdade (`?.`, `??`, retorno antecipado, iterar a própria lista) a usar `!`. O `tsconfig.game.json` só serve ao gerador do schema.
 
 Os testes vivem ao lado do código (`*.test.ts`). O grosso deles cobre `game/domain/`; `playback.test.ts` e `matchStore.test.ts` cobrem a camada de animação.

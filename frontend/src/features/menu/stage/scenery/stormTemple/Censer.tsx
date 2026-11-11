@@ -67,7 +67,7 @@ export function Censer({ materials }: { materials: TempleMaterials }) {
       );
       puff.scale.setScalar(0.05 + rise * 0.28);
       puff.quaternion.copy(camera.quaternion);
-      glow.smoke[index].setValues({ opacity: 0.32 * Math.min(1, rise * 6) * (1 - rise) });
+      glow.smoke[index]?.setValues({ opacity: 0.32 * Math.min(1, rise * 6) * (1 - rise) });
     });
   });
 

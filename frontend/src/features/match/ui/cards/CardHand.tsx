@@ -216,7 +216,7 @@ export function CardHand({
           const isSelected = card.uid === selectedUid;
           const isFocused = card.uid === focusedUid;
           // Right under the card in focus: no overlap, so its whole text shows.
-          const belowFocused = index > 0 && player.hand[index - 1].uid === focusedUid;
+          const belowFocused = index > 0 && player.hand[index - 1]?.uid === focusedUid;
           return (
             <li
               key={card.uid}

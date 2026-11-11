@@ -1,4 +1,5 @@
 import { AdditiveBlending, DoubleSide, PlaneGeometry, ShaderMaterial } from "three";
+import { uniform } from "@/features/shared/three/uniform";
 
 /** Noise shared by the flame and its embers. */
 const NOISE = /* glsl */ `
@@ -134,5 +135,5 @@ export function createEmberMaterial(): ShaderMaterial {
 
 /** Writes the frame's values into a flame or ember material's uniforms. */
 export function setUniforms(material: ShaderMaterial, values: Record<string, number>): void {
-  for (const [name, value] of Object.entries(values)) material.uniforms[name].value = value;
+  for (const [name, value] of Object.entries(values)) uniform(material, name).value = value;
 }

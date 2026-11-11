@@ -1,6 +1,7 @@
 import { withDressing, type GroundDressing } from "../kit/groundDressing";
 import { type Painter } from "@/features/shared/three/canvasTexture";
 import { type NoiseLook } from "../kit/textures";
+import { cycle } from "@/features/shared/collections/items";
 
 /** Moss in mottled greens, bare earth showing through, blades of grass and a few fallen leaves. */
 const paintMossFloor: Painter = (context, size, random) => {
@@ -38,7 +39,7 @@ const paintMossFloor: Painter = (context, size, random) => {
     context.save();
     context.translate(random() * size, random() * size);
     context.rotate(random() * Math.PI);
-    context.fillStyle = ["rgba(176,140,48,0.75)", "rgba(140,92,36,0.7)", "rgba(156,170,60,0.7)"][index % 3];
+    context.fillStyle = cycle(["rgba(176,140,48,0.75)", "rgba(140,92,36,0.7)", "rgba(156,170,60,0.7)"], index);
     context.beginPath();
     context.ellipse(0, 0, 4 + random() * 3, 2 + random() * 1.5, 0, 0, Math.PI * 2);
     context.fill();

@@ -95,10 +95,12 @@ export const themisArt: Record<ThemisCard, ReactNode> = {
       <line x1="36" y1="20" x2="64" y2="20" stroke="#fbbf24" strokeWidth="4" />
       <rect x="47.5" y="6" width="5" height="13" rx="1.5" fill="#78350f" />
       <circle cx="50" cy="5" r="3" fill="#fbbf24" />
-      {[
-        [24, 16],
-        [76, 18],
-      ].map(([x, y]) => (
+      {(
+        [
+          [24, 16],
+          [76, 18],
+        ] as const
+      ).map(([x, y]) => (
         <Star key={x} x={x} y={y} r={3} fill="#fde68a" />
       ))}
     </g>

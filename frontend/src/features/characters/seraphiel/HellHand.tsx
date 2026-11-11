@@ -15,6 +15,8 @@ import {
 } from "three";
 import { DEFAULT_TIMINGS } from "@/features/shared/config";
 import { useAge } from "@/features/shared/three/useAge";
+import { uniform } from "@/features/shared/three/uniform";
+import { cycle, itemAt } from "@/features/shared/collections/items";
 
 /** Seconds the hand takes to come up and close, then to sink back with its prey (see the drag timings). */
 const GRAB_SECONDS = DEFAULT_TIMINGS.dragGrabMs / 1000;
@@ -158,12 +160,12 @@ export function HellHand({ groundY }: { groundY: number }) {
       hand.current.rotation.x = 0.12 * close;
     }
     joints.current.forEach((joint, index) => {
-      if (joint) joint.rotation.x = CURL[index % CURL.length] * close;
+      if (joint) joint.rotation.x = cycle(CURL, index) * close;
     });
     // The thumb swings in across the front, then folds over.
     if (thumbBase.current) thumbBase.current.rotation.z = THUMB_OPEN + (THUMB_CLOSED - THUMB_OPEN) * close;
     thumb.current.forEach((joint, depth) => {
-      if (joint) joint.rotation.x = CURL[depth + 1] * close;
+      if (joint) joint.rotation.x = itemAt(CURL, depth + 1) * close;
     });
     const palmSkin = palm.current?.material as MeshStandardMaterial | undefined;
     if (palmSkin) palmSkin.userData.uniforms.uTime.value = t;
@@ -171,8 +173,8 @@ export function HellHand({ groundY }: { groundY: number }) {
     const open = smooth(ramp(0, GRAB_SECONDS * 0.25)) * (1 - ramp(GRAB_SECONDS + SINK_SECONDS, SEAL_SECONDS));
     const crackGlow = crack.current?.material as ShaderMaterial | undefined;
     if (crackGlow) {
-      crackGlow.uniforms.uOpen.value = open;
-      crackGlow.uniforms.uTime.value = t;
+      uniform(crackGlow, "uOpen").value = open;
+      uniform(crackGlow, "uTime").value = t;
     }
     if (embers.current) embers.current.visible = open > 0.05;
   });
@@ -237,7 +239,7 @@ function Finger({
   depth?: number;
   onJoint: (depth: number, joint: Group | null) => void;
 }) {
-  const [length, ...rest] = lengths;
+  const [length = 0, ...rest] = lengths;
   return (
     <group ref={(joint) => onJoint(depth, joint)}>
       <mesh material={skin} position-y={length / 2}>

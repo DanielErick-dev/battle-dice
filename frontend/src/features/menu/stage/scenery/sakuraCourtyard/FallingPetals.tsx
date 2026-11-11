@@ -15,6 +15,7 @@ import {
 } from "three";
 import { useSoftDisc } from "../kit/matchAssets";
 import { seededRandom } from "@/game/domain/core/random";
+import { cycle } from "@/features/shared/collections/items";
 
 const PETALS = 140;
 
@@ -81,7 +82,7 @@ export function FallingPetals({
   const petals = useMemo(() => {
     const random = seededRandom(43);
     return Array.from({ length: PETALS }, (_, index) => {
-      const crown = crowns[index % crowns.length];
+      const crown = cycle(crowns, index);
       const angle = random() * Math.PI * 2;
       const out = Math.sqrt(random()) * crown.radius;
       const top = crown.y + (random() - 0.3) * crown.radius * 0.6;

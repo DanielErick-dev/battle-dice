@@ -121,7 +121,9 @@ function releaseOf({ release, doubled }: { release: number; doubled: boolean }, 
     tiles: !item ? [] : harm ? harmGround({ ...view, board }) : spellGround({ ...view, board }),
     confirmLabel: harm ? "Abrir fenda" : "Soltar",
     cursor: "void",
-    send: (store, [tile]) => store.placeVoid(release, tile, doubled),
+    send: (store, [tile]) => {
+      if (tile !== undefined) store.placeVoid(release, tile, doubled);
+    },
   };
 }
 

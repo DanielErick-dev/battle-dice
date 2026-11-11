@@ -13,7 +13,8 @@ import {
   type Blocker,
   type Bounds,
 } from "../shared/trailPlan";
-import { PIECES, SCATTER, WRECKS } from "./catalog";
+import { PIECES, SCATTER, WRECKS, type PieceId } from "./catalog";
+import { pick } from "@/features/shared/collections/items";
 
 /** Room between the trail and the edge of the ruins. */
 const MARGIN = { side: 9, back: 8, front: 5 };
@@ -42,7 +43,7 @@ export function planWasteland(trail: readonly Vec3[]): WastelandPlan {
   const wrecks: KitItem[] = [];
   const fires: Vec3[] = [];
   const taken: Blocker[] = [];
-  const put = (list: KitItem[], piece: string, x: number, z: number, turn: number) => {
+  const put = (list: KitItem[], piece: PieceId, x: number, z: number, turn: number) => {
     const { scale, size } = PIECES[piece];
     list.push({ piece, x, y: FLOOR, z, turn, scale });
     taken.push({ x, z, radius: footprint(size, scale) });
@@ -103,7 +104,7 @@ export function planWasteland(trail: readonly Vec3[]): WastelandPlan {
     const z = minZ + random() * (maxZ - minZ);
     const { distance, dx, dz } = trailNearest(trail, x, z);
     if (distance < 2.4 || distance > 3.6 || !clearOfStart(trail, x, z, 2)) continue;
-    const piece = WRECKS[Math.floor(random() * WRECKS.length)];
+    const piece = pick(WRECKS, random());
     const { scale, size } = PIECES[piece];
     const radius = footprint(size, scale);
     if (!isFree(taken, x, z, radius, 0.3) || hidesTiles(trail, x, z, size[1] * scale, radius)) continue;

@@ -273,8 +273,8 @@ export function ScribeIntro({
       const lower = lowerRods.current[index];
       if (lower) lower.position.y = -SHEET_HEIGHT * unroll;
 
-      materials.parchment[index].setValues({ alphaTest: 0.001 + burn * 0.999 });
-      materials.runes[index].setValues({
+      materials.parchment[index]?.setValues({ alphaTest: 0.001 + burn * 0.999 });
+      materials.runes[index]?.setValues({
         alphaTest: 0.001 + burn * 0.999,
         opacity: unroll * (0.55 + 0.3 * Math.sin(t * 3 + index * 2)),
       });

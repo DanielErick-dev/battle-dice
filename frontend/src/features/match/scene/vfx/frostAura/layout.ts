@@ -1,6 +1,7 @@
 import { BufferAttribute, BufferGeometry } from "three";
 import { seededRandom } from "@/game/domain/core/random";
 import { iceShard } from "@/features/characters/shared/ice";
+import { cycle } from "@/features/shared/collections/items";
 
 /** Height of the aura (effects units: a figure modelled 1.9 tall, see EFFECT_SCALE). */
 export const HEIGHT = 2.2;
@@ -11,9 +12,9 @@ export const IGNITE_RATE = 4;
 export const MELT_RATE = 1.2;
 /** Tiny ice crystals orbiting him in three tilted bands (heights), tumbling as they go. */
 const CRYSTALS = 18;
-const BANDS = [0.55, 1.05, 1.55];
-const ORBIT = [0.55, 0.8];
-const CRYSTAL_SIZE = [0.07, 0.13];
+const BANDS = [0.55, 1.05, 1.55] as const;
+const ORBIT = [0.55, 0.8] as const;
+const CRYSTAL_SIZE = [0.07, 0.13] as const;
 /** Seconds for a crystal to fly out of his chest to its orbit, and between one and the next. */
 export const BURST_SECONDS = 0.6;
 export const BURST_STAGGER = 0.02;
@@ -39,14 +40,14 @@ export function makeCrystals() {
     const band = index % BANDS.length;
     return {
       geometry,
-      height: BANDS[band] + (random() - 0.5) * 0.15,
+      height: cycle(BANDS, index) + (random() - 0.5) * 0.15,
       tilt: (random() - 0.5) * 0.5,
       angle: (index / CRYSTALS) * Math.PI * 2 + (random() - 0.5) * 0.5,
       radius: ORBIT[0] + random() * (ORBIT[1] - ORBIT[0]),
       // Neighbouring bands orbit opposite ways.
       speed: (band % 2 ? -1 : 1) * (0.3 + random() * 0.3),
       size: CRYSTAL_SIZE[0] + random() * (CRYSTAL_SIZE[1] - CRYSTAL_SIZE[0]),
-      tumble: [random() * 2 - 1, random() * 2 - 1, random() * 2 - 1].map((x) => x * 1.6),
+      tumble: [(random() * 2 - 1) * 1.6, (random() * 2 - 1) * 1.6, (random() * 2 - 1) * 1.6] as const,
       bob: random() * Math.PI * 2,
       glint: 0.6 + random() * 0.8,
     };

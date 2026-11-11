@@ -42,10 +42,12 @@ export const fairySteps: StepHandlers<
   tilesEnchanted: (event, timings) => {
     // Snow streams from her wand to each harmful tile ahead in turn (the camera following it),
     // and the tile blooms, enchanted for good, as it lands; then back to her.
-    const landed = (view: MatchView, index: number): MatchView =>
-      index < 0
+    const landed = (view: MatchView, index: number): MatchView => {
+      const tile = event.tiles[index];
+      return tile === undefined
         ? view
-        : { ...view, enchantedTiles: [...view.enchantedTiles, { tile: event.tiles[index], owner: event.playerId }] };
+        : { ...view, enchantedTiles: [...view.enchantedTiles, { tile, owner: event.playerId }] };
+    };
     return [
       ...event.tiles.map((tile, index) => ({
         apply: (view: MatchView) =>
@@ -62,14 +64,16 @@ export const fairySteps: StepHandlers<
   },
   tilesFrozen: (event, timings) => {
     // As with the snow before it: a stream from her wand to each tile she picked, freezing as it lands.
-    const landed = (view: MatchView, index: number): MatchView =>
-      index < 0 || !view.winter
+    const landed = (view: MatchView, index: number): MatchView => {
+      const tile = event.tiles[index];
+      return tile === undefined || !view.winter
         ? view
         : {
             ...view,
-            winter: { ...view.winter, iced: [...view.winter.iced, event.tiles[index]] },
-            blackFlames: view.blackFlames.filter((flame) => flame.tile !== event.tiles[index]),
+            winter: { ...view.winter, iced: [...view.winter.iced, tile] },
+            blackFlames: view.blackFlames.filter((flame) => flame.tile !== tile),
           };
+    };
     return [
       ...event.tiles.map((tile, index) => ({
         apply: (view: MatchView) =>

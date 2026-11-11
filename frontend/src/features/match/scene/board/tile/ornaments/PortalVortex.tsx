@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { AdditiveBlending, Color, type ShaderMaterial } from "three";
 import { TILE_HEIGHT, TILE_SIZE } from "@/features/shared/board/boardLayout";
+import { uniform } from "@/features/shared/three/uniform";
 
 const VERTEX = /* glsl */ `
   varying vec2 vUv;
@@ -76,8 +77,8 @@ export function PortalVortex({ color, active, phase }: PortalVortexProps) {
   useFrame((_, delta) => {
     const current = material.current;
     if (!current) return;
-    current.uniforms.uTime.value += delta;
-    const energy = current.uniforms.uEnergy;
+    uniform(current, "uTime").value += delta;
+    const energy = uniform(current, "uEnergy");
     energy.value += ((active ? 1 : 0) - energy.value) * Math.min(1, delta * ENERGY_RATE);
   });
 

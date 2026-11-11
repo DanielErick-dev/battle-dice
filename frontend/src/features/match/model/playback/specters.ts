@@ -2,6 +2,7 @@
 import { SPECTER_KINDS } from "@/game/domain/characters/warden/specters";
 import { withPlayer } from "../matchView";
 import type { StepHandlers } from "./types";
+import { itemAt } from "@/features/shared/collections/items";
 
 export const spectersSteps: StepHandlers<
   "spectersSummoned" | "specterStruck" | "spectersDispelled" | "plunderOffered"
@@ -14,7 +15,7 @@ export const spectersSteps: StepHandlers<
           ...view,
           specters: [
             ...view.specters,
-            ...event.tiles.map((tile, index) => ({ tile, owner: event.playerId, kind: SPECTER_KINDS[index] })),
+            ...event.tiles.map((tile, index) => ({ tile, owner: event.playerId, kind: itemAt(SPECTER_KINDS, index) })),
           ],
         }),
         durationMs: timings.noticeMs,

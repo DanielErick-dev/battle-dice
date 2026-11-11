@@ -24,6 +24,7 @@ import {
 } from "./layout";
 import { createFrostMaterials, createGlintMaterials } from "./materials";
 import { useStarTexture } from "./starTexture";
+import { uniform } from "@/features/shared/three/uniform";
 
 /**
  * Bjorn's Untamed, while it lasts: a blizzard hugging him (see shader.ts), tiny ice
@@ -78,8 +79,8 @@ export function FrostAura({ active, delay }: { active: boolean; delay: number })
       [materials.mist, 1],
       [materials.gale, 1.4],
     ] as const) {
-      material.uniforms.uTime.value += delta * speed;
-      material.uniforms.uPower.value = strength;
+      uniform(material, "uTime").value += delta * speed;
+      uniform(material, "uPower").value = strength;
     }
 
     // The crystals burst out of his chest to their orbits, circle him tumbling and bobbing, and drop
@@ -107,7 +108,7 @@ export function FrostAura({ active, delay }: { active: boolean; delay: number })
       sprite.visible = visible && twinkle > 0.02;
       sprite.position.copy(mesh.position);
       sprite.scale.setScalar(0.08 + twinkle * 0.22);
-      glintMaterials[index].setValues({ opacity: strength * twinkle * 0.8 });
+      glintMaterials[index]?.setValues({ opacity: strength * twinkle * 0.8 });
     });
     materials.crystal.setValues({ opacity: Math.min(1, strength * 1.4) });
 

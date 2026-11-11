@@ -12,6 +12,7 @@ import {
   type IslandShape,
 } from "./terrain";
 import { CAPS, CLUTTER, KIT_SCALE, ONCE, PIECES, REGIONS, type Piece, type PieceId } from "./townPieces";
+import { itemAt, pick } from "@/features/shared/collections/items";
 
 /** One piece set down on the island. */
 export interface Placement {
@@ -48,13 +49,15 @@ function nearestTile(trail: readonly Vec3[], x: number, z: number): number {
 
 /** The ground under a piece if it's fit to build on: dry, green, near level; else null. */
 function buildingSite(shape: IslandShape, x: number, z: number, radius: number): number | null {
-  const corners = [
-    [x - radius, z - radius],
-    [x + radius, z - radius],
-    [x - radius, z + radius],
-    [x + radius, z + radius],
-    [x, z],
-  ].map(([cx, cz]) => groundAt(shape, cx, cz));
+  const corners = (
+    [
+      [x - radius, z - radius],
+      [x + radius, z - radius],
+      [x - radius, z + radius],
+      [x + radius, z + radius],
+      [x, z],
+    ] as const
+  ).map(([cx, cz]) => groundAt(shape, cx, cz));
   if (corners.some(({ cover }) => cover !== "grass" && cover !== "meadow" && cover !== "earth" && cover !== "paving"))
     return null;
   const heights = corners.map(({ height }) => height);
@@ -92,7 +95,7 @@ export function planSettlements(shape: IslandShape, trail: readonly Vec3[]): Set
   const built = new Set<PieceId>();
 
   const facingTrail = (x: number, z: number) => {
-    const [tx, , tz] = trail[nearestTile(trail, x, z)];
+    const [tx, , tz] = itemAt(trail, nearestTile(trail, x, z));
     return Math.atan2(tx - x, tz - z);
   };
   const place = (piece: PieceId, x: number, y: number, z: number, turn: number, scale = 1) => {
@@ -117,9 +120,10 @@ export function planSettlements(shape: IslandShape, trail: readonly Vec3[]): Set
   };
 
   // The village gate the race sets out from, across the road just behind the start's plaza.
-  if (trail.length > 1) {
-    const [sx, , sz] = trail[0];
-    const [dx, dz] = [trail[1][0] - sx, trail[1][2] - sz];
+  const [first, second] = trail;
+  if (first && second) {
+    const [sx, , sz] = first;
+    const [dx, dz] = [second[0] - sx, second[2] - sz];
     const length = Math.hypot(dx, dz) || 1;
     const back = TILE_PITCH * 0.5 + START_PLAZA + 0.7;
     const [gx, gz] = [sx - (dx / length) * back, sz - (dz / length) * back];
@@ -153,7 +157,7 @@ export function planSettlements(shape: IslandShape, trail: readonly Vec3[]): Set
     const x = (random() * 2 - 1) * shape.halfWidth;
     const z = shape.centerZ + (random() * 2 - 1) * shape.halfDepth;
     const along = nearestTile(trail, x, z) / Math.max(1, trail.length - 1);
-    const region = REGIONS.find(({ until }) => along <= until) ?? REGIONS[REGIONS.length - 1];
+    const region = REGIONS.find(({ until }) => along <= until) ?? itemAt(REGIONS, REGIONS.length - 1);
     if (random() > region.density) continue;
     const pieces = region.pieces.filter(
       ([piece]) =>
@@ -166,7 +170,7 @@ export function planSettlements(shape: IslandShape, trail: readonly Vec3[]): Set
       const angle = random() * Math.PI * 2;
       const [cx, cz] = [x + Math.cos(angle) * (radius + 0.35), z + Math.sin(angle) * (radius + 0.35)];
       if (trailDistance(shape, cx, cz) - TRAIL_EARTH < 0.3) continue;
-      const clutter = CLUTTER[Math.floor(random() * CLUTTER.length)];
+      const clutter = pick(CLUTTER, random());
       placements.push({
         piece: clutter,
         x: cx,

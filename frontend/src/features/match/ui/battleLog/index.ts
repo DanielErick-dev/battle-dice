@@ -45,7 +45,8 @@ const LINES: LogLines<GameEvent["type"]> = {
 export function battleLogLine(event: GameEvent, players: readonly Player[]): LogLine | null {
   const who = (id: PlayerId): string => {
     const seat = players.findIndex((player) => player.id === id);
-    return seat < 0 ? "?" : `J${seat + 1} (${players[seat].name})`;
+    const player = players[seat];
+    return player ? `J${seat + 1} (${player.name})` : "?";
   };
   const line = (actor: PlayerId, text: string): LogLine => ({ actor, text });
   const write = LINES[event.type] as (event: GameEvent, tools: LogTools) => LogLine | null;

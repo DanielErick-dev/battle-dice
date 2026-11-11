@@ -7,6 +7,7 @@ import { seededRandom } from "@/game/domain/core/random";
 import { useCanvasTexture } from "@/features/shared/three/canvasTexture";
 import { HALF_WIDTH } from "./layout";
 import { paintLeaf } from "./textures";
+import { cycle } from "@/features/shared/collections/items";
 
 const LEAVES = 30;
 
@@ -23,14 +24,14 @@ export function LeafSpiral() {
     const material = new MeshStandardMaterial({ map: texture, alphaTest: 0.5, side: DoubleSide, roughness: 0.8 });
     const mesh = new InstancedMesh(geometry, material, LEAVES);
     const leaves = Array.from({ length: LEAVES }, (_, index) => {
-      mesh.setColorAt(index, LEAF_TINTS[index % LEAF_TINTS.length]);
+      mesh.setColorAt(index, cycle(LEAF_TINTS, index));
       return {
         angle: random() * Math.PI * 2,
         height: random() * LEAF_HEIGHT,
         rise: 0.18 + random() * 0.16,
         spin: 0.9 + random() * 0.6,
         inner: 0.3 + random() * 0.15,
-        tumble: [random() * 3, random() * 3, random() * 3],
+        tumble: [random() * 3, random() * 3, random() * 3] as const,
         size: 0.7 + random() * 0.6,
       };
     });

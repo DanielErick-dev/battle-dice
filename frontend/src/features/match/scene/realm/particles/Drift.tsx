@@ -7,6 +7,7 @@ import type { RealmMix } from "../mix/realmMix";
 import { useRealmMix } from "../mix/useRealmMix";
 import { driftCloud } from "./layout";
 import { POINTS_FRAGMENT, POINTS_VERTEX } from "./shaders";
+import { uniform } from "@/features/shared/three/uniform";
 
 interface DriftProps {
   realm: keyof RealmMix;
@@ -55,8 +56,8 @@ export function Drift({ realm, count, radius, floor, ceiling, color, size, rise,
     if (!current) return;
     const amount = mix.current[realm];
     current.visible = amount > 0.01;
-    current.uniforms.uTime.value += delta;
-    current.uniforms.uOpacity.value = amount;
+    uniform(current, "uTime").value += delta;
+    uniform(current, "uOpacity").value = amount;
   });
 
   return (

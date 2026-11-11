@@ -21,6 +21,7 @@ import { FlaskBubbles } from "./FlaskBubbles";
 import { BENCH, BENCH_TOP, flaskHeight, FLASKS } from "./layout";
 import { paintChalkCircle, paintLabFloor } from "./textures";
 import { useSoftDisc } from "../kit/matchAssets";
+import { itemAt } from "@/features/shared/collections/items";
 
 const CIRCLE_SIZE = 1.3;
 
@@ -47,6 +48,7 @@ const BEAK: [number, number, number][] = [
   [0.24, 0.26, 0.03],
   [0.31, 0.19, 0.04],
 ];
+const BEAK_TIP = itemAt(BEAK, BEAK.length - 1);
 
 const RECEIVER = { x: 0.31, z: 0.04, size: 0.05 };
 
@@ -140,7 +142,7 @@ export function AlchemyLab() {
     if (drop.current) {
       // A drop gathers at the beak's tip, then falls into the receiver.
       const life = (t * 0.55) % 1;
-      const [x, y, z] = BEAK[BEAK.length - 1];
+      const [x, y, z] = BEAK_TIP;
       const fall = life < 0.7 ? 0 : (life - 0.7) / 0.3;
       drop.current.position.set(x, y - 0.012 - fall * fall * 0.07, z);
       drop.current.scale.setScalar(0.006 * Math.min(1, life / 0.7 + 0.3));
@@ -184,14 +186,20 @@ export function AlchemyLab() {
         )}
         {FLASKS.map((flask, index) => (
           <group key={index} position={[flask.x, BENCH_TOP, flask.z]}>
-            <Flask {...flask} glass={materials.glass} liquid={materials.liquids[index]} cork={materials.cork} />
+            <Flask {...flask} glass={materials.glass} liquid={itemAt(materials.liquids, index)} cork={materials.cork} />
             <sprite material={materials.halo} position-y={flaskHeight(flask) * 0.4} scale={flask.size * 6} />
           </group>
         ))}
         <FlaskBubbles />
         {/* Below: a stoppered jar and a ledger. */}
         <group position={[-0.16, 0.1525, 0]}>
-          <Flask kind="tall" size={0.035} glass={materials.glass} liquid={materials.liquids[2]} cork={materials.cork} />
+          <Flask
+            kind="tall"
+            size={0.035}
+            glass={materials.glass}
+            liquid={itemAt(materials.liquids, 2)}
+            cork={materials.cork}
+          />
         </group>
         <mesh material={materials.leather} position={[0.12, 0.1525 + 0.02, 0.01]} rotation-y={0.2}>
           <boxGeometry args={[0.18, 0.04, 0.13]} />
@@ -250,7 +258,13 @@ export function AlchemyLab() {
           <planeGeometry args={[0.3, 0.22]} />
         </mesh>
         <group position={[0, 0.02, 0]} rotation-z={Math.PI / 2}>
-          <Flask kind="tall" size={0.02} glass={materials.glass} liquid={materials.liquids[0]} cork={materials.cork} />
+          <Flask
+            kind="tall"
+            size={0.02}
+            glass={materials.glass}
+            liquid={itemAt(materials.liquids, 0)}
+            cork={materials.cork}
+          />
         </group>
       </group>
       <group position={[-0.62, 0, 0.26]} rotation-y={0.6}>

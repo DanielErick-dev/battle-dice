@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Vec3 } from "@/features/shared/board/boardLayout";
 import { corridorSpan, crackSegments, everyNthDepth, WALL_HEIGHT } from "./layout";
+import { itemAt } from "@/features/shared/collections/items";
 
 const track: Vec3[] = [0, 1, 2, 3, 4, 5, 6].map((index) => [12, 0.5, -index * 2]);
 
@@ -27,9 +28,10 @@ describe("a realm corridor's layout", () => {
   it("zigzags a crack down from near the wall's top, the same for a seed", () => {
     const segments = crackSegments(3);
     expect(segments).toHaveLength(5);
-    expect(segments[0].y).toBeLessThan(WALL_HEIGHT * 0.9);
-    for (let index = 1; index < segments.length; index++) expect(segments[index].y).toBeLessThan(segments[index - 1].y);
-    expect(Math.sign(segments[0].tilt)).not.toBe(Math.sign(segments[1].tilt));
+    expect(segments[0]?.y).toBeLessThan(WALL_HEIGHT * 0.9);
+    for (let index = 1; index < segments.length; index++)
+      expect(segments[index]?.y).toBeLessThan(itemAt(segments, index - 1).y);
+    expect(Math.sign(itemAt(segments, 0).tilt)).not.toBe(Math.sign(itemAt(segments, 1).tilt));
     expect(crackSegments(3)).toEqual(segments);
   });
 });

@@ -62,7 +62,7 @@ const GROUND_ARROWS = [
   { x: -0.46, z: 0.42, tilt: [0.25, 0.15] },
   { x: -0.36, z: 0.52, tilt: [0.18, -0.2] },
   { x: 0.44, z: 0.48, tilt: [0.22, -0.18] },
-];
+] as const;
 
 const MUSHROOM_CLUSTERS = [
   { x: -0.02, z: -0.66, count: 4 },

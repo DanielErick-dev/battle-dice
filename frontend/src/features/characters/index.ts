@@ -71,9 +71,12 @@ export const MAX_LOCAL_PLAYERS = 8;
  * The characters in a comma-separated list (as kept in the URL and the preferences): the playable
  * ones, at most MAX_LOCAL_PLAYERS, the default character when none is left.
  */
-export function parseCharacterList(list: string): CharacterId[] {
-  const ids = list.split(",").filter(isPlayableCharacter).slice(0, MAX_LOCAL_PLAYERS);
-  return ids.length > 0 ? ids : [DEFAULT_CHARACTER_ID];
+export function parseCharacterList(list: string): [CharacterId, ...CharacterId[]] {
+  const [first = DEFAULT_CHARACTER_ID, ...rest] = list
+    .split(",")
+    .filter(isPlayableCharacter)
+    .slice(0, MAX_LOCAL_PLAYERS);
+  return [first, ...rest];
 }
 
 /** A local player: their player id and name, the character they play and its ability. */

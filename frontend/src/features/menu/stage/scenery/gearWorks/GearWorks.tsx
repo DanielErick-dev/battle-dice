@@ -22,7 +22,7 @@ const FLOOR_GEARS = [
   { teeth: 20, angle: 0, spokes: 6 },
   { teeth: 12, angle: (140 * Math.PI) / 180, spokes: 4 },
   { teeth: 14, angle: (38 * Math.PI) / 180, spokes: 5 },
-];
+] as const;
 
 /** Loose cogs dropped on the floor at the sides. */
 const LOOSE_COGS = [
@@ -181,7 +181,7 @@ function gearGeometry(teeth: number, spokes: number): ExtrudeGeometry {
       [outer, at - pitch * 0.17],
       [outer, at + pitch * 0.17],
       [root, at + pitch * 0.3],
-    ];
+    ] as const;
     corners.forEach(([radius, angle], corner) => {
       const x = Math.cos(angle) * radius;
       const y = Math.sin(angle) * radius;

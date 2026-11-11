@@ -86,7 +86,8 @@ export function LightRays({ wind }: { wind: RefObject<number> }) {
     const t = clock.elapsedTime;
     BEAMS.forEach(({ phase }, index) => {
       const flicker = wind.current * 0.12 * Math.sin(t * 47 + phase * 5);
-      materials[index].opacity = 0.1 + 0.07 * Math.sin(t * 0.6 + phase) + flicker;
+      const material = materials[index];
+      if (material) material.opacity = 0.1 + 0.07 * Math.sin(t * 0.6 + phase) + flicker;
     });
   });
 

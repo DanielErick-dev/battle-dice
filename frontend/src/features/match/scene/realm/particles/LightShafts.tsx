@@ -6,6 +6,7 @@ import { AdditiveBlending, Color, DoubleSide, type ShaderMaterial } from "three"
 import { useRealmMix } from "../mix/useRealmMix";
 import { shaftLayout } from "./layout";
 import { SHAFT_FRAGMENT, SHAFT_VERTEX } from "./shaders";
+import { uniform } from "@/features/shared/three/uniform";
 
 /** Beams of sunlight slanting down through the clouds while the celestial realm shows. */
 export function LightShafts({ radius }: { radius: number }) {
@@ -22,8 +23,8 @@ export function LightShafts({ radius }: { radius: number }) {
     materials.current.forEach((material, i) => {
       if (!material) return;
       material.visible = amount > 0.01;
-      material.uniforms.uOpacity.value = amount * (0.16 + 0.06 * Math.sin(clock.elapsedTime * 0.5 + i));
-      material.uniforms.uTime.value = clock.elapsedTime;
+      uniform(material, "uOpacity").value = amount * (0.16 + 0.06 * Math.sin(clock.elapsedTime * 0.5 + i));
+      uniform(material, "uTime").value = clock.elapsedTime;
     });
   });
 

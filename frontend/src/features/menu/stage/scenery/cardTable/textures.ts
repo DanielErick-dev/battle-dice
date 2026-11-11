@@ -132,7 +132,7 @@ function drawSuit(context: CanvasRenderingContext2D, suit: Suit, x: number, y: n
       [0, -0.45],
       [-0.5, 0.15],
       [0.5, 0.15],
-    ]) {
+    ] as const) {
       context.moveTo(x + dx * size + size * 0.45, y + dy * size);
       context.arc(x + dx * size, y + dy * size, size * 0.45, 0, Math.PI * 2);
     }
@@ -198,7 +198,7 @@ export const DIE_LOOKS: CanvasLook[] = [1, 6, 2, 5, 3, 4].map((pips) => ({
     context.fillStyle = "#f2ead8";
     context.fillRect(0, 0, 64, 64);
     context.fillStyle = pips === 1 ? "#c0142f" : "#1a1416";
-    for (const [px, py] of PIP_LAYOUT[pips]) {
+    for (const [px, py] of PIP_LAYOUT[pips] ?? []) {
       context.beginPath();
       context.arc(32 + px * 18, 32 + py * 18, pips === 1 ? 9 : 6, 0, Math.PI * 2);
       context.fill();

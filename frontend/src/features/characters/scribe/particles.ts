@@ -28,6 +28,7 @@ function createSparks() {
   const emit = (at: Vector3, t: number, unit: number) => {
     const spark = sparks[next];
     next = (next + 1) % SPARKS;
+    if (!spark) return;
     spark.origin.copy(at);
     spark.born = t;
     spark.drips = random() < 0.35;
@@ -74,7 +75,9 @@ export function useEmbers() {
       return { geometry, seeds };
     });
     const update = (index: number, burn: number, t: number) => {
-      const { geometry, seeds } = scrolls[index];
+      const scroll = scrolls[index];
+      if (!scroll) return;
+      const { geometry, seeds } = scroll;
       const positions = geometry.getAttribute("position") as BufferAttribute;
       const colours = geometry.getAttribute("color") as BufferAttribute;
       seeds.forEach((seed, point) => {

@@ -63,7 +63,7 @@ export function Ferns() {
           position={[x, 0, z]}
           scale={size}
         >
-          {fronds[fern].map(({ turn, tilt, size: frond }, index) => (
+          {(fronds[fern] ?? []).map(({ turn, tilt, size: frond }, index) => (
             <group key={index} rotation-y={turn}>
               <mesh geometry={geometry} rotation-x={tilt} scale={frond}>
                 <meshStandardMaterial map={texture} alphaTest={0.4} side={DoubleSide} roughness={0.9} />

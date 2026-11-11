@@ -13,6 +13,7 @@ import { createInitialView, type MatchView } from "../../model/matchView";
 import { FLAME_STEPS, FROST_STEPS, SEAL_STEPS, SPECTER_STEPS, VOID_SEIZE_STEP } from "../placementText";
 import { fairyBloom, forbiddenSeals, placementOf, spectralApparitions, theVoid } from "./placements";
 import type { AbilityScene } from "./types";
+import { itemAt } from "@/features/shared/collections/items";
 
 function sceneWith(patch: { player?: Partial<Player>; view?: Partial<MatchView> } = {}): AbilityScene {
   const state = createGame(
@@ -24,7 +25,7 @@ function sceneWith(patch: { player?: Partial<Player>; view?: Partial<MatchView> 
     { seed: 1 },
   );
   const view = { ...createInitialView(state), ...patch.view };
-  const player = { ...state.players[0], position: 5, ...patch.player };
+  const player = { ...itemAt(state.players, 0), position: 5, ...patch.player };
   return { board: state.board, view, player };
 }
 

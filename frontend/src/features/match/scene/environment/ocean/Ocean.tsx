@@ -7,6 +7,7 @@ import { SKY } from "../../realm/mix/palette";
 import { blendRealm } from "../../realm/mix/realmMix";
 import { useRealmMix } from "../../realm/mix/useRealmMix";
 import { OCEAN_FRAGMENT, OCEAN_VERTEX } from "./oceanShader";
+import { uniform } from "@/features/shared/three/uniform";
 
 interface OceanProps {
   /** Water surface height. */
@@ -52,12 +53,18 @@ export function Ocean({ level, size, shoreHalfSize, shoreCenterZ, moonPosition }
     const current = material.current;
     if (!current) return;
     const realm = mix.current;
-    current.uniforms.uTime.value += delta;
-    current.uniforms.uCelestial.value = realm.celestial;
-    blendRealm(current.uniforms.uHorizon.value, SKY.mortal.horizon, SKY.infernal.horizon, SKY.celestial.horizon, realm);
-    current.uniforms.uMoonPosition.value.set(...moonPosition);
-    current.uniforms.uShoreHalf.value.set(...shoreHalfSize);
-    current.uniforms.uShoreCenterZ.value = shoreCenterZ;
+    uniform(current, "uTime").value += delta;
+    uniform(current, "uCelestial").value = realm.celestial;
+    blendRealm(
+      uniform(current, "uHorizon").value,
+      SKY.mortal.horizon,
+      SKY.infernal.horizon,
+      SKY.celestial.horizon,
+      realm,
+    );
+    uniform(current, "uMoonPosition").value.set(...moonPosition);
+    uniform(current, "uShoreHalf").value.set(...shoreHalfSize);
+    uniform(current, "uShoreCenterZ").value = shoreCenterZ;
   });
 
   return (

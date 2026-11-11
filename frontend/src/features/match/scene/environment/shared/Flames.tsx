@@ -33,10 +33,11 @@ export function Flames({ flames }: { flames: readonly Vec3[] }) {
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
     sprites.current.forEach((sprite, index) => {
-      if (!sprite) return;
+      const material = materials[index];
+      if (!sprite || !material) return;
       const flicker = 1 + 0.15 * Math.sin(t * 11 + index * 1.7) + 0.1 * Math.sin(t * 23 + index);
       sprite.scale.setScalar(0.9 * flicker);
-      materials[index].opacity = 0.7 + 0.2 * Math.sin(t * 17 + index * 2.3);
+      material.opacity = 0.7 + 0.2 * Math.sin(t * 17 + index * 2.3);
     });
   });
   return flames.map((position, index) => (

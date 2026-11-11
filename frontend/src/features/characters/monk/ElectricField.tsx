@@ -3,6 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { DoubleSide, Vector3, type Group, type MeshBasicMaterial } from "three";
+import { itemAt } from "@/features/shared/collections/items";
 import { AdditiveMaterial } from "../shared/additive";
 import { jag, stripsGeometry, writeStrip } from "../shared/boltStrips";
 import { useDisposables } from "../shared/disposal";
@@ -40,6 +41,8 @@ const STRIPS = ARCS + RINGS;
 /** Working vectors for the frame loop (frames run one at a time, so instances can share them). */
 const scratch = { centre: new Vector3(), axis: new Vector3(), from: new Vector3() };
 const points = Array.from({ length: STRIP_POINTS }, () => new Vector3());
+const ringStart = itemAt(points, 0);
+const ringEnd = itemAt(points, RING_POINTS);
 
 /**
  * A field of electricity around the figure while its power gathers (Dormant Fury waiting for the
@@ -119,7 +122,7 @@ export function ElectricField({ active, color, size }: { active: boolean; color:
           scratch.centre.z + Math.sin(angle) * (radius + wobble),
         );
       });
-      points[RING_POINTS].copy(points[0]);
+      ringEnd.copy(ringStart);
       draw(strip, power.current * (ring === 0 ? 1 : 0.6), true);
     }
 

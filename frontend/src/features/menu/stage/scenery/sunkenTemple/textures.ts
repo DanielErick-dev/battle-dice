@@ -79,7 +79,7 @@ const drawSeabed: Painter = (context, size, random) => {
 /** A tiling net of bright lines: where each point is about as near two cells of a scattered grid (Voronoi edges). */
 function drawCaustics(context: CanvasRenderingContext2D, size: number) {
   const random = seededRandom(71);
-  const cells = Array.from({ length: 22 }, () => [random() * size, random() * size]);
+  const cells = Array.from({ length: 22 }, () => [random() * size, random() * size] as const);
   const image = context.createImageData(size, size);
   for (let py = 0; py < size; py++) {
     for (let px = 0; px < size; px++) {

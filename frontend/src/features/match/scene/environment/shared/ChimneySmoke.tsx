@@ -29,11 +29,12 @@ export function ChimneySmoke({ chimneys }: { chimneys: readonly Vec3[] }) {
     const now = clock.elapsedTime;
     puffs.current.forEach((puff, index) => {
       const chimney = chimneys[Math.floor(index / SMOKE_PUFFS)];
-      if (!puff || !chimney) return;
+      const material = materials[index];
+      if (!puff || !chimney || !material) return;
       const t = (now / SMOKE_SECONDS + (index % SMOKE_PUFFS) / SMOKE_PUFFS + index * 0.137) % 1;
       puff.position.set(chimney[0] + Math.sin(t * 3 + index) * 0.25 + t * 0.5, chimney[1] + t * SMOKE_RISE, chimney[2]);
       puff.scale.setScalar(0.35 + t * 1.1);
-      materials[index].opacity = 0.3 * Math.sin(t * Math.PI);
+      material.opacity = 0.3 * Math.sin(t * Math.PI);
     });
   });
   return (

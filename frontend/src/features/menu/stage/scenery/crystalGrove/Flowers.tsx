@@ -20,6 +20,7 @@ import { useCanvasTexture } from "@/features/shared/three/canvasTexture";
 import { CLUSTERS } from "./layout";
 import { paintPetals } from "./textures";
 import { useSoftDisc } from "../kit/matchAssets";
+import { pick } from "@/features/shared/collections/items";
 
 /** The fairy ring of glowing flowers round her feet, then a few more tucked at the crystals' feet. */
 const RING_FLOWERS = 15;
@@ -49,7 +50,7 @@ export function Flowers() {
       z,
       height: 0.035 + random() * 0.05,
       size: 0.035 + random() * 0.025,
-      tint: FLOWER_TINTS[Math.floor(random() * FLOWER_TINTS.length)],
+      tint: pick(FLOWER_TINTS, random()),
       tilt: (random() - 0.5) * 0.5,
       turn: random() * Math.PI * 2,
       phase: random() * Math.PI * 2,

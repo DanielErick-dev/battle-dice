@@ -15,6 +15,7 @@ import { SmoulderingCorner } from "./SmoulderingPage";
 import { SnapFires } from "./SnapFires";
 import { CHARACTERS } from "@/features/characters";
 import type { SceneryProps } from "../types";
+import { itemAt } from "@/features/shared/collections/items";
 
 /** The petals in the air all catch at the snap of his fingers in his intro. */
 const SNAP_SECONDS = CHARACTERS.akane.introChair?.snapSeconds ?? 0;
@@ -59,9 +60,9 @@ export function SakuraCourtyard({ intro }: SceneryProps) {
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
-    crowns.current.forEach((crown, index) => {
+    TREES.forEach(({ sway }, index) => {
+      const crown = crowns.current[index];
       if (!crown) return;
-      const { sway } = TREES[index];
       crown.rotation.z = Math.sin(t * 0.6 + sway) * 0.012;
       crown.rotation.x = Math.sin(t * 0.45 + 1 + sway) * 0.008;
     });
@@ -123,8 +124,8 @@ export function SakuraCourtyard({ intro }: SceneryProps) {
       </group>
       {/* Two closed notebooks in a pile, and a loose page. */}
       <group position={[-0.5, 0, 0.36]} rotation-y={0.7}>
-        <Notebook cover={materials.covers[1]} paper={materials.paper} level={0} />
-        <Notebook cover={materials.covers[2]} paper={materials.paper} level={1} />
+        <Notebook cover={itemAt(materials.covers, 1)} paper={materials.paper} level={0} />
+        <Notebook cover={itemAt(materials.covers, 2)} paper={materials.paper} level={1} />
       </group>
       <group position={[0.36, 0, -0.42]} rotation-y={2.6}>
         <mesh material={materials.page} position-y={0.004} rotation-x={-Math.PI / 2}>

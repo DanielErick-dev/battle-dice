@@ -26,7 +26,7 @@ export function MatchSetupScreen() {
   /** The seat the character picker fills. */
   const [picking, setPicking] = useState(0);
   const seat = Math.min(picking, seats.length - 1);
-  const characterId = seats[seat];
+  const characterId = seats[seat] ?? seats[0];
   const setSeats = (next: readonly string[]) => preferences.players.set(next.join(","));
   const matchHref =
     `/partida?tabuleiro=${encodeURIComponent(boardId)}&mapa=${encodeURIComponent(mapId)}` +
