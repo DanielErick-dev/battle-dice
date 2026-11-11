@@ -32,7 +32,7 @@ Linhas = código da própria pasta (sem subpastas e sem testes), contadas em 29/
 | `match/hooks/` | ⬜ | 107 | | Revisar. |
 | `match/ui/` | ✅ | 1130 | `MatchScreen` sem lógica de habilidade (etapa 2). Hooks e painéis em `screen/`, texto do log em `battleLog/` (07/11). | |
 | `match/ui/abilities/` | ✅ | 433 | Registro `ABILITY_FLOWS` (etapa 2). | |
-| `match/ui/cards/` | 🟡 | 1416 | Arte desenhada em `art/`, com snapshot (07/11). | Revisar o resto. A arte desenhada das cartas com imagem em `CARD_IMAGES` nunca aparece. |
+| `match/ui/cards/` | 🟡 | 1416 | Arte desenhada em `art/`, com snapshot (07/11). Cartas com imagem em `CARD_IMAGES` voltam para a arte desenhada se a imagem falhar (11/11). | Revisar o resto. |
 | `match/ui/hud/` | 🟡 | 1423 | Texto do banner em `effectCopy/`, com snapshot (07/11). | Revisar o resto. |
 | `match/scene/` (raiz) | ✅ | | Raiz separada em `board/`, `camera/`, `token/` e `vfx/` (07/11). Efeitos fora do `PlayerToken`/`BoardScene` (etapa 4). `PlayerToken` 571 → 243 linhas: movimento e pose viraram funções puras e testadas em `token/` (29/10). `BoardScene` 379 → 252 (07/11): luzes em `SceneLights`, contas do tabuleiro em `board/boardState.ts`, câmera em `camera/cameraCues.ts`, etiquetas em `token/tokenCues.ts`. | |
 | `match/scene/board/` | 🟡 | | Casas em `board/tile/` (07/11): `TileMesh` 447 → 193, com `theme/`, `face/` e `ornaments/` (um enfeite por arquivo). | Revisar `DiceThrow.tsx` e `TileLinks.tsx`. |

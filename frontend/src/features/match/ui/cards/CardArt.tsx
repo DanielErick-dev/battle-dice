@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import type { CardId } from "@/game/domain/cards/catalog";
 import { ART } from "./art";
 
@@ -36,7 +39,7 @@ export const CARD_PALETTE: Readonly<Record<CardId, { from: string; to: string }>
   riftCall: { from: "#5b21b6", to: "#0a0a0a" },
 };
 
-/** Painted illustrations (public/cards/), shown instead of the drawn artwork; the rest are still drawn below. */
+/** Painted illustrations (public/cards/); the drawn artwork stays as the fallback if one fails to load. */
 const CARD_IMAGES: Partial<Record<CardId, string>> = {
   blindJustice: "/cards/blindJustice.webp",
   confiscation: "/cards/confiscation.webp",
@@ -50,12 +53,37 @@ const CARD_IMAGES: Partial<Record<CardId, string>> = {
   scarletSupernova: "/cards/scarletSupernova.webp",
 };
 
-export function CardArt({ cardId }: { cardId: CardId }) {
+/** The painted image to show, or null to draw the card (no image, or this one already failed to load). */
+export function cardImage(cardId: CardId, failedSrc: string | null): string | null {
   const image = CARD_IMAGES[cardId];
+  return image && image !== failedSrc ? image : null;
+}
+
+export function CardArt({ cardId }: { cardId: CardId }) {
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const image = cardImage(cardId, failedSrc);
   if (image) {
-    // eslint-disable-next-line @next/next/no-img-element -- a tiny static file, not worth next/image's loader.
-    return <img src={image} alt="" draggable={false} className="h-full w-full object-cover" aria-hidden />;
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- a tiny static file, not worth next/image's loader.
+      <img
+        src={image}
+        alt=""
+        draggable={false}
+        className="h-full w-full object-cover"
+        aria-hidden
+        onError={() => setFailedSrc(image)}
+        // An image that failed before hydration never fires onError, so check it once mounted.
+        ref={(el) => {
+          if (el?.complete && el.naturalWidth === 0) setFailedSrc(image);
+        }}
+      />
+    );
   }
+  return <DrawnArt cardId={cardId} />;
+}
+
+/** The procedural SVG artwork, which every card has. */
+export function DrawnArt({ cardId }: { cardId: CardId }) {
   return (
     <svg viewBox="0 0 100 70" className="h-full w-full" aria-hidden>
       {ART[cardId]}
