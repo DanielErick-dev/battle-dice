@@ -65,7 +65,7 @@ interface Deal {
 }
 
 function dealPlayer({ id, name, ability = null }: NewPlayer, { startTile, cards, random, playsFirst }: Deal): Player {
-  const deck = buildDeck(id, cards, random);
+  const deck = buildDeck(cards, random);
   return {
     id,
     name,

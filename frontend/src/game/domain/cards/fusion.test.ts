@@ -7,15 +7,20 @@ import type { GameState } from "../core/state";
 
 const duo = () => newGame(CARD_PORTAL_TRAP_BOARD, { p1: null, p2: null });
 const aria = (state: GameState) => playerOf(state, "p1");
-/** Three plain copies, uids `a`, `b` and `c`; the fused card takes uid `a:fused`. */
+/** Three plain copies, uids `a`, `b` and `c`. */
 const triple = (cardId: CardId) => [card(cardId, "a"), card(cardId, "b"), card(cardId, "c")];
 const fuse = (state: GameState, cardId: CardId) => send(state, { type: "fuseCards", playerId: "p1", cardId });
+const fusedUid = (state: GameState) => aria(state).hand.find((held) => held.fused)?.uid ?? "";
+const fuseAndPlay = (state: GameState, cardId: CardId) => {
+  const fused = fuse(state, cardId).state;
+  return play(fused, "p1", fusedUid(fused));
+};
 
 describe("card fusion", () => {
   it("turns three plain copies into one fused card, free and without using the turn's card", () => {
     const start = withPlayer(duo(), "p1", { hand: [...triple("windStep"), card("healingHerb")], energy: 3 });
     const { state } = fuse(start, "windStep");
-    expect(aria(state).hand).toEqual([card("healingHerb"), { uid: "a:fused", cardId: "windStep", fused: true }]);
+    expect(aria(state).hand).toEqual([card("healingHerb"), { uid: fusedUid(state), cardId: "windStep", fused: true }]);
     expect(aria(state).energy).toBe(3);
     expect(state.cardsPlayedThisTurn).toBe(0);
   });
@@ -31,14 +36,14 @@ describe("card fusion", () => {
   it("heaven's relics fuse too: the Apotheosis readies the ability and grants another turn", () => {
     const hero = newGame(CARD_PORTAL_TRAP_BOARD, { p1: "doubleCast", p2: null });
     const start = withPlayer(hero, "p1", { hand: triple("ascension"), energy: 5, abilityCharge: 0 });
-    const { state } = play(fuse(start, "ascension").state, "p1", "a:fused");
+    const { state } = fuseAndPlay(start, "ascension");
     expect(aria(state).abilityCharge).toBeGreaterThan(0);
     expect(state.bonusTurn).toBe(true);
   });
 
   it("a fused Wind Step carries the player much further", () => {
     const start = withPlayer(duo(), "p1", { position: 5, hand: triple("windStep"), energy: 3 });
-    const { state } = play(fuse(start, "windStep").state, "p1", "a:fused");
+    const { state } = fuseAndPlay(start, "windStep");
     expect(aria(state).position).toBe(5 + FUSED_WIND_STEP_TILES);
   });
 });

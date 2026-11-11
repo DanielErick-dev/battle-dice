@@ -1,4 +1,4 @@
-import { randomItem } from "../../core/random";
+import { randomId, randomItem } from "../../core/random";
 import type { AbilityPower } from "../../abilities/ability";
 import { CARD_CATALOG, RARITY_LEVEL, rarityLevel } from "../../cards/catalog";
 import { throwOnPile } from "../../cards/decks";
@@ -114,7 +114,7 @@ function conjureEpics(draft: Draft, playerId: PlayerId): void {
   );
   for (let index = 0; index < CARD_GAMBLE_EPICS && pool.length > 0; index++) {
     const card: CardInstance = {
-      uid: `${playerId}:jackpot${draft.state.turn}:${index}`,
+      uid: randomId(draft.random),
       cardId: randomItem(pool, draft.random).id,
     };
     conjureCard(draft, playerId, card);
