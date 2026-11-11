@@ -7,5 +7,6 @@ Scripts Node que pegam os arquivos baixados do Meshy e geram os GLBs leves que o
 | `characters/build-characters.mjs` | Junta o modelo e as animações de cada personagem num GLB comprimido |
 | `characters/manifest.mjs` | Lista dos personagens, quais clipes cada um tem e as sequências montadas de partes |
 | `props/build-props.mjs` | Encolhe os objetos estáticos (tronos, varinha, asas, caveira…) |
+| `contract/generate-schema.mjs` | Gera `contracts/game.schema.json` dos tipos do TS (`npm run schema`); ver [contracts/README.md](../../contracts/README.md) |
 
 Como rodar, padrão de nomes e pastas: [docs/assets.md](../../docs/assets.md).

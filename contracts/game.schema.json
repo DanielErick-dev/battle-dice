@@ -1,0 +1,521 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "AbilityPower": {
+      "type": "string",
+      "enum": [
+        "flames",
+        "armour",
+        "halt",
+        "reverse",
+        "fortune"
+      ],
+      "description": "Ocular Awakening's flames or armour, Time Warp's halt or reverse, Card Gamble's \"fortune\" (thrown for cards)."
+    },
+    "CardId": {
+      "type": "string",
+      "enum": [
+        "windStep",
+        "healingHerb",
+        "arcaneShield",
+        "ancientScroll",
+        "luckyCharm",
+        "berserkFury",
+        "oracleEye",
+        "arcaneBlast",
+        "blindingFlash",
+        "mysticGate",
+        "fateRune",
+        "ancestralAwakening",
+        "fateSwap",
+        "abyssCall",
+        "celestialLight",
+        "heavenlyAegis",
+        "ascension",
+        "blindJustice",
+        "confiscation",
+        "justiceMark",
+        "containmentDecree",
+        "finalJudgment",
+        "hotBlood",
+        "emberStep",
+        "scarletFever",
+        "pureFuel",
+        "scarletSupernova",
+        "voidHunger",
+        "hungryRift",
+        "voidEcho",
+        "riftCall"
+      ]
+    },
+    "CommandResult": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "ok": {
+              "type": "boolean",
+              "const": true
+            }
+          },
+          "required": [
+            "ok"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "ok": {
+              "type": "boolean",
+              "const": false
+            },
+            "code": {
+              "$ref": "#/definitions/GameErrorCode"
+            }
+          },
+          "required": [
+            "ok",
+            "code"
+          ],
+          "additionalProperties": false
+        }
+      ],
+      "description": "Plain data, not an Error subclass: it has to survive a JSON trip from the server."
+    },
+    "GameCommand": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "rollDice"
+            },
+            "playerId": {
+              "$ref": "#/definitions/PlayerId"
+            }
+          },
+          "required": [
+            "type",
+            "playerId"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "forfeitTurn"
+            },
+            "playerId": {
+              "$ref": "#/definitions/PlayerId"
+            }
+          },
+          "required": [
+            "type",
+            "playerId"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "playCard"
+            },
+            "playerId": {
+              "$ref": "#/definitions/PlayerId"
+            },
+            "cardUid": {
+              "type": "string"
+            },
+            "targetId": {
+              "$ref": "#/definitions/PlayerId"
+            },
+            "value": {
+              "type": "number"
+            },
+            "sacrificeUids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Hand cards burnt to pay for a card that asks for them (see CardDefinition.sacrifices)."
+            }
+          },
+          "required": [
+            "type",
+            "playerId",
+            "cardUid"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "discardCard"
+            },
+            "playerId": {
+              "$ref": "#/definitions/PlayerId"
+            },
+            "cardUid": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "playerId",
+            "cardUid"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "sacrificeEnergy"
+            },
+            "playerId": {
+              "$ref": "#/definitions/PlayerId"
+            }
+          },
+          "required": [
+            "type",
+            "playerId"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "fuseCards"
+            },
+            "playerId": {
+              "$ref": "#/definitions/PlayerId"
+            },
+            "cardId": {
+              "$ref": "#/definitions/CardId"
+            }
+          },
+          "required": [
+            "type",
+            "playerId",
+            "cardId"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "activateAbility"
+            },
+            "playerId": {
+              "$ref": "#/definitions/PlayerId"
+            },
+            "cardUids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Hand cards (Transmutation) or discard pile cards (Resurrection)."
+            },
+            "sealTiles": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/TileId"
+              },
+              "description": "In SEAL_KINDS order."
+            },
+            "specterTiles": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/TileId"
+              },
+              "description": "In SPECTER_KINDS order."
+            },
+            "targetId": {
+              "$ref": "#/definitions/PlayerId",
+              "description": "Card Gamble (random when absent), Time Warp and Hell's Drag."
+            },
+            "volley": {
+              "type": "string",
+              "enum": [
+                "opponents",
+                "traps"
+              ],
+              "description": "Arrow Rain; traps by default."
+            },
+            "power": {
+              "$ref": "#/definitions/AbilityPower",
+              "description": "Ocular Awakening, Time Warp and Card Gamble's pick."
+            },
+            "flameTiles": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/TileId"
+              }
+            },
+            "frostTiles": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/TileId"
+              },
+              "description": "Crystal Fairy once Eternal Winter has begun."
+            },
+            "seizeTile": {
+              "$ref": "#/definitions/TileId",
+              "description": "Zarek's Void, idle long enough: the tile whose spell it takes over."
+            }
+          },
+          "required": [
+            "type",
+            "playerId"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "placeVoid"
+            },
+            "playerId": {
+              "$ref": "#/definitions/PlayerId"
+            },
+            "index": {
+              "type": "number"
+            },
+            "tile": {
+              "$ref": "#/definitions/TileId"
+            },
+            "doubled": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "type",
+            "playerId",
+            "index",
+            "tile"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "plunderCards"
+            },
+            "playerId": {
+              "$ref": "#/definitions/PlayerId"
+            },
+            "cardUids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "type",
+            "playerId",
+            "cardUids"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "answerWard"
+            },
+            "playerId": {
+              "$ref": "#/definitions/PlayerId"
+            },
+            "use": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "type",
+            "playerId",
+            "use"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "chooseGrace"
+            },
+            "playerId": {
+              "$ref": "#/definitions/PlayerId"
+            },
+            "blessing": {
+              "$ref": "#/definitions/TimedBlessing"
+            },
+            "cardId": {
+              "$ref": "#/definitions/CardId"
+            }
+          },
+          "required": [
+            "type",
+            "playerId"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "restart"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "GameErrorCode": {
+      "type": "string",
+      "enum": [
+        "NOT_YOUR_TURN",
+        "GAME_FINISHED",
+        "UNKNOWN_PLAYER",
+        "DISCARD_PENDING",
+        "NO_DISCARD_PENDING",
+        "UNKNOWN_CARD",
+        "CARD_ALREADY_PLAYED",
+        "NOT_ENOUGH_ENERGY",
+        "ALREADY_SHIELDED",
+        "DICE_BOOST_ACTIVE",
+        "INVALID_TARGET",
+        "INVALID_VALUE",
+        "NO_PORTAL_AHEAD",
+        "NO_HELL",
+        "WARD_PENDING",
+        "NO_WARD_PENDING",
+        "NO_ABILITY",
+        "CANNOT_FUSE",
+        "ABILITY_REACTIVE",
+        "ABILITY_NOT_READY",
+        "ENERGY_FULL",
+        "ABILITY_ALREADY_READY",
+        "EMPTY_HAND",
+        "EMPTY_DISCARD",
+        "HAND_FULL",
+        "NO_CARDS_LEFT",
+        "TOO_MANY_CARDS",
+        "INVALID_SEALS",
+        "SILENCED",
+        "INVALID_SPECTERS",
+        "INVALID_FLAMES",
+        "INVALID_FROST",
+        "PLUNDER_PENDING",
+        "NO_PLUNDER_PENDING",
+        "GRACE_PENDING",
+        "NO_GRACE_PENDING",
+        "INVALID_GRACE",
+        "VOID_FULL",
+        "INVALID_VOID",
+        "VOID_EMPTY",
+        "NO_HARM_AHEAD",
+        "NOT_YOUR_CARD",
+        "NO_SACRIFICE",
+        "INVALID_SACRIFICE",
+        "NO_INNER_FLAME",
+        "NO_FIRE"
+      ]
+    },
+    "GameUpdateMessage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "$ref": "#/definitions/OpaqueJson"
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OpaqueJson"
+          }
+        },
+        "seq": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "events",
+        "seq",
+        "state"
+      ]
+    },
+    "OpaqueJson": {
+      "type": "object",
+      "additionalProperties": {},
+      "description": "GameState and GameEvent go through the server untouched, so the schema only promises a JSON object."
+    },
+    "PlayerId": {
+      "type": "string"
+    },
+    "SnapshotMessage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "$ref": "#/definitions/OpaqueJson"
+        },
+        "seq": {
+          "type": "integer"
+        },
+        "localPlayerId": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/PlayerId"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The seat this screen plays; null = hot-seat, whoever must act plays here."
+        }
+      },
+      "required": [
+        "localPlayerId",
+        "seq",
+        "state"
+      ]
+    },
+    "TileId": {
+      "type": "number"
+    },
+    "TimedBlessing": {
+      "type": "string",
+      "enum": [
+        "wings",
+        "halo",
+        "inspiration",
+        "spring"
+      ],
+      "description": "Heaven's blessings, each lasting BLESSING_TURNS rounds (see blessings.ts)."
+    }
+  }
+}
