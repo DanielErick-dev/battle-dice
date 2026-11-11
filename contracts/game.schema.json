@@ -48,6 +48,58 @@
         "riftCall"
       ]
     },
+    "ClosedMessage": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "closed"
+        },
+        "to": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string",
+          "enum": [
+            "HOST_CLOSED",
+            "SEAT_RELEASED"
+          ],
+          "description": "HOST_CLOSED: the match ended for everyone; SEAT_RELEASED: the host freed this client's seat."
+        }
+      },
+      "required": [
+        "type",
+        "to",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "CommandMessage": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "command"
+        },
+        "clientId": {
+          "type": "string"
+        },
+        "requestId": {
+          "type": "integer",
+          "description": "Echoed in the result so the controller can match it to its pending send."
+        },
+        "command": {
+          "$ref": "#/definitions/GameCommand"
+        }
+      },
+      "required": [
+        "type",
+        "clientId",
+        "requestId",
+        "command"
+      ],
+      "additionalProperties": false
+    },
     "CommandResult": {
       "anyOf": [
         {
@@ -82,6 +134,47 @@
         }
       ],
       "description": "Plain data, not an Error subclass: it has to survive a JSON trip from the server."
+    },
+    "CommandResultMessage": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "commandResult"
+        },
+        "to": {
+          "type": "string"
+        },
+        "requestId": {
+          "type": "integer"
+        },
+        "result": {
+          "$ref": "#/definitions/WireCommandResult"
+        }
+      },
+      "required": [
+        "type",
+        "to",
+        "requestId",
+        "result"
+      ],
+      "additionalProperties": false
+    },
+    "ControllerMessage": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/JoinMessage"
+        },
+        {
+          "$ref": "#/definitions/CommandMessage"
+        },
+        {
+          "$ref": "#/definitions/ResyncMessage"
+        },
+        {
+          "$ref": "#/definitions/LeaveMessage"
+        }
+      ]
     },
     "GameCommand": {
       "anyOf": [
@@ -468,13 +561,281 @@
         "state"
       ]
     },
+    "HostErrorCode": {
+      "type": "string",
+      "enum": [
+        "NOT_SEATED",
+        "NOT_YOUR_SEAT",
+        "RESTART_NOT_ALLOWED"
+      ],
+      "description": "Refusals decided by the host before the rules run; never reach the domain."
+    },
+    "JoinMessage": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "join"
+        },
+        "clientId": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "player",
+            "spectator"
+          ],
+          "description": "\"spectator\" sees no secrets and sends no commands (the TV, or a phone still picking a seat)."
+        },
+        "seat": {
+          "$ref": "#/definitions/PlayerId",
+          "description": "Omitted: the seat this client already holds, else the first free one."
+        },
+        "name": {
+          "type": "string",
+          "description": "Shown to the table in presence."
+        },
+        "character": {
+          "type": "string",
+          "description": "The character the player wants; only a hint for a future pre-game lobby, the seats are fixed today."
+        }
+      },
+      "required": [
+        "type",
+        "clientId",
+        "role"
+      ],
+      "additionalProperties": false
+    },
+    "JoinRefusal": {
+      "type": "string",
+      "enum": [
+        "ROOM_FULL",
+        "SEAT_TAKEN",
+        "UNKNOWN_SEAT"
+      ]
+    },
+    "JoinRefusedMessage": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "joinRefused"
+        },
+        "to": {
+          "type": "string"
+        },
+        "reason": {
+          "$ref": "#/definitions/JoinRefusal"
+        }
+      },
+      "required": [
+        "type",
+        "to",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "LeaveMessage": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "leave"
+        },
+        "clientId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "clientId"
+      ],
+      "additionalProperties": false
+    },
     "OpaqueJson": {
       "type": "object",
       "additionalProperties": {},
       "description": "GameState and GameEvent go through the server untouched, so the schema only promises a JSON object."
     },
+    "PartyHostMessage": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/PartySnapshotMessage"
+        },
+        {
+          "$ref": "#/definitions/JoinRefusedMessage"
+        },
+        {
+          "$ref": "#/definitions/PartyUpdateMessage"
+        },
+        {
+          "$ref": "#/definitions/CommandResultMessage"
+        },
+        {
+          "$ref": "#/definitions/PresenceMessage"
+        },
+        {
+          "$ref": "#/definitions/ClosedMessage"
+        }
+      ]
+    },
+    "PartySnapshotMessage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "$ref": "#/definitions/OpaqueJson"
+        },
+        "type": {
+          "type": "string",
+          "const": "snapshot"
+        },
+        "to": {
+          "type": "string"
+        },
+        "seq": {
+          "type": "integer"
+        },
+        "localPlayerId": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/PlayerId"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "null = spectator."
+        }
+      },
+      "required": [
+        "localPlayerId",
+        "seq",
+        "state",
+        "to",
+        "type"
+      ]
+    },
+    "PartyUpdateMessage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "$ref": "#/definitions/OpaqueJson"
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OpaqueJson"
+          }
+        },
+        "type": {
+          "type": "string",
+          "const": "update"
+        },
+        "to": {
+          "type": "string"
+        },
+        "seq": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "events",
+        "seq",
+        "state",
+        "to",
+        "type"
+      ]
+    },
     "PlayerId": {
       "type": "string"
+    },
+    "PresenceMessage": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "presence"
+        },
+        "to": {
+          "type": "string"
+        },
+        "seats": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SeatPresence"
+          }
+        },
+        "spectators": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "type",
+        "to",
+        "seats",
+        "spectators"
+      ],
+      "additionalProperties": false,
+      "description": "Sent to every client whenever someone joins or leaves."
+    },
+    "ResyncMessage": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "resync"
+        },
+        "clientId": {
+          "type": "string"
+        },
+        "sinceSeq": {
+          "type": "integer",
+          "description": "The last seq this controller applied; the host replays what follows or sends a fresh snapshot."
+        }
+      },
+      "required": [
+        "type",
+        "clientId",
+        "sinceSeq"
+      ],
+      "additionalProperties": false
+    },
+    "SeatPresence": {
+      "type": "object",
+      "properties": {
+        "playerId": {
+          "$ref": "#/definitions/PlayerId"
+        },
+        "playerName": {
+          "type": "string",
+          "description": "The in-game player name."
+        },
+        "controllerName": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Who holds the seat (their join name), null while free."
+        },
+        "character": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Hint sent by the controller holding the seat."
+        }
+      },
+      "required": [
+        "playerId",
+        "playerName",
+        "controllerName",
+        "character"
+      ],
+      "additionalProperties": false
     },
     "SnapshotMessage": {
       "type": "object",
@@ -516,6 +877,47 @@
         "spring"
       ],
       "description": "Heaven's blessings, each lasting BLESSING_TURNS rounds (see blessings.ts)."
+    },
+    "WireCommandResult": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "ok": {
+              "type": "boolean",
+              "const": true
+            }
+          },
+          "required": [
+            "ok"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "ok": {
+              "type": "boolean",
+              "const": false
+            },
+            "code": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/GameErrorCode"
+                },
+                {
+                  "$ref": "#/definitions/HostErrorCode"
+                }
+              ]
+            }
+          },
+          "required": [
+            "ok",
+            "code"
+          ],
+          "additionalProperties": false
+        }
+      ]
     }
   }
 }

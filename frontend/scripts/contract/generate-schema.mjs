@@ -4,7 +4,15 @@ import { fileURLToPath } from "node:url";
 import { isDeepStrictEqual } from "node:util";
 import { createGenerator } from "ts-json-schema-generator";
 
-const ROOT_TYPES = ["GameCommand", "CommandResult", "GameErrorCode", "SnapshotMessage", "GameUpdateMessage"];
+const ROOT_TYPES = [
+  "GameCommand",
+  "CommandResult",
+  "GameErrorCode",
+  "SnapshotMessage",
+  "GameUpdateMessage",
+  "ControllerMessage",
+  "PartyHostMessage",
+];
 
 const frontendDir = fileURLToPath(new URL("../..", import.meta.url));
 export const SCHEMA_PATH = fileURLToPath(new URL("../../../contracts/game.schema.json", import.meta.url));

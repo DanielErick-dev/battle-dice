@@ -1,0 +1,59 @@
+import type { ControllerMessage, HostMessage } from "./protocol";
+import type { ControllerTransport, HostTransport } from "./transport";
+
+/** A controller end of a MemoryRoom; `offline` drops what the host sends it, like a phone losing signal. */
+export interface MemoryControllerTransport extends ControllerTransport {
+  offline: boolean;
+}
+
+/**
+ * In-process room: synchronous delivery, JSON round-tripped so nothing that can't cross a real wire slips through.
+ * Used by tests; also fine for a host and a spectator living in the same tab.
+ */
+export class MemoryRoom {
+  private readonly hostListeners = new Set<(message: ControllerMessage) => void>();
+  private readonly controllers = new Set<{ end: MemoryControllerTransport; deliver: (m: HostMessage) => void }>();
+  /** Every message the host sent, for tests that check nothing leaked. */
+  readonly sent: HostMessage[] = [];
+
+  readonly host: HostTransport = {
+    send: (message) => {
+      const copy = wire(message);
+      this.sent.push(copy);
+      this.controllers.forEach(({ end, deliver }) => {
+        if (!end.offline) deliver(copy);
+      });
+    },
+    onMessage: (listener) => {
+      this.hostListeners.add(listener);
+      return () => this.hostListeners.delete(listener);
+    },
+    close: () => this.hostListeners.clear(),
+  };
+
+  connect(): MemoryControllerTransport {
+    const listeners = new Set<(message: HostMessage) => void>();
+    const entry = {
+      end: {
+        offline: false,
+        send: (message: ControllerMessage) => {
+          const copy = wire(message);
+          this.hostListeners.forEach((listener) => listener(copy));
+        },
+        onMessage: (listener: (message: HostMessage) => void) => {
+          listeners.add(listener);
+          return () => listeners.delete(listener);
+        },
+        close: () => {
+          listeners.clear();
+          this.controllers.delete(entry);
+        },
+      },
+      deliver: (message: HostMessage) => listeners.forEach((listener) => listener(message)),
+    };
+    this.controllers.add(entry);
+    return entry.end;
+  }
+}
+
+const wire = <T>(message: T): T => JSON.parse(JSON.stringify(message)) as T;

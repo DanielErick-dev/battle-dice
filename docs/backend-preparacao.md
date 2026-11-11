@@ -63,6 +63,23 @@ Pendências levantadas na inspeção de arquitetura de 07/11/2026, pensando na *
 - **Fluxo**: muda o tipo no TS → `npm run schema` → commita o schema junto → no backend, `uv run datamodel-codegen ...` regenera `app/contracts/game.py`. Comando completo e opções em [contracts/README.md](../contracts/README.md).
 - **CI**: roda `npm run schema` e falha com `git diff --exit-code` se o arquivo mudou. Na máquina: `npm run schema:check`.
 
+## 4b. Modo festa: camada de transporte ✅
+
+TV mostra o tabuleiro (espectadora), cada jogador joga pelo celular. O jogo local (hot-seat) não muda.
+
+- **Feito em 11/11/2026** em `frontend/src/game/application/party/` (detalhes no [README da application](../frontend/src/game/application/README.md#modo-festa-tv--celulares-party)):
+  - `protocol.ts`: as mensagens JSON. Controle → sala: `join`, `command`, `resync`, `leave`. Sala → controle: `snapshot`, `joinRefused`, `update`, `commandResult`, `presence`, `closed`. Viraram schema (`ControllerMessage`, `PartyHostMessage`) em `contracts/game.schema.json`.
+  - `MatchHost`: a autoridade. Roda as regras pelo `LocalGameClient`, distribui assentos, manda a cada um só o que ele pode ver, confere que o comando é do assento de quem mandou, repete jogadas perdidas no `resync`.
+  - `Transport` (`send`/`onMessage`/`close`) com `BroadcastChannelTransport`: abas do mesmo navegador jogam pelo código da sala.
+  - `RemoteGameClient`: um `GameClient` sobre o `Transport`; o `MatchStore` e a tela da partida rodam em cima dele sem mudança.
+  - Testes em `party/party.test.ts` (dois celulares + TV, segredo, vez errada, resync, reconexão, sala cheia) e `features/match/model/partyMatch.test.ts`.
+- **Falta (telas)**: a tela da TV (lobby com código da sala + tabuleiro espectador, sem controles nem ampulheta) e a tela do celular (escolher assento, mão, dado, perguntas).
+- **O que o FastAPI precisa fornecer** (o mapeamento completo está em [contracts/README.md](../contracts/README.md#modo-festa-o-servidor-no-lugar-do-anfitrião)):
+  - salas com código e um WebSocket por conexão;
+  - o papel do `MatchHost`: `clientId` → assento, `seq` por sala, `update` projetado para cada conexão, `commandResult` com o `requestId`, `presence` a cada entrada e saída, histórico curto para o `resync`;
+  - o prazo de turno para quem cair (item 3);
+  - do lado do frontend, só um `WebSocketTransport` (o que ele faz está no README da application).
+
 ## 5. `game/` como pacote ⬜
 
 - npm workspaces: `packages/engine` (o atual `game/`) com tsconfig próprio sem DOM, `exports` públicos e vitest próprio.

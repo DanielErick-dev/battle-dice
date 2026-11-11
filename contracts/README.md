@@ -16,11 +16,28 @@ O contrato não é do frontend nem do backend, é dos dois. Na raiz, `frontend/`
 | `SnapshotMessage` | `Snapshot` do `gameClient.ts` | Estado completo ao entrar/reentrar na sala |
 | `GameUpdateMessage` | `GameUpdate` do `gameClient.ts` | Cada jogada aceita, com `seq` |
 
+| `ControllerMessage` | `game/application/party/protocol.ts` | Modo festa: o que cada controle (celular ou TV) manda à sala: `join`, `command`, `resync`, `leave` |
+| `PartyHostMessage` | `HostMessage` do `party/protocol.ts` | Modo festa: o que a sala manda a cada controle: `snapshot`, `joinRefused`, `update`, `commandResult`, `presence`, `closed` |
+| `HostErrorCode`, `JoinRefusal` | `party/protocol.ts` | Recusas da sala antes das regras (`NOT_YOUR_SEAT`…) e da entrada (`ROOM_FULL`…) |
+
 `state` (`GameState`) e `events` (`GameEvent[]`) saem como `OpaqueJson` (um objeto qualquer): o FastAPI só guarda e repassa, quem entende as regras é o serviço Node (opção B do [backend-plano.md](../docs/backend-plano.md)). Assim o schema não muda a cada regra nova.
 
 O estado completo (com mãos, baralhos e o sorteio) só circula entre o FastAPI e o Node. Cada jogador recebe o `state` e os `events` já projetados para o assento dele (`projectState`/`projectEvents`, em `frontend/src/game/domain/core/projection.ts`). A forma é a mesma, então o contrato não muda.
 
 A lista de tipos exportados fica em `frontend/src/game/application/contract.ts`; os nomes que viram raiz do schema, em `frontend/scripts/contract/generate-schema.mjs` (`ROOT_TYPES`).
+
+## Modo festa: o servidor no lugar do anfitrião
+
+Hoje o modo festa roda num navegador só: a aba da TV é o anfitrião (`MatchHost`) e as abas dos celulares conversam com ela por um `BroadcastChannel`. No online, **o FastAPI toma o lugar do `MatchHost`** e fala exatamente estas mensagens, cada uma num WebSocket da sala. A TV vira só mais um controle, com `role: "spectator"`.
+
+O que o servidor faz com cada `ControllerMessage` (o mesmo que o `MatchHost` faz, ver `frontend/src/game/application/README.md`):
+
+- `join`: guarda `clientId` → assento (o mesmo `clientId` recupera o assento; assento ocupado → `joinRefused SEAT_TAKEN`; cheio → `ROOM_FULL`; inexistente → `UNKNOWN_SEAT`). Responde `snapshot` com o estado projetado para o assento e manda `presence` para todos.
+- `command`: confere que o `command.playerId` é o assento de quem mandou (senão `NOT_YOUR_SEAT`; espectador → `NOT_SEATED`; `restart` → regra da sala ou `RESTART_NOT_ALLOWED`). Passa estado + comando ao serviço Node (`applyCommand`), grava o novo estado com `seq + 1`, manda um `update` projetado para **cada** conexão e por último o `commandResult` para quem mandou, com o mesmo `requestId`.
+- `resync`: repete os `update` depois de `sinceSeq` (se ainda tiver) ou manda um `snapshot` novo.
+- `leave` ou socket fechado: libera o assento e manda `presence`.
+
+O `to` das mensagens do anfitrião existe porque no `BroadcastChannel` todo mundo ouve tudo; no WebSocket cada conexão só recebe as suas, mas o servidor preenche o `to` igual (o cliente descarta o que não é para ele). A projeção por assento é do Node (`projectState`/`projectEvents`): o Python só repassa `state` e `events` como JSON opaco.
 
 ## O fluxo
 
