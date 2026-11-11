@@ -2,8 +2,9 @@ import type { CardChoice } from "@/game/domain/cards/play";
 import type { GameClient, GameUpdate } from "@/game/application/gameClient";
 import type { AbilityPower } from "@/game/domain/abilities/ability";
 import type { CardId } from "@/game/domain/cards/catalog";
-import { GameRuleError, type GameErrorCode } from "@/game/domain/core/errors";
+import type { GameErrorCode } from "@/game/domain/core/errors";
 import type { GameCommand } from "@/game/domain/core/commands";
+import type { PlayerId } from "@/game/domain/core/ids";
 import type { Board, TimedBlessing } from "@/game/domain/types";
 import { DEFAULT_TIMINGS, type PlaybackTimings } from "@/features/shared/config";
 import { canActivateAbility, canPlayCard, canRoll, createInitialView, type MatchView } from "./matchView";
@@ -60,8 +61,14 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
 
 /** Sends commands to the GameClient and replays the resulting events step by step (see model/README.md). */
 export class MatchStore {
-  readonly board: Board;
-  private view: MatchView;
+  /** Null until the first snapshot arrives. */
+  board: Board | null = null;
+  private view: MatchView | null = null;
+  private seat: PlayerId | null = null;
+  private seq = -1;
+  /** Bumped on close, so a connect that resolves after it is dropped (React StrictMode mounts twice). */
+  private session = 0;
+  private unsubscribe: (() => void) | null = null;
   private queue: PlaybackStep[] = [];
   private timer: ReturnType<typeof setTimeout> | null = null;
   private readonly listeners = new Set<() => void>();
@@ -69,18 +76,33 @@ export class MatchStore {
   constructor(
     private readonly client: GameClient,
     private readonly timings: PlaybackTimings = DEFAULT_TIMINGS,
-  ) {
-    const state = client.getState();
-    this.board = state.board;
-    this.view = createInitialView(state);
-  }
+  ) {}
 
-  connect = (): (() => void) => {
-    const unsubscribe = this.client.subscribe(this.enqueue);
-    return () => {
-      unsubscribe();
-      this.stopPlayback();
-    };
+  /** Joins the match; resolves once the snapshot is on screen. */
+  open = async (): Promise<void> => {
+    const session = ++this.session;
+    const early: GameUpdate[] = [];
+    let joined = false;
+    // Subscribed before connecting, so an update racing the snapshot isn't lost (enqueue drops what it covers).
+    this.unsubscribe?.();
+    this.unsubscribe = this.client.subscribe((update) => (joined ? this.enqueue(update) : early.push(update)));
+    const snapshot = await this.client.connect();
+    if (session !== this.session) return;
+    this.stopPlayback();
+    this.board = snapshot.state.board;
+    this.seat = snapshot.localPlayerId;
+    this.seq = snapshot.seq;
+    joined = true;
+    this.setView(createInitialView(snapshot.state));
+    early.forEach(this.enqueue);
+  };
+
+  close = (): void => {
+    this.session += 1;
+    this.unsubscribe?.();
+    this.unsubscribe = null;
+    this.client.close();
+    this.stopPlayback();
   };
 
   subscribe = (listener: () => void): (() => void) => {
@@ -88,21 +110,27 @@ export class MatchStore {
     return () => this.listeners.delete(listener);
   };
 
-  getSnapshot = (): MatchView => this.view;
+  /** Null while connecting. */
+  getSnapshot = (): MatchView | null => this.view;
+
+  /** Who this screen plays as now: the pinned seat online, whoever's turn it is in hot-seat. */
+  get localPlayerId(): PlayerId | null {
+    return this.seat ?? this.view?.activePlayerId ?? null;
+  }
 
   rollDice = (): void => {
-    if (!canRoll(this.view)) return;
+    if (!this.view || !canRoll(this.view)) return;
     this.dispatch({ type: "rollDice", playerId: this.view.activePlayerId });
   };
 
-  /** The hourglass ran out on whoever is playing. */
+  /** The hourglass ran out; the screen keeps the clock since it pauses for animations (see model/README.md). */
   forfeitTurn = (): void => {
-    if (!canRoll(this.view)) return;
+    if (!this.view || !canRoll(this.view)) return;
     this.dispatch({ type: "forfeitTurn", playerId: this.view.activePlayerId });
   };
 
   playCard = (cardUid: string, choice: CardChoice = {}): void => {
-    if (!canPlayCard(this.view)) return;
+    if (!this.view || !canPlayCard(this.view)) return;
     this.dispatch({
       type: "playCard",
       playerId: this.view.activePlayerId,
@@ -112,7 +140,7 @@ export class MatchStore {
   };
 
   fuseCards = (cardId: CardId): void => {
-    if (!canRoll(this.view)) return;
+    if (!this.view || !canRoll(this.view)) return;
     this.dispatch({
       type: "fuseCards",
       playerId: this.view.activePlayerId,
@@ -121,13 +149,13 @@ export class MatchStore {
   };
 
   sacrificeEnergy = (): void => {
-    if (!canRoll(this.view)) return;
+    if (!this.view || !canRoll(this.view)) return;
     this.dispatch({ type: "sacrificeEnergy", playerId: this.view.activePlayerId });
   };
 
   discardCard = (cardUid: string): void => {
-    const pending = this.view.pendingDiscard;
-    if (!pending || this.view.isAnimating) return;
+    const pending = this.view?.pendingDiscard;
+    if (!pending || this.view?.isAnimating) return;
     this.dispatch({ type: "discardCard", playerId: pending.playerId, cardUid });
   };
 
@@ -145,53 +173,69 @@ export class MatchStore {
       seizeTile?: number;
     } = {},
   ): void => {
-    if (!canActivateAbility(this.view)) return;
+    if (!this.view || !canActivateAbility(this.view)) return;
     this.dispatch({ type: "activateAbility", playerId: this.view.activePlayerId, ...choice });
   };
 
   /** Sets down the Void's `index`th item: after `tile` for a harm (a new rift), on it for a spell. */
   placeVoid = (index: number, tile: number, doubled = false): void => {
-    if (!canRoll(this.view)) return;
+    if (!this.view || !canRoll(this.view)) return;
     this.dispatch({ type: "placeVoid", playerId: this.view.activePlayerId, index, tile, doubled });
   };
 
   plunderCards = (cardUids: readonly string[]): void => {
-    const pending = this.view.pendingPlunder;
-    if (!pending || this.view.isAnimating) return;
+    const pending = this.view?.pendingPlunder;
+    if (!pending || this.view?.isAnimating) return;
     this.dispatch({ type: "plunderCards", playerId: pending.owner, cardUids });
   };
 
   chooseGrace = (pick: { blessing?: TimedBlessing; cardId?: CardId }): void => {
-    const pending = this.view.pendingGrace;
-    if (!pending || this.view.isAnimating) return;
+    const pending = this.view?.pendingGrace;
+    if (!pending || this.view?.isAnimating) return;
     this.dispatch({ type: "chooseGrace", playerId: pending.playerId, ...pick });
   };
 
   answerWard = (use: boolean): void => {
-    const pending = this.view.pendingWard;
-    if (!pending || this.view.isAnimating) return;
+    const pending = this.view?.pendingWard;
+    if (!pending || this.view?.isAnimating) return;
     this.dispatch({ type: "answerWard", playerId: pending.playerId, use });
   };
 
+  /** Only a request: whoever is authoritative decides if the match restarts. */
   restart = (): void => {
-    if (this.view.isAnimating) return;
+    if (!this.view || this.view.isAnimating) return;
     this.dispatch({ type: "restart" });
   };
 
+  /** The one exit for commands: a pinned seat only ever speaks for itself. */
   private dispatch(command: GameCommand): void {
-    this.setView({ ...this.view, isAnimating: true, error: null });
-    this.client.send(command).catch((error: unknown) => {
-      const message = error instanceof GameRuleError ? ERROR_MESSAGES[error.code] : "Falha ao enviar a jogada.";
-      this.setView({ ...this.view, isAnimating: false, error: { id: (this.view.error?.id ?? 0) + 1, message } });
-    });
+    const view = this.view;
+    if (!view) return;
+    if ("playerId" in command && this.seat !== null && command.playerId !== this.seat) return;
+    this.setView({ ...view, isAnimating: true, error: null });
+    this.client.send(command).then(
+      (result) => {
+        if (!result.ok) this.showError(ERROR_MESSAGES[result.code]);
+      },
+      () => this.showError("Falha ao enviar a jogada."),
+    );
   }
 
-  private enqueue = ({ state, events }: GameUpdate): void => {
+  private showError(message: string): void {
+    if (!this.view) return;
+    this.setView({ ...this.view, isAnimating: false, error: { id: (this.view.error?.id ?? 0) + 1, message } });
+  }
+
+  private enqueue = ({ seq, state, events }: GameUpdate): void => {
+    // A repeat or an update the snapshot already covers; a gap is fine, the last step syncs to the full state.
+    if (seq <= this.seq) return;
+    this.seq = seq;
     this.queue.push(...updateSteps(events, state, this.timings));
     if (this.timer === null) this.runNextStep();
   };
 
   private runNextStep = (): void => {
+    if (!this.view) return;
     const step = this.queue.shift();
     if (!step) {
       this.timer = null;

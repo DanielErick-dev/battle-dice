@@ -7,7 +7,9 @@ import { useFullscreen } from "@/lib/useFullscreen";
 import { boardPresetFor, isLargeBoard, type BoardPreset } from "@/features/shared/presets/boards";
 import type { MapId } from "@/features/shared/presets/maps";
 import { rosterOf, type CharacterId, type RosterEntry } from "@/features/characters";
-import { activePlayerOf, canActivateAbility } from "../model/matchView";
+import { activePlayerOf, canActivateAbility, type MatchView } from "../model/matchView";
+import type { MatchStore } from "../model/matchStore";
+import type { Board } from "@/game/domain/types";
 import { useMatch } from "../hooks/useMatch";
 import { useGameAudio, type GameAudio } from "../hooks/useGameAudio";
 import { useMatchAudio } from "../hooks/useMatchAudio";
@@ -84,10 +86,39 @@ interface MatchProps {
 
 function Match({ preset, mapId, roster, chargedAbilities, hourglass, audio }: MatchProps) {
   const { store, view } = useMatch(preset.definition, roster, { chargedAbilities });
+  useMatchAudio(store, audio.sounds);
+  if (!view || !store.board) {
+    return (
+      <main className="relative h-dvh w-full overflow-hidden bg-[#05060b] text-white select-none">
+        <LoadingCurtain ready={false} />
+      </main>
+    );
+  }
+  return (
+    <MatchTable
+      store={store}
+      view={view}
+      plainBoard={store.board}
+      preset={preset}
+      mapId={mapId}
+      roster={roster}
+      hourglass={hourglass}
+      audio={audio}
+    />
+  );
+}
+
+interface MatchTableProps extends Omit<MatchProps, "chargedAbilities"> {
+  store: MatchStore;
+  view: MatchView;
+  /** The board without the Void's rifts, as the snapshot brought it. */
+  plainBoard: Board;
+}
+
+function MatchTable({ store, view, plainBoard, preset, mapId, roster, hourglass, audio }: MatchTableProps) {
   const quality = usePreference(preferences.effectsQuality);
   const { sounds } = audio;
   const { fullscreen, toggle: toggleFullscreen } = useFullscreen();
-  useMatchAudio(store, sounds);
   const canFollow = isLargeBoard(preset);
   const { framing, pickFraming, freeLook, onFreeLook, follow } = useCameraChoice(view.activePlayerId);
   const models = useMemo(() => [...new Set(roster.flatMap(({ character }) => modelsOf(character)))], [roster]);
@@ -97,7 +128,7 @@ function Match({ preset, mapId, roster, chargedAbilities, hourglass, audio }: Ma
   const nameOf = (id: string | null) => view.players.find((player) => player.id === id)?.name ?? null;
   const activePlayer = activePlayerOf(view);
   // The path as it stands, with the rifts Zarek's Void opened (the store's board is the plain one).
-  const board = useMemo(() => withRifts(store.board, view.rifts), [store.board, view.rifts]);
+  const board = useMemo(() => withRifts(plainBoard, view.rifts), [plainBoard, view.rifts]);
   const {
     choosing,
     AbilityPicker,
@@ -116,7 +147,7 @@ function Match({ preset, mapId, roster, chargedAbilities, hourglass, audio }: Ma
     <main className="relative h-dvh w-full overflow-hidden bg-[#05060b] text-white select-none">
       <div className="absolute inset-0">
         <BoardScene
-          board={store.board}
+          board={plainBoard}
           columns={preset.columns}
           mapId={mapId}
           view={view}
@@ -124,7 +155,7 @@ function Match({ preset, mapId, roster, chargedAbilities, hourglass, audio }: Ma
           onDiceImpact={sounds.diceLand}
           quality={quality}
           // Everyone plays at this one screen: whoever's turn it is sees their own secrets named.
-          viewerId={view.activePlayerId}
+          viewerId={store.localPlayerId ?? view.activePlayerId}
           models={models}
           onReady={onReady}
           freeLook={freeLook}

@@ -2,20 +2,28 @@
 
 Fica entre o jogo (`game/`) e o que aparece na tela (`scene/`, `ui/`). Não desenha nada e não tem React.
 
-| Arquivo               | O que faz                                                                                                                                                         |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `createLocalMatch.ts` | Monta uma partida offline: cria o jogo, o `LocalGameClient` e o store. No online, troca-se só o client aqui.                                                      |
-| `matchStore.ts`       | O **store**. Recebe os cliques (`rollDice`, `playCard`, `activateAbility`…), manda o comando ao `GameClient` e toca os passos da animação em fila.                |
+| Arquivo               | O que faz                                                                                                                                                                                                                                                         |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `createLocalMatch.ts` | Monta uma partida offline: cria o jogo, o `LocalGameClient` e o store. No online, troca-se só o client aqui.                                                                                                                                                      |
+| `matchStore.ts`       | O **store**. Recebe os cliques (`rollDice`, `playCard`, `activateAbility`…), manda o comando ao `GameClient` e toca os passos da animação em fila.                                                                                                                |
 | `matchView/`          | A **`MatchView`**: o que a tela mostra _agora_ (posição de cada boneco, efeito tocando, banner). Também tem perguntas como `canRoll(view)` e `canPlayCard(view)`. Tipos em `view.ts`, `effect.ts` e `fx.ts`; funções em `create.ts`, `queries.ts` e `updates.ts`. |
-| `playback/`           | Transforma cada evento do jogo em passos de animação. Tem README próprio.                                                                                         |
+| `playback/`           | Transforma cada evento do jogo em passos de animação. Tem README próprio.                                                                                                                                                                                         |
 
 ## O caminho de um clique
 
 ```
 botão "Rolar" → store.rollDice() → GameClient.send(comando)
-             → chegam { estado, eventos } → playback: eventos viram passos
+             → chegam { seq, estado, eventos } → playback: eventos viram passos
              → o store aplica um passo por vez na MatchView → a tela redesenha
 ```
+
+## Conexão e identidade
+
+- **`open()`** entra na partida pelo `GameClient.connect()`. Até o `Snapshot` chegar, `getSnapshot()` e `board` são `null` e a tela mostra a cortina de carregamento. **`close()`** sai e para a animação. O `useMatch` chama os dois no `useEffect`; se o `close` vier antes do `Snapshot` (o React faz isso no modo estrito), o `Snapshot` atrasado é ignorado.
+- **`seq`**: o store guarda o último número que já tocou e ignora qualquer atualização com número igual ou menor (repetida ou já incluída no `Snapshot`). Se pular um número, toca mesmo assim: o último passo de cada jogada encaixa a tela no estado completo.
+- **`localPlayerId`**: quem esta tela é. No jogo local segue o jogador da vez; no online fica preso ao assento que o servidor mandou. Todo comando sai pelo `dispatch`, o único lugar que confere isso: com assento preso, um comando em nome de outro jogador nem é enviado.
+- **Ampulheta e reinício**: o relógio do turno fica na tela (`ui/hud/Hourglass.tsx`), porque só ela sabe quando há animação, pergunta ou pausa. Ao acabar, chama `store.forfeitTurn()`, que passa pelo `dispatch`: com assento preso, a ampulheta de uma tela nunca faz outro jogador perder a vez. `store.restart()` é só um pedido; quem decide é o `GameClient` (veja `game/application/README.md`).
+- **Erros**: a recusa chega como `{ ok: false, code }` e vira texto pela tabela `ERROR_MESSAGES`. Falha de envio (queda) mostra "Falha ao enviar a jogada.".
 
 ## Por que a `MatchView` é separada do `GameState`
 

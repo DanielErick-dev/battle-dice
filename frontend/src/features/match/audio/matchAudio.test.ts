@@ -8,13 +8,13 @@ import { MatchStore } from "../model/matchStore";
 import { connectMatchAudio } from "./matchAudio";
 import type { MatchSounds } from "./soundEffects";
 
-function setup(rolls: number[], start = 1) {
+async function setup(rolls: number[], start = 1) {
   const game = createGame(CLASSIC_BOARD, [{ id: "p1", name: "Aria" }]);
   const positioned = { ...game, players: game.players.map((player) => ({ ...player, position: start })) };
   const store = new MatchStore(
     new LocalGameClient(positioned, { rollDice: sequenceDice(rolls), random: seededRandom(1) }),
   );
-  store.connect();
+  await store.open();
 
   const played: string[] = [];
   const record = (name: keyof MatchSounds) => () => void played.push(name);
@@ -51,8 +51,8 @@ describe("connectMatchAudio", () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
-  it("plays dice, one step per tile, then the portal and its leap", () => {
-    const { store, played } = setup([4]);
+  it("plays dice, one step per tile, then the portal and its leap", async () => {
+    const { store, played } = await setup([4]);
 
     store.rollDice();
     vi.runAllTimers();
@@ -60,8 +60,8 @@ describe("connectMatchAudio", () => {
     expect(played).toEqual(["diceShake", "step", "step", "step", "step", "portal", "leap"]);
   });
 
-  it("charges up when a six is rolled", () => {
-    const { store, played } = setup([6]);
+  it("charges up when a six is rolled", async () => {
+    const { store, played } = await setup([6]);
 
     store.rollDice();
     vi.runAllTimers();
@@ -69,13 +69,13 @@ describe("connectMatchAudio", () => {
     expect(played.slice(0, 3)).toEqual(["diceShake", "powerUp", "step"]);
   });
 
-  it("plays the trap and the victory", () => {
-    const trap = setup([1], 7);
+  it("plays the trap and the victory", async () => {
+    const trap = await setup([1], 7);
     trap.store.rollDice();
     vi.runAllTimers();
     expect(trap.played.slice(-2)).toEqual(["trap", "leap"]);
 
-    const win = setup([1], 19);
+    const win = await setup([1], 19);
     win.store.rollDice();
     vi.runAllTimers();
     expect(win.played.at(-1)).toBe("win");

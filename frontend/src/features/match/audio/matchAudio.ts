@@ -4,7 +4,7 @@ import type { MatchSounds } from "./soundEffects";
 
 interface ViewSource {
   subscribe: (listener: () => void) => () => void;
-  getSnapshot: () => MatchView;
+  getSnapshot: () => MatchView | null;
 }
 
 /** Plays sounds by diffing consecutive views: driven by the view, not game events, so it stays in sync with the animation. */
@@ -13,7 +13,7 @@ export function connectMatchAudio(source: ViewSource, sounds: MatchSounds): () =
 
   return source.subscribe(() => {
     const next = source.getSnapshot();
-    if (next !== previous) playTransition(previous, next, sounds);
+    if (previous && next && next !== previous) playTransition(previous, next, sounds);
     previous = next;
   });
 }

@@ -9,7 +9,8 @@ import type { MatchView } from "../model/matchView";
 
 interface UseMatchResult {
   store: MatchStore;
-  view: MatchView;
+  /** Null while the client is connecting. */
+  view: MatchView | null;
 }
 
 /** One store per mount: remount (e.g. with a `key`) to start another match. */
@@ -20,7 +21,11 @@ export function useMatch(
 ): UseMatchResult {
   const [store] = useState(() => createLocalMatch(board, roster, options));
 
-  useEffect(() => store.connect(), [store]);
+  useEffect(() => {
+    // A failed connect leaves the view null (still loading); the retry screen comes with the online client.
+    store.open().catch(() => {});
+    return store.close;
+  }, [store]);
 
   const view = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
   return { store, view };
