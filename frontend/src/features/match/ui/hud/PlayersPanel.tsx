@@ -15,6 +15,8 @@ import { inHeaven } from "@/game/domain/board/blessings";
 interface PlayersPanelProps {
   players: readonly Player[];
   activePlayerId: PlayerId;
+  /** Whose screen this is (see viewerControls): the active player in hot-seat. */
+  viewerId: PlayerId;
   board: Board;
 }
 
@@ -26,7 +28,7 @@ const REALM_TONES = { infernal: "text-orange-400", celestial: "text-amber-200" }
  * and ability charge, over a sliver of progress. Compact so four players fit beside the board;
  * only worth showing with opponents.
  */
-export function PlayersPanel({ players, activePlayerId, board }: PlayersPanelProps) {
+export function PlayersPanel({ players, activePlayerId, viewerId, board }: PlayersPanelProps) {
   const { finishTile } = board;
   return (
     <section aria-label="Jogadores" className="hud-panel w-60 p-1.5">
@@ -39,8 +41,8 @@ export function PlayersPanel({ players, activePlayerId, board }: PlayersPanelPro
           const progress = (((track?.portal ?? player.position) - 1) / (finishTile - 1)) * 100;
           const color = playerColor(player.id);
           const ready = isAbilityReady(player);
-          // The Silent Verdict's charge is hers to know: the others only see it on her own turn.
-          const secret = player.ability === "silentVerdict" && !isActive;
+          // The Silent Verdict's charge is hers to know: a pinned seat gets 0 for it, so only her screen shows it.
+          const secret = player.ability === "silentVerdict" && player.id !== viewerId;
 
           return (
             <li

@@ -1,14 +1,20 @@
 import { useTurnState } from "@/lib/useTurnState";
 import type { Board, Player, TileId } from "@/game/domain/types";
 import type { MatchStore } from "../../model/matchStore";
-import { canActivateAbility, canRoll, type MatchView } from "../../model/matchView";
+import type { MatchView, ViewerControls } from "../../model/matchView";
 import type { BoardPicking } from "../../scene/board/pickCursor";
 import { ABILITY_FLOWS, placementOf, type AbilityContext, type AbilityScene, type Placement } from "../abilities";
 
 const NO_TILES: TileId[] = [];
 
 /** Using the active player's ability: its picker, the tiles being picked on the board, and what those send. */
-export function useAbilityUse(store: MatchStore, view: MatchView, board: Board, activePlayer: Player | undefined) {
+export function useAbilityUse(
+  store: MatchStore,
+  view: MatchView,
+  controls: ViewerControls,
+  board: Board,
+  activePlayer: Player | undefined,
+) {
   // These choices belong to the turn they're made on: the next player starts with none of them.
   /** An ability's picker is open (whom to aim at, which power or cards: see ui/abilities). */
   const [choosing, setChoosing] = useTurnState(false, view.activePlayerId);
@@ -42,7 +48,7 @@ export function useAbilityUse(store: MatchStore, view: MatchView, board: Board, 
     else store.activateAbility();
   };
   // Setting the Void's things down needs no charge, only the player's moment to act.
-  const canPlace = placing !== null && (typeof placing === "object" ? canRoll(view) : canActivateAbility(view));
+  const canPlace = placing !== null && (typeof placing === "object" ? controls.canRoll : controls.canActivateAbility);
   const placement = placing && scene && canPlace ? placementOf(placing, scene) : null;
   const picking: BoardPicking | null = placement && {
     tiles: new Set(

@@ -113,6 +113,11 @@ export class MatchStore {
   /** Null while connecting. */
   getSnapshot = (): MatchView | null => this.view;
 
+  /** The seat the snapshot pinned this screen to; null in hot-seat (feed it to viewerControls). */
+  get pinnedSeat(): PlayerId | null {
+    return this.seat;
+  }
+
   /** Who this screen plays as now: the pinned seat online, whoever's turn it is in hot-seat. */
   get localPlayerId(): PlayerId | null {
     return this.seat ?? this.view?.activePlayerId ?? null;

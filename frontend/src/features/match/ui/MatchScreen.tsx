@@ -7,7 +7,7 @@ import { useFullscreen } from "@/lib/useFullscreen";
 import { boardPresetFor, isLargeBoard, type BoardPreset } from "@/features/shared/presets/boards";
 import type { MapId } from "@/features/shared/presets/maps";
 import { rosterOf, type CharacterId, type RosterEntry } from "@/features/characters";
-import { activePlayerOf, canActivateAbility, type MatchView } from "../model/matchView";
+import { activePlayerOf, viewerControls, type MatchView } from "../model/matchView";
 import type { MatchStore } from "../model/matchStore";
 import type { Board } from "@/game/domain/types";
 import { useMatch } from "../hooks/useMatch";
@@ -52,12 +52,15 @@ interface MatchScreenProps {
   chargedAbilities: boolean;
   /** Each turn has TURN_SECONDS to think, and players may pause (see Hourglass). */
   hourglass: boolean;
+  /** Dev only: the seat ("p2") this screen is pinned to, as online; null = everyone at this screen. */
+  seat: string | null;
 }
 
 /** A local match on the chosen board: everyone plays at this screen, taking turns. */
-export function MatchScreen({ boardId, mapId, characters, chargedAbilities, hourglass }: MatchScreenProps) {
+export function MatchScreen({ boardId, mapId, characters, chargedAbilities, hourglass, seat }: MatchScreenProps) {
   const preset = boardPresetFor(boardId);
   const [roster] = useState(() => rosterOf(characters));
+  const seatId = roster.find(({ id }) => id.split(":")[0] === seat)?.id ?? null;
   const audio = useGameAudio();
   // Start fetching the models while the arena's code is still loading.
   useEffect(() => roster.flatMap(({ character }) => modelsOf(character)).forEach(preloadCharacterModel), [roster]);
@@ -69,6 +72,7 @@ export function MatchScreen({ boardId, mapId, characters, chargedAbilities, hour
       mapId={mapId}
       roster={roster}
       chargedAbilities={chargedAbilities}
+      seat={seatId}
       hourglass={hourglass}
       audio={audio}
     />
@@ -80,12 +84,13 @@ interface MatchProps {
   mapId: MapId;
   roster: readonly RosterEntry[];
   chargedAbilities: boolean;
+  seat: string | null;
   hourglass: boolean;
   audio: GameAudio;
 }
 
-function Match({ preset, mapId, roster, chargedAbilities, hourglass, audio }: MatchProps) {
-  const { store, view } = useMatch(preset.definition, roster, { chargedAbilities });
+function Match({ preset, mapId, roster, chargedAbilities, seat, hourglass, audio }: MatchProps) {
+  const { store, view } = useMatch(preset.definition, roster, { chargedAbilities, seat });
   useMatchAudio(store, audio.sounds);
   if (!view || !store.board) {
     return (
@@ -108,7 +113,7 @@ function Match({ preset, mapId, roster, chargedAbilities, hourglass, audio }: Ma
   );
 }
 
-interface MatchTableProps extends Omit<MatchProps, "chargedAbilities"> {
+interface MatchTableProps extends Omit<MatchProps, "chargedAbilities" | "seat"> {
   store: MatchStore;
   view: MatchView;
   /** The board without the Void's rifts, as the snapshot brought it. */
@@ -127,6 +132,8 @@ function MatchTable({ store, view, plainBoard, preset, mapId, roster, hourglass,
   const onReady = useCallback(() => setReady(true), []);
   const nameOf = (id: string | null) => view.players.find((player) => player.id === id)?.name ?? null;
   const activePlayer = activePlayerOf(view);
+  const controls = viewerControls(view, store.pinnedSeat);
+  const viewer = view.players.find((player) => player.id === controls.viewerId);
   // The path as it stands, with the rifts Zarek's Void opened (the store's board is the plain one).
   const board = useMemo(() => withRifts(plainBoard, view.rifts), [plainBoard, view.rifts]);
   const {
@@ -140,8 +147,14 @@ function MatchTable({ store, view, plainBoard, preset, mapId, roster, hourglass,
     picked,
     undoPick,
     stopPlacing,
-  } = useAbilityUse(store, view, board, activePlayer);
-  const { seconds, clockRunning, pausedBy, pausesLeft, pause, resume } = useMatchClock(store, view, hourglass, ready);
+  } = useAbilityUse(store, view, controls, board, activePlayer);
+  const { seconds, clockRunning, pausedBy, pausesLeft, pause, resume } = useMatchClock(
+    store,
+    view,
+    controls,
+    hourglass,
+    ready,
+  );
 
   return (
     <main className="relative h-dvh w-full overflow-hidden bg-[#05060b] text-white select-none">
@@ -154,8 +167,7 @@ function MatchTable({ store, view, plainBoard, preset, mapId, roster, hourglass,
           cameraFraming={canFollow ? framing : "board"}
           onDiceImpact={sounds.diceLand}
           quality={quality}
-          // Everyone plays at this one screen: whoever's turn it is sees their own secrets named.
-          viewerId={store.localPlayerId ?? view.activePlayerId}
+          viewerId={controls.viewerId}
           models={models}
           onReady={onReady}
           freeLook={freeLook}
@@ -167,7 +179,8 @@ function MatchTable({ store, view, plainBoard, preset, mapId, roster, hourglass,
       <div className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-between p-4 sm:p-6">
         <header className="hud-scroll flex max-h-[calc(100%-5.5rem)] min-h-0 flex-col items-start gap-3 overflow-y-auto">
           <MatchTitleBar preset={preset} audio={audio} fullscreen={fullscreen} toggleFullscreen={toggleFullscreen} />
-          {hourglass && view.winnerId === null && (
+          {/* A pinned seat sees no sand on someone else's turn: only the active screen counts down. */}
+          {hourglass && view.winnerId === null && controls.ownsTurn && (
             <HourglassPanel
               seconds={seconds}
               running={clockRunning}
@@ -178,7 +191,12 @@ function MatchTable({ store, view, plainBoard, preset, mapId, roster, hourglass,
           {/* Beside the board on the left, so the right column stays free for the hand. */}
           {view.players.length > 1 && (
             <div className="pointer-events-auto max-sm:hidden">
-              <PlayersPanel players={view.players} activePlayerId={view.activePlayerId} board={board} />
+              <PlayersPanel
+                players={view.players}
+                activePlayerId={view.activePlayerId}
+                viewerId={controls.viewerId}
+                board={board}
+              />
             </div>
           )}
           <div className="pointer-events-auto max-sm:hidden">
@@ -198,8 +216,9 @@ function MatchTable({ store, view, plainBoard, preset, mapId, roster, hourglass,
         <HandColumn
           store={store}
           view={view}
+          controls={controls}
           board={board}
-          activePlayer={activePlayer}
+          player={viewer}
           onActivateAbility={activateAbility}
           onReleaseVoidItem={releaseVoidItem}
         />
@@ -216,6 +235,7 @@ function MatchTable({ store, view, plainBoard, preset, mapId, roster, hourglass,
           <div className="pointer-events-auto w-full max-w-sm">
             <DicePanel
               activePlayerName={nameOf(view.activePlayerId) ?? ""}
+              waitingName={nameOf(controls.waitingFor)}
               lastRoll={view.lastRoll}
               isRolling={view.isRolling}
               isAnimating={view.isAnimating}
@@ -231,7 +251,7 @@ function MatchTable({ store, view, plainBoard, preset, mapId, roster, hourglass,
       <DrawOverlay drawing={view.fx.drawing} />
       <FusionOverlay fusing={view.fx.fusing} />
       <TransmuteOverlay transmuting={view.fx.transmuting} />
-      {choosing && abilityCtx && canActivateAbility(view) && AbilityPicker && <AbilityPicker ctx={abilityCtx} />}
+      {choosing && abilityCtx && controls.canActivateAbility && AbilityPicker && <AbilityPicker ctx={abilityCtx} />}
       {placement && (
         <TilePicking
           title={placement.title}
@@ -248,7 +268,7 @@ function MatchTable({ store, view, plainBoard, preset, mapId, roster, hourglass,
           }}
         />
       )}
-      <PendingPrompts store={store} view={view} nameOf={nameOf} />
+      <PendingPrompts store={store} view={view} controls={controls} nameOf={nameOf} />
       <LoadingCurtain ready={ready} />
       {pausedBy !== null && (
         <PauseOverlay name={nameOf(pausedBy) ?? ""} pausesLeft={pausesLeft(pausedBy)} onResume={resume} />

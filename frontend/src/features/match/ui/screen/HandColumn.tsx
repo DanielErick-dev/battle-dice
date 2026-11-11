@@ -1,7 +1,7 @@
 import { inHeaven } from "@/game/domain/board/blessings";
 import type { Board, Player } from "@/game/domain/types";
 import type { MatchStore } from "../../model/matchStore";
-import { canActivateAbility, canPlayCard, canRoll, cardsLeftThisTurn, type MatchView } from "../../model/matchView";
+import { cardsLeftThisTurn, type MatchView, type ViewerControls } from "../../model/matchView";
 import { CardHand } from "../cards/CardHand";
 import { AbilityMeter } from "../hud/AbilityMeter";
 import { BlessingBadges } from "../hud/BlessingBadges";
@@ -10,8 +10,10 @@ import { VoidHold } from "../hud/VoidHold";
 interface HandColumnProps {
   store: MatchStore;
   view: MatchView;
+  controls: ViewerControls;
   board: Board;
-  activePlayer: Player | undefined;
+  /** The viewer: the active player in hot-seat, the pinned seat's player online. */
+  player: Player | undefined;
   onActivateAbility: () => void;
   onReleaseVoidItem: (release: number, doubled: boolean) => void;
 }
@@ -20,17 +22,18 @@ interface HandColumnProps {
 export function HandColumn({
   store,
   view,
+  controls,
   board,
-  activePlayer,
+  player,
   onActivateAbility,
   onReleaseVoidItem,
 }: HandColumnProps) {
   return (
     <div className="absolute top-4 right-4 flex flex-col items-end gap-4 sm:top-6 sm:right-6">
-      {activePlayer && view.winnerId === null && (
+      {player && view.winnerId === null && (
         <div className="pointer-events-auto max-sm:mt-20">
           <CardHand
-            key={activePlayer.id}
+            key={player.id}
             table={{
               board,
               blackFlames: view.blackFlames,
@@ -41,25 +44,25 @@ export function HandColumn({
               scarletFlames: view.scarletFlames,
               players: view.players,
             }}
-            player={activePlayer}
+            player={player}
             // Who each card can be aimed at (see cardTargets); a protected one turns it away.
             players={view.players}
-            canPlay={canPlayCard(view)}
+            canPlay={controls.canPlayCard}
             cardsLeft={cardsLeftThisTurn(view)}
             lastDrawnUid={view.lastDrawnUid}
             onPlay={store.playCard}
-            onFuse={canRoll(view) ? store.fuseCards : null}
-            onSacrifice={canRoll(view) ? store.sacrificeEnergy : null}
+            onFuse={controls.canRoll ? store.fuseCards : null}
+            onSacrifice={controls.canRoll ? store.sacrificeEnergy : null}
             status={
               <>
                 <AbilityMeter
-                  player={activePlayer}
-                  inUse={view.abilityInUse !== null && view.abilityInUse === activePlayer.ability}
+                  player={player}
+                  inUse={controls.ownsTurn && view.abilityInUse !== null && view.abilityInUse === player.ability}
                   onActivate={onActivateAbility}
-                  canActivate={canActivateAbility(view)}
+                  canActivate={controls.canActivateAbility}
                 />
-                <VoidHold player={activePlayer} canAct={canRoll(view)} onRelease={onReleaseVoidItem} />
-                <BlessingBadges player={activePlayer} waiting={inHeaven(board, activePlayer.position)} />
+                <VoidHold player={player} canAct={controls.canRoll} onRelease={onReleaseVoidItem} />
+                <BlessingBadges player={player} waiting={inHeaven(board, player.position)} />
               </>
             }
           />

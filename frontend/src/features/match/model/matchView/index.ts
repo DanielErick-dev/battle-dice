@@ -13,4 +13,5 @@ export { nextFxId, withFx } from "./fx";
 export type { LogEntry, MatchView, RollView } from "./view";
 export { createInitialView, sealViews, specterViews } from "./create";
 export { activePlayerOf, canActivateAbility, canPlayCard, canRoll, cardsLeftThisTurn } from "./queries";
+export { viewerControls, type ViewerControls } from "./viewer";
 export { withPlayer, withPlayerAt } from "./updates";

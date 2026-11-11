@@ -34,10 +34,10 @@ Pendências levantadas na inspeção de arquitetura de 07/11/2026, pensando na *
   - ⚠ Fusão e Transmutação: públicas (o log de hoje já diz "fundiu cartas em X" e "transmutou A em B"). Isso revela uma carta que fica na mão.
   - Carta comprada (`cardDrawn`, `discardRequired`, `pendingDiscard`): só quem comprou, mesmo uma relíquia do céu (que estava à vista na casa).
   - `rng`: ninguém. Com a semente dá para prever o dado, a ordem dos baralhos e para onde a armadilha escondida vai.
-- **Para a tela online** (nasce com o `WebSocketGameClient`, nada disso muda o jogo local):
-  - Mostrar o `DiscardPicker` e a escolha da Pilhagem só para o assento que decide. Hoje elas aparecem para o jogador da vez, que no online pode ser outro.
-  - `CardHand` deve mostrar a mão do assento local, não a do jogador da vez.
-  - Mostrar `?` na carga da Têmis para quem não é ela, também na vez dela. Hoje o `PlayersPanel` esconde só fora da vez dela.
+- **Para a tela online** (nada disso muda o jogo local):
+  - ✅ `DiscardPicker` e escolha da Pilhagem só para o assento que decide (feito com o item 3, `viewerControls`).
+  - ✅ `CardHand` mostra a mão do assento local.
+  - ✅ `?` na carga da Têmis para quem não é ela, também na vez dela (no jogo local continua: só na vez dela aparece).
   - Durante a animação, a contagem do deck de um rival pode ficar uma carta atrasada (o `cardDrawn` virado não acha o `uid` no deck virado). O `syncStep` do fim da jogada acerta.
   - O `DrawOverlay` já mostra o verso (`CardBack`) quando a carta chega virada.
 
@@ -50,6 +50,7 @@ Pendências levantadas na inspeção de arquitetura de 07/11/2026, pensando na *
 - `restart` e o tempo esgotado do turno decididos pelo servidor; a tela só mostra o relógio.
 - ✅ Modo teste `chargedAbilities` vira opção do `createGame` (feito no item 1).
 - **Feito em 11/11/2026**: `connect(): Promise<Snapshot { seq, state, localPlayerId }>`, `GameUpdate { seq, state, events }`, `send` devolve `{ ok: true } | { ok: false, code }` e só rejeita em falha de transporte. O `MatchStore` abre com `open()` (a tela mostra a cortina até o `Snapshot`), ignora `seq` repetido e guarda o `localPlayerId` (`null` = jogo local, segue o jogador da vez; assento preso só manda comando do próprio jogador). Detalhes em `game/application/README.md`.
+- **Tela por assento (feito em 11/11/2026)**: `viewerControls(view, store.pinnedSeat)` em `features/match/model/matchView/viewer.ts` diz o que esta tela pode fazer agora. Com assento preso, fora da sua vez somem a ampulheta e o botão de pausa, o "Rolar dado" vira "Vez de <nome>…", a mão mostrada é a do assento (cartas, fusão, queimar energia, habilidade e Vazio desligados) e as perguntas (descarte, Pilhagem, dádiva, armadilha do Zarek) só aparecem para quem responde. No jogo local (`null`) tudo fica igual. Para testar: `/partida?jogadores=witch,zarek&assento=p2` (só em `npm run dev`); como o outro assento não tem tela, a partida para na vez dele (`assento=p1` joga a primeira vez antes).
 - **Ficou de fora**: o relógio continua na tela (para nas animações e pausas, que só ela vê) e só manda o `forfeitTurn` do próprio assento; o prazo do servidor para quem cair nasce com o `WebSocketGameClient`.
 
 ## 4. Contrato TS ↔ Python ✅

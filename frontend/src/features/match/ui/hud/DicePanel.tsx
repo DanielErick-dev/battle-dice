@@ -8,6 +8,8 @@ const ACTION_BUTTON =
 
 interface DicePanelProps {
   activePlayerName: string;
+  /** A pinned seat waiting on someone else (their turn or their prompt): the roll gives way to a calm note. */
+  waitingName: string | null;
   /** Last revealed roll; null before the first. */
   lastRoll: RollView | null;
   isRolling: boolean;
@@ -19,6 +21,7 @@ interface DicePanelProps {
 
 export function DicePanel({
   activePlayerName,
+  waitingName,
   lastRoll,
   isRolling,
   isAnimating,
@@ -68,7 +71,7 @@ export function DicePanel({
 
       <div className="flex flex-1 flex-col gap-2">
         <p className="text-xs font-bold tracking-widest text-zinc-400 uppercase">
-          {isFinished ? "Fim de jogo" : `Vez de ${activePlayerName}`}
+          {isFinished ? "Fim de jogo" : waitingName !== null ? "Aguarde" : `Vez de ${activePlayerName}`}
         </p>
 
         {isFinished ? (
@@ -79,6 +82,10 @@ export function DicePanel({
           >
             JOGAR NOVAMENTE
           </Button>
+        ) : waitingName !== null ? (
+          <p className="grid h-12 w-full place-items-center rounded-xl bg-white/5 text-sm font-bold tracking-wide text-zinc-300 ring-1 ring-white/10">
+            Vez de {waitingName}…
+          </p>
         ) : (
           <Button
             onClick={onRoll}
