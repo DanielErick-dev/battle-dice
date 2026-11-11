@@ -58,12 +58,14 @@ export const commonArt: Record<CommonCard, ReactNode> = {
       />
       <path d="M36 44 Q50 34 64 30" stroke="#166534" strokeWidth="2" fill="none" />
       <ellipse cx="44" cy="32" rx="6" ry="3" transform="rotate(-25 44 32)" fill="#bbf7d0" opacity="0.8" />
-      {[
-        [22, 18],
-        [78, 22],
-        [74, 54],
-        [26, 52],
-      ].map(([x, y]) => (
+      {(
+        [
+          [22, 18],
+          [78, 22],
+          [74, 54],
+          [26, 52],
+        ] as const
+      ).map(([x, y]) => (
         <Star key={`${x}${y}`} x={x} y={y} r={3.5} fill="#dcfce7" />
       ))}
     </g>
@@ -139,12 +141,14 @@ export const commonArt: Record<CommonCard, ReactNode> = {
       <ellipse cx="50" cy="36" rx="22" ry="28" stroke="#c4b5fd" strokeWidth="3" />
       <ellipse cx="50" cy="36" rx="15" ry="20" stroke="#a78bfa" strokeWidth="2" strokeDasharray="4 3" />
       <ellipse cx="50" cy="36" rx="8" ry="11" fill="#ede9fe" fillOpacity="0.85" />
-      {[
-        [20, 14],
-        [82, 18],
-        [80, 58],
-        [18, 56],
-      ].map(([x, y]) => (
+      {(
+        [
+          [20, 14],
+          [82, 18],
+          [80, 58],
+          [18, 56],
+        ] as const
+      ).map(([x, y]) => (
         <Star key={`${x}${y}`} x={x} y={y} r={3} fill="#ddd6fe" />
       ))}
     </g>

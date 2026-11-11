@@ -58,6 +58,7 @@ export function updateSteps(events: readonly GameEvent[], state: GameState, timi
   let unlogged: GameEvent[] = [];
   for (let index = 0; index < events.length; index++) {
     const event = events[index];
+    if (!event) continue;
     unlogged.push(event);
     const together = pushedTogether(events, index);
     if (together.length > 1) {
@@ -78,11 +79,11 @@ type PushedEvent = Extract<GameEvent, { type: "playerPushed" }>;
 /** The run of pushes by one player starting at `index` (an Arrow Rain's volley), knocked back side by side. */
 function pushedTogether(events: readonly GameEvent[], index: number): PushedEvent[] {
   const first = events[index];
-  if (first.type !== "playerPushed") return [];
+  if (first?.type !== "playerPushed") return [];
   const run: PushedEvent[] = [first];
   for (let next = index + 1; next < events.length; next++) {
     const event = events[next];
-    if (event.type !== "playerPushed" || event.by !== first.by || run.some((push) => push.playerId === event.playerId))
+    if (event?.type !== "playerPushed" || event.by !== first.by || run.some((push) => push.playerId === event.playerId))
       break;
     run.push(event);
   }

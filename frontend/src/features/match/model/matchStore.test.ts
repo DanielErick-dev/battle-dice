@@ -15,6 +15,7 @@ import { createGame } from "@/game/domain/core/engine";
 import type { CardInstance, GameState } from "@/game/domain/types";
 import { DEFAULT_TIMINGS } from "@/features/shared/config";
 import { MatchStore } from "./matchStore";
+import { itemAt } from "@/features/shared/collections/items";
 
 const PLAYERS = [
   { id: "p1", name: "Aria" },
@@ -112,11 +113,11 @@ describe("MatchStore", () => {
       store.playCard("b");
       const view = shown(store);
       expect(view.fx.cast).toMatchObject({ id: 1, playerId: "p1", card: barrier });
-      expect(view.players[0].hand).toEqual([]);
-      expect(view.players[0].energy).toBe(1);
+      expect(view.players[0]?.hand).toEqual([]);
+      expect(view.players[0]?.energy).toBe(1);
 
       vi.runAllTimers();
-      expect(shown(store).players[0].shielded).toBe(true);
+      expect(shown(store).players[0]?.shielded).toBe(true);
       store.playCard("b");
       expect(shown(store).cardsPlayedThisTurn).toBe(1);
     });
@@ -132,19 +133,19 @@ describe("MatchStore", () => {
         },
       });
       const { store } = await setup([1], onCardTile);
-      const deckSize = shown(store).players[0].deck.length;
+      const deckSize = itemAt(shown(store).players, 0).deck.length;
 
       store.rollDice();
       vi.advanceTimersByTime(DEFAULT_TIMINGS.diceRollMs + DEFAULT_TIMINGS.diceRevealMs + DEFAULT_TIMINGS.stepMs);
       const revealing = shown(store);
       expect(revealing.fx.drawing).toMatchObject({ id: 1, playerId: "p1" });
-      expect(revealing.players[0].hand).toEqual([]);
-      expect(revealing.players[0].deck).toHaveLength(deckSize - 1);
+      expect(revealing.players[0]?.hand).toEqual([]);
+      expect(revealing.players[0]?.deck).toHaveLength(deckSize - 1);
 
       vi.advanceTimersByTime(DEFAULT_TIMINGS.drawRevealMs);
       const dealt = shown(store);
       expect(dealt.fx.drawing).toBeNull();
-      expect(dealt.players[0].hand).toEqual([revealing.fx.drawing?.card]);
+      expect(dealt.players[0]?.hand).toEqual([revealing.fx.drawing?.card]);
       expect(dealt.lastDrawnUid).toBe(revealing.fx.drawing?.card.uid);
     });
 
@@ -164,7 +165,7 @@ describe("MatchStore", () => {
       vi.runAllTimers();
       const view = shown(store);
       expect(view.effect).toMatchObject({ kind: "trapCurse", playerId: "p1", curse: { kind: "drain", energyLost: 2 } });
-      expect(view.players[0].energy).toBe(1);
+      expect(view.players[0]?.energy).toBe(1);
     });
 
     it("waits for a discard when the hand overflows, then resumes", async () => {
@@ -192,7 +193,7 @@ describe("MatchStore", () => {
       vi.runAllTimers();
       const resumed = shown(store);
       expect(resumed.pendingDiscard).toBeNull();
-      expect(resumed.players[0].hand.map(({ uid }) => uid)).toEqual([
+      expect(resumed.players[0]?.hand.map(({ uid }) => uid)).toEqual([
         ...uids.filter((uid) => uid !== "y"),
         paused.pendingDiscard?.drawn.uid,
       ]);
