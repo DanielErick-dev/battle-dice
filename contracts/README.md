@@ -18,6 +18,8 @@ O contrato não é do frontend nem do backend, é dos dois. Na raiz, `frontend/`
 
 `state` (`GameState`) e `events` (`GameEvent[]`) saem como `OpaqueJson` (um objeto qualquer): o FastAPI só guarda e repassa, quem entende as regras é o serviço Node (opção B do [backend-plano.md](../docs/backend-plano.md)). Assim o schema não muda a cada regra nova.
 
+O estado completo (com mãos, baralhos e o sorteio) só circula entre o FastAPI e o Node. Cada jogador recebe o `state` e os `events` já projetados para o assento dele (`projectState`/`projectEvents`, em `frontend/src/game/domain/core/projection.ts`). A forma é a mesma, então o contrato não muda.
+
 A lista de tipos exportados fica em `frontend/src/game/application/contract.ts`; os nomes que viram raiz do schema, em `frontend/scripts/contract/generate-schema.mjs` (`ROOT_TYPES`).
 
 ## O fluxo

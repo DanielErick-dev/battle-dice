@@ -13,13 +13,33 @@ Pendências levantadas na inspeção de arquitetura de 07/11/2026, pensando na *
 - Lint em `src/game/**` proíbe `Math.random`, `Date.now`, `new Date`, `performance.now`, `window`, `document`.
 - `chargedAbilities` virou opção do `createGame` (o `restart` volta ao normal, como antes).
 
-## 2. Visão por jogador (segredos) ⬜
+## 2. Visão por jogador (segredos) ✅
 
 - Mão, deck, `hiddenTraps` e tipo dos selos vão no estado; `cardDrawn` leva a carta inteira; o `uid` (`p1:3`) entrega a carta.
 - Fazer `projectState(state, viewerId)` e `projectEvents(events, viewerId)` no domínio, com testes de "nada secreto vaza".
 - `uid` opaco gerado pelo sorteio do item 1.
 - Funções que a tela usa sobre o estado (`ui/abilities/placements.ts`, `isHarmful` em `fairy/bloom.ts`) não podem depender de campos secretos.
 - Depende do item 1.
+- **Feito em 11/11/2026**: `projectState(state, viewerId)` e `projectEvents(events, viewerId)` em `game/domain/core/projection.ts` (`viewerId` `null` = espectador, não vê segredo nenhum). Mesma forma de `GameState`/`GameEvent`: segredo vira `HIDDEN` ou carta virada (`core/hidden.ts`, `isHiddenCard`). O `uid` de toda carta agora é sorteado de `state.rng` (`randomId`). O `LocalGameClient` ganhou um terceiro parâmetro `localPlayerId`: com ele manda o estado e os eventos projetados; `null` (o jogo local de hoje) segue com o estado completo, sem mudar nada na tela. Tabela completa no [README do domínio](../frontend/src/game/domain/README.md#visão-por-jogador-segredos). Testes em `core/projection.test.ts` (18) e `localGameClient.test.ts`.
+- **Decisões por campo** (⚠ = confirmar com você):
+  - Mão: só o dono. Os outros recebem cartas viradas na mesma quantidade.
+  - Deck: virado para todos, até para o dono (ninguém sabe a ordem). A lista `decks` só para o dono.
+  - ⚠ Descarte: aberto para todos (as cartas jogadas e descartadas caem viradas para cima). A Ressurreição pega dele, então as cartas ressuscitadas também são públicas.
+  - Armadilhas escondidas: ninguém vê. Elas não têm dono, então nem o espectador vê. Só as presas pela Chuva de Flechas aparecem, porque a regra diz que se revelam.
+  - Selos: o lugar e o dono são públicos; o tipo, só o Escriba (regra: "só você sabe qual é qual"). O `sealBroken` revela o tipo para todos, porque o efeito aparece.
+  - ⚠ Selo dentro do Vazio do Zarek: o tipo é só dele (também quando ele o solta ou ecoa). O resto do Vazio (armadilha, fogo, neve, aparição) é público, porque a regra não fala em segredo.
+  - Carga da Têmis: só ela vê (regra: "carga secreta"). Os outros recebem `0` e não recebem o `abilityReady` dela.
+  - ⚠ Pilhagem: enquanto a Pilhagem espera, o Guardião vê a mão da vítima (a tela de hoje mostra as cartas abertas para ele escolher). Se a ideia for escolher às cegas, basta mandar a mão virada e escolher por posição.
+  - ⚠ Cartas roubadas (`cardsStolen`: Aposta do Coringa, Pilhagem, Dízimo): abertas para quem roubou e quem foi roubado; viradas para o resto da mesa.
+  - ⚠ Fusão e Transmutação: públicas (o log de hoje já diz "fundiu cartas em X" e "transmutou A em B"). Isso revela uma carta que fica na mão.
+  - Carta comprada (`cardDrawn`, `discardRequired`, `pendingDiscard`): só quem comprou, mesmo uma relíquia do céu (que estava à vista na casa).
+  - `rng`: ninguém. Com a semente dá para prever o dado, a ordem dos baralhos e para onde a armadilha escondida vai.
+- **Para a tela online** (nasce com o `WebSocketGameClient`, nada disso muda o jogo local):
+  - Mostrar o `DiscardPicker` e a escolha da Pilhagem só para o assento que decide. Hoje elas aparecem para o jogador da vez, que no online pode ser outro.
+  - `CardHand` deve mostrar a mão do assento local, não a do jogador da vez.
+  - Mostrar `?` na carga da Têmis para quem não é ela, também na vez dela. Hoje o `PlayersPanel` esconde só fora da vez dela.
+  - Durante a animação, a contagem do deck de um rival pode ficar uma carta atrasada (o `cardDrawn` virado não acha o `uid` no deck virado). O `syncStep` do fim da jogada acerta.
+  - O `DrawOverlay` já mostra o verso (`CardBack`) quando a carta chega virada.
 
 ## 3. `GameClient` pronto para cliente remoto ✅
 

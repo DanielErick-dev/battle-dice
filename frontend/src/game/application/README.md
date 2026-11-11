@@ -7,7 +7,7 @@ Um arquivo de contrato e uma implementação, mais a entrada do schema para o ba
   - `send(command)`: manda um comando e devolve `{ ok: true }` ou `{ ok: false, code }`;
   - `subscribe(listener)`: avisa a cada jogada aceita com um `GameUpdate { seq, state, events }`;
   - `close()`: sai da partida (no online, fecha o WebSocket).
-- `localGameClient.ts` → `LocalGameClient`: roda o `applyCommand` ali mesmo, no navegador. O `connect` responde na hora.
+- `localGameClient.ts` → `LocalGameClient`: roda o `applyCommand` ali mesmo, no navegador. O `connect` responde na hora. Com um `localPlayerId` (terceiro parâmetro), manda só o que esse assento pode ver (`projectState`/`projectEvents`, ver o README do domínio), como o servidor fará; sem ele (`null`, o jogo local de hoje) manda o estado completo.
 - `contract.ts` → só tipos: o que vira o JSON Schema em `contracts/game.schema.json` (`npm run schema`), com `state` e `events` opacos. Fluxo e modelos Pydantic em [contracts/README.md](../../../../contracts/README.md).
 
 ## Por que existe
