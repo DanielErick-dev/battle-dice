@@ -102,7 +102,7 @@ const tv = new MatchStore(joinPartyOnChannel("ABCD", { clientId: "tv", role: "sp
 const phone = new MatchStore(joinPartyOnChannel("ABCD", { clientId, role: "player", name: "Ana" }));
 ```
 
-- A TV espectadora tem `localPlayerId` `null`, que o `MatchStore` entende como hot-seat: a tela da TV deve esconder os controles e desligar a ampulheta (o anfitrião recusaria os comandos dela de qualquer jeito).
+- A TV espectadora tem `localPlayerId` `null`, igual ao hot-seat; por isso a TV cria o store com `new MatchStore(client, undefined, { spectator: true })`, que esconde todos os controles e não envia comando (veja `features/party/tv/README.md`).
 - O `clientId` vem de fora (ex.: `crypto.randomUUID()` guardado no `sessionStorage`), porque `game/` não sorteia nada fora do `state.rng`.
 
 ### Trocar pelo servidor de verdade (`WebSocketTransport`)

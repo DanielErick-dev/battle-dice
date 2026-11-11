@@ -75,4 +75,30 @@ describe("viewerControls", () => {
       expect(viewerControls(view({ winnerId: "p1" }), "p2").waitingFor).toBeNull();
     });
   });
+
+  describe("spectator", () => {
+    it("shows no one's secrets and acts for no one, on any turn", () => {
+      for (const shown of [view(), view({ activePlayerId: "p2" })]) {
+        expect(viewerControls(shown, null, true)).toEqual({
+          viewerId: null,
+          ownsTurn: false,
+          canRoll: false,
+          canPlayCard: false,
+          canActivateAbility: false,
+          answers: NO_ANSWERS,
+          waitingFor: shown.activePlayerId,
+        });
+      }
+    });
+
+    it("answers no prompt and names whoever owes it", () => {
+      const controls = viewerControls(view({ pendingDiscard: { playerId: "p2", drawn } }), null, true);
+      expect(controls.answers).toEqual(NO_ANSWERS);
+      expect(controls.waitingFor).toBe("p2");
+    });
+
+    it("waits on no one once the match is over", () => {
+      expect(viewerControls(view({ winnerId: "p1" }), null, true).waitingFor).toBeNull();
+    });
+  });
 });

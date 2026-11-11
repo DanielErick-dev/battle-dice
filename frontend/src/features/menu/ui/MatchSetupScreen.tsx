@@ -1,6 +1,6 @@
 "use client";
 
-import { Hourglass, Lock, Play, Plus, Sparkles, X, Zap } from "lucide-react";
+import { Hourglass, Lock, Play, Plus, Sparkles, Tv, X, Zap } from "lucide-react";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { BOARD_PRESETS } from "@/features/shared/presets/boards";
@@ -28,11 +28,13 @@ export function MatchSetupScreen() {
   const seat = Math.min(picking, seats.length - 1);
   const characterId = seats[seat] ?? seats[0];
   const setSeats = (next: readonly string[]) => preferences.players.set(next.join(","));
-  const matchHref =
-    `/partida?tabuleiro=${encodeURIComponent(boardId)}&mapa=${encodeURIComponent(mapId)}` +
+  /** Party mode: the TV opens a room and each player joins from a phone (/mesa draws the room code). */
+  const [party, setParty] = useState(false);
+  const setupQuery =
+    `tabuleiro=${encodeURIComponent(boardId)}&mapa=${encodeURIComponent(mapId)}` +
     `&jogadores=${encodeURIComponent(seats.join(","))}` +
-    (chargedAbilities ? "&carregadas=1" : "") +
-    (hourglass ? "" : "&ampulheta=0");
+    (chargedAbilities ? "&carregadas=1" : "");
+  const matchHref = party ? `/mesa?${setupQuery}` : `/partida?${setupQuery}` + (hourglass ? "" : "&ampulheta=0");
 
   return (
     <MenuPage title="Nova partida" subtitle="Escolha o modo, os jogadores e os personagens." wide>
@@ -104,7 +106,9 @@ export function MatchSetupScreen() {
             Jogadores
           </h2>
           <p className="text-sm text-zinc-400">
-            Todos jogam nesta tela, um de cada vez. Escolha um jogador e depois o personagem dele.
+            {party
+              ? "A TV mostra o tabuleiro e cada jogador usa o celular como controle. Escolha um jogador e depois o personagem dele."
+              : "Todos jogam nesta tela, um de cada vez. Escolha um jogador e depois o personagem dele."}
           </p>
           <div role="radiogroup" aria-labelledby="players-title" className="flex flex-wrap items-center gap-2">
             {seats.map((id, index) => {
@@ -166,12 +170,21 @@ export function MatchSetupScreen() {
             label="Habilidades carregadas"
             hint="Modo teste: todos começam com a habilidade pronta."
           />
+          {!party && (
+            <Toggle
+              on={hourglass}
+              onChange={preferences.hourglass.set}
+              icon={<Hourglass className="size-3.5 text-amber-300" />}
+              label="Ampulheta"
+              hint={`${TURN_SECONDS} segundos para pensar a cada vez; ${PAUSES_PER_PLAYER} pausas por jogador.`}
+            />
+          )}
           <Toggle
-            on={hourglass}
-            onChange={preferences.hourglass.set}
-            icon={<Hourglass className="size-3.5 text-amber-300" />}
-            label="Ampulheta"
-            hint={`${TURN_SECONDS} segundos para pensar a cada vez; ${PAUSES_PER_PLAYER} pausas por jogador.`}
+            on={party}
+            onChange={setParty}
+            icon={<Tv className="size-3.5 text-amber-300" />}
+            label="Modo festa"
+            hint="Esta tela vira a TV da mesa; cada jogador entra pelo celular com o código da sala."
           />
         </section>
 
@@ -245,8 +258,8 @@ export function MatchSetupScreen() {
             href={matchHref}
             className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-orange-600 px-10 text-lg font-black tracking-wider uppercase shadow-[0_10px_40px_rgba(234,88,12,0.45)] transition hover:bg-orange-500 active:scale-[0.98] sm:w-auto"
           >
-            <Play className="size-5 fill-current" />
-            Começar partida
+            {party ? <Tv className="size-5" /> : <Play className="size-5 fill-current" />}
+            {party ? "Abrir a sala" : "Começar partida"}
           </Link>
         </div>
       </div>

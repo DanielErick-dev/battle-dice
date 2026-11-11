@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { MatchHost, RemoteGameClient } from "@/game/application/party";
 import { MemoryRoom } from "@/game/application/party/memoryTransport";
 import { CLASSIC_BOARD } from "@/game/domain/board/presets";
@@ -28,6 +28,28 @@ describe("MatchStore over the party transport", () => {
     expect(host.seq).toBe(1);
     expect(tv.getSnapshot()?.players[0]?.id).toBe("p1");
     phone.close();
+    tv.close();
+    host.close();
+  });
+
+  it("keeps a spectator store from sending anything, even on a seat's turn", async () => {
+    const room = new MemoryRoom();
+    const host = new MatchHost(createGame(CLASSIC_BOARD, PLAYERS, { seed: 1 }), room.host, {
+      resolve: loadedDice([3]),
+    });
+    const client = new RemoteGameClient(() => room.connect(), { clientId: "tv", role: "spectator" });
+    const tv = new MatchStore(client, undefined, { spectator: true });
+    await tv.open();
+    const send = vi.spyOn(client, "send");
+
+    tv.rollDice();
+    tv.restart();
+    await Promise.resolve();
+
+    expect(send).not.toHaveBeenCalled();
+    expect(tv.localPlayerId).toBeNull();
+    expect(tv.getSnapshot()?.isAnimating).toBe(false);
+    expect(host.seq).toBe(0);
     tv.close();
     host.close();
   });

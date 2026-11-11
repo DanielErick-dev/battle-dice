@@ -73,7 +73,8 @@ TV mostra o tabuleiro (espectadora), cada jogador joga pelo celular. O jogo loca
   - `Transport` (`send`/`onMessage`/`close`) com `BroadcastChannelTransport`: abas do mesmo navegador jogam pelo código da sala.
   - `RemoteGameClient`: um `GameClient` sobre o `Transport`; o `MatchStore` e a tela da partida rodam em cima dele sem mudança.
   - Testes em `party/party.test.ts` (dois celulares + TV, segredo, vez errada, resync, reconexão, sala cheia) e `features/match/model/partyMatch.test.ts`.
-- **Falta (telas)**: a tela da TV (lobby com código da sala + tabuleiro espectador, sem controles nem ampulheta) e a tela do celular (escolher assento, mão, dado, perguntas).
+- **Tela da TV feita** (`/mesa`, em `frontend/src/features/party/tv/`, [README](../frontend/src/features/party/tv/README.md)): "Modo festa" em `/jogar`, código da sala de 4 letras, QR code para `/controle?sala=<código>`, lobby com os assentos, partida espectadora (`MatchStore` com `{ spectator: true }`: nenhum controle, só o tabuleiro, banners, histórico e jogadores), "Vez de <nome>", aviso "<nome> desconectou" e reinício só pela TV. HUD maior pela classe `party-tv`.
+- **Falta (telas)**: a tela do celular (escolher assento, mão, dado, perguntas).
 - **O que o FastAPI precisa fornecer** (o mapeamento completo está em [contracts/README.md](../contracts/README.md#modo-festa-o-servidor-no-lugar-do-anfitrião)):
   - salas com código e um WebSocket por conexão;
   - o papel do `MatchHost`: `clientId` → assento, `seq` por sala, `update` projetado para cada conexão, `commandResult` com o `requestId`, `presence` a cada entrada e saída, histórico curto para o `resync`;

@@ -16,7 +16,7 @@ interface PlayersPanelProps {
   players: readonly Player[];
   activePlayerId: PlayerId;
   /** Whose screen this is (see viewerControls): the active player in hot-seat. */
-  viewerId: PlayerId;
+  viewerId: PlayerId | null;
   board: Board;
 }
 

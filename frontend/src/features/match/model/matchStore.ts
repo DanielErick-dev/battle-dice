@@ -59,6 +59,11 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   NO_FIRE: "Não há fogo no tabuleiro nem oponente queimando.",
 };
 
+export interface MatchStoreOptions {
+  /** A spectator's snapshot has no seat either, so null alone can't tell it from hot-seat. */
+  spectator?: boolean;
+}
+
 /** Sends commands to the GameClient and replays the resulting events step by step (see model/README.md). */
 export class MatchStore {
   /** Null until the first snapshot arrives. */
@@ -72,11 +77,16 @@ export class MatchStore {
   private queue: PlaybackStep[] = [];
   private timer: ReturnType<typeof setTimeout> | null = null;
   private readonly listeners = new Set<() => void>();
+  /** Only watches (the party TV): sends no commands and shows no controls (see viewerControls). */
+  readonly spectator: boolean;
 
   constructor(
     private readonly client: GameClient,
     private readonly timings: PlaybackTimings = DEFAULT_TIMINGS,
-  ) {}
+    { spectator = false }: MatchStoreOptions = {},
+  ) {
+    this.spectator = spectator;
+  }
 
   /** Joins the match; resolves once the snapshot is on screen. */
   open = async (): Promise<void> => {
@@ -118,8 +128,9 @@ export class MatchStore {
     return this.seat;
   }
 
-  /** Who this screen plays as now: the pinned seat online, whoever's turn it is in hot-seat. */
+  /** Who this screen plays as now: the pinned seat online, whoever's turn it is in hot-seat, no one for a spectator. */
   get localPlayerId(): PlayerId | null {
+    if (this.spectator) return null;
     return this.seat ?? this.view?.activePlayerId ?? null;
   }
 
@@ -215,7 +226,7 @@ export class MatchStore {
   /** The one exit for commands: a pinned seat only ever speaks for itself. */
   private dispatch(command: GameCommand): void {
     const view = this.view;
-    if (!view) return;
+    if (!view || this.spectator) return;
     if ("playerId" in command && this.seat !== null && command.playerId !== this.seat) return;
     this.setView({ ...view, isAnimating: true, error: null });
     this.client.send(command).then(

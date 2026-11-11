@@ -20,13 +20,14 @@ frontend/src/
 │   ├── characters/          ← fichas (`sheets/<id>.ts`) e visuais 3D de cada personagem; usado por menu e partida
 │   ├── shared/              ← base neutra: `config.ts` (tempos, relógio do turno), `presets/` (tabuleiros e mapas), `audio/` (motor e síntese), `text/` (texto das habilidades), `board/` (geometria do tabuleiro), `three/` (texturas de canvas, `useAge`)
 │   ├── menu/                ← seleção de personagem com as intros
+│   ├── party/tv/            ← modo festa: a TV (`/mesa`) hospeda a sala e mostra a partida como espectadora
 │   └── settings/            ← configurações
-├── app/                     ← rotas do Next.js (/, /jogar, /partida, /configuracoes)
+├── app/                     ← rotas do Next.js (/, /jogar, /partida, /mesa, /configuracoes)
 ├── components/ui/           ← peças visuais genéricas (button) no estilo shadcn/ui
 └── lib/                     ← utilitários
 ```
 
-**Direção das dependências em `features/`:** `menu` e `match` importam `characters`, que importa `shared`. `characters` e `shared` não importam `menu` nem `match`, e `match` não importa `menu`. `menu` e `settings` não importam `match`.
+**Direção das dependências em `features/`:** `menu` e `match` importam `characters`, que importa `shared`. `characters` e `shared` não importam `menu` nem `match`, e `match` não importa `menu`. `menu` e `settings` não importam `match`. `party` importa `match` (reusa o `MatchTable` e o `MatchStore`); ninguém importa `party`. O código da sala fica em `shared/party/`, para o menu e o celular usarem.
 
 **Regra de ouro:** `game/` não importa nada de `features/`. As regras do jogo não sabem que existe 3D, som ou React. O ESLint garante isso: em `src/game/**`, importar `features/`, `app/`, `components/`, React, Next ou Three.js dá erro, e `game/domain/` também não pode importar `game/application/`. Isso permite:
 
@@ -64,9 +65,9 @@ O `GameState` diz **a verdade** (o jogador está na casa 42). A `MatchView` diz 
 | `core/`              | `state.ts` (`GameState`, `Player`), `engine.ts` (`createGame`, `applyCommand`: o roteador), `commands.ts`, `events.ts`, `draft.ts`, `turn.ts` (fim de turno, rodadas), `energy.ts`, `playerStatus.ts` (proteções, `aimWard`), `random.ts`, `dice.ts` |
 | `handlers/`          | um handler por comando                                                                                                                                                                                                                               |
 | `board/`             | tabuleiro e presets (`board.ts`, `generator.ts`), andar e alcance (`paths.ts`, `reach.ts`), parar numa casa (`landing.ts`), armadilhas, céu e inferno (`realms.ts`), bênçãos                                                                         |
-| `cards/`             | catálogo, jogar (`play.ts`), bloqueios, escolhas, efeitos (`effects.ts`), cartas exclusivas, mão, baralho, fusão                                                                                                                                                                                |
+| `cards/`             | catálogo, jogar (`play.ts`), bloqueios, escolhas, efeitos (`effects.ts`), cartas exclusivas, mão, baralho, fusão                                                                                                                                     |
 | `abilities/`         | ids, carga e alvo das habilidades; as habilidades simples                                                                                                                                                                                            |
-| `characters/<nome>/` | a mecânica própria de cada personagem, com seus números e tipos (`zarek/void.ts`, `fairy/winter.ts`, `kage/flames.ts`…), um arquivo por mecânica                                                                                                                              |
+| `characters/<nome>/` | a mecânica própria de cada personagem, com seus números e tipos (`zarek/void.ts`, `fairy/winter.ts`, `kage/flames.ts`…), um arquivo por mecânica                                                                                                     |
 | `types.ts`           | vitrine: reexporta os tipos para `features/`                                                                                                                                                                                                         |
 
 Detalhes no README de `frontend/src/game/domain/`.

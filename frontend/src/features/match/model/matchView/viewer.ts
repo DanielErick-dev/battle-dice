@@ -4,8 +4,8 @@ import type { MatchView } from "./view";
 
 /** What this screen may do right now; every control that sends a command reads it (see model/README.md). */
 export interface ViewerControls {
-  /** Whose hand and secrets the screen shows: the pinned seat, or whoever's turn it is in hot-seat. */
-  viewerId: PlayerId;
+  /** Whose hand and secrets the screen shows: the pinned seat, whoever's turn it is in hot-seat, null for a spectator. */
+  viewerId: PlayerId | null;
   /** The turn is the viewer's (always, in hot-seat): their clock runs and they may pause. */
   ownsTurn: boolean;
   /** Rolling, fusing, burning energy and setting the Void's things down. */
@@ -29,14 +29,17 @@ function promptOwner(view: MatchView): PlayerId | null {
   );
 }
 
-/** `seat` is the pinned seat, or null in hot-seat, where the screen always speaks for whoever's turn it is. */
-export function viewerControls(view: MatchView, seat: PlayerId | null): ViewerControls {
-  const speaksFor = (id: PlayerId | undefined) => id !== undefined && (seat === null || id === seat);
+/**
+ * `seat` is the pinned seat, or null in hot-seat, where the screen always speaks for whoever's turn it is.
+ * A `spectator` (the party TV) has no seat either, but speaks for no one: it only watches.
+ */
+export function viewerControls(view: MatchView, seat: PlayerId | null, spectator = false): ViewerControls {
+  const speaksFor = (id: PlayerId | undefined) => !spectator && id !== undefined && (seat === null || id === seat);
   const ownsTurn = speaksFor(view.activePlayerId);
   const owner = promptOwner(view);
   const waitingOn = owner ?? view.activePlayerId;
   return {
-    viewerId: seat ?? view.activePlayerId,
+    viewerId: spectator ? null : (seat ?? view.activePlayerId),
     ownsTurn,
     canRoll: ownsTurn && canRoll(view),
     canPlayCard: ownsTurn && canPlayCard(view),

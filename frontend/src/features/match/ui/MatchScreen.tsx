@@ -1,9 +1,10 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { preferences, usePreference } from "@/features/settings/preferences";
 import { useFullscreen } from "@/lib/useFullscreen";
+import { cn } from "@/lib/utils";
 import { boardPresetFor, isLargeBoard, type BoardPreset } from "@/features/shared/presets/boards";
 import type { MapId } from "@/features/shared/presets/maps";
 import { rosterOf, type CharacterId, type RosterEntry } from "@/features/characters";
@@ -113,14 +114,33 @@ function Match({ preset, mapId, roster, chargedAbilities, seat, hourglass, audio
   );
 }
 
-interface MatchTableProps extends Omit<MatchProps, "chargedAbilities" | "seat"> {
+export interface MatchTableProps extends Omit<MatchProps, "chargedAbilities" | "seat"> {
   store: MatchStore;
   view: MatchView;
   /** The board without the Void's rifts, as the snapshot brought it. */
   plainBoard: Board;
+  /** "Jogar novamente" when this screen restarts the match itself (the party TV hosts it); else store.restart. */
+  onRestart?: () => void;
+  /** Extra classes for the screen (the party TV scales its HUD up). */
+  className?: string;
+  /** Overlays drawn above the HUD (the party TV's turn and presence notes). */
+  children?: ReactNode;
 }
 
-function MatchTable({ store, view, plainBoard, preset, mapId, roster, hourglass, audio }: MatchTableProps) {
+/** The match on screen for any store: hot-seat, a pinned seat or a spectator (see viewerControls). */
+export function MatchTable({
+  store,
+  view,
+  plainBoard,
+  preset,
+  mapId,
+  roster,
+  hourglass,
+  audio,
+  onRestart,
+  className,
+  children,
+}: MatchTableProps) {
   const quality = usePreference(preferences.effectsQuality);
   const { sounds } = audio;
   const { fullscreen, toggle: toggleFullscreen } = useFullscreen();
@@ -132,7 +152,7 @@ function MatchTable({ store, view, plainBoard, preset, mapId, roster, hourglass,
   const onReady = useCallback(() => setReady(true), []);
   const nameOf = (id: string | null) => view.players.find((player) => player.id === id)?.name ?? null;
   const activePlayer = activePlayerOf(view);
-  const controls = viewerControls(view, store.pinnedSeat);
+  const controls = viewerControls(view, store.pinnedSeat, store.spectator);
   const viewer = view.players.find((player) => player.id === controls.viewerId);
   // The path as it stands, with the rifts Zarek's Void opened (the store's board is the plain one).
   const board = useMemo(() => withRifts(plainBoard, view.rifts), [plainBoard, view.rifts]);
@@ -157,7 +177,7 @@ function MatchTable({ store, view, plainBoard, preset, mapId, roster, hourglass,
   );
 
   return (
-    <main className="relative h-dvh w-full overflow-hidden bg-[#05060b] text-white select-none">
+    <main className={cn("relative h-dvh w-full overflow-hidden bg-[#05060b] text-white select-none", className)}>
       <div className="absolute inset-0">
         <BoardScene
           board={plainBoard}
@@ -241,7 +261,7 @@ function MatchTable({ store, view, plainBoard, preset, mapId, roster, hourglass,
               isAnimating={view.isAnimating}
               isFinished={view.winnerId !== null}
               onRoll={store.rollDice}
-              onRestart={store.restart}
+              onRestart={onRestart ?? store.restart}
             />
           </div>
         </footer>
@@ -269,6 +289,7 @@ function MatchTable({ store, view, plainBoard, preset, mapId, roster, hourglass,
         />
       )}
       <PendingPrompts store={store} view={view} controls={controls} nameOf={nameOf} />
+      {children}
       <LoadingCurtain ready={ready} />
       {pausedBy !== null && (
         <PauseOverlay name={nameOf(pausedBy) ?? ""} pausesLeft={pausesLeft(pausedBy)} onResume={resume} />
