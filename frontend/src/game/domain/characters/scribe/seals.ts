@@ -1,4 +1,5 @@
 import { at } from "../../core/invariant";
+import { HIDDEN } from "../../core/hidden";
 import { getTile } from "../../board/board";
 import { byDistanceFrom } from "../../board/tileGround";
 import { cardCost } from "../../cards/catalog";
@@ -82,12 +83,20 @@ export function breakSeal(draft: Draft, playerId: PlayerId, tile: TileId): boole
   }
 
   draft.seals = draft.seals.filter((candidate) => candidate !== seal);
-  if (alone) rewardOwner(draft, seal);
-  else strikeWithSeal(draft, playerId, seal);
+  if (alone) rewardOwner(draft, knownSeal(seal));
+  else strikeWithSeal(draft, playerId, knownSeal(seal));
   return true;
 }
 
-function strikeWithSeal(draft: Draft, playerId: PlayerId, seal: Seal): void {
+type KnownSeal = Seal & { kind: SealKind };
+
+/** The rules run on the full state; a HIDDEN kind only exists in a viewer's projection. */
+function knownSeal(seal: Seal): KnownSeal {
+  if (seal.kind === HIDDEN) throw new Error(`Seal on ${seal.tile} has no kind: rules ran on a projected state`);
+  return { ...seal, kind: seal.kind };
+}
+
+function strikeWithSeal(draft: Draft, playerId: PlayerId, seal: KnownSeal): void {
   const { owner, kind, tile } = seal;
   const broken = (energyLost = 0, energyGained = 0) =>
     draft.events.push({ type: "sealBroken", playerId, owner, tile, kind, energyLost, energyGained });
@@ -122,7 +131,7 @@ function strikeWithSeal(draft: Draft, playerId: PlayerId, seal: Seal): void {
 }
 
 /** Alone on the board, the Scribe's own seal pays out instead of striking. */
-function rewardOwner(draft: Draft, { owner, kind, tile }: Seal): void {
+function rewardOwner(draft: Draft, { owner, kind, tile }: KnownSeal): void {
   const gainEnergy = (amount: number) => {
     const energyGained = Math.min(amount, MAX_ENERGY - playerIn(draft, owner).energy);
     updatePlayer(draft, owner, (player) => ({ energy: player.energy + energyGained }));

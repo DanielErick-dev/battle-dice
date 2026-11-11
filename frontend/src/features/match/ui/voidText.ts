@@ -1,3 +1,4 @@
+import { HIDDEN } from "@/game/domain/core/hidden";
 import type { VoidItem } from "@/game/domain/types";
 import { SEAL_TEXT, SPECTER_TEXT } from "./placementText";
 
@@ -15,7 +16,7 @@ export function voidItemName(item: VoidItem): string {
     case "snow":
       return "neve";
     case "seal":
-      return `selo (${SEAL_TEXT[item.seal].name})`;
+      return item.seal === HIDDEN ? "selo" : `selo (${SEAL_TEXT[item.seal].name})`;
     case "specter":
       return `aparição (${SPECTER_TEXT[item.specter].name})`;
   }

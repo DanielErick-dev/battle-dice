@@ -1,6 +1,8 @@
 import type { GameCommand } from "../domain/core/commands";
 import { applyCommand, type GameTransition } from "../domain/core/engine";
 import { GameRuleError } from "../domain/core/errors";
+import type { PlayerId } from "../domain/core/ids";
+import { projectEvents, projectState } from "../domain/core/projection";
 import type { GameState } from "../domain/types";
 import type { CommandResult, GameClient, GameUpdate, GameUpdateListener, Snapshot } from "./gameClient";
 
@@ -11,27 +13,35 @@ export class LocalGameClient implements GameClient {
   private readonly listeners = new Set<GameUpdateListener>();
   private seq = 0;
 
-  /** `resolve` is swapped only by tests that need loaded dice. */
+  /**
+   * `resolve` is swapped only by tests that need loaded dice. A `localPlayerId` pins this screen to one seat
+   * and sends only what that seat may see, as a server would; null (hot-seat) sends the full state.
+   */
   constructor(
     private state: GameState,
     private readonly resolve: Resolve = applyCommand,
+    private readonly localPlayerId: PlayerId | null = null,
   ) {}
 
   async connect(): Promise<Snapshot> {
-    return { seq: this.seq, state: this.state, localPlayerId: null };
+    return { seq: this.seq, state: this.visible(this.state), localPlayerId: this.localPlayerId };
   }
 
   async send(command: GameCommand): Promise<CommandResult> {
-    let update: GameUpdate;
+    let transition: GameTransition;
     try {
-      const { state, events } = this.resolve(this.state, command);
-      update = { seq: this.seq + 1, state, events };
+      transition = this.resolve(this.state, command);
     } catch (error) {
       if (error instanceof GameRuleError) return { ok: false, code: error.code };
       throw error;
     }
-    this.state = update.state;
-    this.seq = update.seq;
+    this.state = transition.state;
+    this.seq += 1;
+    const update: GameUpdate = {
+      seq: this.seq,
+      state: this.visible(transition.state),
+      events: this.localPlayerId === null ? transition.events : projectEvents(transition.events, this.localPlayerId),
+    };
     this.listeners.forEach((listener) => listener(update));
     return { ok: true };
   }
@@ -43,5 +53,9 @@ export class LocalGameClient implements GameClient {
 
   close(): void {
     this.listeners.clear();
+  }
+
+  private visible(state: GameState): GameState {
+    return this.localPlayerId === null ? state : projectState(state, this.localPlayerId);
   }
 }

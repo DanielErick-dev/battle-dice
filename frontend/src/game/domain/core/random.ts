@@ -53,3 +53,12 @@ export function shuffle<T>(items: readonly T[], random: RandomSource): T[] {
   }
   return shuffled;
 }
+
+/** 64 random bits in base 36: a card uid that says nothing about the card's owner, order or origin. */
+export function randomId(random: RandomSource): string {
+  const part = () =>
+    Math.floor(random() * 4294967296)
+      .toString(36)
+      .padStart(7, "0");
+  return part() + part();
+}

@@ -1,4 +1,5 @@
 import { at } from "../core/invariant";
+import { randomId } from "../core/random";
 import { announceReady, chargeInDraft } from "../abilities/charge";
 import { BLESSING_ENERGY } from "./realms";
 import { crossSpecters } from "../characters/warden/specters";
@@ -83,7 +84,7 @@ export function applyTileEffect(
       if (effect.cardId && isSeraph(playerIn(draft, playerId))) offerGrace(draft, playerId, landed, "relic");
       else if (effect.cardId)
         giveCard(draft, playerId, {
-          uid: `${playerId}:relic${draft.state.turn}:${landed}`,
+          uid: randomId(draft.random),
           cardId: effect.cardId,
         });
       else drawCard(draft, playerId);

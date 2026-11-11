@@ -98,7 +98,8 @@ describe("Seraphiel in heaven", () => {
   });
 
   it("his ability's blessing lasts SERAPHIEL_BLESSING_TURNS rounds too", () => {
-    const { state } = activate(readyAbility(solo(), "hero"), "hero");
+    // Seed 1's draw grants a blessing rather than a heaven card.
+    const { state } = send(readyAbility(solo(), "hero"), { type: "activateAbility", playerId: "hero" }, [1], 1);
     expect(at(playerOf(state, "hero").blessings, 0).turnsLeft).toBe(SERAPHIEL_BLESSING_TURNS);
   });
 

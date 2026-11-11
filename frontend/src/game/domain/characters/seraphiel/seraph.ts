@@ -1,4 +1,5 @@
 import { at } from "../../core/invariant";
+import { randomId } from "../../core/random";
 import { getTile } from "../../board/board";
 import { DIVINE_CARDS, type CardId } from "../../cards/catalog";
 import { GameRuleError } from "../../core/errors";
@@ -80,7 +81,7 @@ export function receiveGrace(
     return;
   }
   if (!pick.cardId || !DIVINE_CARDS.includes(pick.cardId)) throw new GameRuleError("INVALID_GRACE");
-  giveCard(draft, playerId, { uid: `${playerId}:relic${draft.state.turn}:${tile}`, cardId: pick.cardId });
+  giveCard(draft, playerId, { uid: randomId(draft.random), cardId: pick.cardId });
 }
 
 /** Anyone not already in a realm; armoured ones too, who then turn it away. */

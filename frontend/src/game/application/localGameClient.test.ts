@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CLASSIC_BOARD } from "../domain/board/presets";
 import { createGame } from "../domain/core/engine";
-import { loadedDice } from "../domain/testing";
+import { loadedDice, withPlayer } from "../domain/testing";
 import type { GameUpdate } from "./gameClient";
 import { LocalGameClient } from "./localGameClient";
 
@@ -70,6 +70,33 @@ describe("LocalGameClient", () => {
 
     expect(result).toEqual({ ok: true });
     expect(updates).toEqual([]);
+  });
+
+  it("sends a pinned seat only what it may see, as a server would", async () => {
+    const full = withPlayer(createGame(CLASSIC_BOARD, PLAYERS, { seed: 1 }), "p1", { energy: 5 });
+    const client = new LocalGameClient(full, loadedDice([3, 2]), "p2");
+    const updates: GameUpdate[] = [];
+    client.subscribe((update) => updates.push(update));
+
+    const snapshot = await client.connect();
+    await client.send({ type: "sacrificeEnergy", playerId: "p1" });
+    await client.send({ type: "rollDice", playerId: "p1" });
+
+    expect(snapshot.localPlayerId).toBe("p2");
+    expect(snapshot.state.players[1]?.hand).toEqual(full.players[1]?.hand);
+    const aria = full.players[0];
+    const secrets = [...(aria?.hand ?? []), ...(aria?.deck ?? [])].map(({ uid }) => uid);
+    expect(updates[0]?.events.map(({ type }) => type)).toContain("cardDrawn");
+    for (const message of [snapshot, ...updates]) {
+      const serialized = JSON.stringify(message);
+      for (const uid of secrets) expect(serialized).not.toContain(uid);
+      expect(message.state.rng).toEqual({ seed: 0, counter: 0 });
+    }
+  });
+
+  it("keeps the full state in hot-seat", async () => {
+    const full = createGame(CLASSIC_BOARD, PLAYERS, { seed: 1 });
+    expect((await new LocalGameClient(full).connect()).state).toBe(full);
   });
 
   it("stops notifying after close", async () => {

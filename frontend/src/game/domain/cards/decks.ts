@@ -1,8 +1,8 @@
 import { CARD_CATALOG, type CardDefinition, type Rarity } from "./catalog";
-import { shuffle, type RandomSource } from "../core/random";
+import { randomId, shuffle, type RandomSource } from "../core/random";
 import type { AbilityId } from "../abilities/ability";
 import type { CardId } from "./catalog";
-import type { CardInstance, PlayerId } from "../core/state";
+import type { CardInstance } from "../core/state";
 
 /** Copies per card in the standard deck (relics are never in it). */
 const COPIES_BY_RARITY: Readonly<Record<Rarity, number>> = {
@@ -39,9 +39,9 @@ export function characterDeck(ability: AbilityId | null, options: { withOpponent
   return [...standardDeck(options), ...exclusiveCards(ability, options)];
 }
 
-export function buildDeck(playerId: PlayerId, cards: readonly CardId[], random: RandomSource): CardInstance[] {
+export function buildDeck(cards: readonly CardId[], random: RandomSource): CardInstance[] {
   return shuffle(
-    cards.map((cardId, index) => ({ uid: `${playerId}:${index}`, cardId })),
+    cards.map((cardId) => ({ uid: randomId(random), cardId })),
     random,
   );
 }

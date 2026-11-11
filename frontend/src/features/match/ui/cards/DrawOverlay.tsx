@@ -1,3 +1,4 @@
+import { isHiddenCard } from "@/game/domain/core/hidden";
 import type { CardDrawView } from "../../model/matchView";
 import { CardBack } from "./CardBack";
 import { CardView } from "./CardView";
@@ -27,7 +28,12 @@ export function DrawOverlay({ drawing }: { drawing: CardDrawView | null }) {
           style={{ animation: "card-draw-flip 1.5s ease-in-out forwards" }}
         >
           <div className="[backface-visibility:hidden]">
-            <CardView cardId={drawing.card.cardId} fused={drawing.card.fused} />
+            {/* Online, another seat's draw arrives face down (see game/domain/core/projection.ts). */}
+            {isHiddenCard(drawing.card) ? (
+              <CardBack />
+            ) : (
+              <CardView cardId={drawing.card.cardId} fused={drawing.card.fused} />
+            )}
           </div>
           <div className="absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)]">
             <CardBack />
