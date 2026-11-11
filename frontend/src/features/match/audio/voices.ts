@@ -1,4 +1,5 @@
 import type { AbilityId } from "@/game/domain/abilities/ability";
+import { pick } from "@/features/shared/collections/items";
 
 /** A line a character shouts: a recording in public/audio/voices/<character>/ (one picked at random), heard `delay` seconds after its cue. */
 interface VoiceLine {
@@ -15,5 +16,5 @@ export const ABILITY_VOICES: Partial<Record<AbilityId, VoiceLine>> = {
 };
 
 export function voiceTake({ src }: VoiceLine, random = Math.random): string {
-  return typeof src === "string" ? src : src[Math.floor(random() * src.length)];
+  return typeof src === "string" ? src : pick(src, random());
 }

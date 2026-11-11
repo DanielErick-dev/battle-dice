@@ -17,7 +17,7 @@ export function useStarTexture(): CanvasTexture {
     for (const [width, height] of [
       [size, 3],
       [3, size],
-    ]) {
+    ] as const) {
       const ray = context.createRadialGradient(centre, centre, 0, centre, centre, size / 2);
       ray.addColorStop(0, "rgba(255,255,255,0.95)");
       ray.addColorStop(1, "rgba(255,255,255,0)");

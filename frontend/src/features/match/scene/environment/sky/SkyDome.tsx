@@ -8,6 +8,7 @@ import { SKY } from "../../realm/mix/palette";
 import { blendRealm } from "../../realm/mix/realmMix";
 import { useRealmMix } from "../../realm/mix/useRealmMix";
 import { SKY_FRAGMENT, SKY_VERTEX } from "./skyShader";
+import { uniform } from "@/features/shared/three/uniform";
 
 /** Past 1.0 so the moon (and the blood moon, and the sun) bloom. */
 const ORB = {
@@ -48,12 +49,18 @@ export function SkyDome({ radius, moonPosition, moonRadius }: SkyDomeProps) {
   useFrame((_, delta) => {
     if (!material.current) return;
     const current = mix.current;
-    const { uniforms } = material.current;
-    uniforms.uTime.value += delta;
-    uniforms.uInfernal.value = current.infernal;
-    uniforms.uCelestial.value = current.celestial;
-    blendRealm(uniforms.uHorizon.value, SKY.mortal.horizon, SKY.infernal.horizon, SKY.celestial.horizon, current);
-    blendRealm(uniforms.uZenith.value, SKY.mortal.zenith, SKY.infernal.zenith, SKY.celestial.zenith, current);
+    const shader = material.current;
+    uniform(shader, "uTime").value += delta;
+    uniform(shader, "uInfernal").value = current.infernal;
+    uniform(shader, "uCelestial").value = current.celestial;
+    blendRealm(
+      uniform(shader, "uHorizon").value,
+      SKY.mortal.horizon,
+      SKY.infernal.horizon,
+      SKY.celestial.horizon,
+      current,
+    );
+    blendRealm(uniform(shader, "uZenith").value, SKY.mortal.zenith, SKY.infernal.zenith, SKY.celestial.zenith, current);
 
     if (orb.current) blendRealm(orb.current.color, ORB.mortal, ORB.infernal, ORB.celestial, current);
     halos.current.forEach(

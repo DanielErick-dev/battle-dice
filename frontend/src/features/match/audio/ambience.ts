@@ -42,7 +42,7 @@ export class Ambience {
     for (const [frequency, depth] of [
       [0.085, 0.22],
       [0.21, 0.1],
-    ]) {
+    ] as const) {
       const lfo = context.createOscillator();
       lfo.frequency.value = frequency;
       const amount = context.createGain();

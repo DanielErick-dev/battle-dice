@@ -77,7 +77,7 @@ describe("following the target", () => {
     expect(motion.waypoints).toHaveLength(0);
     followTarget(motion, position, [4, 1, 3], [1, 0, 0], next);
     expect(motion.waypoints).toHaveLength(1);
-    expect(motion.waypoints[0].to.toArray()).toEqual([4, 1 + BASE_Y, 3]);
+    expect(motion.waypoints[0]?.to.toArray()).toEqual([4, 1 + BASE_Y, 3]);
   });
 });
 

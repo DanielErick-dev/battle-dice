@@ -25,6 +25,7 @@ import { FlameWall } from "./track/FlameWall";
 import { RIBBON_FRAGMENT } from "./track/ribbonShader";
 import { TrackSparkles } from "./track/TrackSparkles";
 import { HaloUnderside, MoltenUnderside } from "./track/TrackUndersides";
+import { uniform } from "@/features/shared/three/uniform";
 
 interface RealmTrackViewProps {
   track: RealmTrack;
@@ -66,6 +67,7 @@ export function RealmTrackView({
   const walls = useRef<Group>(null);
   const ribbon = useRef<ShaderMaterial>(null);
   const positions = useMemo(() => track.tiles.map((id) => layout.position(id)), [track, layout]);
+  const floorLevel = positions[0]?.[1] ?? 0;
 
   const ribbonGeometry = useMemo(() => {
     const lift = (position: Vec3) => new Vector3(position[0], position[1] + TILE_HEIGHT / 2 + 0.05, position[2]);
@@ -89,10 +91,11 @@ export function RealmTrackView({
 
     const count = positions.length;
     tiles.current.forEach((tile, i) => {
-      if (!tile) return;
+      const position = positions[i];
+      if (!tile || !position) return;
       const local = tileArrival(amount, i, count);
       const eased = easeOutCubic(local);
-      tile.position.set(positions[i][0], positions[i][1] + (1 - eased) * ARRIVAL_OFFSET[track.realm], positions[i][2]);
+      tile.position.set(position[0], position[1] + (1 - eased) * ARRIVAL_OFFSET[track.realm], position[2]);
       tile.scale.setScalar(0.25 + 0.75 * eased);
       tile.visible = local > 0.01;
     });
@@ -101,13 +104,13 @@ export function RealmTrackView({
     if (walls.current) walls.current.scale.y = wallRise(amount);
 
     flames.forEach((material) => {
-      material.uniforms.uTime.value = clock.elapsedTime;
-      material.uniforms.uOpacity.value = amount;
+      uniform(material, "uTime").value = clock.elapsedTime;
+      uniform(material, "uOpacity").value = amount;
     });
     if (ribbon.current) {
-      ribbon.current.uniforms.uTime.value = clock.elapsedTime;
-      ribbon.current.uniforms.uOpacity.value = amount;
-      ribbon.current.uniforms.uReveal.value = Math.min(1, amount * 1.15);
+      uniform(ribbon.current, "uTime").value = clock.elapsedTime;
+      uniform(ribbon.current, "uOpacity").value = amount;
+      uniform(ribbon.current, "uReveal").value = Math.min(1, amount * 1.15);
     }
   });
 
@@ -129,7 +132,8 @@ export function RealmTrackView({
       {track.tiles.map((id, i) => {
         const tile = getTile(board, id);
         const next = tile.next ? layout.position(tile.next) : null;
-        const arrowAngle = next ? Math.atan2(next[2] - positions[i][2], next[0] - positions[i][0]) : null;
+        const here = positions[i];
+        const arrowAngle = next && here ? Math.atan2(next[2] - here[2], next[0] - here[0]) : null;
         return (
           <group
             key={id}
@@ -163,8 +167,8 @@ export function RealmTrackView({
       })}
 
       {/* Scaled from the tiles' level, so the walls grow up from the corridor floor. */}
-      <group ref={walls} position-y={positions[0][1]}>
-        <group position-y={-positions[0][1]}>
+      <group ref={walls} position-y={floorLevel}>
+        <group position-y={-floorLevel}>
           <CorridorWalls realm={track.realm} positions={positions} />
         </group>
       </group>

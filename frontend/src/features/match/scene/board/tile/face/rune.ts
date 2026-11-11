@@ -91,7 +91,7 @@ export function runePath(ctx: CanvasRenderingContext2D, { theme, arrowAngle }: T
         [0, 0],
         [-48, 48],
         [48, 48],
-      ])
+      ] as const)
         dot(CENTER + x, CENTER + y, 16);
       return;
     case "skipTurn":
@@ -109,7 +109,7 @@ export function runePath(ctx: CanvasRenderingContext2D, { theme, arrowAngle }: T
       for (const [angle, dx] of [
         [-0.25, -38],
         [0.2, 42],
-      ]) {
+      ] as const) {
         ctx.save();
         ctx.translate(CENTER + dx, CENTER);
         ctx.rotate(angle);

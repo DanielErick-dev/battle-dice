@@ -98,7 +98,7 @@ export const FACES: Record<number, { normal: Vector3; u: Vector3; v: Vector3 }> 
 };
 
 const PIP_MESHES = Object.entries(FACES).flatMap(([value, { normal, u, v }]) =>
-  PIPS[Number(value)].map((cell) => {
+  (PIPS[Number(value)] ?? []).map((cell) => {
     const column = (cell % 3) - 1;
     const row = Math.floor(cell / 3) - 1;
     const position = normal
@@ -171,7 +171,7 @@ export function DiceThrow({ roll, landing, onImpact, realm }: DiceThrowProps) {
     if (bounce > active.bounce) {
       active.bounce = bounce;
       // The drop hits hardest; each later impact scales with the hop that preceded it.
-      onImpact(bounce === 1 ? 1 : BOUNCES[bounce - 1].height / DROP_HEIGHT_EQUIVALENT);
+      onImpact(bounce === 1 ? 1 : (BOUNCES[bounce - 1]?.height ?? 0) / DROP_HEIGHT_EQUIVALENT);
     }
 
     const glide = 1 - (1 - progress) ** 3;
@@ -225,14 +225,15 @@ function startThrow(roll: { id: number; value: number }, landing: Vec3, now: num
 /** Orientation that leaves `value` facing up, turned `yaw` radians around the vertical. */
 export function restingRotation(value: number, yaw: number): Quaternion {
   const turn = new Quaternion().setFromAxisAngle(UP, yaw);
-  return turn.multiply(new Quaternion().setFromUnitVectors(FACES[value].normal, UP));
+  const face = FACES[value];
+  return face ? turn.multiply(new Quaternion().setFromUnitVectors(face.normal, UP)) : turn;
 }
 
 /** Which bounce segment `elapsed` falls in (0 = the drop, past the end = resting) and how far into it. */
 function bounceAt(elapsed: number): { bounce: number; local: number } {
   let start = 0;
   for (let i = 0; i < BOUNCES.length; i++) {
-    const { duration } = BOUNCES[i];
+    const duration = BOUNCES[i]?.duration ?? 0;
     if (elapsed < start + duration) return { bounce: i, local: (elapsed - start) / duration };
     start += duration;
   }
@@ -243,7 +244,7 @@ function bounceAt(elapsed: number): { bounce: number; local: number } {
 function heightAt(bounce: number, local: number, dropHeight: number): number {
   if (bounce === 0) return dropHeight * (1 - local * local);
   if (bounce >= BOUNCES.length) return 0;
-  return 4 * BOUNCES[bounce].height * local * (1 - local);
+  return 4 * (BOUNCES[bounce]?.height ?? 0) * local * (1 - local);
 }
 
 function smoothstep(edge0: number, edge1: number, x: number): number {

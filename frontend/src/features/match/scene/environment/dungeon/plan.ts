@@ -13,6 +13,7 @@ import {
   type Blocker,
   type Bounds,
 } from "../shared/trailPlan";
+import { pick } from "@/features/shared/collections/items";
 
 /** World units per KayKit Dungeon unit: a wall comes out a little taller than a figure. */
 const DUNGEON_SCALE = 1.1;
@@ -23,7 +24,7 @@ const MARGIN = { side: 7, back: 6, front: 5 };
 const FLOOR = TRAIL_GROUND;
 
 /** Kit size (width, height, depth) of the pieces laid about the halls. */
-const SIZES: Record<string, [number, number, number]> = {
+const SIZES = {
   pillar: [1.5, 4, 1.5],
   pillar_decorated: [2.23, 4, 1.71],
   column: [0.7, 1.4, 0.7],
@@ -37,9 +38,10 @@ const SIZES: Record<string, [number, number, number]> = {
   trunk_large_A: [1.5, 1, 1.3],
   table_long_decorated_A: [2.06, 1.89, 4],
   sword_shield_broken: [1.43, 1.96, 0.34],
-};
+} satisfies Record<string, [number, number, number]>;
+type Furnishing = keyof typeof SIZES;
 /** Halls' furnishings and how often each turns up; the treasure is rarer. */
-const FURNISHINGS: readonly [string, number, number][] = [
+const FURNISHINGS: readonly [[Furnishing, number, number], ...[Furnishing, number, number][]] = [
   // piece, weight, its own scale on top of DUNGEON_SCALE
   ["pillar_decorated", 2, 1],
   ["pillar", 2, 1],
@@ -83,7 +85,7 @@ export function planDungeon(trail: readonly Vec3[]): DungeonPlan {
     for (let index = 0; index < count; index++) {
       const t = (index + 0.5) / count;
       const [x, z] = [from[0] + (to[0] - from[0]) * t, from[1] + (to[1] - from[1]) * t];
-      const piece = index % 4 === 0 ? "wall_pillar" : WALLS[Math.floor(random() * WALLS.length)];
+      const piece = index % 4 === 0 ? "wall_pillar" : pick(WALLS, random());
       pieces.push({ piece, x, y: FLOOR, z, turn: facing, scale: DUNGEON_SCALE });
       // Every other piece a torch, every few a banner, hung on the hall's side of it.
       const [ix, iz] = [Math.sin(facing) * 0.6 * DUNGEON_SCALE, Math.cos(facing) * 0.6 * DUNGEON_SCALE];

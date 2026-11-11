@@ -4,6 +4,7 @@ import { Sparkles } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { AdditiveBlending, Color, DoubleSide, type Mesh, type MeshBasicMaterial, type ShaderMaterial } from "three";
+import { uniform } from "@/features/shared/three/uniform";
 
 const VERTEX = /* glsl */ `
   varying vec2 vUv;
@@ -102,8 +103,8 @@ export function EnergyAura({ active, palette = "gold" }: { active: boolean; pale
       [inner.current, 1.4],
     ] as const) {
       if (!material) continue;
-      material.uniforms.uTime.value += delta * speed;
-      material.uniforms.uPower.value = power.current;
+      uniform(material, "uTime").value += delta * speed;
+      uniform(material, "uPower").value = power.current;
     }
 
     const since = ignitedAt.current === null ? Infinity : clock.elapsedTime - ignitedAt.current;

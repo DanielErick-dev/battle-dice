@@ -19,7 +19,11 @@ export function focusPoint(view: MatchView, layout: BoardLayout): Vec3 {
   const volley = view.fx.volley;
   if (volley && !volley.settled && volley.targets.length > 0) {
     const points = volley.targets.map((tile) => layout.position(tile));
-    return [0, 1, 2].map((axis) => points.reduce((sum, point) => sum + point[axis], 0) / points.length) as Vec3;
+    const [x, y, z] = points.reduce<Vec3>(
+      (sum, point) => [sum[0] + point[0], sum[1] + point[1], sum[2] + point[2]],
+      [0, 0, 0],
+    );
+    return [x / points.length, y / points.length, z / points.length];
   }
   // Themis's verdict is watched on her, the one it protects, not on whoever aimed at her.
   const verdict = view.fx.verdict;
@@ -30,7 +34,8 @@ export function focusPoint(view: MatchView, layout: BoardLayout): Vec3 {
   // Cronos bending an opponent's time: watched on them.
   if (view.effect?.kind === "timeBent") return layout.position(view.effect.from);
   // A rolling tide is watched from halfway along its reach.
-  if (view.fx.tide?.rolling) return layout.position(view.fx.tide.path[Math.floor(view.fx.tide.path.length / 2)]);
+  const tideMiddle = view.fx.tide?.rolling ? view.fx.tide.path[Math.floor(view.fx.tide.path.length / 2)] : undefined;
+  if (tideMiddle !== undefined) return layout.position(tideMiddle);
   const tile = focusTile(view);
   return tile === null ? [0, 0, 0] : layout.position(tile);
 }

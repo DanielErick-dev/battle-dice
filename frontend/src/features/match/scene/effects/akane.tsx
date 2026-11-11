@@ -123,7 +123,7 @@ export function Blaze({ fx: { view, layout } }: { fx: BoardFx }) {
         </group>
       )}
       {blaze.kind === "nova" && <Supernova at={at} sources={blaze.tiles.map((tile) => layout.position(tile))} />}
-      {blaze.kind === "lob" && blaze.tiles.length > 0 && (
+      {blaze.kind === "lob" && blaze.tiles[0] !== undefined && (
         <>
           <FireBolt from={at} to={layout.position(blaze.tiles[0])} ground />
           <FireRace from={at} tiles={blaze.tiles.map((tile) => layout.position(tile))} />
@@ -140,16 +140,18 @@ function FireRace({ from, tiles }: { from: Vec3; tiles: readonly Vec3[] }) {
   useFrame(({ clock }) => {
     const t = age(clock.elapsedTime);
     const [x0, y0, z0] = from;
+    const first = tiles[0];
+    if (!first) return;
     if (t < BOLT_FLIGHT) {
-      const [x1, y1, z1] = tiles[0];
+      const [x1, y1, z1] = first;
       const k = t / BOLT_FLIGHT;
       fireTrack.position.set(x0 + (x1 - x0) * k, y0 + (y1 - y0) * k, z0 + (z1 - z0) * k);
       return;
     }
     const along = Math.min(tiles.length - 1, (t - BOLT_FLIGHT) / FIRE_RACE_STEP);
     const index = Math.floor(along);
-    const [ax, ay, az] = tiles[index];
-    const [bx, by, bz] = tiles[Math.min(tiles.length - 1, index + 1)];
+    const [ax, ay, az] = tiles[index] ?? first;
+    const [bx, by, bz] = tiles[Math.min(tiles.length - 1, index + 1)] ?? first;
     const k = along - index;
     fireTrack.position.set(ax + (bx - ax) * k, ay + (by - ay) * k, az + (bz - az) * k);
   });

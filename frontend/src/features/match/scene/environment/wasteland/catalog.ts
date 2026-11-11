@@ -4,7 +4,7 @@ interface Piece {
   size: [number, number, number];
 }
 
-export const PIECES: Record<string, Piece> = {
+export const PIECES = {
   "detail-dumpster-open": { scale: 3, size: [0.6, 0.55, 0.48] },
   "detail-barrier-strong-damaged": { scale: 3, size: [0.66, 0.33, 0.25] },
   "detail-barrier-type-a": { scale: 3, size: [0.43, 0.4, 0.13] },
@@ -38,13 +38,23 @@ export const PIECES: Record<string, Piece> = {
   "fence-fortified": { scale: 4, size: [0.5, 0.52, 0.05] },
   signpost: { scale: 3.5, size: [0.21, 0.46, 0.04] },
   "tree-trunk": { scale: 4, size: [0.2, 0.26, 0.2] },
-};
+} satisfies Record<string, Piece>;
+export type PieceId = keyof typeof PIECES;
 
 /** The cars and trucks left by the road, drawn rusted apart from the rest. */
-export const WRECKS = ["sedan", "suv", "taxi", "police", "van", "ambulance", "truck-grey", "truck-green-cargo"];
+export const WRECKS: readonly PieceId[] = [
+  "sedan",
+  "suv",
+  "taxi",
+  "police",
+  "van",
+  "ambulance",
+  "truck-grey",
+  "truck-green-cargo",
+];
 
 /** Odds and ends of the end of the world, and how often each turns up. */
-export const SCATTER: readonly [string, number][] = [
+export const SCATTER: readonly [[PieceId, number], ...[PieceId, number][]] = [
   ["debris", 4],
   ["debris-wood", 3],
   ["rocks", 3],

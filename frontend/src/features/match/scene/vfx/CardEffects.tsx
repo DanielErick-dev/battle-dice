@@ -132,13 +132,15 @@ export function WindCloud() {
 
   return (
     <group ref={cloud} position-y={0.25}>
-      {[
-        [0, 0, 0, 0.42],
-        [0.4, 0.02, 0.1, 0.3],
-        [-0.38, 0, -0.08, 0.32],
-        [0.1, 0.05, 0.36, 0.28],
-        [-0.12, 0.03, -0.36, 0.28],
-      ].map(([x, y, z, r]) => (
+      {(
+        [
+          [0, 0, 0, 0.42],
+          [0.4, 0.02, 0.1, 0.3],
+          [-0.38, 0, -0.08, 0.32],
+          [0.1, 0.05, 0.36, 0.28],
+          [-0.12, 0.03, -0.36, 0.28],
+        ] as const
+      ).map(([x, y, z, r]) => (
         <mesh key={`${x}:${z}`} position={[x, y, z]} scale={[1, 0.55, 1]}>
           <sphereGeometry args={[r, 16, 12]} />
           <meshStandardMaterial color="#fde047" emissive="#f59e0b" emissiveIntensity={0.9} roughness={0.6} />

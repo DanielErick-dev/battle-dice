@@ -1,4 +1,5 @@
 import { CENTER, SIZE } from "./canvas";
+import { itemAt, pick } from "@/features/shared/collections/items";
 
 /** Natural stone tones; each tile picks one, so the trail doesn't read as copies. */
 const STONES = ["#77727d", "#6f6a62", "#7d756a", "#686775", "#736b70"];
@@ -6,7 +7,7 @@ const STONES = ["#77727d", "#6f6a62", "#7d756a", "#686775", "#736b70"];
 /** A flagstone of the road: lit from the far left, moss in its cracks and edges, a worn rim. */
 export function paintStone(ctx: CanvasRenderingContext2D, random: () => number, rim: string | null) {
   ctx.save();
-  ctx.fillStyle = STONES[Math.floor(random() * STONES.length)];
+  ctx.fillStyle = pick(STONES, random());
   ctx.fillRect(0, 0, SIZE, SIZE);
   const light = ctx.createLinearGradient(0, 0, SIZE, SIZE);
   light.addColorStop(0, "rgba(255,255,255,0.14)");
@@ -23,12 +24,15 @@ export function paintStone(ctx: CanvasRenderingContext2D, random: () => number, 
   for (let clump = 0; clump < 9; clump++) {
     const side = Math.floor(random() * 4);
     const along = random() * SIZE;
-    const [x, y] = [
-      [along, 8],
-      [SIZE - 8, along],
-      [along, SIZE - 8],
-      [8, along],
-    ][side];
+    const [x, y] = itemAt(
+      [
+        [along, 8],
+        [SIZE - 8, along],
+        [along, SIZE - 8],
+        [8, along],
+      ] as const,
+      side,
+    );
     const r = 26 + random() * 46;
     const moss = ctx.createRadialGradient(x, y, 0, x, y, r);
     moss.addColorStop(0, "rgba(74,112,60,0.7)");

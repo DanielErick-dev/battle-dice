@@ -45,12 +45,14 @@ const FLAME_FRAGMENT = /* glsl */ `
 export function FlameWall({ flames }: { flames: Set<ShaderMaterial> }) {
   return (
     <>
-      {[
-        [-1.3, 0.3, 1.9],
-        [1.3, -0.35, 1.5],
-        [-1.15, -0.75, 1.2],
-        [1.2, 0.7, 1.7],
-      ].map(([x, z, height]) => (
+      {(
+        [
+          [-1.3, 0.3, 1.9],
+          [1.3, -0.35, 1.5],
+          [-1.15, -0.75, 1.2],
+          [1.2, 0.7, 1.7],
+        ] as const
+      ).map(([x, z, height]) => (
         <Billboard key={`${x}:${z}`} position={[x, height / 2 - 0.2, z]} lockX lockZ>
           <mesh>
             <planeGeometry args={[1.1, height]} />

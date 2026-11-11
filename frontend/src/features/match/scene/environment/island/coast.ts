@@ -12,6 +12,7 @@ import {
 } from "./terrain";
 import type { KitItem } from "../shared/kits";
 import type { Settlements } from "./settlements";
+import { cycle, pick } from "@/features/shared/collections/items";
 
 /** Nature Kit pieces come small: this brings a bush to about knee height on a figure. */
 const NATURE_SCALE = 2.4;
@@ -53,13 +54,7 @@ export function planCoast(
   // Rocks breaking the waterline, every few steps round the shore, but not along the front.
   for (const { x, z } of shoreline(shape, 72)) {
     if (z > frontZ - 2 || random() < 0.45) continue;
-    add(
-      SHORE_ROCKS[Math.floor(random() * SHORE_ROCKS.length)],
-      x,
-      WATER_LEVEL - 0.3,
-      z,
-      PIRATE_SCALE * (0.7 + random() * 0.6),
-    );
+    add(pick(SHORE_ROCKS, random()), x, WATER_LEVEL - 0.3, z, PIRATE_SCALE * (0.7 + random() * 0.6));
   }
   // A jetty off the front corner, a rowing boat moored beside it.
   const jetty = shoreline(shape, 36).find(({ angle }) => angle > Math.PI * 0.15 && angle < Math.PI * 0.3);
@@ -88,11 +83,9 @@ export function planCoast(
 
   // The countryside: the spots the island scattered get kit pieces.
   scatter.bushes.forEach((spot, index) =>
-    add(BUSHES[index % BUSHES.length], spot.x, spot.y, spot.z, NATURE_SCALE * (0.8 + spot.size)),
+    add(cycle(BUSHES, index), spot.x, spot.y, spot.z, NATURE_SCALE * (0.8 + spot.size)),
   );
-  scatter.rocks.forEach((spot, index) =>
-    add(BOULDERS[index % BOULDERS.length], spot.x, spot.y, spot.z, NATURE_SCALE * spot.size),
-  );
+  scatter.rocks.forEach((spot, index) => add(cycle(BOULDERS, index), spot.x, spot.y, spot.z, NATURE_SCALE * spot.size));
   // Fallen logs and stumps in the woods, along the trail's middle stretch.
   for (let attempt = 0; attempt < 400; attempt++) {
     const x = (random() * 2 - 1) * shape.halfWidth;

@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { driftCloud, SHAFT_COUNT, shaftLayout } from "./layout";
+import { itemAt } from "@/features/shared/collections/items";
 
 describe("the realm particles' layout", () => {
   it("starts every particle inside the disc and between floor and ceiling", () => {
     const { positions, seeds } = driftCloud(7, 200, 10, -1, 14);
     expect(seeds).toHaveLength(200);
     for (let i = 0; i < 200; i++) {
-      const [x, y, z] = [positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]];
+      const [x, y, z] = [itemAt(positions, i * 3), itemAt(positions, i * 3 + 1), itemAt(positions, i * 3 + 2)];
       expect(Math.hypot(x, z)).toBeLessThanOrEqual(10 + 1e-4);
       expect(y).toBeGreaterThanOrEqual(-1);
       expect(y).toBeLessThanOrEqual(14);

@@ -1,5 +1,6 @@
 import type { AudioEngine } from "@/features/shared/audio/audioEngine";
 import { Synth } from "@/features/shared/audio/synth";
+import { cycle, itemAt } from "@/features/shared/collections/items";
 
 const BPM = 96;
 const STEP_SECONDS = 60 / BPM / 4; // sixteenth notes
@@ -63,7 +64,7 @@ export class GenerativeMusic {
     const at = this.nextStepAt;
     const bar = Math.floor(this.step / STEPS_PER_BAR);
     const inBar = this.step % STEPS_PER_BAR;
-    const chord = PROGRESSION[bar % PROGRESSION.length];
+    const chord = cycle(PROGRESSION, bar);
     const barSeconds = STEP_SECONDS * STEPS_PER_BAR;
 
     if (inBar === 0) {
@@ -83,15 +84,15 @@ export class GenerativeMusic {
       if (bar % 4 === 0) dry.tone(at, 0.6, 90, 38, "sine", 0.9);
     }
 
-    const root = hz(chord[0] - 24);
+    const root = hz(itemAt(chord, 0) - 24);
     if (inBar === 0 || inBar === 8) dry.tone(at, STEP_SECONDS * 5, root, root, "triangle", 0.5, { lowpass: 500 });
     if (inBar === 6 || inBar === 14)
       dry.tone(at, STEP_SECONDS * 2, root * 2, root * 2, "triangle", 0.3, { lowpass: 700 });
 
     if (inBar % 2 === 0) {
-      const pattern = ARPEGGIOS[Math.floor(bar / 8) % ARPEGGIOS.length];
-      const index = pattern[(inBar / 2) % pattern.length];
-      const note = chord[index % chord.length] + 12 * (1 + Math.floor(index / chord.length));
+      const pattern = cycle(ARPEGGIOS, Math.floor(bar / 8));
+      const index = cycle(pattern, inBar / 2);
+      const note = cycle(chord, index) + 12 * (1 + Math.floor(index / chord.length));
       wet.tone(at, STEP_SECONDS * 1.6, hz(note), hz(note), "triangle", 0.09);
     }
 
