@@ -1,41 +1,12 @@
 "use client";
 
 import { useFrame, useThree } from "@react-three/fiber";
-import { createContext, useContext, useRef, type ReactNode, type RefObject } from "react";
+import { useRef, type ReactNode } from "react";
 import { Color, Fog, type AmbientLight, type HemisphereLight, type PointLight } from "three";
 import type { RealmKind } from "@/game/domain/types";
-
-/**
- * How much of each realm the world shows right now, 0–1 each (both 0 = the night sea).
- * Eased every frame, read every frame: shaders and lights blend from it without re-rendering.
- */
-export interface RealmMix {
-  infernal: number;
-  celestial: number;
-}
-
-const RealmMixContext = createContext<RefObject<RealmMix> | null>(null);
-
-export function useRealmMix(): RefObject<RealmMix> {
-  const mix = useContext(RealmMixContext);
-  if (!mix) throw new Error("useRealmMix needs a <RealmAtmosphere> above it");
-  return mix;
-}
-
-/** Sky colours per world; the fog and background follow the horizon. */
-export const SKY = {
-  mortal: { horizon: new Color("#121821"), zenith: new Color("#030508") },
-  infernal: { horizon: new Color("#5a1206"), zenith: new Color("#120203") },
-  celestial: { horizon: new Color("#c9a47c"), zenith: new Color("#2f4f9e") },
-} as const;
-
-/** Blends three colours by the mix into `target`. */
-export function blendRealm(target: Color, mortal: Color, infernal: Color, celestial: Color, mix: RealmMix): Color {
-  return target.copy(mortal).lerp(infernal, mix.infernal).lerp(celestial, mix.celestial);
-}
-
-/** Seconds for a full crossfade between worlds. */
-const CROSSFADE_SECONDS = 1.6;
+import { HEMI_GROUND, HEMI_SKY, SKY } from "./mix/palette";
+import { blendRealm, stepRealmMix, type RealmMix } from "./mix/realmMix";
+import { RealmMixContext } from "./mix/useRealmMix";
 
 interface RealmAtmosphereProps {
   /** The world the camera's player is in; null for the night sea. */
@@ -57,9 +28,7 @@ export function RealmAtmosphere({ realm, children }: RealmAtmosphereProps) {
 
   useFrame((_, delta) => {
     const current = mix.current;
-    const step = Math.min(1, delta / CROSSFADE_SECONDS) * 2.2;
-    current.infernal += ((realm === "infernal" ? 1 : 0) - current.infernal) * step;
-    current.celestial += ((realm === "celestial" ? 1 : 0) - current.celestial) * step;
+    stepRealmMix(current, realm, delta);
 
     const { color } = scratch.current;
     blendRealm(color, SKY.mortal.horizon, SKY.infernal.horizon, SKY.celestial.horizon, current);
@@ -91,6 +60,3 @@ export function RealmAtmosphere({ realm, children }: RealmAtmosphereProps) {
     </RealmMixContext.Provider>
   );
 }
-
-const HEMI_SKY = { mortal: new Color("#6c7c96"), infernal: new Color("#ff6a3a"), celestial: new Color("#fff1d0") };
-const HEMI_GROUND = { mortal: new Color("#0b0a0e"), infernal: new Color("#3a0802"), celestial: new Color("#4a5a8a") };

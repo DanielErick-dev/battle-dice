@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { PROP_HEIGHT, usePropMesh, type PropId } from "@/features/characters/core/props";
-import { Instances, type Placed } from "../instances";
+import { Instances, type Placed } from "../shared/Instances";
 
 /** A prop's mesh stood on its base and one unit tall, so an instance's size is its height. */
 function useUnitProp(id: PropId) {

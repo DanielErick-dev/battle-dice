@@ -19,7 +19,7 @@ import { COVER_GROW, COVER_HEIGHT, COVER_Y } from "../shared/tileCover";
 import { CRYSTALS, DRIFTS, useSnowTexture } from "./snowCover";
 
 const TILE_TOP = TILE_HEIGHT / 2;
-/** Just over the island's ground along the trail (see islandTerrain), where the frost spreads between tiles. */
+/** Just over the ground along the trail (see TRAIL_GROUND in environment/shared/trailPlan), where frost spreads. */
 const FLOOR_Y = 0.075;
 const GROW_SECONDS = 0.6;
 

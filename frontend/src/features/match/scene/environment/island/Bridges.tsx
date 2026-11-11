@@ -4,7 +4,7 @@ import { QuadraticBezierLine } from "@react-three/drei";
 import { useMemo } from "react";
 import { BoxGeometry, CylinderGeometry, MeshStandardMaterial } from "three";
 import type { Vec3 } from "@/features/shared/board/boardLayout";
-import { Instances, type Placed } from "../instances";
+import { Instances, type Placed } from "../shared/Instances";
 import type { BridgeSpan } from "./scatter";
 
 /** Top of a bridge's deck: under the stones' feet (see TileMesh), so they rest on the planks. */

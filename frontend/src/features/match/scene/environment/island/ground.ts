@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { BufferAttribute, Color, MeshStandardMaterial, PlaneGeometry } from "three";
-import { groundAt, noise, type Cover, type IslandShape } from "../islandTerrain";
+import { groundAt, type Cover, type IslandShape } from "./terrain";
+import { noise } from "./terrainNoise";
 
 /** Ground cover colours, a grim night: muddy, cold and desaturated; each vertex varies one a little. */
 const COVER_COLORS: Record<Cover, string> = {

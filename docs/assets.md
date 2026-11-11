@@ -95,7 +95,7 @@ As peças usadas viram um único `public/models/island/kaykit.glb` (uma textura 
 node scripts/props/build-kits.mjs --source <Downloads>/battle-dice-personagens/island --only kaykit
 ```
 
-Para usar outra peça: acrescente o nome dela no pacote certo de `PACKS` em `build-kits.mjs`, rode de novo e registre o tamanho em `scene/environment/settlements.ts`.
+Para usar outra peça: acrescente o nome dela no pacote certo de `PACKS` em `build-kits.mjs`, rode de novo e registre o tamanho no catálogo do mapa (`scene/environment/island/townPieces.ts`, `dungeon/plan.ts` ou `wasteland/catalog.ts`).
 
 ## Kits da Kenney (CC0)
 
