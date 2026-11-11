@@ -8,7 +8,7 @@ import { loseArrowRain } from "../characters/archer/arrowRain";
 import { plasmaCannon } from "../characters/alva/plasmaCannon";
 import { playCardGamble } from "../characters/jester/cardGamble";
 import { resurrectCards } from "../characters/necromancer/resurrection";
-import { seize } from "../characters/zarek/void";
+import { seize } from "../characters/zarek/seize";
 import { seraphielBlessing } from "../characters/seraphiel/blessing";
 import { summonSpecters } from "../characters/warden/specters";
 import { timeWarp } from "../characters/cronos/timeWarp";

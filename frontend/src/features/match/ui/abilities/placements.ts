@@ -3,7 +3,7 @@ import { flammableTiles } from "@/game/domain/characters/kage/flames";
 import { sealableTiles, sealedTiles } from "@/game/domain/characters/scribe/seals";
 import { hauntableTiles, takenForSpecters } from "@/game/domain/characters/warden/specters";
 import type { TileId } from "@/game/domain/types";
-import { harmGround, seizableTiles, spellGround } from "@/game/domain/characters/zarek/void";
+import { harmGround, seizableTiles, spellGround } from "@/game/domain/characters/zarek/ground";
 import type { MatchStore } from "../../model/matchStore";
 import type { PickCursor } from "../../scene/board/pickCursor";
 import { isVoidHarm, voidItemName } from "../voidText";

@@ -35,7 +35,7 @@ import { PendingPrompts } from "./screen/PendingPrompts";
 import { useAbilityUse } from "./screen/useAbilityUse";
 import { useCameraChoice } from "./screen/useCameraChoice";
 import { useMatchClock } from "./screen/useMatchClock";
-import { withRifts } from "@/game/domain/characters/zarek/void";
+import { withRifts } from "@/game/domain/characters/zarek/rifts";
 
 const BoardScene = dynamic(() => import("../scene/BoardScene"), {
   ssr: false,

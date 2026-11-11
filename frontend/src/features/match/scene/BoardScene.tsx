@@ -5,7 +5,7 @@ import { Canvas } from "@react-three/fiber";
 import { Suspense, useMemo } from "react";
 import { Vector3 } from "three";
 import { getTile } from "@/game/domain/board/board";
-import { withRifts } from "@/game/domain/characters/zarek/void";
+import { withRifts } from "@/game/domain/characters/zarek/rifts";
 import { frozenTiles } from "@/game/domain/characters/fairy/winter";
 import type { Board, PlayerId } from "@/game/domain/types";
 import { characterFor, playerColor } from "@/features/characters";

@@ -3,7 +3,7 @@ import { GameRuleError, type GameErrorCode } from "../core/errors";
 import { draftState, playerIn, type Draft } from "../core/draft";
 import { crownAndFall } from "../characters/seraphiel/seraph";
 import { endTurn } from "../core/turn";
-import { feedTheVoid } from "../characters/zarek/void";
+import { feedTheVoid } from "../characters/zarek/feed";
 import type { GameState, Player, PlayerId } from "../core/state";
 import type { GameTransition } from "./types";
 
