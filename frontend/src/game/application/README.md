@@ -1,6 +1,6 @@
 # game/application: a porta entre a tela e o jogo
 
-Um arquivo de contrato e uma implementação.
+Um arquivo de contrato e uma implementação, mais a entrada do schema para o backend.
 
 - `gameClient.ts` → a interface `GameClient`, que tem quatro métodos:
   - `connect()`: entra na partida e devolve, de forma **assíncrona**, um `Snapshot { seq, state, localPlayerId }`;
@@ -8,6 +8,7 @@ Um arquivo de contrato e uma implementação.
   - `subscribe(listener)`: avisa a cada jogada aceita com um `GameUpdate { seq, state, events }`;
   - `close()`: sai da partida (no online, fecha o WebSocket).
 - `localGameClient.ts` → `LocalGameClient`: roda o `applyCommand` ali mesmo, no navegador. O `connect` responde na hora.
+- `contract.ts` → só tipos: o que vira o JSON Schema em `contracts/game.schema.json` (`npm run schema`), com `state` e `events` opacos. Fluxo e modelos Pydantic em [contracts/README.md](../../../../contracts/README.md).
 
 ## Por que existe
 

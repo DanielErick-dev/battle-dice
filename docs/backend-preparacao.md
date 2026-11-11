@@ -32,12 +32,15 @@ Pendências levantadas na inspeção de arquitetura de 07/11/2026, pensando na *
 - **Feito em 11/11/2026**: `connect(): Promise<Snapshot { seq, state, localPlayerId }>`, `GameUpdate { seq, state, events }`, `send` devolve `{ ok: true } | { ok: false, code }` e só rejeita em falha de transporte. O `MatchStore` abre com `open()` (a tela mostra a cortina até o `Snapshot`), ignora `seq` repetido e guarda o `localPlayerId` (`null` = jogo local, segue o jogador da vez; assento preso só manda comando do próprio jogador). Detalhes em `game/application/README.md`.
 - **Ficou de fora**: o relógio continua na tela (para nas animações e pausas, que só ela vê) e só manda o `forfeitTurn` do próprio assento; o prazo do servidor para quem cair nasce com o `WebSocketGameClient`.
 
-## 4. Contrato TS ↔ Python ⬜
+## 4. Contrato TS ↔ Python ✅
 
 - Fonte única no TS: JSON Schema gerado dos `GameCommand` (e do `GameUpdate`).
 - No Python, modelos Pydantic gerados do schema (`datamodel-code-generator`).
 - O FastAPI trata `state` e `events` como JSON opaco; "quem pode agir" e a projeção ficam no Node.
 - CI falha se o schema gerado mudar sem ser commitado.
+- **Feito em 11/11/2026**: `contracts/game.schema.json` na raiz, gerado com `ts-json-schema-generator` por `npm run schema` (em `frontend/`) a partir de `game/application/contract.ts`. Tem `GameCommand`, `CommandResult`, `GameErrorCode`, `SnapshotMessage` e `GameUpdateMessage`; `state` e `events` saem como `OpaqueJson`, então mudar uma regra não mexe no contrato.
+- **Fluxo**: muda o tipo no TS → `npm run schema` → commita o schema junto → no backend, `uv run datamodel-codegen ...` regenera `app/contracts/game.py`. Comando completo e opções em [contracts/README.md](../contracts/README.md).
+- **CI**: roda `npm run schema` e falha com `git diff --exit-code` se o arquivo mudou. Na máquina: `npm run schema:check`.
 
 ## 5. `game/` como pacote ⬜
 

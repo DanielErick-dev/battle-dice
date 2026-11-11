@@ -25,6 +25,10 @@ jobs:
       - run: npm ci
       - run: npm run format:check
       - run: npm run typecheck
+      - name: Contract schema is up to date
+        run: |
+          npm run schema
+          git diff --exit-code -- ../contracts || (echo "::error::contracts/ is stale: run 'npm run schema' in frontend/ and commit it." && exit 1)
       - run: npm run lint
       - run: npm test
       - run: npm run build
