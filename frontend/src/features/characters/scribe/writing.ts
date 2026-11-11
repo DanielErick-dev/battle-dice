@@ -132,7 +132,7 @@ export function useBurnMask(): CanvasTexture {
       for (let x = 0; x < width; x++) {
         const edge = Math.min(x, width - 1 - x, y, height - 1 - y) / 26;
         const offset = (y * width + x) * 4;
-        const value = (image.data[offset] / 255) * (0.35 + 0.65 * Math.min(1, edge));
+        const value = ((image.data[offset] ?? 0) / 255) * (0.35 + 0.65 * Math.min(1, edge));
         image.data[offset] = image.data[offset + 1] = image.data[offset + 2] = Math.min(250, value * 255);
       }
     }

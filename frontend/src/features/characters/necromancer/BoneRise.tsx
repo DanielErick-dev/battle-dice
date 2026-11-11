@@ -161,9 +161,9 @@ export function BoneRise({
     });
 
     // Two skeletons drag themselves out of the earth behind him, heave by heave, leaning forward.
-    skeletons.current.forEach((piece, index) => {
+    SKELETONS.forEach(({ x, z, turn, start }, index) => {
+      const piece = skeletons.current[index];
       if (!piece) return;
-      const { x, z, turn, start } = SKELETONS[index];
       const climb = heave(ramp(beats.raiseSeconds + start, SKELETON_CLIMB_SECONDS));
       const out = climb * fade;
       piece.visible = out > 0.01;

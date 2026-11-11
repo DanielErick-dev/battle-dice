@@ -20,6 +20,7 @@ import { seededRandom } from "@/game/domain/core/random";
 import { DEFAULT_TIMINGS } from "@/features/shared/config";
 import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "@/features/shared/board/boardLayout";
 import { useAge } from "@/features/shared/three/useAge";
+import { uniform } from "@/features/shared/three/uniform";
 import { useSoftDisc } from "../shared/softDisc";
 
 /** How long the wave takes to rise, to roll along the whole reach, and to break at its end. */
@@ -203,6 +204,7 @@ export function TidalWave({ path, color }: { path: readonly Vec3[]; color: strin
     const along = Math.min(1, Math.max(0, (t - RISE_SECONDS) / TRAVEL_SECONDS)) * last;
     const index = Math.min(last - 1, Math.floor(along));
     const from = path[Math.max(0, index)];
+    if (!from) return;
     const to = path[Math.min(last, index + 1)] ?? from;
     const f = last === 0 ? 0 : along - index;
     const x = from[0] + (to[0] - from[0]) * f;
@@ -227,9 +229,9 @@ export function TidalWave({ path, color }: { path: readonly Vec3[]; color: strin
     }
     const shader = surface.current?.material;
     if (shader) {
-      shader.uniforms.uTime.value = t;
-      shader.uniforms.uCurl.value = 0.3 + 0.4 * Math.min(1, t / end) + breaking * 0.8;
-      shader.uniforms.uOpacity.value = Math.min(1, rise * 1.5) * (1 - breaking);
+      uniform(shader, "uTime").value = t;
+      uniform(shader, "uCurl").value = 0.3 + 0.4 * Math.min(1, t / end) + breaking * 0.8;
+      uniform(shader, "uOpacity").value = Math.min(1, rise * 1.5) * (1 - breaking);
     }
 
     // Tiles glisten as the wave goes over them.
@@ -320,8 +322,7 @@ function waveGeometry(): BufferGeometry {
   for (let i = 0; i <= ACROSS; i++) {
     const u = i / ACROSS;
     const taper = 0.2 + 0.8 * Math.sin(u * Math.PI) ** 0.6;
-    for (let j = 0; j <= ALONG; j++) {
-      const point = samples[j];
+    for (const [j, point] of samples.entries()) {
       positions.push((u - 0.5) * WAVE_WIDTH, point.y * WAVE_HEIGHT * taper, point.z * (0.55 + 0.45 * taper));
       uvs.push(u, j / ALONG);
     }

@@ -119,10 +119,8 @@ export function ClothFire({ figure, igniteAt = 0 }: { figure: Object3D; igniteAt
       skin.frustumCulled = false;
       skin.renderOrder = 2;
       skins.push(skin);
-      material.uniforms.uMinY.value = box.min.y;
-      material.uniforms.uMaxY.value = box.max.y;
       // About eight tongues of fire up his height, whatever units the model is in.
-      material.uniforms.uScale.value = 8 / Math.max(box.max.y - box.min.y, 1e-3);
+      setUniforms(material, { uMinY: box.min.y, uMaxY: box.max.y, uScale: 8 / Math.max(box.max.y - box.min.y, 1e-3) });
     });
     return { material, skins };
   }, [figure]);

@@ -68,7 +68,7 @@ export function VoidWraith({ roam, call }: VoidWraithProps) {
       leg.current = legIndex;
       // A pseudo-random tile each leg, the same for every client at the same time.
       const pick = roam[Math.floor(Math.abs(Math.sin(legIndex * 12.9898) * 43758.5453) % roam.length)];
-      goal.set(pick[0], pick[1], pick[2]);
+      if (pick) goal.set(pick[0], pick[1], pick[2]);
     }
     if (summoned) goal.set(summoned[0], summoned[1], summoned[2]);
     const dx = goal.x - at.x;

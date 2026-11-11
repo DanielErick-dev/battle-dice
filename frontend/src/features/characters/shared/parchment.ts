@@ -45,7 +45,7 @@ export function drawParchment(width: number, height: number, seed: number, strok
     [width, 0, width - edge, 0, width - edge, 0, edge, height],
     [0, 0, 0, edge, 0, 0, width, edge],
     [0, height, 0, height - edge, 0, height - edge, width, edge],
-  ]) {
+  ] as const) {
     const shade = context.createLinearGradient(x0, y0, x1, y1);
     shade.addColorStop(0, "rgba(48,26,10,0.85)");
     shade.addColorStop(1, "rgba(48,26,10,0)");
@@ -70,10 +70,11 @@ export function drawStrokes(
   context.lineWidth = lineWidth;
   context.lineCap = context.lineJoin = "round";
   context.globalAlpha = smear > 0 ? 0.35 : 1;
-  for (const stroke of strokes) {
+  for (const [first, ...rest] of strokes) {
+    if (!first) continue;
     context.beginPath();
-    context.moveTo(stroke[0][0] * width + smear, stroke[0][1] * height + smear * 2);
-    for (const [x, y] of stroke.slice(1)) context.lineTo(x * width + smear, y * height + smear * 2);
+    context.moveTo(first[0] * width + smear, first[1] * height + smear * 2);
+    for (const [x, y] of rest) context.lineTo(x * width + smear, y * height + smear * 2);
     context.stroke();
   }
   context.globalAlpha = 1;
@@ -148,8 +149,10 @@ export function createWriting(strokes: Stroke[], width: number, height: number, 
     context.lineCap = context.lineJoin = "round";
     context.lineWidth = lineWidth;
     visit(progress, (stroke, points) => {
+      const [first] = stroke;
+      if (!first) return;
       context.beginPath();
-      context.moveTo(stroke[0][0] * width, stroke[0][1] * height);
+      context.moveTo(first[0] * width, first[1] * height);
       for (const [x, y] of stroke.slice(1, 1 + points)) context.lineTo(x * width, y * height);
       context.stroke();
     });
@@ -157,7 +160,7 @@ export function createWriting(strokes: Stroke[], width: number, height: number, 
   };
   const penAt = (progress: number): [number, number] => {
     let pen: [number, number] = strokes[0]?.[0] ?? [0.5, 0.5];
-    visit(progress, (stroke, points) => (pen = stroke[points]));
+    visit(progress, (stroke, points) => (pen = stroke[points] ?? pen));
     return pen;
   };
   return { texture, drawUpTo, penAt };

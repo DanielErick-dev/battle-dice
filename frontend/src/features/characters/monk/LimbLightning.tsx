@@ -123,14 +123,15 @@ export function LimbLightning({
     const sample = sinceSample.current >= SAMPLE_SECONDS;
     if (sample) sinceSample.current = 0;
     bones.forEach((bone, index) => {
-      if (!bone) return;
       const trail = trails[index];
+      if (!bone || !trail) return;
       const head = bone.getWorldPosition(scratch.point);
-      if (sample || trail.length === 0) {
+      const newest = trail[0];
+      if (sample || !newest) {
         trail.unshift(head.clone());
         if (trail.length > TRAIL_SAMPLES) trail.pop();
       } else {
-        trail[0].copy(head);
+        newest.copy(head);
       }
     });
 

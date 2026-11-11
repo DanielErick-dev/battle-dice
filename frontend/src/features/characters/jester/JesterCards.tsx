@@ -86,7 +86,7 @@ export function JesterCards({
   const flashMaterial = useRef<MeshBasicMaterial>(null);
   const textures = useCardTextures();
   const glow = useGlowColor(color, 2.2);
-  const hands = useMemo(() => [findBone(figure, "RightHand"), findBone(figure, "LeftHand")], [figure]);
+  const hands = useMemo(() => [findBone(figure, "RightHand"), findBone(figure, "LeftHand")] as const, [figure]);
   const hips = useMemo(() => findBone(figure, "Hips"), [figure]);
   const age = useAge();
   /** The hand held up at the reveal, picked once then; the kept card's opacity. */

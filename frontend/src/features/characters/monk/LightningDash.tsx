@@ -37,6 +37,7 @@ const RING_SECONDS = 0.7;
 const LAUNCH_SECONDS = DEFAULT_TIMINGS.dashLaunchMs / 1000;
 const STRIKE_SECONDS = DEFAULT_TIMINGS.dashStrikeMs / 1000;
 const STEP_SECONDS = DEFAULT_TIMINGS.dashStepMs / 1000;
+const ORIGIN = new Vector3();
 
 /**
  * Dormant Fury's dash, in world space: once the player has thrown themselves forward (dashLaunchMs),
@@ -50,7 +51,8 @@ export function LightningDash({ path, color }: { path: readonly Vec3[]; color: s
   const strikeAt = LAUNCH_SECONDS;
   const arriveAt = strikeAt + STRIKE_SECONDS + travelSeconds;
   const start = path[0];
-  const end = path.at(-1) ?? start;
+  const end = path.at(-1);
+  if (!start || !end) return null;
 
   return (
     <group>
@@ -99,8 +101,8 @@ function GroundTrail({
 
   return (
     <group>
-      {[0, 1].map((index) => (
-        <BoltMesh key={index} drive={shapes[index]} points={points} color={color} seed={index + 1} />
+      {shapes.map((drive, index) => (
+        <BoltMesh key={index} drive={drive} points={points} color={color} seed={index + 1} />
       ))}
       <mesh ref={head}>
         <sphereGeometry args={[0.45, 16, 12]} />
@@ -154,10 +156,10 @@ function SkyStrike({ position, color, at }: { position: Vec3; color: string; at:
 
   return (
     <group ref={root} visible={false}>
-      {[0, 1].map((index) => (
+      {bolts.map((drive, index) => (
         <BoltMesh
           key={index}
-          drive={bolts[index]}
+          drive={drive}
           points={points}
           color={color}
           seed={index + 7}
@@ -288,10 +290,11 @@ function BoltMesh({
 /** A zigzag through `points`: each leg broken into `kinks` straight pieces, strayed at random. */
 function jaggedCurve(points: readonly Vector3[], kinks: number, spread: number, seed: number): CurvePath<Vector3> {
   const random = mulberry(seed);
-  const jagged: Vector3[] = [points[0].clone()];
-  for (let leg = 1; leg < points.length; leg++) {
-    const from = points[leg - 1];
-    const to = points[leg];
+  const [first, ...rest] = points;
+  if (!first) return new CurvePath<Vector3>();
+  const jagged: Vector3[] = [first.clone()];
+  let from = first;
+  for (const to of rest) {
     for (let kink = 1; kink <= kinks; kink++) {
       const point = from.clone().lerp(to, kink / kinks);
       // The last point of each leg stays on the tile, so the bolt passes over every tile.
@@ -299,6 +302,7 @@ function jaggedCurve(points: readonly Vector3[], kinks: number, spread: number, 
         point.add(new Vector3(random() - 0.5, random() - 0.5, random() - 0.5).multiplyScalar(spread * 2));
       jagged.push(point);
     }
+    from = to;
   }
   const curve = new CurvePath<Vector3>();
   for (let i = 1; i < jagged.length; i++) curve.add(new LineCurve3(jagged[i - 1], jagged[i]));
@@ -306,10 +310,13 @@ function jaggedCurve(points: readonly Vector3[], kinks: number, spread: number, 
 }
 
 function pointAlong(points: readonly Vector3[], progress: number): Vector3 {
-  if (points.length === 1) return points[0];
   const scaled = progress * (points.length - 1);
   const leg = Math.min(points.length - 2, Math.floor(scaled));
-  return points[leg].clone().lerp(points[leg + 1], scaled - leg);
+  const from = points[leg];
+  const to = points[leg + 1];
+  // A single point leaves no leg to walk (leg is -1 then).
+  if (!from || !to) return points[0] ?? ORIGIN;
+  return from.clone().lerp(to, scaled - leg);
 }
 
 /** Small seeded generator, so a bolt keeps its shape across renders. */

@@ -17,7 +17,7 @@ describe("local players", () => {
       CHARACTERS.zarek.name,
       `${CHARACTERS.witch.name} 3`,
     ]);
-    expect(roster[1].ability).toBe(CHARACTERS.zarek.ability);
+    expect(roster[1]?.ability).toBe(CHARACTERS.zarek.ability);
   });
 
   it("finds a player's character from their id", () => {

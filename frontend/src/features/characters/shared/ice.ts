@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { BufferGeometry, CanvasTexture, Color, Float32BufferAttribute } from "three";
 import { seededRandom, type RandomSource } from "@/game/domain/core/random";
+import { cycle, itemAt } from "@/features/shared/collections/items";
 
 /** Pale ice and the deeper glacier blue under it. */
 export const ICE = new Color("#dff4ff");
@@ -11,32 +12,35 @@ export const GLACIER = new Color("#60a5fa");
  * six-sided column, a little wider at the foot, rising to an off-centre point; or, `broken`, ending
  * in a slanted break. Faces are left flat so each catches the light on its own.
  */
+type Corner = [number, number, number];
+
 export function iceShard(random: RandomSource, radius: number, broken: boolean): BufferGeometry {
   const sides = 6;
   const shoulder = broken ? 0.75 + random() * 0.2 : 0.62 + random() * 0.15;
   const ring = (y: number, scale: number) =>
-    Array.from({ length: sides }, (_, index) => {
+    Array.from({ length: sides }, (_, index): Corner => {
       const angle = (index / sides) * Math.PI * 2 + (random() - 0.5) * 0.35;
       const r = radius * scale * (0.75 + random() * 0.5);
       return [Math.cos(angle) * r, y, Math.sin(angle) * r];
     });
   const foot = ring(-0.08, 1.15);
   // A break is cut on a slant: each corner of the top at its own height.
-  const top = ring(shoulder, 1).map(([x, y, z]) => [x, broken ? y + (x / radius) * 0.06 : y, z]);
-  const tip = [(random() - 0.5) * radius * 0.6, 1, (random() - 0.5) * radius * 0.6];
+  const top = ring(shoulder, 1).map(([x, y, z]): Corner => [x, broken ? y + (x / radius) * 0.06 : y, z]);
+  const tip: Corner = [(random() - 0.5) * radius * 0.6, 1, (random() - 0.5) * radius * 0.6];
+  const centre = top.reduce<Corner>(
+    (sum, [x, y, z]) => [sum[0] + x / sides, sum[1] + y / sides, sum[2] + z / sides],
+    [0, 0, 0],
+  );
   const positions: number[] = [];
-  const triangle = (...corners: number[][]) => corners.forEach((corner) => positions.push(...corner));
+  const triangle = (...corners: Corner[]) => corners.forEach((corner) => positions.push(...corner));
   for (let index = 0; index < sides; index++) {
-    const next = (index + 1) % sides;
-    triangle(foot[index], top[index], foot[next]);
-    triangle(foot[next], top[index], top[next]);
-    if (broken)
-      triangle(
-        top[index],
-        top.reduce((sum, [x, y, z]) => [sum[0] + x / sides, sum[1] + y / sides, sum[2] + z / sides], [0, 0, 0]),
-        top[next],
-      );
-    else triangle(top[index], tip, top[next]);
+    const footHere = itemAt(foot, index);
+    const footNext = cycle(foot, index + 1);
+    const topHere = itemAt(top, index);
+    const topNext = cycle(top, index + 1);
+    triangle(footHere, topHere, footNext);
+    triangle(footNext, topHere, topNext);
+    triangle(topHere, broken ? centre : tip, topNext);
   }
   const geometry = new BufferGeometry();
   geometry.setAttribute("position", new Float32BufferAttribute(positions, 3));

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DESCENT_SECONDS, descentHeight } from "./HeavenDescent";
+import { itemAt } from "@/features/shared/collections/items";
 
 describe("descentHeight", () => {
   it("starts high in the sky and lands exactly on the ground", () => {
@@ -11,8 +12,8 @@ describe("descentHeight", () => {
   it("only ever comes down, slowing as it nears the ground", () => {
     const step = DESCENT_SECONDS / 10;
     const heights = Array.from({ length: 11 }, (_, index) => descentHeight(index * step));
-    const drops = heights.slice(1).map((height, index) => heights[index] - height);
+    const drops = heights.slice(1).map((height, index) => itemAt(heights, index) - height);
     drops.forEach((drop) => expect(drop).toBeGreaterThanOrEqual(0));
-    expect(drops[0]).toBeGreaterThan(drops[drops.length - 1]);
+    expect(drops[0]).toBeGreaterThan(itemAt(drops, drops.length - 1));
   });
 });

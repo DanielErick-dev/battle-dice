@@ -3,13 +3,13 @@ import { seededRandom } from "@/game/domain/core/random";
 
 /** Ice spikes bursting out of the floor round the fist: how many, how far out, how tall. */
 const SPIKES = 9;
-const SPIKE_RING = [0.12, 0.34];
-const SPIKE_HEIGHT = [0.1, 0.24];
+const SPIKE_RING = [0.12, 0.34] as const;
+const SPIKE_HEIGHT = [0.1, 0.24] as const;
 /** Ice dust thrown up by the blow (shares of his height). */
 export const DUST = 70;
 /** Chunks of packed snow knocked flying by the blow: how many and how big. */
 const CHUNKS = 16;
-const CHUNK_SIZE = [0.018, 0.04];
+const CHUNK_SIZE = [0.018, 0.04] as const;
 
 export interface Spike {
   angle: number;

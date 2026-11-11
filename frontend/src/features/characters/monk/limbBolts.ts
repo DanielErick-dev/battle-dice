@@ -19,20 +19,30 @@ const scratch = { side: new Vector3(), toCamera: new Vector3(), along: new Vecto
 export function resample(trail: readonly Vector3[], out: Vector3[], minLength: number): boolean {
   if (trail.length < 2) return false;
   let total = 0;
-  for (let i = 1; i < trail.length; i++) total += trail[i].distanceTo(trail[i - 1]);
+  for (let i = 1; i < trail.length; i++) total += legLength(trail, i);
   if (total < minLength) return false;
   let i = 1;
   let walked = 0;
   out.forEach((point, k) => {
     const target = (total * k) / (out.length - 1);
-    while (i < trail.length - 1 && walked + trail[i].distanceTo(trail[i - 1]) < target) {
-      walked += trail[i].distanceTo(trail[i - 1]);
+    while (i < trail.length - 1 && walked + legLength(trail, i) < target) {
+      walked += legLength(trail, i);
       i++;
     }
-    const step = trail[i].distanceTo(trail[i - 1]) || 1;
-    point.lerpVectors(trail[i - 1], trail[i], Math.min(1, (target - walked) / step));
+    const from = trail[i - 1];
+    const to = trail[i];
+    if (!from || !to) return;
+    const step = from.distanceTo(to) || 1;
+    point.lerpVectors(from, to, Math.min(1, (target - walked) / step));
   });
   return true;
+}
+
+/** Length of the trail's leg ending at point `i`. */
+function legLength(trail: readonly Vector3[], i: number): number {
+  const from = trail[i - 1];
+  const to = trail[i];
+  return from && to ? from.distanceTo(to) : 0;
 }
 
 /** Lays `bolt` out as a spark from `from`, off in a random direction, then jagged. */
@@ -47,8 +57,12 @@ export function spark(bolt: Vector3[], from: Vector3, seed: number, size: number
 
 /** Turns `points` (a lit bolt) into its fork: from a middle kink, off to one side, then jagged. */
 export function branch(points: Vector3[], seed: number, cameraPosition: Vector3, size: number) {
-  const from = points[1 + Math.floor(noise(seed) * (points.length - 3))].clone();
-  scratch.along.subVectors(points.at(-1)!, points[0]);
+  const kink = points[1 + Math.floor(noise(seed) * (points.length - 3))];
+  const first = points[0];
+  const last = points.at(-1);
+  if (!kink || !first || !last) return;
+  const from = kink.clone();
+  scratch.along.subVectors(last, first);
   const length = scratch.along.length() * BRANCH_LENGTH;
   scratch.toCamera.subVectors(cameraPosition, from);
   scratch.side.crossVectors(scratch.along, scratch.toCamera).normalize();

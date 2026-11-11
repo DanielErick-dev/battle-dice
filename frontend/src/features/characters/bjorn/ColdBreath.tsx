@@ -93,7 +93,8 @@ export function ColdBreath({
       for (let blob = 0; blob < PUFF_BLOBS; blob++) {
         const index = slot * PUFF_BLOBS + blob;
         const piece = puffs.current[index];
-        if (!piece) continue;
+        const material = materials[index];
+        if (!piece || !material) continue;
         const drift = clamp01(life - blob * 0.05);
         piece.visible = puff >= 0 && drift > 0 && drift < 1 && presence.current > 0.01;
         if (!piece.visible) continue;
@@ -104,7 +105,7 @@ export function ColdBreath({
           .addScaledVector(scratch.forward, (0.02 + reach * 0.2 * heavy + blob * 0.015) * size);
         scratch.lift.y += (-0.015 + drift * 0.07) * size;
         placeInWorld(piece, group, scratch.lift, size * (0.03 + drift * 0.13 * heavy));
-        materials[index].setValues({
+        material.setValues({
           opacity: 0.6 * Math.sin(drift * Math.PI) * (1 - blob * 0.12) * presence.current,
         });
       }

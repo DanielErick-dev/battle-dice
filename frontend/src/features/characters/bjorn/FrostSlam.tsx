@@ -132,9 +132,9 @@ export function FrostSlam({
         opacity: since < FLASH_SECONDS ? 1 - burst : 0,
       });
 
-      spikes.current.forEach((piece, index) => {
+      spikePlan.forEach(({ angle, ring, height, lean, delay }, index) => {
+        const piece = spikes.current[index];
         if (!piece) return;
-        const { angle, ring, height, lean, delay } = spikePlan[index];
         const up = easeOutCubic(clamp01((since - delay) / SPIKE_RISE_SECONDS));
         // Out of the floor at once, and sinking back in as it melts.
         const shown = up * Math.min(1, fade * 1.3);
@@ -160,9 +160,9 @@ export function FrostSlam({
       materials.dust.setValues({ opacity: 1 - clamp01(since / DUST_SECONDS) });
 
       // Snow chunks fly out in arcs, tumbling, and lie where they land until it all melts.
-      chunks.current.forEach((piece, index) => {
+      chunkPlan.forEach(({ velocity, size: chunk, spin }, index) => {
+        const piece = chunks.current[index];
         if (!piece) return;
-        const { velocity, size: chunk, spin } = chunkPlan[index];
         const landsAt = (2 * velocity.y) / CHUNK_GRAVITY;
         const flight = Math.min(since, landsAt);
         piece.position.set(velocity.x * flight, arcHeight(velocity.y, flight, CHUNK_GRAVITY), velocity.z * flight);
