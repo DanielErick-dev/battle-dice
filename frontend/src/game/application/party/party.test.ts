@@ -196,6 +196,27 @@ describe("party mode over a transport", () => {
     expect(closed.mock.calls).toEqual([["HOST_CLOSED"], ["HOST_CLOSED"]]);
   });
 
+  it("keeps a later connect alive when an abandoned one times out", async () => {
+    vi.useFakeTimers();
+    const { room } = party();
+    let opened = 0;
+    const phone = new RemoteGameClient(
+      () => {
+        const transport = room.connect();
+        transport.offline = opened++ === 0;
+        return transport;
+      },
+      { clientId: "a", role: "player" },
+    );
+    const abandoned = phone.connect().catch((error: Error) => error.message);
+    phone.close();
+    await phone.connect();
+    vi.advanceTimersByTime(8000);
+
+    expect(await abandoned).toMatch("did not answer");
+    expect(await phone.send({ type: "rollDice", playerId: "p1" })).toEqual({ ok: true });
+  });
+
   it("times out when no host answers", async () => {
     vi.useFakeTimers();
     const lonely = new RemoteGameClient(() => new MemoryRoom().connect(), { clientId: "x", role: "spectator" });

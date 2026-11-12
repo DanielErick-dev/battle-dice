@@ -80,7 +80,8 @@ export class RemoteGameClient implements GameClient {
       const timer = setTimeout(() => fail(new Error("The host did not answer the join")), this.timeoutMs);
       const fail = (error: Error) => {
         clearTimeout(timer);
-        this.detach();
+        // A connect abandoned by close() must not tear down the transport a later connect opened.
+        if (this.transport === transport) this.detach();
         reject(error);
       };
       this.stopListening = transport.onMessage((message) => {
