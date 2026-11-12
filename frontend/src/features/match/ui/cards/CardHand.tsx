@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { cardBlocker, type CardTable } from "@/game/domain/cards/blocker";
-import { cardTargets, type CardChoice } from "@/game/domain/cards/choice";
+import type { CardTable } from "@/game/domain/cards/blocker";
+import type { CardChoice } from "@/game/domain/cards/choice";
 import { CARD_CATALOG, cardCost, type CardId } from "@/game/domain/cards/catalog";
 import { HAND_LIMIT, SACRIFICE_ENERGY } from "@/game/domain/cards/hand";
 import { DICE_SIDES } from "@/game/domain/core/dice";
@@ -11,6 +11,7 @@ import { FUSION_COPIES, fusibleInHand } from "@/game/domain/cards/fusion";
 import type { CardInstance, Player } from "@/game/domain/types";
 import { cn } from "@/lib/utils";
 import { CardBack } from "./CardBack";
+import { cardBlockReason, cardTargetsFor } from "./cardBlockReason";
 import { CardChoicePicker } from "./CardChoicePicker";
 import { CardView } from "./CardView";
 import { CARD_TEXT, cardText } from "./cardText";
@@ -76,45 +77,9 @@ export function CardHand({
   /** A card that burns others to be played, waiting for the cards to burn (its target already picked, if any). */
   const [burning, setBurning] = useState<{ card: CardInstance; targetId?: string } | null>(null);
 
-  const blockedReason = (card: CardInstance): string | null => {
-    if (cardsLeft === 0) return "Você já usou as cartas deste turno";
-    if (!canPlay) return "Aguarde sua vez";
-    switch (cardBlocker(table, player, card.cardId)) {
-      case "SILENCED":
-        return "Silenciado por um selo: sem cartas neste turno";
-      case "NOT_ENOUGH_ENERGY":
-        return `Energia insuficiente: precisa de ${cardCost(card.cardId)}, você tem ${player.energy}`;
-      case "ALREADY_SHIELDED":
-        return "O Escudo Arcano já está ativo";
-      case "DICE_BOOST_ACTIVE":
-        return "Já há uma carta de dado esperando a próxima rolagem";
-      case "NO_PORTAL_AHEAD":
-        return "Não há portal à frente";
-      case "ENERGY_FULL":
-        return "Sua energia já está no máximo";
-      case "ABILITY_ALREADY_READY":
-        return "Sua habilidade já está pronta";
-      case "NO_HELL":
-        return "Não há inferno neste tabuleiro";
-      case "NOT_YOUR_CARD":
-        return "Carta de outro personagem: só o dono pode usá-la";
-      case "VOID_FULL":
-        return "O Vazio já está cheio";
-      case "VOID_EMPTY":
-        return "O Vazio está vazio";
-      case "NO_HARM_AHEAD":
-        return "Nenhuma armadilha à vista à frente";
-      case "NO_SACRIFICE":
-        return "Precisa de outra carta na mão para queimar";
-    }
-    if (CARD_CATALOG[card.cardId].targetsOpponent && targetsFor(card).length === 0) {
-      if (card.cardId === "abyssCall") return "Ninguém fora do céu ou do inferno ao seu alcance";
-      return card.cardId === "riftCall" ? "Nenhum oponente com uma fenda sua atrás dele" : "Sem oponentes";
-    }
-    return null;
-  };
-
-  const targetsFor = (card: CardInstance) => cardTargets(table.board, players, player.id, card.cardId);
+  const playContext = { table, player, players, canPlay, cardsLeft };
+  const blockedReason = (card: CardInstance) => cardBlockReason(playContext, card);
+  const targetsFor = (card: CardInstance) => cardTargetsFor(playContext, card);
 
   const play = (card: CardInstance, choice: CardChoice = {}) => {
     setSelectedUid(null);

@@ -31,7 +31,7 @@ As habilidades sem pergunta nenhuma (a maioria) não aparecem aqui e são usadas
 | `arrowRain.tsx`       | Chuva de Flechas                                          |
 | `ocularAwakening.tsx` | Despertar Ocular (Kage Rubra)                             |
 | `cardChoices.tsx`     | Transmutação e Ressurreição (escolher cartas)             |
-| `placements.ts`       | Selos, Aparições e Chamas: escolher casas no tabuleiro    |
+| `placements.ts`       | Selos, Aparições e Chamas: escolher casas no tabuleiro (no celular do modo festa viram lista, `features/party/controller/`) |
 | `index.ts`            | o registro `ABILITY_FLOWS`                                |
 
 ## Ligação com o backend

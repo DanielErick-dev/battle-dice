@@ -21,8 +21,9 @@ frontend/src/
 │   ├── shared/              ← base neutra: `config.ts` (tempos, relógio do turno), `presets/` (tabuleiros e mapas), `audio/` (motor e síntese), `text/` (texto das habilidades), `board/` (geometria do tabuleiro), `three/` (texturas de canvas, `useAge`)
 │   ├── menu/                ← seleção de personagem com as intros
 │   ├── party/tv/            ← modo festa: a TV (`/mesa`) hospeda a sala e mostra a partida como espectadora
+│   ├── party/controller/    ← modo festa: o celular (`/controle`) como controle, sem 3D
 │   └── settings/            ← configurações
-├── app/                     ← rotas do Next.js (/, /jogar, /partida, /mesa, /configuracoes)
+├── app/                     ← rotas do Next.js (/, /jogar, /partida, /mesa, /controle, /configuracoes)
 ├── components/ui/           ← peças visuais genéricas (button) no estilo shadcn/ui
 └── lib/                     ← utilitários
 ```
