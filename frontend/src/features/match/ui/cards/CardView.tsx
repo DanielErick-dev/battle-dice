@@ -14,8 +14,10 @@ interface CardViewProps {
   /** Greyed out (not enough energy, card already played…). */
   dimmed?: boolean;
   selected?: boolean;
-  /** In focus: drawn at its full height, the whole rules text showing. */
+  /** In focus: the whole rules text showing, growing taller than the card only if the text needs it. */
   expanded?: boolean;
+  /** Small tile (phone hand): name, cost and art only; the rules text lives in the opened card. */
+  compact?: boolean;
   className?: string;
 }
 
@@ -30,6 +32,7 @@ export function CardView({
   dimmed = false,
   selected = false,
   expanded = false,
+  compact = false,
   className,
 }: CardViewProps) {
   const { rarity, relic, exclusive } = CARD_CATALOG[cardId];
@@ -44,15 +47,22 @@ export function CardView({
       onPointerLeave={resetPointer}
       className={cn(
         "game-card relative flex w-full flex-col overflow-hidden rounded-xl p-[3px] select-none",
-        // In focus it grows to fit its whole text instead of keeping the card's proportions.
-        expanded ? "min-h-0" : "aspect-[5/7]",
+        // In focus an invisible 5:7 spacer shares the grid cell, so the card keeps its shape and only grows for long text.
+        expanded
+          ? "grid before:col-start-1 before:row-start-1 before:aspect-[5/7] before:content-['']"
+          : "aspect-[5/7]",
         dimmed && "saturate-[0.35] brightness-75",
         selected && "ring-2 ring-orange-400 ring-offset-2 ring-offset-black/60",
         className,
       )}
     >
-      <div className="relative flex flex-1 flex-col overflow-hidden rounded-[9px] bg-zinc-950">
-        <header className="flex items-start justify-between gap-1 px-2 pt-1.5">
+      <div className="relative col-start-1 row-start-1 flex flex-1 flex-col overflow-hidden rounded-[9px] bg-zinc-950">
+        <header
+          className={cn(
+            "flex gap-1 px-2 pt-1.5",
+            compact ? "flex-col-reverse items-start" : "items-start justify-between",
+          )}
+        >
           <span
             className={cn(
               "line-clamp-2 leading-tight font-black text-white uppercase",
@@ -90,6 +100,7 @@ export function CardView({
 
         <p
           className={cn(
+            compact && "hidden",
             "mx-1.5 mt-1.5 min-h-0 flex-1 rounded-md bg-white/5 px-1.5 py-1 leading-snug font-medium text-zinc-200",
             expanded
               ? "text-[11px]"
@@ -105,6 +116,7 @@ export function CardView({
         >
           {text.description}
         </p>
+        {compact && <div className="flex-1" />}
         <footer className="flex items-center justify-between gap-1 px-2 py-1 text-[8px] font-bold tracking-[0.2em] text-zinc-400 uppercase">
           <span className="truncate">
             {fused

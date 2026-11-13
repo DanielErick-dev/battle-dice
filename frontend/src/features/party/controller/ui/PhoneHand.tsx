@@ -104,7 +104,12 @@ export function PhoneHand({
                 aria-label={cardText(card.cardId, card.fused).name}
                 className="relative block w-full rounded-xl text-left"
               >
-                <CardView cardId={card.cardId} fused={card.fused} dimmed={cardBlockReason(context, card) !== null} />
+                <CardView
+                  cardId={card.cardId}
+                  fused={card.fused}
+                  compact
+                  dimmed={cardBlockReason(context, card) !== null}
+                />
                 {card.risen && (
                   <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 rounded-full bg-teal-500 px-1.5 py-0.5 text-[8px] font-black tracking-wider whitespace-nowrap text-white uppercase">
                     Vira pó

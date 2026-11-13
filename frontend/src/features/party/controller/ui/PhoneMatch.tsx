@@ -90,10 +90,7 @@ function PhoneTable({ store, view, plainBoard, room, onLeave }: PhoneTableProps)
         </header>
 
         <section aria-label="Seu estado" className="hud-panel flex flex-col gap-2 p-3">
-          <div className="flex items-center justify-between gap-2">
-            <span className={PHONE.label}>Energia</span>
-            <EnergyMeter energy={me.energy} />
-          </div>
+          <EnergyMeter energy={me.energy} className="justify-between" />
           <AbilityMeter
             player={me}
             inUse={controls.ownsTurn && view.abilityInUse !== null && view.abilityInUse === me.ability}
