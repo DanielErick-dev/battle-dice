@@ -50,14 +50,15 @@ celular B ─ RemoteGameClient ─┼─ Transport ─ MatchHost ┤
 TV        ─ RemoteGameClient ─┘  (canal)            └─ projectState/projectEvents por assento
 ```
 
-| Arquivo               | O que faz                                                                                                                                      |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `protocol.ts`         | Só tipos: as mensagens JSON entre o anfitrião e cada controle (lista abaixo). Também viram schema em `contracts/`.                             |
-| `transport.ts`        | A interface `Transport` (`send`, `onMessage`, `onClose`, `close`) e o `BroadcastChannelTransport`: abas do mesmo navegador conversam pelo código da sala. |
-| `matchHost.ts`        | `MatchHost`: a autoridade. Guarda o estado completo, distribui os assentos e manda para cada um só o que ele pode ver.                         |
-| `remoteGameClient.ts` | `RemoteGameClient`: um `GameClient` que fala com o anfitrião pelo `Transport`. O `MatchStore` roda em cima dele sem mudar nada.                |
-| `memoryTransport.ts`  | `MemoryRoom`: sala na memória, entrega na hora e passa tudo por `JSON` (testes; serve também para anfitrião e TV na mesma aba).                |
-| `index.ts`            | Exporta tudo e os atalhos `hostPartyOnChannel(sala, estado)` e `joinPartyOnChannel(sala, pedido)`.                                             |
+| Arquivo                 | O que faz                                                                                                                                                                  |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `protocol.ts`           | Só tipos: as mensagens JSON entre o anfitrião e cada controle (lista abaixo). Também viram schema em `contracts/`.                                                         |
+| `transport.ts`          | A interface `Transport` (`send`, `onMessage`, `onClose`, `close`) e o `BroadcastChannelTransport`: abas do mesmo navegador conversam pelo código da sala.                  |
+| `webSocketTransport.ts` | O `Transport` sobre um WebSocket (fila até abrir, `onClose` na queda). Usado quando `NEXT_PUBLIC_WS_URL` está definido: hoje o relay de desenvolvimento, depois o FastAPI. |
+| `matchHost.ts`          | `MatchHost`: a autoridade. Guarda o estado completo, distribui os assentos e manda para cada um só o que ele pode ver.                                                     |
+| `remoteGameClient.ts`   | `RemoteGameClient`: um `GameClient` que fala com o anfitrião pelo `Transport`. O `MatchStore` roda em cima dele sem mudar nada.                                            |
+| `memoryTransport.ts`    | `MemoryRoom`: sala na memória, entrega na hora e passa tudo por `JSON` (testes; serve também para anfitrião e TV na mesma aba).                                            |
+| `index.ts`              | Exporta tudo e os atalhos `hostPartyOnChannel(sala, estado)` e `joinPartyOnChannel(sala, pedido)`.                                                                         |
 
 ### As mensagens
 
@@ -106,9 +107,13 @@ const phone = new MatchStore(joinPartyOnChannel("ABCD", { clientId, role: "playe
 - O celular (`/controle`) cria o store com o assento escolhido e cuida da queda pela `ControllerConnection` (veja `features/party/controller/README.md`).
 - O `clientId` vem de fora (ex.: `crypto.randomUUID()` guardado no `sessionStorage`), porque `game/` não sorteia nada fora do `state.rng`.
 
+### Celulares de verdade na rede de casa (relay de desenvolvimento)
+
+`npm run dev:party` sobe o `scripts/party-relay.mjs` (porta 3002, descartável) e o Next com `NEXT_PUBLIC_WS_URL=auto`. Aí o `WebSocketTransport` troca o `BroadcastChannel`: a TV (o `MatchHost`) entra como `?lado=host`, os celulares como `?lado=controle`, e o relay só repassa as mensagens. Abra a TV pelo IP do PC (ex. `http://192.168.3.6:3001/jogar`) para o QR code apontar para um endereço que o celular alcança. O FastAPI vai substituir o relay e o papel do `MatchHost`.
+
 ### Trocar pelo servidor de verdade (`WebSocketTransport`)
 
-O FastAPI faz o papel do `MatchHost`; a TV vira só mais uma espectadora. Um `WebSocketTransport` só precisa implementar `ControllerTransport`:
+O FastAPI faz o papel do `MatchHost`; a TV vira só mais uma espectadora. O `WebSocketTransport` (`webSocketTransport.ts`) já existe e faz isto:
 
 - no construtor, abrir um `WebSocket` em `NEXT_PUBLIC_WS_URL` + `/salas/<código>`;
 - `send(mensagem)`: `socket.send(JSON.stringify(mensagem))` (guardar numa fila até o `open`);
