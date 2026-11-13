@@ -53,7 +53,7 @@ TV        ─ RemoteGameClient ─┘  (canal)            └─ projectState/pr
 | Arquivo               | O que faz                                                                                                                                      |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | `protocol.ts`         | Só tipos: as mensagens JSON entre o anfitrião e cada controle (lista abaixo). Também viram schema em `contracts/`.                             |
-| `transport.ts`        | A interface `Transport` (`send`, `onMessage`, `close`) e o `BroadcastChannelTransport`: abas do mesmo navegador conversam pelo código da sala. |
+| `transport.ts`        | A interface `Transport` (`send`, `onMessage`, `onClose`, `close`) e o `BroadcastChannelTransport`: abas do mesmo navegador conversam pelo código da sala. |
 | `matchHost.ts`        | `MatchHost`: a autoridade. Guarda o estado completo, distribui os assentos e manda para cada um só o que ele pode ver.                         |
 | `remoteGameClient.ts` | `RemoteGameClient`: um `GameClient` que fala com o anfitrião pelo `Transport`. O `MatchStore` roda em cima dele sem mudar nada.                |
 | `memoryTransport.ts`  | `MemoryRoom`: sala na memória, entrega na hora e passa tudo por `JSON` (testes; serve também para anfitrião e TV na mesma aba).                |
@@ -113,7 +113,8 @@ O FastAPI faz o papel do `MatchHost`; a TV vira só mais uma espectadora. Um `We
 - no construtor, abrir um `WebSocket` em `NEXT_PUBLIC_WS_URL` + `/salas/<código>`;
 - `send(mensagem)`: `socket.send(JSON.stringify(mensagem))` (guardar numa fila até o `open`);
 - `onMessage(fn)`: no `message`, `fn(JSON.parse(evento.data))`;
+- `onClose(fn)`: no `close` do socket, `fn()` (mas não quando foi o nosso `close()`);
 - `close()`: `socket.close()`;
-- se o socket cair, o `RemoteGameClient` rejeita os envios pendentes por tempo esgotado; o próximo `connect()` reabre e o `join` com o mesmo `clientId` recupera o assento.
+- se o socket cair, o `RemoteGameClient` rejeita os envios pendentes e avisa por `onLost`; o celular reabre e o `join` com o mesmo `clientId` recupera o assento.
 
 Nada mais muda: `new RemoteGameClient(() => new WebSocketTransport(sala), pedido)`.

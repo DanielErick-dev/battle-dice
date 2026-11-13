@@ -4,6 +4,8 @@ import type { ControllerTransport, HostTransport } from "./transport";
 /** A controller end of a MemoryRoom; `offline` drops what the host sends it, like a phone losing signal. */
 export interface MemoryControllerTransport extends ControllerTransport {
   offline: boolean;
+  /** Simulates the socket closing under the controller: fires onClose and leaves the room. */
+  drop(): void;
 }
 
 /**
@@ -28,11 +30,13 @@ export class MemoryRoom {
       this.hostListeners.add(listener);
       return () => this.hostListeners.delete(listener);
     },
+    onClose: () => () => {},
     close: () => this.hostListeners.clear(),
   };
 
   connect(): MemoryControllerTransport {
     const listeners = new Set<(message: HostMessage) => void>();
+    const closeListeners = new Set<() => void>();
     const entry = {
       end: {
         offline: false,
@@ -44,9 +48,20 @@ export class MemoryRoom {
           listeners.add(listener);
           return () => listeners.delete(listener);
         },
+        onClose: (listener: () => void) => {
+          closeListeners.add(listener);
+          return () => closeListeners.delete(listener);
+        },
         close: () => {
           listeners.clear();
+          closeListeners.clear();
           this.controllers.delete(entry);
+        },
+        drop: () => {
+          this.controllers.delete(entry);
+          closeListeners.forEach((listener) => listener());
+          listeners.clear();
+          closeListeners.clear();
         },
       },
       deliver: (message: HostMessage) => listeners.forEach((listener) => listener(message)),

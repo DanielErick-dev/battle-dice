@@ -44,6 +44,8 @@ interface Pending {
 export class RemoteGameClient implements GameClient {
   private transport: ControllerTransport | null = null;
   private stopListening: (() => void) | null = null;
+  private stopWatchingClose: (() => void) | null = null;
+  private onConnectionLost: (() => void) | null = null;
   private readonly listeners = new Set<GameUpdateListener>();
   private readonly presenceListeners = new Set<(presence: Presence) => void>();
   private readonly pending = new Map<number, Pending>();
@@ -84,6 +86,12 @@ export class RemoteGameClient implements GameClient {
         if (this.transport === transport) this.detach();
         reject(error);
       };
+      this.stopWatchingClose = transport.onClose(() => {
+        if (this.transport !== transport) return;
+        if (!this.joined) return fail(new Error("Lost the connection to the host"));
+        this.detach();
+        this.onConnectionLost?.();
+      });
       this.stopListening = transport.onMessage((message) => {
         if (message.to !== this.request.clientId) return;
         if (!this.joined) {
@@ -130,6 +138,11 @@ export class RemoteGameClient implements GameClient {
   /** The host ended the match or gave this seat away; the screen decides what to show. */
   onClosed(listener: (reason: "HOST_CLOSED" | "SEAT_RELEASED") => void): void {
     this.onClosedByHost = listener;
+  }
+
+  /** The link dropped under a joined client; pending sends are already rejected and connect() may retry. */
+  onLost(listener: () => void): void {
+    this.onConnectionLost = listener;
   }
 
   /** Asks for whatever came after the last applied seq (also sent on its own when a seq is skipped). */
@@ -189,6 +202,8 @@ export class RemoteGameClient implements GameClient {
   }
 
   private detach(): void {
+    this.stopWatchingClose?.();
+    this.stopWatchingClose = null;
     this.stopListening?.();
     this.stopListening = null;
     this.transport?.close();

@@ -5,6 +5,8 @@ export interface Transport<Out, In> {
   /** Fire and forget: delivery problems surface as timeouts or a resync, not as errors here. */
   send(message: Out): void;
   onMessage(listener: (message: In) => void): () => void;
+  /** The link dropped on its own (socket closed, server gone); never fired by our own close(). */
+  onClose(listener: () => void): () => void;
   close(): void;
 }
 
@@ -49,6 +51,11 @@ export class BroadcastChannelTransport<Out, In> implements Transport<Out, In> {
   onMessage(listener: (message: In) => void): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
+  }
+
+  /** A BroadcastChannel never drops; a lost tab shows up as send timeouts instead. */
+  onClose(): () => void {
+    return () => {};
   }
 
   close(): void {

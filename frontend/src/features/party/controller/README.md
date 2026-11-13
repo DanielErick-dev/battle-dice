@@ -35,7 +35,7 @@ O transporte é o de `game/application/party/` (veja o README da application). H
 - **Queda**: um comando sem resposta (prazo do `RemoteGameClient`) vira "Reconectando…": o store fecha e reabre a cada 3 s pedindo o mesmo assento, e o snapshot novo encaixa a tela. Se outro celular pegou o assento nesse meio tempo, volta para a entrada. Ao voltar a olhar a aba (`visibilitychange`) pede `resync()`.
 - **Fim**: `closed` (`HOST_CLOSED`, `SEAT_RELEASED`) volta para a entrada com o motivo.
 - **Sair da página** (`pagehide`): manda o `leave`, para a TV mostrar "<nome> desconectou" (o BroadcastChannel não percebe aba fechada). Recarregar entra de novo no assento salvo.
-- **Com WebSocket**: o `Transport` ainda não avisa quando fecha. O `WebSocketTransport` deve ganhar esse aviso, e a `ControllerConnection` tratá-lo como a queda de hoje (`lost`).
+- **Queda do link**: o `Transport` avisa por `onClose` e o `RemoteGameClient` repassa por `onLost`; a `ControllerConnection` trata como `lost` e reconecta na hora. Com o `BroadcastChannel` isso nunca dispara; com WebSocket é o `close` do socket.
 
 ## Testar
 

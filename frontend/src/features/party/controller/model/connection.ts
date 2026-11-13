@@ -68,6 +68,7 @@ export class ControllerConnection {
     this.retryMs = retryMs;
     this.store = new MatchStore(new WatchedClient(client, this.lost));
     client.onClosed((reason) => this.finish(reason));
+    client.onLost(this.lost);
   }
 
   getStatus = (): ConnectionStatus => this.status;

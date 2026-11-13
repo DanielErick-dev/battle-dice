@@ -115,4 +115,14 @@ describe("ControllerConnection", () => {
     host.close();
     expect(beto.getStatus()).toEqual({ kind: "closed", reason: "HOST_CLOSED" });
   });
+  it("starts reconnecting as soon as the link drops, without waiting for a send to time out", async () => {
+    const { connection, lastTransport } = room();
+    const phone = connection({ clientId: "a", role: "player", seat: "p1", name: "Ana" });
+    phone.start();
+    await vi.waitFor(() => expect(phone.getStatus()).toEqual({ kind: "live" }));
+    lastTransport()?.drop();
+    expect(phone.getStatus()).toEqual({ kind: "reconnecting", attempt: 1 });
+    await vi.waitFor(() => expect(phone.getStatus()).toEqual({ kind: "live" }));
+    phone.dispose();
+  });
 });

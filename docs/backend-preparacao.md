@@ -70,12 +70,12 @@ TV mostra o tabuleiro (espectadora), cada jogador joga pelo celular. O jogo loca
 - **Feito em 11/11/2026** em `frontend/src/game/application/party/` (detalhes no [README da application](../frontend/src/game/application/README.md#modo-festa-tv--celulares-party)):
   - `protocol.ts`: as mensagens JSON. Controle → sala: `join`, `command`, `resync`, `leave`. Sala → controle: `snapshot`, `joinRefused`, `update`, `commandResult`, `presence`, `closed`. Viraram schema (`ControllerMessage`, `PartyHostMessage`) em `contracts/game.schema.json`.
   - `MatchHost`: a autoridade. Roda as regras pelo `LocalGameClient`, distribui assentos, manda a cada um só o que ele pode ver, confere que o comando é do assento de quem mandou, repete jogadas perdidas no `resync`.
-  - `Transport` (`send`/`onMessage`/`close`) com `BroadcastChannelTransport`: abas do mesmo navegador jogam pelo código da sala.
+  - `Transport` (`send`/`onMessage`/`onClose`/`close`) com `BroadcastChannelTransport`: abas do mesmo navegador jogam pelo código da sala.
   - `RemoteGameClient`: um `GameClient` sobre o `Transport`; o `MatchStore` e a tela da partida rodam em cima dele sem mudança.
   - Testes em `party/party.test.ts` (dois celulares + TV, segredo, vez errada, resync, reconexão, sala cheia) e `features/match/model/partyMatch.test.ts`.
 - **Tela da TV feita** (`/mesa`, em `frontend/src/features/party/tv/`, [README](../frontend/src/features/party/tv/README.md)): "Modo festa" em `/jogar`, código da sala de 4 letras, QR code para `/controle?sala=<código>`, lobby com os assentos, partida espectadora (`MatchStore` com `{ spectator: true }`: nenhum controle, só o tabuleiro, banners, histórico e jogadores), "Vez de <nome>", aviso "<nome> desconectou" e reinício só pela TV. HUD maior pela classe `party-tv`.
 - **Tela do celular feita** (`/controle?sala=<código>`, em `frontend/src/features/party/controller/`, [README](../frontend/src/features/party/controller/README.md)): código + nome, entra como espectador para ler o `presence` e mostra os assentos livres; toca num e reentra com `seat`. Depois: personagem, energia, habilidade, Vazio, bênçãos e estados; "Rolar dado" grande na sua vez, "Vez de <nome>…" na dos outros; a mão em grade com a carta aberta numa folha (valor, alvo, queimar); fundir e sacrificar; as perguntas (descarte, pilhagem, dádiva, Vazio) como modais; a última linha do log; vibração no começo da vez. Toda escolha de casa do tabuleiro (selos, aparições, chamas, gelo da fada, o Vazio tomando ou soltando) vira uma lista de casas com o que há em cada uma. Queda: "Reconectando…" e volta ao mesmo assento; `closed` volta para a entrada com o motivo; ao sair da página manda `leave`.
-- **Para o `WebSocketTransport`**: o celular percebe a queda hoje só por um comando sem resposta. Com WebSocket, o `close` do socket deve virar o mesmo "reconectando" (falta um aviso de fechamento no `Transport`, veja o README do controle).
+- **Para o `WebSocketTransport`**: o `Transport` tem `onClose` (13/11/2026). O `WebSocketTransport` só precisa ligar o evento `close` do socket a ele; o `RemoteGameClient` avisa por `onLost` e o celular entra em "Reconectando…" na hora, sem esperar um comando ficar sem resposta. O `BroadcastChannel` nunca dispara (lá a queda continua sendo percebida pelo tempo esgotado).
 - **O que o FastAPI precisa fornecer** (o mapeamento completo está em [contracts/README.md](../contracts/README.md#modo-festa-o-servidor-no-lugar-do-anfitrião)):
   - salas com código e um WebSocket por conexão;
   - o papel do `MatchHost`: `clientId` → assento, `seq` por sala, `update` projetado para cada conexão, `commandResult` com o `requestId`, `presence` a cada entrada e saída, histórico curto para o `resync`;
@@ -94,10 +94,10 @@ TV mostra o tabuleiro (espectadora), cada jogador joga pelo celular. O jogo loca
 - Hoje a lint lista só o que é proibido em `game/`; trocar por "só imports relativos" (e `vitest` nos testes).
 - Fica resolvido de vez com o item 5.
 
-## 7. Organização 🟡
+## 7. Organização ✅
 
 - ✅ `placements.test.ts` (12 testes). Os hooks de `match/hooks/` só ligam o React; a lógica já é testada em `connectMatchAudio` e no `MatchStore`.
 - ✅ `frontend/.env.example` (`NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_WS_URL`), liberado nos `.gitignore`.
 - ✅ `npm run format:check` no CI.
 - ✅ Docs: `forfeitTurn` no README do domínio; contagem de linhas no `backend-plano.md`.
-- Cena não revisada: `scene/environment` e `scene/realm` (os arquivos grandes de cena foram divididos em 07/11).
+- ✅ Cena: `scene/environment` e `scene/realm` divididos em pastas por tema (11/11, plano dos mapas conferido byte a byte); falta só a conferência visual.
