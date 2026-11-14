@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useMemo, type RefObject } from "react";
+import { useMemo, type Ref, type RefObject } from "react";
 import { DoubleSide, PlaneGeometry, type CanvasTexture, type Color, type Group, type MeshBasicMaterial } from "three";
 import { additiveMaterial } from "../shared/additive";
 import { canvasTexture, createCanvas, useCanvasTexture } from "../shared/canvas";
@@ -46,15 +46,19 @@ interface RayDirection {
  * Rays of light fanning out from one point, each two crossed planes so it reads from any side. Each ray is a
  * group the caller scales (x: width, y: length) every frame through `rays`.
  */
-export const LightRays = forwardRef<
-  Group,
-  {
-    directions: readonly RayDirection[];
-    material: MeshBasicMaterial;
-    geometry: PlaneGeometry;
-    rays: RefObject<(Group | null)[]>;
-  }
->(function LightRays({ directions, material, geometry, rays }, ref) {
+export function LightRays({
+  ref,
+  directions,
+  material,
+  geometry,
+  rays,
+}: {
+  ref?: Ref<Group>;
+  directions: readonly RayDirection[];
+  material: MeshBasicMaterial;
+  geometry: PlaneGeometry;
+  rays: RefObject<(Group | null)[]>;
+}) {
   return (
     <group ref={ref} visible={false}>
       {directions.map(({ turn, tilt }, index) => (
@@ -73,7 +77,7 @@ export const LightRays = forwardRef<
       ))}
     </group>
   );
-});
+}
 
 /** `count` rays spread evenly over a whole sphere (a star of light round a hand). */
 export function starDirections(count: number): RayDirection[] {
