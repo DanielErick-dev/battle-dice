@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { EndGamePanel } from "@/features/match/ui/hud/EndGamePanel";
 import { ChevronDown, LogOut } from "lucide-react";
 import { inHeaven } from "@/game/domain/board/blessings";
 import { withRifts } from "@/game/domain/characters/zarek/rifts";
@@ -214,6 +215,15 @@ function PhoneTable({ store, view, plainBoard, room, onLeave }: PhoneTableProps)
       <div className="pointer-events-none fixed inset-0 z-40 [&_ul.grid>li]:w-24 [&>*]:pointer-events-auto">
         <PendingPrompts store={store} view={view} controls={controls} nameOf={nameOf} />
       </div>
+      {view.winnerId !== null && !view.isAnimating && (
+        <EndGamePanel
+          key={view.winnerId}
+          stats={view.stats}
+          players={view.players}
+          winnerId={view.winnerId}
+          colorOf={playerColor}
+        />
+      )}
     </main>
   );
 }
