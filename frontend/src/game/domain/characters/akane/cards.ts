@@ -98,7 +98,10 @@ export function pureFuel(draft: Draft, playerId: PlayerId): void {
 }
 
 /** Fires the Supernova would take back: every scarlet tile, every opponent on fire. */
-export function supernovaFuel(state: Pick<Draft["state"], "scarletFlames" | "players">, playerId: PlayerId) {
+export function supernovaFuel(
+  state: Pick<Draft["state"], "scarletFlames" | "players">,
+  playerId: PlayerId,
+): { fires: number; burning: number } {
   return {
     fires: state.scarletFlames.length,
     burning: state.players.filter((player) => player.id !== playerId && isBurning(player)).length,
