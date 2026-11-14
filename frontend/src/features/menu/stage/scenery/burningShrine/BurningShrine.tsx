@@ -37,10 +37,7 @@ const LICK: Flicker = { slow: [0.2, 6], fast: [0.1, 15] };
 const EMBERS = 70;
 const EMBER_HEIGHT = 1.9;
 
-/**
- * Kage Rubra's stage instead of the rune pedestal: a scorched shrine courtyard, a torii and a crimson tree behind her, patches
- * of black fire and embers rising. Origin on the floor; every flame is a sprite.
- */
+/** Kage Rubra's stage in place of the rune pedestal; origin on the floor, every flame is a sprite. */
 export function BurningShrine() {
   const tiles = useCanvasTexture({ size: 512, draw: paintShrineGround, seed: 79, fadeFrom: 0.62 });
   const flame = useCanvasTexture({ size: 128, draw: paintFlame });

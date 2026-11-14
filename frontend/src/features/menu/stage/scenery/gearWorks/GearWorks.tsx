@@ -36,11 +36,7 @@ const GLOBE = { x: -0.6, z: -0.2, height: 0.6, turn: 0.6 };
 
 const GLOW = new Color("#ffb347").multiplyScalar(1.8);
 
-/**
- * Cronos's stage instead of the rune pedestal: a riveted bronze floor with gears set into it turning in mesh,
- * a great ring of numerals behind whose hands now and then run backwards, cogs, and pipes puffing steam.
- * Origin on the floor.
- */
+/** Cronos's stage in place of the rune pedestal; origin on the floor. */
 export function GearWorks() {
   const globe = usePropMesh("cronosGlobe");
   const plates = useCanvasTexture(PLATES);

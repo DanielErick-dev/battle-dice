@@ -7,10 +7,7 @@ import { useDisposal } from "../kit/dispose";
 import { FlameCard, usePropMesh, useSoftDisc } from "../kit/matchAssets";
 import { GLOW } from "../kit/materials";
 
-/**
- * Meshy exports come out ±1 on their longest side; where each part's own surfaces sit, in those units (measured).
- * The courtyard's paving lies at COURTYARD_FLOOR; its three little lanterns stand on the rim, fire boxes ~0.15 up.
- */
+/** Meshy exports come out ±1 on their longest side, so these surface heights are measured in those units. */
 const COURTYARD_FLOOR = 0.035;
 const COURTYARD_LANTERNS: readonly (readonly [number, number])[] = [
   [-0.77, -0.45],

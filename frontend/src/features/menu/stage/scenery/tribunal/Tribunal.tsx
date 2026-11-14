@@ -8,10 +8,7 @@ import { usePropMesh, useSoftDisc } from "../kit/matchAssets";
 import { GLOW, HOT_GLOW } from "../kit/materials";
 import type { FlameShape, Flicker } from "../kit/motion";
 
-/**
- * Meshy exports come out ±1 on their longest side; these are where each part's own surfaces sit, in those units.
- * The arena's floor lies lower than the low wall round its rim.
- */
+/** Meshy exports come out ±1 on their longest side, so these surface heights are in those units. */
 const ARENA_FLOOR = -0.066;
 const BASIN_MOUTH = 1;
 const BASIN_RIM = 0.65;
@@ -29,10 +26,7 @@ const FIRE_FLICKER: Flicker = { slow: [0.12, 7], fast: [0.08, 19] };
 const FIRE_HEIGHT = 0.26;
 const FIRE_FLAME: FlameShape = { kind: "stretch", width: 0.16, height: FIRE_HEIGHT };
 
-/**
- * Themis's stage instead of the rune pedestal: the tribunal, an old stone arena under an ivy archway, the sacred
- * fire of an offering basin burning gold beside her. Her Greek columns rise into it at her intro. Origin on the floor.
- */
+/** Themis's stage in place of the rune pedestal; her Greek columns rise into it at her intro. Origin on the floor. */
 export function Tribunal() {
   const arena = usePropMesh("tribunalArena");
   const arch = usePropMesh("tribunalArch");

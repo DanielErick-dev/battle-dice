@@ -19,8 +19,7 @@ interface MatchPageProps {
   }>;
 }
 
-// /partida?tabuleiro=training&mapa=dungeon&jogadores=witch,zarek&carregadas=1&ampulheta=0 (legacy `personagem` for one player).
-// Unknown or locked values fall back to the defaults. In development, `assento=p2` pins the screen to the second player.
+// Unknown or locked values fall back to the defaults; in development `assento=p2` pins the screen to a seat.
 export default async function MatchPage({ searchParams }: MatchPageProps) {
   const {
     tabuleiro = "",

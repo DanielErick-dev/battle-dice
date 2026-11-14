@@ -42,11 +42,7 @@ const ASH = new Color("#3a1408");
 const FLARE = new Color("#ff6a1a");
 const DARK = new Color(0, 0, 0);
 
-/**
- * Crimson petals shaken off the trees' crowns, drifting down and fluttering, one instanced mesh. At the snap of
- * Akane's fingers (`snapSeconds` into each intro, a new `intro` key per replay) every petal in the air catches at
- * once, flares up from crimson to ember orange and burns away to nothing; fresh ones fall from the crowns after.
- */
+/** Petals in the air all burn away at Akane's snap (`snapSeconds` into each intro); fresh ones fall after. */
 export function FallingPetals({
   crowns,
   intro,

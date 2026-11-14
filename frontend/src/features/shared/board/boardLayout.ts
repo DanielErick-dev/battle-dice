@@ -5,7 +5,7 @@ export type Vec3 = [number, number, number];
 export const TILE_SIZE = 2;
 export const TILE_HEIGHT = 0.32;
 const TILE_GAP = 0.3;
-/** Half the width of a slab of the road (see tileOutline): a little wider than a tile is long. */
+/** Half the width of a slab of the road (see tileSlab): a little wider than a tile is long. */
 const SLAB_HALF_WIDTH = TILE_SIZE * 0.56;
 export const TILE_PITCH = TILE_SIZE + TILE_GAP;
 /** Room between two rows of the trail, for the island's woods and rocks to grow in. */
@@ -46,18 +46,10 @@ const TRACK_SPACING = TILE_PITCH * 1.08;
 const TRACK_LANE_WIDTH = TILE_PITCH * 3.2;
 /** Room left between two corridors of a realm, when they're wide. */
 const LANE_GAP = 1.4;
-/**
- * Half a corridor's width: where its walls stand, either side of the tiles' centre line. Hell is a
- * tight passage; heaven an open, airy cloister.
- */
+/** Hell is a tight passage, heaven an open cloister. */
 export const CORRIDOR_HALF_WIDTH = { infernal: TILE_SIZE / 2 + 0.85, celestial: TILE_SIZE / 2 + 2.4 } as const;
 
-/**
- * A winding trail read like a page: it starts on the far side and snakes towards the camera in
- * long rows, bending with gentle curves and turning round in wide loops, so the finish is near
- * the camera. Realm tracks are walled corridors off the island, over the sea: infernal ones along
- * the right side, celestial ones along the left, each in its own lane.
- */
+/** Snakes from the far side towards the camera (finish near); realm corridors sit off the island, over the sea. */
 export function createBoardLayout(board: Board, columns: number): BoardLayout {
   const trail = windingTrail(board.finishTile, columns);
   const rows = Math.ceil(board.finishTile / columns);
@@ -141,11 +133,7 @@ export function withRiftPositions(layout: BoardLayout, board: Board): BoardLayou
   return { ...layout, position: (id) => rifts.get(id) ?? layout.position(id) };
 }
 
-/**
- * The main path's tile centres, one TILE_PITCH apart along a serpentine: rows of about `columns`
- * tiles bending in broad waves (flat at the row's ends, so the turns stay round), joined by
- * half-circle turns, centred on the origin.
- */
+/** The main path as a serpentine of wavy rows (flat at the ends so turns stay round) joined by half-circle turns. */
 function windingTrail(count: number, columns: number): Vec3[] {
   const rowLength = Math.max(1, columns - 1) * TILE_PITCH;
   const radius = ROW_GAP / 2;
@@ -248,11 +236,7 @@ function tileSlab(trail: readonly Vec3[], index: number) {
   return { outline: [back.right, front.right, front.left, back.left], heading: Math.atan2(hz, hx) };
 }
 
-/**
- * Tiles of a track in a straight, walled corridor outside the arena on its realm's side, running
- * from far to near (towards the camera, so its walls never hide the tiles), centred on the
- * board's depth, flat.
- */
+/** Runs far to near, towards the camera, so the corridor's walls never hide its tiles. */
 function corridorPositions(track: RealmTrack, width: number, lane: number): Vec3[] {
   const side = TRACK_SIDE[track.realm];
   const halfWidth = CORRIDOR_HALF_WIDTH[track.realm];
@@ -269,12 +253,7 @@ export const START_PLAZA = 1.6;
 const START_ROW = 4;
 const START_SPACING = 0.85;
 
-/**
- * Where a player stands on a tile they share, round its centre, `along` being the way the path runs
- * there. On the start they line up side by side across the plaza in turn order (left to right), so
- * nobody runs through another on their first move; elsewhere they stand staggered in two ranks, so
- * from above each one shows.
- */
+/** Start: in turn order so nobody walks through another; elsewhere two staggered ranks so each shows from above. */
 export function tileOffsetFor(
   player: Player,
   players: readonly Player[],

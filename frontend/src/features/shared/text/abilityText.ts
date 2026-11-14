@@ -55,10 +55,7 @@ import { BLESSING_TURNS, SERAPHIEL_BLESSING_TURNS } from "@/game/domain/board/bl
 import { CROWN_BONUS, DRAG_TRAPS } from "@/game/domain/characters/seraphiel/seraph";
 import { MARKS_TO_JUDGE } from "@/game/domain/characters/themis/verdict";
 
-/**
- * Player-facing ability copy (pt-BR). Rules live in the domain; this is only what the ability
- * says: `description` on pickers, `active` once it's used.
- */
+/** Player-facing copy only (pt-BR): `description` on pickers, `active` once it's used; rules live in the domain. */
 export const ABILITY_TEXT: Readonly<Record<AbilityId, { name: string; description: string; active: string }>> = {
   doubleCast: {
     name: "Conjuração Dupla",

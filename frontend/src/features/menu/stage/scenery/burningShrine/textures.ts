@@ -2,10 +2,7 @@ import { blot, speckle } from "../kit/painting";
 import type { Painter } from "@/features/shared/three/canvasTexture";
 import { cycle } from "@/features/shared/collections/items";
 
-/**
- * The shrine's ground: a path of dark red flagstones running back to the torii (the canvas's top is the back) through
- * ash and charred earth, crimson petals blown off the tree (thickest on its side), scorch marks and glowing cracks.
- */
+/** The shrine's ground; the canvas's top is the back, towards the torii. */
 export const paintShrineGround: Painter = (context, size, random) => {
   context.fillStyle = "#1c0f0c";
   context.fillRect(0, 0, size, size);

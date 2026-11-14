@@ -23,10 +23,7 @@ const COLUMNS = [
   { x: 0.66, z: -0.52, height: 0.55, broken: true, lean: -0.06 },
 ];
 
-/**
- * Seraphiel's stage instead of the rune pedestal: a marble dais over clouds, columns, feathers, rays of light.
- * Shakes in the wind of his wingbeats (`gust`, 0 to 1). Origin on the floor.
- */
+/** Seraphiel's stage in place of the rune pedestal, shaken by his wingbeats (`gust`, 0 to 1); origin on the floor. */
 export function Sanctuary({ gust: wind }: { gust: RefObject<number> }) {
   const marble = useNoiseTexture(MARBLE);
   const top = useNoiseTexture(DAIS_TOP);

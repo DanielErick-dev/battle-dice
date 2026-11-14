@@ -12,8 +12,7 @@ interface TvPageProps {
   searchParams: Promise<{ sala?: string; tabuleiro?: string; mapa?: string; jogadores?: string; carregadas?: string }>;
 }
 
-// /mesa?sala=KPRW&tabuleiro=training&mapa=dungeon&jogadores=witch,zarek&carregadas=1: the party TV (opened from /jogar).
-// Without a valid room code, a fresh one is drawn and the URL rewritten, so a reload keeps the same room.
+// Without a valid room code a fresh one is drawn into the URL, so a reload keeps the same room.
 export default async function TvPage({ searchParams }: TvPageProps) {
   const params = await searchParams;
   const { sala, tabuleiro = "", mapa = "", jogadores = "", carregadas } = params;

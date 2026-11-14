@@ -46,10 +46,7 @@ class WatchedClient implements GameClient {
   }
 }
 
-/**
- * A seated phone's MatchStore plus its link to the room: joins, notices the room going quiet, rejoins the same
- * seat (the store reopens and snaps to the fresh snapshot) and stops when the host says it's over.
- */
+/** A seated phone's MatchStore plus its room link; rejoins the same seat when the room goes quiet. */
 export class ControllerConnection {
   readonly store: MatchStore;
   private status: ConnectionStatus = { kind: "connecting" };

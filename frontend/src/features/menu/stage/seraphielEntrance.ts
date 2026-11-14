@@ -1,7 +1,6 @@
 import { DESCENT_SECONDS } from "@/features/characters/seraphiel/HeavenDescent";
 
-// Seraphiel's menu entrance, timed from the start of his descent: each downstroke sends a gust through
-// the sanctuary, stronger the nearer the ground; landed, the wind drops and his wings settle.
+// Timed from the start of Seraphiel's descent: each downstroke gusts harder the nearer the ground.
 
 const BEAT_SECONDS = 0.9;
 const SETTLE_SECONDS = 0.6;

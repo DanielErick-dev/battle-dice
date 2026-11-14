@@ -26,10 +26,7 @@ const CRAGS = [
 /** A cairn of flat stones, bottom up: size and how far each sits off the one below. */
 const CAIRN = { x: 0.2, z: -0.86, stones: [0.11, 0.085, 0.07, 0.05, 0.035] };
 
-/**
- * Zéfiro's stage instead of the rune pedestal: a windswept summit, crags and a cairn, grass bent by the wind,
- * the four elements circling him, leaves caught in a rising spiral and wind streaks. Origin on the floor.
- */
+/** Zéfiro's stage in place of the rune pedestal; origin on the floor. */
 export function WindPeak() {
   const ground = useCanvasTexture({ size: 512, draw: paintPeakFloor, seed: 107, fadeFrom: 0.45 });
   const stone = useNoiseTexture(STONE);

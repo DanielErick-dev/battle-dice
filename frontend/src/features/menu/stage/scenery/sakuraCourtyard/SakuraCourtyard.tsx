@@ -29,10 +29,7 @@ const TREES = [
 /** The crown of each, where its petals fall from: tall and narrow, centred about 0.75 of the way up. */
 const CROWNS: readonly Crown[] = TREES.map(({ x, z, height }) => ({ x, y: height * 0.75, z, radius: height * 0.22 }));
 
-/**
- * Akane's stage: a stone courtyard ringed by lanterns at dusk, under two ember-blossom trees, notebooks and a garden lantern. His fire is in the air:
- * the falling petals burn away as embers, a live flame burns in the lantern and the loose pages smoulder.
- */
+/** Akane's stage: his fire is in the air (burning petals, the lantern's flame, smouldering pages). */
 export function SakuraCourtyard({ intro }: SceneryProps) {
   const paving = useCanvasTexture({ size: 512, draw: paintCourtyardFloor, seed: 29, fadeFrom: 0.3 });
   const treeMesh = usePropMesh("akaneTree");

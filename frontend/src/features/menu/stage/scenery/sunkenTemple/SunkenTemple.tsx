@@ -37,10 +37,7 @@ const PILLARS = { x: -0.1, z: -1.05, height: 1.7, turn: 0.15 };
 /** The open treasure chest the coins spilled from (a Meshy prop, 2 wide and 1.28 tall in its export). */
 const CHEST = { x: 0.55, z: -0.38, width: 0.42, turn: -0.5 };
 
-/**
- * Auric's stage instead of the rune pedestal: the gold-inlaid floor of a sunken temple, coral and swaying
- * weed, rune pillars, an open treasure chest and its coins, caustics rippling over the seabed and bubbles rising. Origin on the floor.
- */
+/** Auric's stage in place of the rune pedestal; origin on the floor. */
 export function SunkenTemple() {
   const tiles = useCanvasTexture(TILES);
   const causticsA = useCanvasTexture(CAUSTICS);

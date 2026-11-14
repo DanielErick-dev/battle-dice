@@ -65,10 +65,7 @@ export function roughen<T extends BufferGeometry>(geometry: T, random: RandomSou
   return geometry;
 }
 
-/**
- * A tuft of `blades` grass blades about `height` tall rising from its origin, each a bent strip tapering to a point,
- * shaded from `root` to `tip` (vertex colours). Sway it by rotating the mesh about its base.
- */
+/** A grass tuft rising from its origin, shaded by vertex colours; sway it by rotating the mesh about its base. */
 export function grassTuft(
   random: RandomSource,
   blades: number,

@@ -43,10 +43,7 @@ const CANDLE_HAZE: FlameShape = { kind: "uniform", size: 0.42 };
 const PETALS = 26;
 const PETAL_HEIGHT = 1.9;
 
-/**
- * The Crimson Enchantress's stage instead of the rune pedestal: a blood circle painted on dark soil, crimson rose
- * bushes and thorny vines around it, the Meshy candelabra (roseCandelabra) and petals drifting down. Origin on the floor; flames are sprites.
- */
+/** The Crimson Enchantress's stage in place of the rune pedestal; origin on the floor, flames are sprites. */
 export function BloodRoseGarden() {
   const candelabra = usePropMesh("roseCandelabra");
   const soil = useNoiseTexture(SOIL);

@@ -94,10 +94,7 @@ export function Lightning() {
   );
 }
 
-/**
- * A jagged bolt with a fork, as a flat ribbon facing the camera, from high in the sky at `x` down towards the
- * horizon behind the terrace; `drift` is how far sideways it wanders on the way.
- */
+/** A forked bolt as a flat camera-facing ribbon from the sky at `x`, wandering `drift` sideways on the way down. */
 function boltGeometry(seed: number, x: number, drift: number): BufferGeometry {
   const random = seededRandom(seed);
   const positions: number[] = [];

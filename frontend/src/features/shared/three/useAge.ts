@@ -1,9 +1,6 @@
 import { useRef } from "react";
 
-/**
- * Seconds since this component first rendered a frame; one-shot effects mount with a
- * fresh key per cast and fade themselves out.
- */
+/** Seconds since the first rendered frame; one-shot effects mount with a fresh key per cast. */
 export function useAge(): (now: number) => number {
   const bornAt = useRef<number | null>(null);
   return (now: number) => {

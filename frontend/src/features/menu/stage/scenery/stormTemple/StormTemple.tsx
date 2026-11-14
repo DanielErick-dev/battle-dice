@@ -15,10 +15,7 @@ import { paintTerraceFloor, STONE } from "./textures";
 /** The low parapet closing the terrace behind him: blocks along the back arc (angles in radians, -π/2 straight back). */
 const PARAPET = { radius: 0.9, from: -2.55, to: -0.59, blocks: 7, height: 0.11, depth: 0.08 };
 
-/**
- * The Wandering Sage's stage instead of the rune pedestal: a mountain monastery terrace of worn slabs, a stone
- * censer smoking, a bronze bell in its frame, prayer flags, and lightning flickering in the sky. Origin on the floor.
- */
+/** The Wandering Sage's stage in place of the rune pedestal; origin on the floor. */
 export function StormTemple() {
   const floor = useCanvasTexture({ size: 512, draw: paintTerraceFloor, seed: 139, fadeFrom: 0.5 });
   const stone = useNoiseTexture(STONE);

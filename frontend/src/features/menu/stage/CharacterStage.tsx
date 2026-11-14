@@ -28,10 +28,7 @@ const FADE_TOP = `linear-gradient(to bottom, transparent ${BLEED_FRACTION * 60}%
 /** Widened with the bleed so the figure keeps the size a 32° view of the stage gives it. */
 const CAMERA_FOV = (2 * Math.atan((1 + 2 * CANVAS_BLEED) * Math.tan((16 * Math.PI) / 180)) * 180) / Math.PI;
 
-/**
- * The chosen character on its pedestal: intro once, then its showcase loop. Drag to turn it, click to replay
- * the intro. One canvas for the whole menu page: the picker only swaps the model.
- */
+/** One canvas for the whole menu page: the picker only swaps the model, so switching never rebuilds the scene. */
 export function CharacterStage({ characterId, className }: { characterId: CharacterId; className?: string }) {
   const {
     color: accent,

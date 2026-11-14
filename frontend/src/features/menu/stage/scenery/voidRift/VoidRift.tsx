@@ -47,10 +47,7 @@ const RUBBLE = [
 ];
 const SHARD_SHAPES = 3;
 
-/**
- * The Void Knight's stage instead of the rune pedestal: cracked obsidian with violet fissures pulsing, slabs of
- * it floating behind him and a slow vortex of dark mist. Origin on the floor; glows are additive, not lights.
- */
+/** The Void Knight's stage in place of the rune pedestal; origin on the floor, glows are additive, not lights. */
 export function VoidRift() {
   const obsidian = useCanvasTexture({ size: 512, draw: paintRiftFloor, fadeFrom: 0.5 });
   const fissures = useCanvasTexture({ size: 512, draw: paintFissures, fadeFrom: 0.5 });

@@ -73,10 +73,7 @@ const MUSHROOM_CLUSTERS = [
 
 const SPORE = new Color("#7dffc4");
 
-/**
- * The Elven Archer's stage instead of the rune pedestal: a mossy forest glade, roots and a fallen log, ferns,
- * glowing mushrooms, a practice target and arrows in the ground, fireflies drifting. Origin on the floor.
- */
+/** The Elven Archer's stage in place of the rune pedestal; origin on the floor. */
 export function ElvenGlade() {
   const moss = useCanvasTexture({ size: 512, draw: paintGladeFloor, seed: 37, fadeFrom: 0.45 });
   const bark = useNoiseTexture(BARK);

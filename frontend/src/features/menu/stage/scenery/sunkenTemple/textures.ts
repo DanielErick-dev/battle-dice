@@ -4,10 +4,7 @@ import { blot } from "../kit/painting";
 import { type CanvasLook, type Painter } from "@/features/shared/three/canvasTexture";
 import { type NoiseLook } from "../kit/textures";
 
-/**
- * The seabed he rules: rippled blue-green sand, seagrass meadows, his gold sigil round his feet and a few temple
- * tiles half sunk in the sand, their gold inlay still catching the light.
- */
+/** The seabed he rules, with his gold sigil round his feet. */
 const drawSeabed: Painter = (context, size, random) => {
   context.fillStyle = "#123b4a";
   context.fillRect(0, 0, size, size);

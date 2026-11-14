@@ -8,10 +8,7 @@ export interface MemoryControllerTransport extends ControllerTransport {
   drop(): void;
 }
 
-/**
- * In-process room: synchronous delivery, JSON round-tripped so nothing that can't cross a real wire slips through.
- * Used by tests; also fine for a host and a spectator living in the same tab.
- */
+/** JSON round-tripped so nothing that can't cross a real wire slips through in tests. */
 export class MemoryRoom {
   private readonly hostListeners = new Set<(message: ControllerMessage) => void>();
   private readonly controllers = new Set<{ end: MemoryControllerTransport; deliver: (m: HostMessage) => void }>();

@@ -35,10 +35,7 @@ const BLOCKS = [
 const DRUM = { x: 0.7, z: 0.02, length: 0.26, turn: 0.5 };
 const MOON = { x: 0.62, y: 1.75, z: -1.15 };
 
-/**
- * The Shadow Warden's stage instead of the rune pedestal: moonlit ruins, broken columns and fallen stones, fog
- * creeping low and pale wisps wandering between them. Origin on the floor; wisps and moon are sprites.
- */
+/** The Shadow Warden's stage in place of the rune pedestal; origin on the floor, wisps and moon are sprites. */
 export function MistRuins() {
   const paving = useCanvasTexture({ size: 512, draw: paintRuinFloor, fadeFrom: 0.5 });
   const stone = useNoiseTexture(STONE);

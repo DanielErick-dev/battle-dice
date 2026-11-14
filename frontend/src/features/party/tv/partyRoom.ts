@@ -17,10 +17,7 @@ const CLOSED: PartyRoomSnapshot = { host: null, seats: [] };
 export const everySeatTaken = (seats: readonly TvSeat[]): boolean =>
   seats.length > 0 && seats.every((seat) => seat.controllerName !== null);
 
-/**
- * The TV's side of a party: owns the MatchHost (opened and closed by the screen's effect, so React's double mount in
- * dev never leaves a second host answering on the channel) and keeps a seat list React can read.
- */
+/** The screen's effect opens and closes the host, so React's dev double mount never leaves a second one answering. */
 export class PartyRoom {
   private snapshot: PartyRoomSnapshot = CLOSED;
   private readonly lastController = new Map<PlayerId, string>();

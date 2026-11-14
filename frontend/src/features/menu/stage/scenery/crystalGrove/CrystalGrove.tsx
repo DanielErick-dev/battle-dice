@@ -28,10 +28,7 @@ const FLOATERS = [
   { x: 0.05, y: 0.7, z: -0.82, size: 0.022 },
 ];
 
-/**
- * The Crystal Fairy's stage instead of the rune pedestal: an enchanted garden under soft snow, glowing cyan and
- * lilac crystals, a fairy ring of shining flowers, hovering crystal motes and sparkles. Origin on the floor.
- */
+/** The Crystal Fairy's stage in place of the rune pedestal; origin on the floor. */
 export function CrystalGrove() {
   const ground = useCanvasTexture({ size: 512, draw: paintGroveFloor, seed: 79, fadeFrom: 0.45 });
   const disc = useSoftDisc();

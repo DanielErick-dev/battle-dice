@@ -70,11 +70,7 @@ const SEAM_FRAGMENT = /* glsl */ `
   }
 `;
 
-/**
- * Unidade Alva's stage instead of the rune pedestal: a launch pad ringed in hazard stripes on a hex-plated deck
- * whose seams pulse with a scan, crates and a terminal behind, beacons, and a target reticle locking on ahead.
- * Origin on the floor.
- */
+/** Unidade Alva's stage in place of the rune pedestal; origin on the floor. */
 export function HangarBay() {
   const deck = useCanvasTexture(DECK);
   const seams = useCanvasTexture(SEAMS);

@@ -24,11 +24,7 @@ const SPREAD_SECONDS = 0.6;
 const FLARE_SECONDS = 0.35;
 const SCORCH = new Color("#ff4a0a");
 
-/**
- * Akane's snap sets the stage alight (`snapSeconds` into his intro; mounted fresh with each): a ring of fire sweeps
- * out over the courtyard, the dropped papers and the paving round him catch from the middle out and burn on (flaring
- * up first), the stone glowing under them and embers rising.
- */
+/** Akane's snap sets the stage alight; mounted fresh with each intro so it replays from the start. */
 export function SnapFires({ snapSeconds }: { snapSeconds: number }) {
   const since = useAge();
   const disc = useSoftDisc();
