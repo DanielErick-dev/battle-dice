@@ -9,6 +9,7 @@ import { placeHiddenTraps } from "../board/hiddenTraps";
 import type { RandomSource } from "../core/random";
 import type { Board } from "../board/types";
 import { NO_ELEMENTALS, NO_TENZAI } from "../characters/tenzai/types";
+import { NO_AKANE } from "../characters/akane/types";
 import type { GameState, Player, PlayerId } from "../core/state";
 
 export interface NewPlayer {
@@ -101,10 +102,7 @@ function dealPlayer({ id, name, ability = null }: NewPlayer, { startTile, cards,
     containedRolls: 0,
     burning: 0,
     burnedBy: null,
-    innerFlame: 0,
-    impetusRolls: 0,
-    fuelRolls: 0,
-    emberStep: false,
+    akane: NO_AKANE,
     tenzai: NO_TENZAI,
   };
 }

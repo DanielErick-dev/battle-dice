@@ -19,7 +19,7 @@ export function judgedBy(view: MatchView, layout: BoardLayout, playerId: string)
 }
 
 /** Fire worth seeing at a glance over a figure: rounds left on fire, or Akane's Inner Flame. */
-export function fireStatus({ burning, innerFlame, impetusRolls }: Player): string {
+export function fireStatus({ burning, akane: { innerFlame, impetusRolls } }: Player): string {
   if (burning > 0) return ` · 🔥${burning}`;
   if (impetusRolls > 0) return ` · ÍMPETO ${impetusRolls}`;
   if (innerFlame > 0) return ` · CHAMA ${innerFlame}/${INNER_FLAME_MAX}`;

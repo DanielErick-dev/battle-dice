@@ -89,20 +89,20 @@ export function PlayersPanel({ players, activePlayerId, viewerId, board }: Playe
                     🔥 Queimando ×{player.burning}
                   </span>
                 )}
-                {player.innerFlame > 0 && (
+                {player.akane.innerFlame > 0 && (
                   <span
                     title={`Chama Interna: com ${INNER_FLAME_MAX}, a próxima rolagem libera o Ímpeto Brilhante`}
                     className="rounded-full bg-amber-500/20 px-1.5 text-[9px] font-bold text-amber-200 uppercase"
                   >
-                    Chama {player.innerFlame}/{INNER_FLAME_MAX}
+                    Chama {player.akane.innerFlame}/{INNER_FLAME_MAX}
                   </span>
                 )}
-                {player.impetusRolls > 0 && (
+                {player.akane.impetusRolls > 0 && (
                   <span
                     title="Ímpeto Brilhante: rolagens com bônus, queimando quem estiver no caminho"
                     className="rounded-full bg-yellow-400/25 px-1.5 text-[9px] font-bold text-yellow-200 uppercase"
                   >
-                    Ímpeto ×{player.impetusRolls}
+                    Ímpeto ×{player.akane.impetusRolls}
                   </span>
                 )}
                 {player.containedRolls > 0 && (

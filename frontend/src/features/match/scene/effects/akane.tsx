@@ -55,13 +55,14 @@ export function PitchFire({ token, figure }: { token: TokenFx; figure: Object3D 
 
 /** On fire, or Akane himself blazing under his Impetus. */
 export function Burning({ token }: { token: TokenFx }) {
-  const { burning, impetusRolls } = token.player;
+  const { burning } = token.player;
+  const { impetusRolls } = token.player.akane;
   if (impetusRolls > 0) return <BurningAura fierce />;
   return burning > 0 && <BurningAura />;
 }
 
 export function InnerFlame({ token }: { token: TokenFx }) {
-  const { innerFlame } = token.player;
+  const { innerFlame } = token.player.akane;
   return innerFlame > 0 && <InnerFlames count={innerFlame} />;
 }
 
@@ -82,13 +83,13 @@ export function ScarletFlames({ fx: { view, layout, shown } }: { fx: BoardFx }) 
 
 /** Pure Fuel's burning dice, for as long as its doubled rolls last. */
 export function FuelFire({ token }: { token: TokenFx }) {
-  return token.player.fuelRolls > 0 && <FuelDice />;
+  return token.player.akane.fuelRolls > 0 && <FuelDice />;
 }
 
 /** Ember Step ready: embers smouldering at his feet until he slides. */
 export function EmberFeet({ token }: { token: TokenFx }) {
   return (
-    token.player.emberStep && (
+    token.player.akane.emberStep && (
       <Sparkles count={14} scale={[0.8, 0.35, 0.8]} position-y={0.18} size={4} speed={0.8} color="#ff8a3a" />
     )
   );

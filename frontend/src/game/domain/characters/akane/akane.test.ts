@@ -30,6 +30,7 @@ import {
   withPlayers,
 } from "../../testing";
 import type { GameState } from "../../core/state";
+import { NO_AKANE } from "./types";
 
 /** A trap at 40 (back to 36) and another at 70 (back to 66) on a long plain path. */
 const BOARD: BoardDefinition = {
@@ -171,37 +172,40 @@ describe("Scarlet fire against the elements", () => {
 
 describe("Brilliant Impetus", () => {
   it("a 1 or a 2 kindles an Inner Flame, a 3 doesn't", () => {
-    expect(playerOf(roll(duel(), "akane", 2).state, "akane").innerFlame).toBe(1);
-    expect(playerOf(roll(duel(), "akane", 3).state, "akane").innerFlame).toBe(0);
+    expect(playerOf(roll(duel(), "akane", 2).state, "akane").akane.innerFlame).toBe(1);
+    expect(playerOf(roll(duel(), "akane", 3).state, "akane").akane.innerFlame).toBe(0);
   });
 
   it("a trap kindles one too", () => {
     const { state } = roll(withPlayer(duel(), "akane", { position: 36 }), "akane", 4);
-    expect(playerOf(state, "akane").innerFlame).toBe(1);
+    expect(playerOf(state, "akane").akane.innerFlame).toBe(1);
   });
 
   it(`stops at ${INNER_FLAME_MAX}`, () => {
-    const full = withPlayer(duel(), "akane", { innerFlame: INNER_FLAME_MAX, impetusRolls: 0 });
+    const full = withPlayer(duel(), "akane", { akane: { ...NO_AKANE, innerFlame: INNER_FLAME_MAX } });
     const unleashed = roll(full, "akane", 1);
     expect(eventsOfType(unleashed.events, "impetusUnleashed")).toHaveLength(1);
-    expect(playerOf(unleashed.state, "akane").innerFlame).toBe(0);
+    expect(playerOf(unleashed.state, "akane").akane.innerFlame).toBe(0);
   });
 
   it(`full, his next ${IMPETUS_ROLLS} rolls walk ${IMPETUS_BONUS} further and gather no flames`, () => {
-    let state = withPlayer(duel(), "akane", { position: 1, innerFlame: INNER_FLAME_MAX });
+    let state = withPlayer(duel(), "akane", { position: 1, akane: { ...NO_AKANE, innerFlame: INNER_FLAME_MAX } });
     state = roll(state, "akane", 1).state;
-    expect(playerOf(state, "akane")).toMatchObject({ position: 2 + IMPETUS_BONUS, innerFlame: 0 });
+    expect(playerOf(state, "akane")).toMatchObject({ position: 2 + IMPETUS_BONUS, akane: { innerFlame: 0 } });
     state = rivalRolls(state, 1).state;
     state = roll(state, "akane", 2).state;
-    expect(playerOf(state, "akane")).toMatchObject({ position: 7 + IMPETUS_BONUS, impetusRolls: 0, innerFlame: 0 });
+    expect(playerOf(state, "akane")).toMatchObject({
+      position: 7 + IMPETUS_BONUS,
+      akane: { impetusRolls: 0, innerFlame: 0 },
+    });
     state = rivalRolls(state, 1).state;
     const after = playerOf(roll(state, "akane", 2).state, "akane");
-    expect(after).toMatchObject({ position: 12, innerFlame: 1 });
+    expect(after).toMatchObject({ position: 12, akane: { innerFlame: 1 } });
   });
 
   it(`whoever he runs through catches fire and is thrown ${IMPETUS_PUSH} back`, () => {
     const start = withPlayers(duel(), {
-      akane: { position: 10, innerFlame: INNER_FLAME_MAX },
+      akane: { position: 10, akane: { ...NO_AKANE, innerFlame: INNER_FLAME_MAX } },
       rival: { position: 12 },
     });
     const { state, events } = roll(start, "akane", 3);
@@ -221,14 +225,14 @@ describe("Akane's cards", () => {
 
   it(`Hot Blood throws everyone within 7 back ${HOT_BLOOD_PUSH} per flame, and spends them`, () => {
     const start = withPlayers(holding(trio(), "hotBlood"), {
-      akane: { position: 50, innerFlame: 2 },
+      akane: { position: 50, akane: { ...NO_AKANE, innerFlame: 2 } },
       rival: { position: 57 },
       third: { position: 40 },
     });
     const { state } = play(start, "akane", "c0");
     expect(playerOf(state, "rival").position).toBe(57 - 2 * HOT_BLOOD_PUSH);
     expect(playerOf(state, "third").position).toBe(40);
-    expect(playerOf(state, "akane").innerFlame).toBe(0);
+    expect(playerOf(state, "akane").akane.innerFlame).toBe(0);
   });
 
   it("Hot Blood can't be played with no Inner Flame", () => {

@@ -3,7 +3,7 @@ import type { ActiveBlessing, Board, RealmEntry, Threat, TileId } from "../board
 import type { CardId } from "../cards/catalog";
 import type { PlayerId } from "./ids";
 import type { RngState } from "./random";
-import type { ScarletFlame } from "../characters/akane/types";
+import type { AkaneState, ScarletFlame } from "../characters/akane/types";
 import type { EnchantedTile, Winter } from "../characters/fairy/types";
 import type { BlackFlame } from "../characters/kage/types";
 import type { Seal } from "../characters/scribe/types";
@@ -72,14 +72,8 @@ export interface Player {
   burning: number;
   /** The Akane who set them alight: each round they burn, he takes FIRE_TOLL energy (see feedTheFire). */
   burnedBy: PlayerId | null;
-  /** Akane's Inner Flame (Brilliant Impetus), up to INNER_FLAME_MAX. */
-  innerFlame: number;
-  /** Akane's rolls left under the Brilliant Impetus: further, scorching whoever is in the way. */
-  impetusRolls: number;
-  /** Rolls left under Pure Fuel (two dice while an opponent burns). */
-  fuelRolls: number;
-  /** Ember Step played this turn: a roll stopping on fire slides on. */
-  emberStep: boolean;
+  /** Akane's Inner Flame, Impetus, Pure Fuel and Ember Step (NO_AKANE for everyone else). */
+  akane: AkaneState;
   /** Tenzai's orbit, Convergence and enchanted die (NO_TENZAI for everyone else). */
   tenzai: TenzaiState;
 }

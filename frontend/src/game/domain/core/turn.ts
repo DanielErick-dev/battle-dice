@@ -24,7 +24,7 @@ export function endTurn(draft: Draft, extraTurn: boolean): number {
     untamed: Math.max(0, ending.untamed - 1),
     tenzai: { ...ending.tenzai, converged: Math.max(0, ending.tenzai.converged - 1), combustion: null },
     burning: Math.max(0, ending.burning - 1),
-    emberStep: false,
+    akane: { ...ending.akane, emberStep: false },
     blessings: wearBlessings(draft.state.board, ending),
     ...(ending.ability === "theVoid" && { voidIdle: ending.voidIdle + 1 }),
   };

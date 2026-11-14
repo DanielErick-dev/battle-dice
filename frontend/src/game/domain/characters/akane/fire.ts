@@ -135,31 +135,32 @@ export function drownScarlet(draft: Draft, by: PlayerId, reach: ReadonlySet<Tile
 /** Brilliant Impetus: a low die or a trap kindles one more Inner Flame, none while the Impetus burns. */
 export function kindle(draft: Draft, playerId: PlayerId): void {
   const player = playerIn(draft, playerId);
-  if (!isAkane(player) || player.impetusRolls > 0 || player.innerFlame >= INNER_FLAME_MAX) return;
-  const flames = player.innerFlame + 1;
-  updatePlayer(draft, playerId, () => ({ innerFlame: flames }));
+  if (!isAkane(player) || player.akane.impetusRolls > 0 || player.akane.innerFlame >= INNER_FLAME_MAX) return;
+  const flames = player.akane.innerFlame + 1;
+  updatePlayer(draft, playerId, (p) => ({ akane: { ...p.akane, innerFlame: flames } }));
   draft.events.push({ type: "innerFlameKindled", playerId, flames });
 }
 
 /** Before a roll: a full Inner Flame unleashes the Impetus; Pure Fuel throws two dice while an opponent burns. */
 export function prepareRoll(draft: Draft, playerId: PlayerId): { bonus: number; boost: DiceBoost | null } {
   const player = playerIn(draft, playerId);
-  if (isAkane(player) && player.innerFlame >= INNER_FLAME_MAX && player.impetusRolls === 0) {
-    updatePlayer(draft, playerId, () => ({ innerFlame: 0, impetusRolls: IMPETUS_ROLLS }));
+  if (isAkane(player) && player.akane.innerFlame >= INNER_FLAME_MAX && player.akane.impetusRolls === 0) {
+    updatePlayer(draft, playerId, (p) => ({ akane: { ...p.akane, innerFlame: 0, impetusRolls: IMPETUS_ROLLS } }));
     draft.events.push({ type: "impetusUnleashed", playerId, rolls: IMPETUS_ROLLS });
   }
-  const { diceBoost, fuelRolls, impetusRolls } = playerIn(draft, playerId);
+  const { diceBoost, akane } = playerIn(draft, playerId);
+  const { fuelRolls, impetusRolls } = akane;
   const fuelled =
     fuelRolls > 0 && diceBoost === null && draft.players.some((other) => other.id !== playerId && isBurning(other));
-  if (fuelRolls > 0) updatePlayer(draft, playerId, () => ({ fuelRolls: fuelRolls - 1 }));
+  if (fuelRolls > 0) updatePlayer(draft, playerId, (p) => ({ akane: { ...p.akane, fuelRolls: fuelRolls - 1 } }));
   return { bonus: impetusRolls > 0 ? IMPETUS_BONUS : 0, boost: fuelled ? { kind: "double" } : diceBoost };
 }
 
 /** After the walk: a low die kindles a flame (a chosen value doesn't count), and the Impetus burns one roll down. */
 export function settleRoll(draft: Draft, playerId: PlayerId, face: number, chosen: boolean): void {
   const player = playerIn(draft, playerId);
-  if (player.impetusRolls > 0) {
-    updatePlayer(draft, playerId, () => ({ impetusRolls: player.impetusRolls - 1 }));
+  if (player.akane.impetusRolls > 0) {
+    updatePlayer(draft, playerId, (p) => ({ akane: { ...p.akane, impetusRolls: player.akane.impetusRolls - 1 } }));
     return;
   }
   if (!chosen && face <= LOW_DIE) kindle(draft, playerId);

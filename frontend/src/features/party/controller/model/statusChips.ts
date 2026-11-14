@@ -32,7 +32,7 @@ export function statusChips(player: Player): StatusChip[] {
   if (player.reversedRolls > 0) chips.push({ label: `Tempo invertido ×${player.reversedRolls}`, tone: "bad" });
   if (player.containedRolls > 0) chips.push({ label: `Dado contido ×${player.containedRolls}`, tone: "bad" });
   if (player.justiceMarks > 0) chips.push({ label: `Marcas da Justiça ×${player.justiceMarks}`, tone: "info" });
-  if (player.innerFlame > 0) chips.push({ label: `Chama Interna ${player.innerFlame}`, tone: "info" });
+  if (player.akane.innerFlame > 0) chips.push({ label: `Chama Interna ${player.akane.innerFlame}`, tone: "info" });
   if (player.tenzai.converged > 0)
     chips.push({ label: `Convergência · ${turns(player.tenzai.converged)}`, tone: "good" });
   if (player.tenzai.combustion) chips.push({ label: "Dado de combustão", tone: "good" });

@@ -18,7 +18,7 @@ export function unleash(draft: Draft, playerId: PlayerId): void {
 /** How hard a walker knocks those in the way: the Berserker always, Akane under his Impetus (and sets them alight). */
 function trampleOf(walker: Player): { push: number; burns: boolean } | null {
   if (walker.ability === "untamed") return { push: TRAMPLE_PUSH, burns: false };
-  if (isAkane(walker) && walker.impetusRolls > 0) return { push: IMPETUS_PUSH, burns: true };
+  if (isAkane(walker) && walker.akane.impetusRolls > 0) return { push: IMPETUS_PUSH, burns: true };
   return null;
 }
 

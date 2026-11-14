@@ -85,9 +85,13 @@ export const akaneSteps: StepHandlers<
     {
       apply: (view) => ({
         // A low roll or a trap: he stomps in a fury as the spark kindles.
-        ...withPlayer(blaze(view, { kind: "fume", playerId: event.playerId, act: "fume" }), event.playerId, () => ({
-          innerFlame: event.flames,
-        })),
+        ...withPlayer(
+          blaze(view, { kind: "fume", playerId: event.playerId, act: "fume" }),
+          event.playerId,
+          (player) => ({
+            akane: { ...player.akane, innerFlame: event.flames },
+          }),
+        ),
         effect: { ...playerTileEffect(view, event.playerId, "kindled"), count: event.flames },
       }),
       durationMs: timings.noticeMs,
@@ -96,10 +100,13 @@ export const akaneSteps: StepHandlers<
   impetusUnleashed: (event, timings) => [
     {
       apply: (view) => ({
-        ...withPlayer(blaze(view, { kind: "pillar", playerId: event.playerId, act: "strike" }), event.playerId, () => ({
-          innerFlame: 0,
-          impetusRolls: event.rolls,
-        })),
+        ...withPlayer(
+          blaze(view, { kind: "pillar", playerId: event.playerId, act: "strike" }),
+          event.playerId,
+          (player) => ({
+            akane: { ...player.akane, innerFlame: 0, impetusRolls: event.rolls },
+          }),
+        ),
         effect: { ...playerTileEffect(view, event.playerId, "impetus"), count: event.rolls },
       }),
       durationMs: timings.fireStrikeMs,
@@ -108,8 +115,8 @@ export const akaneSteps: StepHandlers<
   emberSlid: (event, timings) => [
     {
       apply: (view) => ({
-        ...withPlayer(blaze(view, { kind: "burst", playerId: event.playerId }), event.playerId, () => ({
-          emberStep: false,
+        ...withPlayer(blaze(view, { kind: "burst", playerId: event.playerId }), event.playerId, (player) => ({
+          akane: { ...player.akane, emberStep: false },
         })),
         effect: { ...playerTileEffect(view, event.playerId, "emberSlid") },
       }),
@@ -122,7 +129,7 @@ export const akaneSteps: StepHandlers<
         ...withPlayer(
           blaze(view, { kind: "burst", playerId: event.playerId, targetIds: event.targetIds, act: "strike" }),
           event.playerId,
-          () => ({ innerFlame: 0 }),
+          (p) => ({ akane: { ...p.akane, innerFlame: 0 } }),
         ),
         effect: { ...playerTileEffect(view, event.playerId, "hotBlood"), count: event.tiles },
       }),
@@ -132,7 +139,7 @@ export const akaneSteps: StepHandlers<
   fuelPoured: (event, timings) => [
     {
       apply: (view) => ({
-        ...withPlayer(view, event.playerId, () => ({ fuelRolls: event.rolls })),
+        ...withPlayer(view, event.playerId, (p) => ({ akane: { ...p.akane, fuelRolls: event.rolls } })),
         effect: { ...playerTileEffect(view, event.playerId, "fuel"), count: event.rolls },
       }),
       durationMs: timings.noticeMs,
@@ -141,7 +148,7 @@ export const akaneSteps: StepHandlers<
   emberStepReady: (event, timings) => [
     {
       apply: (view) => ({
-        ...withPlayer(view, event.playerId, () => ({ emberStep: true })),
+        ...withPlayer(view, event.playerId, (p) => ({ akane: { ...p.akane, emberStep: true } })),
         effect: playerTileEffect(view, event.playerId, "emberStep"),
       }),
       durationMs: timings.noticeMs,

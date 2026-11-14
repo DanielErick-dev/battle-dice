@@ -9,6 +9,20 @@ export interface ScarletFlame {
   turnsLeft: number;
 }
 
+/** Akane's own state on his Player; everyone else keeps NO_AKANE. */
+export interface AkaneState {
+  /** Inner Flame (Brilliant Impetus), up to INNER_FLAME_MAX. */
+  innerFlame: number;
+  /** Rolls left under the Brilliant Impetus: further, scorching whoever is in the way. */
+  impetusRolls: number;
+  /** Rolls left under Pure Fuel (two dice while an opponent burns). */
+  fuelRolls: number;
+  /** Ember Step played this turn: a roll stopping on fire slides on. */
+  emberStep: boolean;
+}
+
+export const NO_AKANE: AkaneState = { innerFlame: 0, impetusRolls: 0, fuelRolls: 0, emberStep: false };
+
 export type AkaneEvent =
   /** `tiles` caught scarlet fire; `melted` were under the fairy's snow or ice, gone with it. */
   /** `zone`: his Fire Zone, the fire racing down the path from him (else a card's fire). */

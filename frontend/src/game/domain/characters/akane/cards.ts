@@ -23,13 +23,13 @@ export const SUPERNOVA_STEP = 2;
 /** Hot Blood: spends his Inner Flame on a blast that throws back every touchable opponent close by. */
 export function hotBlood(draft: Draft, playerId: PlayerId): void {
   const player = playerIn(draft, playerId);
-  const flames = player.innerFlame;
+  const flames = player.akane.innerFlame;
   const tiles = flames * HOT_BLOOD_PUSH;
   const { board } = draft.state;
   const targets = opponentsInSpace(board, draft.players, playerId).filter(
     (other) => !isUntouchable(other) && distanceBetween(board, player, other) <= HOT_BLOOD_REACH,
   );
-  updatePlayer(draft, playerId, () => ({ innerFlame: 0 }));
+  updatePlayer(draft, playerId, (p) => ({ akane: { ...p.akane, innerFlame: 0 } }));
   draft.events.push({
     type: "hotBloodBurst",
     playerId,
@@ -45,15 +45,16 @@ export function hotBlood(draft: Draft, playerId: PlayerId): void {
 }
 
 export function emberStep(draft: Draft, playerId: PlayerId): void {
-  updatePlayer(draft, playerId, () => ({ emberStep: true }));
+  updatePlayer(draft, playerId, (p) => ({ akane: { ...p.akane, emberStep: true } }));
   draft.events.push({ type: "emberStepReady", playerId });
 }
 
 /** After his roll under Ember Step: stopped on fire, he slides EMBER_SLIDE further (once). */
 export function slideOnEmbers(draft: Draft, playerId: PlayerId): void {
-  const { emberStep: ready, position } = playerIn(draft, playerId);
+  const { akane, position } = playerIn(draft, playerId);
+  const ready = akane.emberStep;
   if (!ready || !draft.scarletFlames.some((flame) => flame.tile === position)) return;
-  updatePlayer(draft, playerId, () => ({ emberStep: false }));
+  updatePlayer(draft, playerId, (p) => ({ akane: { ...p.akane, emberStep: false } }));
   draft.events.push({ type: "emberSlid", playerId, tile: position });
   advance(draft, playerId, EMBER_SLIDE);
 }
@@ -92,7 +93,7 @@ export function scarletFever(draft: Draft, playerId: PlayerId): void {
 }
 
 export function pureFuel(draft: Draft, playerId: PlayerId): void {
-  updatePlayer(draft, playerId, () => ({ fuelRolls: FUEL_ROLLS }));
+  updatePlayer(draft, playerId, (p) => ({ akane: { ...p.akane, fuelRolls: FUEL_ROLLS } }));
   draft.events.push({ type: "fuelPoured", playerId, rolls: FUEL_ROLLS });
 }
 

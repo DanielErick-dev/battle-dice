@@ -56,7 +56,7 @@ export function exclusiveBlocker(table: HarmTable, player: Player, cardId: CardI
   if (player.ability !== exclusive) return "NOT_YOUR_CARD";
   switch (cardId) {
     case "hotBlood":
-      return player.innerFlame > 0 ? null : "NO_INNER_FLAME";
+      return player.akane.innerFlame > 0 ? null : "NO_INNER_FLAME";
     case "scarletSupernova": {
       const { fires, burning } = supernovaFuel(table, player.id);
       return fires + burning > 0 ? null : "NO_FIRE";
