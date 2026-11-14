@@ -13,7 +13,8 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,js,mjs}\" \"scripts/**/*.{ts,js,mjs}\" \"*.{ts,mjs}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,mjs}\" \"scripts/**/*.{ts,js,mjs}\" \"*.{ts,mjs}\"",
     "schema": "node scripts/contract/generate-schema.mjs",
-    "schema:check": "node scripts/contract/generate-schema.mjs --check"
+    "schema:check": "node scripts/contract/generate-schema.mjs --check",
+    "balance": "BALANCE=1 vitest run src/game/domain/bots/balance.sim.test.ts --silent=false"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",
