@@ -4,7 +4,12 @@ import { CARD_CATALOG, DIVINE_CARDS, rarityLevel } from "../cards/catalog";
 import { applyCommand } from "../core/engine";
 import type { GameCommand } from "../core/commands";
 import type { GameState, Player, PlayerId } from "../core/state";
-import { PLUNDER_CARDS } from "../characters/warden/specters";
+import { hauntableTiles, PLUNDER_CARDS, SPECTER_KINDS, takenForSpecters } from "../characters/warden/specters";
+import { SEAL_KINDS, sealableTiles } from "../characters/scribe/seals";
+import { FLAME_TILES, flammableTiles } from "../characters/kage/flames";
+import { frozenTiles } from "../characters/fairy/winter";
+import { wallableTiles } from "../characters/tenzai/elements";
+import type { TileId } from "../board/types";
 
 type Choice = Omit<Extract<GameCommand, { type: "activateAbility" }>, "type" | "playerId">;
 
@@ -82,12 +87,34 @@ function activateIfReady(state: GameState, me: Player): GameCommand | null {
     { element: "wind" },
     { ...target, element: "water" },
     { ...target, power: "halt" },
+    ...placements(state, me),
   ];
   for (const choice of tries) {
     const command: GameCommand = { type: "activateAbility", playerId: me.id, ...choice };
     if (accepted(state, command)) return command;
   }
   return null;
+}
+
+/** Tile picks for the abilities that place things: just ahead of the opponents, where they'll walk. */
+function placements(state: GameState, me: Player): Choice[] {
+  const { board } = state;
+  const opponents = state.players.filter((player) => player.id !== me.id).map((player) => player.position);
+  const ahead = (tiles: readonly TileId[], count: number) => {
+    const rear = Math.min(...opponents);
+    const preferred = tiles.filter((tile) => tile > rear);
+    return [...preferred, ...tiles.filter((tile) => tile <= rear)].slice(0, count);
+  };
+  const sealsAndSpecters = takenForSpecters(state.seals, state.specters);
+  const burning = [...state.blackFlames, ...state.scarletFlames].map((flame) => flame.tile);
+  const frozen = frozenTiles(state.winter, board.startTile);
+  const walls = wallableTiles(board, state.players, state.elementals);
+  return [
+    { sealTiles: ahead(sealableTiles(board, me.position, sealsAndSpecters), SEAL_KINDS.length) },
+    { specterTiles: ahead(hauntableTiles(board, me.position, sealsAndSpecters), SPECTER_KINDS.length) },
+    { power: "flames", flameTiles: ahead(flammableTiles(board, me.position, [...burning, ...frozen]), FLAME_TILES) },
+    ...(walls.length > 0 ? [{ element: "earth" as const, wallTile: ahead(walls, 1)[0] }] : []),
+  ];
 }
 
 /** The rules decide what's legal: a command that throws isn't. */
