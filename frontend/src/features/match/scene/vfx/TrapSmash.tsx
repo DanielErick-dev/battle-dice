@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AdditiveBlending, CanvasTexture, Color, type Group, type Mesh, type MeshBasicMaterial } from "three";
 import { TILE_HEIGHT, TILE_SIZE, type Vec3 } from "@/features/shared/board/boardLayout";
 import { useAge } from "@/features/shared/three/useAge";
+import { context2d } from "@/features/shared/three/canvasTexture";
 
 const IMPACT_SECONDS = 1.2;
 const SHARD_COUNT = 14;
@@ -178,7 +179,7 @@ function drawCracks(): HTMLCanvasElement {
   const size = 256;
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = size;
-  const context = canvas.getContext("2d")!;
+  const context = context2d(canvas);
   context.translate(size / 2, size / 2);
   context.strokeStyle = "white";
   context.lineCap = "round";

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { abilityCycle } from "@/game/domain/abilities/charge";
 import { isPassive } from "@/game/domain/abilities/ability";
 import { CARD_CATALOG } from "@/game/domain/cards/catalog";
-import { CHARACTER_IDS, CHARACTERS, type CharacterId } from "@/features/characters";
+import { CHARACTER_IDS, CHARACTERS, isCharacterId, type CharacterId } from "@/features/characters";
 import { CHARACTER_GUIDES } from "@/features/characters/guide";
 import { CardView } from "@/features/match/ui/cards/CardView";
 import { ABILITY_TEXT } from "@/features/shared/text/abilityText";
@@ -23,9 +23,7 @@ const TABS: readonly { id: Tab; label: string }[] = [
 
 /** Every character up close: their stage, how they play, their ability, their own cards and tips. */
 export function CharactersScreen({ initial }: { initial?: string }) {
-  const [selected, setSelected] = useState<CharacterId>(
-    CHARACTER_IDS.includes(initial as CharacterId) ? (initial as CharacterId) : "zephyr",
-  );
+  const [selected, setSelected] = useState<CharacterId>(initial && isCharacterId(initial) ? initial : "zephyr");
   const [tab, setTab] = useState<Tab>("style");
   const character = CHARACTERS[selected];
   const guide = CHARACTER_GUIDES[selected];

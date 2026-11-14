@@ -20,6 +20,7 @@ import { useAge } from "@/features/shared/three/useAge";
 import { EFFECT_SCALE } from "../core/figure";
 import { NameTag } from "../shared/NameTag";
 import { BLOOD_INK } from "../shared/parchment";
+import { context2d } from "@/features/shared/three/canvasTexture";
 
 const TILE_TOP = TILE_HEIGHT / 2;
 /** The page of skin: its size, how high it hangs over the tile and how much it sways. */
@@ -175,7 +176,7 @@ function useSkinPage(): CanvasTexture {
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
-    const context = canvas.getContext("2d")!;
+    const context = context2d(canvas);
     const random = seededRandom(29);
 
     // A ragged outline, cut from a hide.
@@ -297,7 +298,7 @@ function useBloodPool(): CanvasTexture {
     const centre = size / 2;
     const canvas = document.createElement("canvas");
     canvas.width = canvas.height = size;
-    const context = canvas.getContext("2d")!;
+    const context = context2d(canvas);
     const random = seededRandom(41);
     context.fillStyle = "#4a0509";
     context.beginPath();

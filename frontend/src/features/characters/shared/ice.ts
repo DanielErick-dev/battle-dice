@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import { BufferGeometry, CanvasTexture, Color, Float32BufferAttribute } from "three";
 import { seededRandom, type RandomSource } from "@/game/domain/core/random";
 import { cycle, itemAt } from "@/features/shared/collections/items";
+import { context2d } from "@/features/shared/three/canvasTexture";
 
 /** Pale ice and the deeper glacier blue under it. */
 export const ICE = new Color("#dff4ff");
@@ -55,7 +56,7 @@ export function useCrackTexture(): CanvasTexture {
     const centre = size / 2;
     const canvas = document.createElement("canvas");
     canvas.width = canvas.height = size;
-    const context = canvas.getContext("2d")!;
+    const context = context2d(canvas);
     const random = seededRandom(5);
     // A cold haze under the cracks, thickest at the blow.
     const haze = context.createRadialGradient(centre, centre, 0, centre, centre, centre);

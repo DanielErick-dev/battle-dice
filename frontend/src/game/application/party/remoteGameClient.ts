@@ -31,6 +31,10 @@ export type Presence = Omit<PresenceMessage, "type" | "to">;
 
 const HOST_CODES: readonly string[] = ["NOT_SEATED", "NOT_YOUR_SEAT", "RESTART_NOT_ALLOWED"] satisfies HostErrorCode[];
 
+function isHostErrorCode(code: string): code is HostErrorCode {
+  return HOST_CODES.includes(code);
+}
+
 interface Pending {
   resolve: (result: CommandResult) => void;
   reject: (error: Error) => void;
@@ -179,10 +183,9 @@ export class RemoteGameClient implements GameClient {
         this.pending.delete(message.requestId);
         clearTimeout(pending.timer);
         const { result } = message;
-        if (!result.ok && HOST_CODES.includes(result.code)) {
-          return pending.reject(new HostRefusedError(result.code as HostErrorCode));
-        }
-        return pending.resolve(result as CommandResult);
+        if (result.ok) return pending.resolve(result);
+        if (isHostErrorCode(result.code)) return pending.reject(new HostRefusedError(result.code));
+        return pending.resolve({ ok: false, code: result.code });
       }
       case "presence": {
         const presence = { seats: message.seats, spectators: message.spectators };

@@ -57,8 +57,8 @@ export function dressGround(
 function scatter(context: CanvasRenderingContext2D, size: number, random: RandomSource, litter: LitterLook) {
   const scale = size / 512;
   for (let index = 0; index < litter.count; index++) {
-    const piled = litter.pile && random() < 0.55;
-    const [x0, x1, y0, y1] = piled ? litter.pile! : [0, 1, 0, 1];
+    const pile = litter.pile && random() < 0.55 ? litter.pile : null;
+    const [x0, x1, y0, y1] = pile ?? [0, 1, 0, 1];
     const x = size * (x0 + random() * (x1 - x0));
     const y = size * (y0 + random() * (y1 - y0));
     const r = litter.size * scale * (0.6 + random() * 0.8);

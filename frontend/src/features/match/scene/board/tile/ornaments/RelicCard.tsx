@@ -8,6 +8,7 @@ import type { CardId } from "@/game/domain/cards/catalog";
 import { CARD_PALETTE } from "@/features/match/ui/cards/CardArt";
 import { CARD_TEXT } from "@/features/match/ui/cards/cardText";
 import { TILE_HEIGHT } from "@/features/shared/board/boardLayout";
+import { context2d } from "@/features/shared/three/canvasTexture";
 
 const CARD_WIDTH = 0.78;
 const CARD_DEPTH = 1.08;
@@ -55,7 +56,7 @@ function useRelicFace(cardId: CardId): CanvasTexture {
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
-    const context = canvas.getContext("2d")!;
+    const context = context2d(canvas);
     const { from, to } = CARD_PALETTE[cardId];
     const background = context.createRadialGradient(
       width / 2,

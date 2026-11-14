@@ -115,8 +115,11 @@ export function WinterIce({
     let growing = false;
     tiles.forEach(({ tile, position: [x, y, z], melt = 0 }, index) => {
       // Already frozen when the board first shows (a reload mid-winter): no snowing in.
-      if (!born.current.has(tile)) born.current.set(tile, primed.current ? now : -1);
-      const start = born.current.get(tile)!;
+      let start = born.current.get(tile);
+      if (start === undefined) {
+        start = primed.current ? now : -1;
+        born.current.set(tile, start);
+      }
       const grown = start < 0 ? 1 : Math.min(1, 0.05 + ((now - start) / GROW_SECONDS) * 0.95);
       const rise = grown * (1 - melt * 0.85);
       if (grown < 1) growing = true;

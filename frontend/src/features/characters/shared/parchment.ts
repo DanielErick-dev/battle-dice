@@ -1,5 +1,6 @@
 import { CanvasTexture } from "three";
 import { seededRandom } from "@/game/domain/core/random";
+import { context2d } from "@/features/shared/three/canvasTexture";
 
 /** A pen stroke: points on a page whose sides run from 0 to 1. */
 export type Stroke = [number, number][];
@@ -15,7 +16,7 @@ export function drawParchment(width: number, height: number, seed: number, strok
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
-  const context = canvas.getContext("2d")!;
+  const context = context2d(canvas);
   const random = seededRandom(seed);
   context.fillStyle = "#c8b086";
   context.fillRect(0, 0, width, height);
@@ -128,7 +129,7 @@ export function createWriting(strokes: Stroke[], width: number, height: number, 
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
-  const context = canvas.getContext("2d")!;
+  const context = context2d(canvas);
   const total = strokes.reduce((sum, stroke) => sum + stroke.length - 1, 0);
   const texture = new CanvasTexture(canvas);
   const cursor = { drawn: -1 };

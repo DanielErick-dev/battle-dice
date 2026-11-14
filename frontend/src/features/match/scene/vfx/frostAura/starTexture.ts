@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { CanvasTexture } from "three";
+import { context2d } from "@/features/shared/three/canvasTexture";
 
 /** A four-pointed glint of light: two thin crossed rays over a soft core, white on transparent. */
 export function useStarTexture(): CanvasTexture {
@@ -8,7 +9,7 @@ export function useStarTexture(): CanvasTexture {
     const centre = size / 2;
     const canvas = document.createElement("canvas");
     canvas.width = canvas.height = size;
-    const context = canvas.getContext("2d")!;
+    const context = context2d(canvas);
     const core = context.createRadialGradient(centre, centre, 0, centre, centre, size * 0.22);
     core.addColorStop(0, "rgba(255,255,255,1)");
     core.addColorStop(1, "rgba(255,255,255,0)");

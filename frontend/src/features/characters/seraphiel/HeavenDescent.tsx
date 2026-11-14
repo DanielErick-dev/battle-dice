@@ -16,6 +16,7 @@ import {
 } from "three";
 import { useSoftDisc } from "../shared/softDisc";
 import { useAge } from "@/features/shared/three/useAge";
+import { context2d } from "@/features/shared/three/canvasTexture";
 
 /** Seconds the figure takes to come down out of the sky onto the ground. */
 export const DESCENT_SECONDS = 5.2;
@@ -215,7 +216,7 @@ function useBeamTexture() {
     const canvas = document.createElement("canvas");
     canvas.width = 64;
     canvas.height = 128;
-    const context = canvas.getContext("2d")!;
+    const context = context2d(canvas);
     // Bright at the ground, thinning out into the sky.
     const gradient = context.createLinearGradient(0, 128, 0, 0);
     gradient.addColorStop(0, "rgba(255,255,255,1)");
@@ -240,7 +241,7 @@ export function useFeatherTexture() {
     const canvas = document.createElement("canvas");
     canvas.width = 32;
     canvas.height = 96;
-    const context = canvas.getContext("2d")!;
+    const context = context2d(canvas);
     context.fillStyle = "rgba(255,255,255,0.85)";
     context.beginPath();
     context.moveTo(16, 2);

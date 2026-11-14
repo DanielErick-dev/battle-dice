@@ -4,6 +4,7 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo } from "react";
 import { AdditiveBlending, BufferAttribute, BufferGeometry, CanvasTexture, Color } from "three";
 import { FLOOR_Y } from "./layout";
+import { context2d } from "@/features/shared/three/canvasTexture";
 
 /** How high motes rise above the floor before starting again at the bottom. */
 const MOTE_RISE = 2.1;
@@ -68,7 +69,7 @@ function useMoteSprite() {
     const size = 64;
     const canvas = document.createElement("canvas");
     canvas.width = canvas.height = size;
-    const context = canvas.getContext("2d")!;
+    const context = context2d(canvas);
     const gradient = context.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
     gradient.addColorStop(0, "rgba(255,255,255,1)");
     gradient.addColorStop(0.35, "rgba(255,255,255,0.5)");

@@ -83,8 +83,12 @@ export function GearWorks() {
     const shapes = new Map<string, ExtrudeGeometry>();
     const gear = (teeth: number, spokes: number) => {
       const key = `${teeth}:${spokes}`;
-      if (!shapes.has(key)) shapes.set(key, gearGeometry(teeth, spokes));
-      return shapes.get(key)!;
+      let shape = shapes.get(key);
+      if (!shape) {
+        shape = gearGeometry(teeth, spokes);
+        shapes.set(key, shape);
+      }
+      return shape;
     };
     return { gear, all: shapes };
   }, []);

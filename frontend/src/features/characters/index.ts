@@ -53,10 +53,9 @@ export const CHARACTERS = {
 export type CharacterId = keyof typeof CHARACTERS;
 
 export const CHARACTER_IDS = Object.keys(CHARACTERS) as CharacterId[];
-/** The characters that can be picked right now. */
 export const DEFAULT_CHARACTER_ID: CharacterId = "witch";
 
-function isCharacterId(id: string): id is CharacterId {
+export function isCharacterId(id: string): id is CharacterId {
   return Object.hasOwn(CHARACTERS, id);
 }
 

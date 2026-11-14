@@ -33,7 +33,14 @@ const CAMERA_FOV = (2 * Math.atan((1 + 2 * CANVAS_BLEED) * Math.tan((16 * Math.P
  * the intro. One canvas for the whole menu page: the picker only swaps the model.
  */
 export function CharacterStage({ characterId, className }: { characterId: CharacterId; className?: string }) {
-  const { color: accent, stage, descends, introSword, introSpeed }: CharacterDefinition = CHARACTERS[characterId];
+  const {
+    color: accent,
+    stage,
+    descends,
+    introSword,
+    introSpeed,
+    meditates,
+  }: CharacterDefinition = CHARACTERS[characterId];
   const scenery: Scenery | undefined = stage && SCENERY[stage];
   const dim = scenery?.dim ?? false;
   const color = scenery?.light ?? accent;
@@ -103,7 +110,7 @@ export function CharacterStage({ characterId, className }: { characterId: Charac
               </Suspense>
             </group>
           ) : (
-            !(CHARACTERS[characterId] as CharacterDefinition).meditates && <RunePedestal color={color} />
+            !meditates && <RunePedestal color={color} />
           )}
           {!scenery?.weather && (
             <RisingMotes key={color} color={color} count={(quality === "high" ? 48 : 18) / (dim ? 2 : 1)} />

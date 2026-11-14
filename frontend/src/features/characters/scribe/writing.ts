@@ -3,6 +3,7 @@ import { CanvasTexture, PlaneGeometry, SRGBColorSpace } from "three";
 import { seededRandom } from "@/game/domain/core/random";
 import { createWriting, drawParchment, drawStrokes, pageStrokes, ring, type Stroke } from "../shared/parchment";
 import { SCROLLS } from "./introLayout";
+import { context2d } from "@/features/shared/three/canvasTexture";
 
 /** The writing on the page in the air. */
 export const PAGE_STROKES = pageStrokes(61);
@@ -67,7 +68,7 @@ export function usePages() {
         const mask = document.createElement("canvas");
         mask.width = 192;
         mask.height = 282;
-        const context = mask.getContext("2d")!;
+        const context = context2d(mask);
         context.shadowColor = "white";
         context.shadowBlur = 4;
         drawStrokes(context, strokes, "white", 2.2);
@@ -111,7 +112,7 @@ export function useBurnMask(): CanvasTexture {
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
-    const context = canvas.getContext("2d")!;
+    const context = context2d(canvas);
     context.fillStyle = "rgb(150,150,150)";
     context.fillRect(0, 0, width, height);
     const random = seededRandom(5);

@@ -117,18 +117,16 @@ function spreadTrapZones(
   });
 }
 
+const realmOf = (portal: number): RealmKind => (portal % 2 === 0 ? "infernal" : "celestial");
+
 /** Every portal opens a realm track, alternating infernal and celestial along the path. */
 function openRealms(effects: Record<TileId, TileEffect>): Record<TileId, TileEffect> {
-  const portals = Object.keys(effects)
-    .map(Number)
-    .filter((tile) => effects[tile]?.kind === "portal")
-    .sort((a, b) => a - b);
-  const realms: readonly RealmKind[] = ["infernal", "celestial"];
+  const portals = Object.entries(effects)
+    .flatMap(([tile, effect]) => (effect.kind === "portal" ? [{ tile: Number(tile), effect }] : []))
+    .sort((a, b) => a.tile - b.tile);
   return {
     ...effects,
-    ...Object.fromEntries(
-      portals.map((tile, index) => [tile, { ...effects[tile], realm: realms[index % realms.length] } as TileEffect]),
-    ),
+    ...Object.fromEntries(portals.map(({ tile, effect }, index) => [tile, { ...effect, realm: realmOf(index) }])),
   };
 }
 

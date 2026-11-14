@@ -16,6 +16,7 @@ import {
 import type { IntroCardBeats } from "..";
 import { useAge } from "@/features/shared/three/useAge";
 import { useGlowColor } from "../shared/glowColor";
+import { context2d } from "@/features/shared/three/canvasTexture";
 
 const CARD_COUNT = 9;
 /** Playing card proportions, as a share of the figure's height. */
@@ -265,7 +266,7 @@ function useCardTextures(): CanvasTexture[] {
         const canvas = document.createElement("canvas");
         canvas.width = 136;
         canvas.height = 200;
-        const context = canvas.getContext("2d")!;
+        const context = context2d(canvas);
         context.fillStyle = "#f6f1e7";
         roundedRect(context, 2, 2, 132, 196, 14);
         context.fill();

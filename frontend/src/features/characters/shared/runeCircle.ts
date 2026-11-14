@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { CanvasTexture } from "three";
+import { context2d } from "@/features/shared/three/canvasTexture";
 
 /** White rune circle (tinted by the material): two rings, a band of glyphs and a star. */
 export function useRuneTexture() {
@@ -18,7 +19,7 @@ function drawRuneCircle(): HTMLCanvasElement {
   const size = 512;
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = size;
-  const context = canvas.getContext("2d")!;
+  const context = context2d(canvas);
   const centre = size / 2;
   context.translate(centre, centre);
   context.strokeStyle = "white";

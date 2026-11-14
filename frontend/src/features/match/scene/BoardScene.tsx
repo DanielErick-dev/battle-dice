@@ -88,10 +88,7 @@ export default function BoardScene({
   const board = useMemo(() => withRifts(plainBoard, view.rifts), [plainBoard, view.rifts]);
   const layout = useMemo(() => withRiftPositions(roadLayout, board), [roadLayout, board]);
   const playerIds = view.players.map((player) => player.id).join(",");
-  const wandTips = useMemo(
-    () => new Map(playerIds.split(",").map((id) => [id as PlayerId, new Vector3()])),
-    [playerIds],
-  );
+  const wandTips = useMemo(() => new Map(playerIds.split(",").map((id) => [id, new Vector3()])), [playerIds]);
   const occupiedTiles = new Set(view.players.map((player) => player.position));
   const mainTiles = useMemo(() => board.tiles.filter((tile) => !tile.track), [board]);
   const trapZoneTiles = useMemo(() => new Set(board.trapZones.flatMap((zone) => zone.tiles)), [board]);

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { CanvasTexture, SpriteMaterial, SRGBColorSpace } from "three";
+import { context2d } from "@/features/shared/three/canvasTexture";
 
 /** The tag's height as a share of the screen's; it keeps that size however far the camera is. */
 const SCREEN_HEIGHT = 0.012;
@@ -54,14 +55,14 @@ export function NameTag({
 
 function drawTag(text: string, color: string) {
   const font = `900 ${Math.round(CANVAS_HEIGHT * 0.46)}px system-ui, sans-serif`;
-  const measure = document.createElement("canvas").getContext("2d")!;
+  const measure = context2d(document.createElement("canvas"));
   measure.font = font;
   const label = text.toUpperCase();
   const width = Math.ceil(measure.measureText(label).width + CANVAS_HEIGHT * 0.9);
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = CANVAS_HEIGHT;
-  const context = canvas.getContext("2d")!;
+  const context = context2d(canvas);
   const radius = CANVAS_HEIGHT / 2 - 2;
   context.beginPath();
   context.roundRect(2, 2, width - 4, CANVAS_HEIGHT - 4, radius);

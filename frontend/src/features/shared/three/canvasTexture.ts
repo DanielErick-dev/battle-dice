@@ -32,6 +32,13 @@ function fadeRim(context: CanvasRenderingContext2D, size: number, from: number) 
   context.restore();
 }
 
+/** The canvas's 2D context; only fails when the browser can't draw at all. */
+export function context2d(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("Canvas 2D is unavailable.");
+  return context;
+}
+
 /** A texture painted on a fresh canvas; the caller disposes it. */
 export function paintTexture({
   size,
@@ -45,7 +52,7 @@ export function paintTexture({
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = height;
-  const context = canvas.getContext("2d")!;
+  const context = context2d(canvas);
   draw(context, size, seededRandom(seed));
   if (fadeFrom !== undefined) fadeRim(context, size, fadeFrom);
   const texture = new CanvasTexture(canvas);
