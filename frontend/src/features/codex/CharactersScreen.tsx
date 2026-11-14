@@ -7,7 +7,6 @@ import { CARD_CATALOG } from "@/game/domain/cards/catalog";
 import { CHARACTER_IDS, CHARACTERS, type CharacterId } from "@/features/characters";
 import { CHARACTER_GUIDES } from "@/features/characters/guide";
 import { CardView } from "@/features/match/ui/cards/CardView";
-import { cardText } from "@/features/match/ui/cards/cardText";
 import { ABILITY_TEXT } from "@/features/shared/text/abilityText";
 import { cn } from "@/lib/utils";
 import { LazyCharacterStage as CharacterStage } from "@/features/menu/stage/LazyCharacterStage";
@@ -35,21 +34,33 @@ export function CharactersScreen({ initial }: { initial?: string }) {
 
   return (
     <MenuPage title="Personagens" subtitle="Conheça cada um antes de escolher." wide>
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)_minmax(0,28rem)]">
-        <ul aria-label="Personagens" className="grid grid-cols-3 gap-2 self-start sm:grid-cols-4 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-[17rem_minmax(0,1fr)_minmax(0,32rem)]">
+        <ul
+          aria-label="Personagens"
+          className="flex gap-2 overflow-x-auto pb-2 lg:max-h-[72dvh] lg:flex-col lg:overflow-x-visible lg:overflow-y-auto lg:pr-1 lg:pb-0"
+        >
           {CHARACTER_IDS.map((id) => (
-            <li key={id}>
+            <li key={id} className="shrink-0">
               <button
                 type="button"
                 onClick={() => setSelected(id)}
                 aria-pressed={id === selected}
                 className={cn(
-                  "w-full rounded-xl px-2 py-2 text-left text-xs font-bold ring-1 transition",
-                  id === selected ? "bg-white/15 ring-white/40" : "bg-white/[0.04] ring-white/10 hover:bg-white/10",
+                  "flex w-44 items-center gap-3 rounded-xl px-3 py-2.5 text-left ring-1 transition lg:w-full",
+                  id === selected ? "bg-white/12 ring-white/30" : "bg-white/[0.03] ring-white/5 hover:bg-white/[0.07]",
                 )}
-                style={{ boxShadow: id === selected ? `inset 3px 0 0 ${CHARACTERS[id].color}` : undefined }}
               >
-                {CHARACTERS[id].name}
+                <span
+                  aria-hidden
+                  className="h-8 w-1 shrink-0 rounded-full"
+                  style={{ background: CHARACTERS[id].color, opacity: id === selected ? 1 : 0.5 }}
+                />
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-black tracking-wide">{CHARACTERS[id].name}</span>
+                  <span className="block truncate text-[10px] font-semibold tracking-wider text-zinc-400 uppercase">
+                    {CHARACTER_GUIDES[id].role}
+                  </span>
+                </span>
               </button>
             </li>
           ))}
@@ -104,10 +115,10 @@ export function CharactersScreen({ initial }: { initial?: string }) {
             (ownCards.length === 0 ? (
               <p className="text-sm text-zinc-400">Ainda sem cartas exclusivas.</p>
             ) : (
-              <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <ul className="grid grid-cols-2 gap-4">
                 {ownCards.map((card) => (
-                  <li key={card.id} title={cardText(card.id).description}>
-                    <CardView cardId={card.id} />
+                  <li key={card.id} className="flex flex-col gap-1.5">
+                    <CardView cardId={card.id} expanded />
                   </li>
                 ))}
               </ul>
