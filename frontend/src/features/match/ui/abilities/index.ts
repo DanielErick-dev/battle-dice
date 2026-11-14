@@ -1,8 +1,4 @@
-/**
- * The abilities that ask something before going off: whom to aim at, which power, which cards or
- * tiles. The match screen only asks this registry what "Usar" does and which picker to show; a new
- * ability that asks something gets its own file here and one line below (see docs/arquitetura.md).
- */
+// Registry of abilities that ask something first; a new one gets its own file and a line here (see README).
 import type { AbilityId } from "@/game/domain/abilities/ability";
 import { arrowRain } from "./arrowRain";
 import { resurrection, transmutation } from "./cardChoices";

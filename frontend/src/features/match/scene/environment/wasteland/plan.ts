@@ -30,11 +30,7 @@ export interface WastelandPlan {
   fires: Vec3[];
 }
 
-/**
- * A ruined city round the trail: shells of buildings along the back and the sides, wrecked cars left
- * by the road, debris, dead trees, barricades, shacks and fires burning in baskets. Nothing hides a
- * tile from the camera. The same every time.
- */
+/** Nothing hides a tile from the camera; seeded, so the same every time. */
 export function planWasteland(trail: readonly Vec3[]): WastelandPlan {
   const random = seededRandom(67);
   const bounds = trailBounds(trail, MARGIN);

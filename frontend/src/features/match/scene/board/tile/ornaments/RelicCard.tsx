@@ -13,11 +13,7 @@ import { context2d } from "@/features/shared/three/canvasTexture";
 const CARD_WIDTH = 0.78;
 const CARD_DEPTH = 1.08;
 
-/**
- * One of heaven's divine cards lying on its tile, face up: a gold-framed card with its colours, a
- * star and its name, breathing a little over the floor in a glow of light. Whoever stops here
- * takes that very card.
- */
+/** One of heaven's divine cards on its tile, face up: whoever stops here takes that very card. */
 export function RelicCard({ cardId }: { cardId: CardId }) {
   const card = useRef<Group>(null);
   const face = useRelicFace(cardId);

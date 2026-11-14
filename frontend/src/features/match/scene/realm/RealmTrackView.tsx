@@ -42,12 +42,7 @@ interface RealmTrackViewProps {
   picking?: BoardPicking | null;
 }
 
-/**
- * A realm track: a walled corridor beside the board whose tiles rise up from below (infernal)
- * or float down from the sky (celestial) one after another from the portal, joined by a
- * ribbon of flowing energy, while its walls grow around them; all of it sinks away again once
- * nobody is on it.
- */
+/** Tiles rise (hell) or descend (heaven) one by one from the portal, and it all sinks away once nobody's on it. */
 export function RealmTrackView({
   track,
   board,

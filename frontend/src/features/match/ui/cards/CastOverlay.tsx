@@ -1,10 +1,7 @@
 import type { CardCastView } from "../../model/matchView";
 import { CardView } from "./CardView";
 
-/**
- * The played card flying into the arena and bursting into light (keyed by cast id so each
- * cast replays the animation). Solar Flare also whites out the screen for a moment.
- */
+/** Keyed by cast id so each cast replays; Solar Flare also whites out the screen. */
 export function CastOverlay({ cast }: { cast: CardCastView | null }) {
   if (!cast) return null;
 

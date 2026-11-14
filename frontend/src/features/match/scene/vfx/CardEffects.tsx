@@ -27,10 +27,7 @@ const Y_AXIS = new Vector3(0, 1, 0);
 /** Wide enough round a winged figure that the wings stay inside, centred a little higher on them. */
 const WINGED_SHIELD = { scale: 1.4, y: 1.2 };
 
-/**
- * Arcane Shield: a hexagonal bubble around the player while the shield is up. It folds away while
- * the figure sits on its chair (`seated`) and comes back as it stands.
- */
+/** Arcane Shield's bubble; it folds away while the figure sits on its chair (`seated`). */
 export function ShieldBubble({
   color = DEFAULT_SHIELD_COLOR,
   winged = false,

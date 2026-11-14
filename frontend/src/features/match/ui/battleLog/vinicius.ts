@@ -1,6 +1,5 @@
 import type { LogLines } from "./lines";
 
-/** Vinicius. */
 export const viniciusLines: LogLines<"trapWeeded"> = {
   trapWeeded: (event, { who, line }) =>
     line(

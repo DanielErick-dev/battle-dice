@@ -40,8 +40,7 @@ export const fairySteps: StepHandlers<
     ];
   },
   tilesEnchanted: (event, timings) => {
-    // Snow streams from her wand to each harmful tile ahead in turn (the camera following it),
-    // and the tile blooms, enchanted for good, as it lands; then back to her.
+    // One tile at a time so the camera can follow the snow to each before returning to her.
     const landed = (view: MatchView, index: number): MatchView => {
       const tile = event.tiles[index];
       return tile === undefined

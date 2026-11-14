@@ -9,11 +9,7 @@ const SETTINGS = {
   low: { multisampling: 0, levels: 5, intensity: 0.9 },
 } as const;
 
-/**
- * Screen effects. Bloom picks up anything brighter than 1.0 (neon trims, portals, fire,
- * the moon), so a material glows by pushing its colour or emissive past that.
- * Rendering goes through an offscreen buffer here, so tone mapping must be the last pass.
- */
+/** Bloom picks up anything brighter than 1.0; tone mapping must be the last pass since this renders offscreen. */
 export function PostEffects({ quality }: { quality: EffectsQuality }) {
   const settings = SETTINGS[quality];
 

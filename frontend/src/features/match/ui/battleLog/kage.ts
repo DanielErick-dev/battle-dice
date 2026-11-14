@@ -1,6 +1,5 @@
 import { plural, type LogLines } from "./lines";
 
-/** Kage Rubra. */
 export const kageLines: LogLines<"flamesLit" | "flamesScorched" | "susanooRepelled"> = {
   flamesLit: (event, { who, line }) =>
     line(

@@ -38,11 +38,7 @@ interface CardHandProps {
   status?: ReactNode;
 }
 
-/**
- * The active player's hand, floating at the side of the arena. The first click pulls a card
- * out, the second plays it; a card that needs a die value or a target shows those choices
- * beside it instead, and a card that can't be played says why there.
- */
+/** The first click pulls a card out, the second plays it, so a stray click never spends one. */
 export function CardHand({
   table,
   player,

@@ -4,12 +4,7 @@ import { useGLTF } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 import { useEffect } from "react";
 
-/**
- * Holds the scene back (suspends) until every model in `models` has loaded, then compiles the
- * scene's shaders and uploads its textures to the GPU before calling `onReady` two frames later,
- * so the match starts with everything in place rather than stalling the first time something
- * shows. Mount it inside the scene's Suspense, after everything else.
- */
+/** Compiles shaders and uploads textures before `onReady`, so the match never stalls the first time something shows. */
 export function SceneWarmup({ models, onReady }: { models: readonly string[]; onReady: () => void }) {
   useGLTF([...models]);
   const gl = useThree((state) => state.gl);

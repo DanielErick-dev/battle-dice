@@ -66,11 +66,7 @@ export interface DungeonPlan {
   flames: Vec3[];
 }
 
-/**
- * A great dungeon hall round the trail: walls along the back and the sides (none in front, where they'd
- * hide the trail), torches and banners on them, pillars, barrels, crates, chests and coins between the
- * rows. Nothing hides a tile from the camera. The same every time.
- */
+/** No wall in front and nothing that hides a tile from the camera; seeded, so the same every time. */
 export function planDungeon(trail: readonly Vec3[]): DungeonPlan {
   const random = seededRandom(61);
   const bounds = trailBounds(trail, MARGIN);

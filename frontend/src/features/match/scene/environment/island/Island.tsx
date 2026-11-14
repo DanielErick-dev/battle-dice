@@ -37,12 +37,7 @@ function settled(shape: IslandShape, { x, y, z }: { x: number; y: number; z: num
 const TOWN_TINT = "#868894";
 const COUNTRY_TINT = "#7a8279";
 
-/**
- * The island the trail winds across on a grim night: low-poly hills of dark grass, trodden mud under the
- * tiles, a grey shore running into the sea, snowy mountains behind where the trail begins and a stream the
- * trail crosses on wooden bridges; tall pines where they hide no tile (Meshy models), bushes, boulders and
- * grass tufts in between, and lanterns along the way.
- */
+/** Pines are placed only where they hide no tile from the camera. */
 export function Island({ trail, shape }: { trail: readonly Vec3[]; shape: IslandShape }) {
   const ground = useIslandGround(shape);
   const town = useMemo(() => planSettlements(shape, trail), [shape, trail]);

@@ -3,11 +3,7 @@ import type { CardDrawView } from "../../model/matchView";
 import { CardBack } from "./CardBack";
 import { CardView } from "./CardView";
 
-/**
- * A card coming off the deck: it rises to the middle of the screen face down, turns face up
- * and is dealt to the hand at the side (keyed by draw id so each draw replays it). A card taken
- * from another player's hand says whose it was.
- */
+/** Keyed by draw id so each draw replays it. */
 export function DrawOverlay({ drawing }: { drawing: CardDrawView | null }) {
   if (!drawing) return null;
 

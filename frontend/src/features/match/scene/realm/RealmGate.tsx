@@ -31,11 +31,7 @@ interface RealmGateProps {
   position: Vec3;
 }
 
-/**
- * The portal tearing open into a realm (mount with a fresh key per entry). Infernal: a pit
- * opens in the tile and hellfire whirls up out of it. Celestial: a pillar of light pours down
- * from the sky onto a glowing seal.
- */
+/** Mount with a fresh key per entry so it plays from the start. */
 export function RealmGate({ realm, position }: RealmGateProps) {
   const born = useRef<number | null>(null);
   const group = useRef<Group>(null);

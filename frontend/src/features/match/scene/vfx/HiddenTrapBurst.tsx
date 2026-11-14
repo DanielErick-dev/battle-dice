@@ -16,10 +16,7 @@ const SPIKE_HEIGHT = 1.1;
 const FLASH_OPACITY = 0.8;
 const HOT_TIP = new Color("#ff3b1f").multiplyScalar(2.2);
 
-/**
- * A hidden trap giving itself away: iron spikes burst out of the tile with a red flash,
- * hold for a moment and sink back into the stone. Mounted with a fresh key per trap sprung.
- */
+/** A hidden trap giving itself away; mounted with a fresh key per trap sprung. */
 export function HiddenTrapBurst({ position }: { position: Vec3 }) {
   const spikes = useRef<Group>(null);
   const flash = useRef<MeshBasicMaterial>(null);

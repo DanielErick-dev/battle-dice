@@ -5,11 +5,7 @@ import { slabBody, slabShape, type SlabOutline } from "@/features/shared/board/s
 
 const BEVEL = 0.05;
 
-/**
- * A slab of the road from its outline: the body (bevelled, TILE_HEIGHT tall, centred on y = 0), its top
- * face (flat, at y = 0, its texture laid along `heading` so the rune points the way) and a flat copy
- * for the glow under it.
- */
+/** The top face's texture runs along `heading` so the rune points the way; a flat copy carries the glow. */
 export function useSlabGeometry(outline: SlabOutline, heading: number) {
   const key = `${outline.map(([x, z]) => `${x.toFixed(3)},${z.toFixed(3)}`).join(";")}|${heading.toFixed(3)}`;
   const shapes = useMemo(() => {

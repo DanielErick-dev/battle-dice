@@ -24,11 +24,7 @@ interface SkyDomeProps {
   moonRadius: number;
 }
 
-/**
- * Sky gradient (horizon matches the fog) with a big moon and its halo. In the infernal realm
- * it fills with drifting smoke lit by embers under a blood moon; in the celestial realm it
- * turns to a bright day of soft clouds and the moon becomes the sun.
- */
+/** Horizon matches the fog; the realm mix turns the moon blood red in hell and into the sun in heaven. */
 export function SkyDome({ radius, moonPosition, moonRadius }: SkyDomeProps) {
   const mix = useRealmMix();
   const orb = useRef<MeshBasicMaterial>(null);

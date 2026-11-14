@@ -11,11 +11,7 @@ interface CorridorWallsProps {
   positions: readonly Vec3[];
 }
 
-/**
- * What closes a realm track into a corridor, laid out in world space on the tiles' level; the near
- * end, towards the camera, stays open. Hell is a tight passage of basalt (InfernalPassage), heaven an
- * open cloister of white marble (CelestialCloister).
- */
+/** The near end stays open so the camera sees in. */
 export function CorridorWalls({ realm, positions }: CorridorWallsProps) {
   return realm === "celestial" ? (
     <CelestialCloister positions={positions} />

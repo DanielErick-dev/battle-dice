@@ -1,6 +1,5 @@
 import { plural, type LogLines } from "./lines";
 
-/** Akane. */
 export const akaneLines: LogLines<
   | "scarletLit"
   | "playerIgnited"

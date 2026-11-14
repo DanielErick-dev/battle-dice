@@ -13,8 +13,7 @@ const PARTICLES: VFXParticlesSettings = {
   intensity: 2,
   fadeSize: [0.2, 0.8],
   fadeAlpha: [0.2, 0.8],
-  // The pool sits at the world's origin while its motes rise wherever the emitters are: culled by
-  // the origin's bounds, it would vanish whenever the origin is off screen.
+  // The pool sits at the origin while motes rise elsewhere, so culling by its bounds would hide them.
   frustumCulled: false,
 };
 

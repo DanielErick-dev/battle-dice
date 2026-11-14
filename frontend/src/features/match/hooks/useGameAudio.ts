@@ -15,11 +15,7 @@ export interface GameAudio {
   toggleMusic: () => void;
 }
 
-/**
- * Audio for the whole session: one engine, background music and ambience, plus the
- * mute and music switches (see preferences). The first pointer or key press
- * unlocks audio, which starts the music.
- */
+/** One engine for the whole session; browsers keep audio locked until the first pointer or key press. */
 export function useGameAudio(): GameAudio {
   const [engine] = useState(() => new AudioEngine());
   const [sounds] = useState(() => new SynthSounds(engine));
@@ -47,8 +43,7 @@ export function useGameAudio(): GameAudio {
 
   useEffect(() => {
     const unlock = () => engine.unlock();
-    // Arriving from a menu click (the page was already interacted with), it can start right away;
-    // on a fresh load the browser holds it until the first click or key press.
+    // Arriving from a menu click it starts at once; on a fresh load the browser holds it until the first input.
     unlock();
     window.addEventListener("pointerdown", unlock, { capture: true });
     window.addEventListener("keydown", unlock, { capture: true });

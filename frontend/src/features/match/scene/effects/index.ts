@@ -1,7 +1,4 @@
-/**
- * Every effect drawn on a figure or on the board, in the order they mount (see README.md). A new
- * effect gets its own component in the file of whoever owns it, and one line below.
- */
+// Every effect on a figure or the board, in mount order; a new one gets a component in its owner's file and a line here.
 import { AbilityFlash } from "./abilities";
 import { Blaze, Burning, EmberFeet, FuelFire, HandFlame, InnerFlame, PitchFire, ScarletFlames } from "./akane";
 import { PinnedTraps, SlungBow, Volley } from "./arrowRain";

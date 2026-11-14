@@ -4,12 +4,7 @@ import { CardView } from "./CardView";
 /** Where each of the three copies flies in from: left, above, right. */
 const COPIES = ["fusion-copy-left", "fusion-copy-top", "fusion-copy-right"] as const;
 
-/**
- * Card Fusion, in the middle of the screen: the three copies fly in from the sides and spin into
- * one another, a blinding flash bursts where they meet with rings of fire racing out, and the
- * fused card rises out of it, blazing, before it goes to the hand (keyed by fusion id so each one
- * replays). Lasts timings.fusionMs.
- */
+/** Keyed by fusion id so each one replays; lasts timings.fusionMs. */
 export function FusionOverlay({ fusing }: { fusing: MatchFx["fusing"] }) {
   if (!fusing) return null;
   const { cardId } = fusing.card;

@@ -34,11 +34,7 @@ function shoreline(shape: IslandShape, count: number): { x: number; z: number; a
   });
 }
 
-/**
- * The island's edges and countryside from the Kenney kits: rocks along the waterline (none in front,
- * where they'd stand between the camera and the trail), a jetty with a rowing boat, and on land bushes,
- * boulders, fallen logs and stumps in the woods and campfires by the tents. The same every time for a board.
- */
+/** No rocks in front, where they'd stand between the camera and the trail; seeded per board. */
 export function planCoast(
   shape: IslandShape,
   trail: readonly Vec3[],

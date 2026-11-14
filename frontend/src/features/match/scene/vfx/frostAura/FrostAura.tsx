@@ -26,14 +26,7 @@ import { createFrostMaterials, createGlintMaterials } from "./materials";
 import { useStarTexture } from "./starTexture";
 import { uniform } from "@/features/shared/three/uniform";
 
-/**
- * Bjorn's Untamed, while it lasts: a blizzard hugging him (see shader.ts), tiny ice
- * crystals orbiting him and glinting now and then, snow swirling up and a little frost under his
- * feet. It takes hold `delay` seconds after `active` comes on (as the cast clip's blow on his chest
- * lands): the crystals burst out of his chest to their orbits, with a flash and a cold wave over the
- * ground. When it ends, it melts away and the crystals drop. In the token's effects frame (see
- * EFFECT_SCALE), like EnergyAura.
- */
+/** Takes hold `delay` seconds after `active` (the cast clip's blow lands); in the token's effects frame. */
 export function FrostAura({ active, delay }: { active: boolean; delay: number }) {
   const cracks = useCrackTexture();
   const disc = useSoftDisc();
@@ -64,8 +57,7 @@ export function FrostAura({ active, delay }: { active: boolean; delay: number })
 
   useFrame(({ clock }, delta) => {
     const now = clock.elapsedTime;
-    // Taking hold from nothing; back on before it has melted (the cast handing over to the
-    // ability itself), it simply carries on.
+    // Back on before it melted (the cast handing over to the ability), it simply carries on.
     if (active && !wasActive.current && power.current <= 0.01) heldSince.current = now + delay;
     wasActive.current = active;
     const since = heldSince.current === null ? -1 : now - heldSince.current;
@@ -83,8 +75,6 @@ export function FrostAura({ active, delay }: { active: boolean; delay: number })
       uniform(material, "uPower").value = strength;
     }
 
-    // The crystals burst out of his chest to their orbits, circle him tumbling and bobbing, and drop
-    // and shrink away as it melts.
     crystals.forEach((crystal, index) => {
       const mesh = crystalMeshes.current[index];
       const sprite = glintSprites.current[index];
@@ -95,8 +85,7 @@ export function FrostAura({ active, delay }: { active: boolean; delay: number })
       const orbitY = crystal.height + Math.sin(angle) * crystal.radius * crystal.tilt;
       const y = CHEST + (orbitY - CHEST) * out + Math.sin(now * 1.3 + crystal.bob) * 0.04 - (1 - strength) * 0.4;
       const size = crystal.size * Math.min(1, out * 1.5) * (0.4 + 0.6 * strength);
-      // Never drawn at (near) zero scale: its normal matrix would turn to NaN and the bloom would
-      // smear that over the whole screen, blacking it out.
+      // Never at (near) zero scale: the normal matrix would turn NaN and the bloom would black out the screen.
       const visible = strength > 0.01 && size > 0.005;
       mesh.visible = visible;
       mesh.position.set(Math.cos(angle) * radius, y, Math.sin(angle) * radius);

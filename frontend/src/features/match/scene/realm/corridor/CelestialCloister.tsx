@@ -9,11 +9,7 @@ import { Pillar } from "./Pillar";
 /** Heaven's columns stand every this many tiles, an arch of gold across the cloister on each pair. */
 const COLONNADE_EVERY = 2;
 
-/**
- * Heaven's corridor: wide and open, nothing square about it. A long rounded floor of white marble
- * with a gold path inlaid under the tiles, a low rounded balustrade along each side, fluted columns
- * joined across by gold arches, and a curved apse of marble closing the far end.
- */
+/** Heaven's corridor: wide and open, nothing square about it. */
 export function CelestialCloister({ positions }: { positions: readonly Vec3[] }) {
   const look = LOOK.celestial;
   const halfWidth = CORRIDOR_HALF_WIDTH.celestial;

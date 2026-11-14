@@ -6,10 +6,7 @@ export const VERTEX = /* glsl */ `
   }
 `;
 
-/**
- * A blizzard hugging him: cold mist rising slowly, cut by thin gusts of wind spiralling up round
- * him in fits. Nothing like the licking flames of the energy aura.
- */
+/** A blizzard hugging him, nothing like the energy aura's licking flames. */
 export const FRAGMENT = /* glsl */ `
   uniform float uTime;
   uniform float uPower;

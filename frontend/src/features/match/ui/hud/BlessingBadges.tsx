@@ -11,11 +11,7 @@ export const BLESSING_ICONS: Readonly<Record<TimedBlessing, LucideIcon>> = {
   spring: Droplet,
 };
 
-/**
- * Heaven's blessings on a player, one gold chip each with the rounds it has left, after Seraphiel's
- * crown when he wears one; nothing when there are none. `waiting`: still in heaven, so they're dimmed and say they start on the way out.
- * `compact` drops the names (the players list).
- */
+/** `waiting`: still in heaven, so dimmed until the way out; `compact` drops the names. */
 export function BlessingBadges({
   player,
   waiting = false,

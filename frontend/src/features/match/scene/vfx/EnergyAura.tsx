@@ -59,10 +59,7 @@ const HEIGHT = 2.3;
 const FADE_RATE = 5;
 const SHOCKWAVE_SECONDS = 0.6;
 
-/**
- * Energy around a player: rising flames, golden or Berserk Fury red (bloom picks up their
- * above-1.0 colours), sparks, and a shockwave on the ground each time it ignites.
- */
+/** Golden or Berserk Fury red, with colours above 1.0 so the bloom picks them up. */
 export function EnergyAura({ active, palette = "gold" }: { active: boolean; palette?: AuraPalette }) {
   const [outerColor, outerCore, innerColor, innerCore] = PALETTES[palette];
   const outer = useRef<ShaderMaterial>(null);

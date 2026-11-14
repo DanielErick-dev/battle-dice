@@ -9,15 +9,10 @@ const FILES_SHARE = 0.7;
 const PREPARING_SHARE = 0.95;
 const PREPARING_SECONDS = 4;
 
-/**
- * Covers the match until the scene is ready (models loaded, shaders compiled on the GPU): a longer
- * wait up front instead of stalls mid-match. The bar fills in two stages: the files (none when the
- * browser already has them), then the effects being prepared, which can't be measured, so it creeps.
- */
+/** A longer wait up front instead of stalls mid-match; shader compiling can't be measured, so that stage creeps. */
 export function LoadingCurtain({ ready }: { ready: boolean }) {
   const { progress, active } = useProgress();
-  // The bar starts empty and moves from the next frame on, so it's seen filling even when the
-  // files are already there.
+  // Starts empty and moves from the next frame, so it's seen filling even when the files are cached.
   const [started, setStarted] = useState(false);
   useEffect(() => {
     const frame = requestAnimationFrame(() => setStarted(true));

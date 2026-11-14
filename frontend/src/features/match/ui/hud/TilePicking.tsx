@@ -17,11 +17,7 @@ interface TilePickingProps {
   onConfirm: () => void;
 }
 
-/**
- * Picking tiles for an ability right on the board: a bar at the top says what to pick next (the
- * tiles that can take it breathe on the board, and a click picks one); once every step has its
- * tile, a dialog asks to confirm them.
- */
+/** Once every step has its tile, a dialog asks to confirm them. */
 export function TilePicking({
   title,
   tone,

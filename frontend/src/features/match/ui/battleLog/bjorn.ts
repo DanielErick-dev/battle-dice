@@ -1,6 +1,5 @@
 import { plural, type LogLines } from "./lines";
 
-/** Bjorn. */
 export const bjornLines: LogLines<"untamedUnleashed" | "playerTrampled"> = {
   untamedUnleashed: (event, { who, line }) =>
     line(event.playerId, `${who(event.playerId)} ficou Indomável por ${plural(event.turns, "turno", "turnos")}`),

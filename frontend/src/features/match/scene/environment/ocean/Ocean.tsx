@@ -21,10 +21,7 @@ interface OceanProps {
   moonPosition: [number, number, number];
 }
 
-/**
- * Animated night sea: layered waves, sky reflection at grazing angles, moon glitter and shore
- * foam. Stays water in hell (only the sky burns); turns to a sea of clouds in the celestial realm.
- */
+/** Stays water in hell (only the sky burns) and turns to a sea of clouds in heaven. */
 export function Ocean({ level, size, shoreHalfSize, shoreCenterZ, moonPosition }: OceanProps) {
   const material = useRef<ShaderMaterial>(null);
   const mix = useRealmMix();

@@ -59,10 +59,7 @@ interface PortalVortexProps {
   phase: number;
 }
 
-/**
- * Swirling vortex over a portal tile. Colours go above 1.0 on purpose so the bloom pass
- * makes the arms and rim glow; `active` (a player is travelling through it) spins it up.
- */
+/** Colours above 1.0 on purpose so the bloom makes it glow; `active` (someone travelling through) spins it up. */
 export function PortalVortex({ color, active, phase }: PortalVortexProps) {
   const material = useRef<ShaderMaterial>(null);
   const uniforms = useMemo(

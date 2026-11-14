@@ -24,10 +24,7 @@ const WAIT_REASONS: Partial<Record<string, string>> = {
   HAND_FULL: "Sua mão está cheia",
 };
 
-/**
- * The character's ability: its name and charge, one pip per turn. Charged, it glows and
- * waits; the player uses it with the button, or is asked when it's a reactive one.
- */
+/** One pip per turn of charge; a reactive ability asks the player instead of waiting for the button. */
 export function AbilityMeter({ player, inUse = false, onActivate, canActivate = false }: AbilityMeterProps) {
   if (!player.ability) return null;
   const text = ABILITY_TEXT[player.ability];

@@ -18,12 +18,7 @@ const SMOKE_PUFFS = [
   { left: 90, top: 50, size: 130, delay: 0.12 },
 ] as const;
 
-/**
- * Two cards being transmuted into one: they rise to the middle of the screen, fanned out, are
- * swallowed whole by a cloud of emerald smoke (a solid veil under the puffs) and swapped for the
- * new card while hidden; as the smoke clears slowly the new card is there, then dealt to the hand
- * (keyed by id so each one replays it).
- */
+/** The card is swapped while the smoke hides it; keyed by id so each one replays. */
 export function TransmuteOverlay({ transmuting }: { transmuting: CardTransmuteView | null }) {
   if (!transmuting) return null;
 

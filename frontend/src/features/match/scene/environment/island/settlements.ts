@@ -82,11 +82,7 @@ function gathersClutter(piece: PieceId): boolean {
   );
 }
 
-/**
- * The village, the woodcutters' camp and the castle grounds the trail runs through, a watermill on
- * the stream and the castle by the finish. Nothing stands on the road, in the stream, or where it
- * would hide a tile behind it from the camera. The same every time for a board.
- */
+/** Nothing on the road, in the stream or hiding a tile from the camera; seeded per board. */
 export function planSettlements(shape: IslandShape, trail: readonly Vec3[]): Settlements {
   const random = seededRandom(57);
   const placements: Placement[] = [];

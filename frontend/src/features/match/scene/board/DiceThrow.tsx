@@ -138,11 +138,7 @@ interface DiceThrowProps {
   realm: RealmKind | null;
 }
 
-/**
- * A die tossed onto the arena for every roll: it drops, bounces a few times losing energy,
- * tumbles, and settles on the rolled value, then vanishes. Animated, not simulated, so it
- * always lands on the value the game engine decided.
- */
+/** Animated, not simulated, so the die always lands on the value the engine decided. */
 export function DiceThrow({ roll, landing, onImpact, realm }: DiceThrowProps) {
   const palette = PALETTES[realm ?? "mortal"];
   const group = useRef<Group>(null);

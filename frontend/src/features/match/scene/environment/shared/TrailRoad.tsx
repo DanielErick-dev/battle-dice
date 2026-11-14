@@ -7,10 +7,7 @@ import { useCanvasTexture, type Painter } from "@/features/shared/three/canvasTe
 import type { Vec3 } from "@/features/shared/board/boardLayout";
 import { roadRibbon } from "./roadRibbon";
 
-/**
- * The road the slabs are set in: a ribbon along a smooth curve through the trail, following the
- * ground, painted by the map (trodden earth on the island, worn flagstones in the dungeon…).
- */
+/** The road the slabs are set in, following the ground and painted by the map. */
 export function TrailRoad({
   trail,
   heightAt,

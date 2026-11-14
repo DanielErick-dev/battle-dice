@@ -102,7 +102,7 @@ export interface MatchView {
   pendingPlunder: { owner: PlayerId; victim: PlayerId } | null;
   /** The tile a walk ends on: the figure slows to a stop on its way there. */
   walkEnd: { playerId: PlayerId; tile: TileId } | null;
-  /** The battle log: events as their animation starts, the latest last (see logStep). */
+  /** The battle log: events as their animation starts, the latest last (see playback logEvent). */
   log: readonly LogEntry[];
   isAnimating: boolean;
   /** Turns started so far: tells one turn from the next even when the same player plays again (the hourglass). */

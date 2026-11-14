@@ -21,10 +21,7 @@ export function Delayed({ seconds, children }: { seconds: number; children: Reac
   return shown ? children : null;
 }
 
-/**
- * Blades driven into the ground: the stone cracks open in a flash of the character's colour and
- * dark shards fly out. Mounted with a fresh key per use, inside the token's effect scale.
- */
+/** Blades driven into the ground; mounted with a fresh key per use, inside the token's effect scale. */
 export function SwordImpact({ color }: { color: string }) {
   const root = useRef<Group>(null);
   const shardRefs = useRef<(Mesh | null)[]>([]);
@@ -110,10 +107,7 @@ function launchShards() {
   });
 }
 
-/**
- * What a smashed trap leaves on its tile for the rest of the game: loose chunks of dark stone
- * and cracks with the character's colour breathing in them (the face itself shows the wreck).
- */
+/** What a smashed trap leaves on its tile for the rest of the game (the face itself shows the wreck). */
 export function SmashedTrapMark({ tile, position, color }: { tile: number; position: Vec3; color: string }) {
   const cracks = useCrackTexture();
   const glowMaterial = useRef<MeshBasicMaterial>(null);

@@ -14,10 +14,6 @@ import { paintFlagstoneRoad, paintHallFloor } from "./textures";
 /** World units per repeat of the floor's flagstones. */
 const FLOOR_REPEAT = 6;
 
-/**
- * The dungeon map: a vast flagstoned hall under a dark vault, walls on three sides lit by torches,
- * pillars, barrels, crates and treasure between the rows, and dust in the air.
- */
 export function Dungeon({ trail }: { trail: readonly Vec3[] }) {
   const plan = useMemo(() => planDungeon(trail), [trail]);
   const { minX, maxX, minZ, maxZ } = plan.bounds;

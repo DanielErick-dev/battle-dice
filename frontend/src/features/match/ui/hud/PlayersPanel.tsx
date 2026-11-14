@@ -23,11 +23,7 @@ interface PlayersPanelProps {
 const REALM_NAMES = { infernal: "Inferno", celestial: "Céu" } as const;
 const REALM_TONES = { infernal: "text-orange-400", celestial: "text-amber-200" } as const;
 
-/**
- * Everyone in the match, two short lines each: who they are and where, then their energy, cards
- * and ability charge, over a sliver of progress. Compact so four players fit beside the board;
- * only worth showing with opponents.
- */
+/** Two short lines per player so four fit beside the board. */
 export function PlayersPanel({ players, activePlayerId, viewerId, board }: PlayersPanelProps) {
   const { finishTile } = board;
   return (

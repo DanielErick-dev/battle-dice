@@ -14,10 +14,6 @@ import { paintCrackedEarth, paintCrackedRoad } from "./textures";
 
 const GROUND_REPEAT = 8;
 
-/**
- * The wasteland map: cracked dry earth under a low sky of soot, shells of buildings, rusted wrecks by an
- * old asphalt road, debris and dead trees, fires in baskets sending up smoke, ash falling.
- */
 export function Wasteland({ trail }: { trail: readonly Vec3[] }) {
   const plan = useMemo(() => planWasteland(trail), [trail]);
   const { minX, maxX, minZ, maxZ } = plan.bounds;

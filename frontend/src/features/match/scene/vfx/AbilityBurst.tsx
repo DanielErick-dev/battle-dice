@@ -9,11 +9,7 @@ import { useAge } from "@/features/shared/three/useAge";
 const BURST_SECONDS = 1.3;
 const COLUMN_HEIGHT = 2.6;
 
-/**
- * A character's ability going off: a shockwave rolls out over the ground and a column of
- * light rises through the figure, in the character's colour. Mounted with a fresh key per use,
- * inside the token's effect scale.
- */
+/** Mounted with a fresh key per use, inside the token's effect scale. */
 export function AbilityBurst({ color }: { color: string }) {
   const root = useRef<Group>(null);
   const wave = useRef<Mesh>(null);

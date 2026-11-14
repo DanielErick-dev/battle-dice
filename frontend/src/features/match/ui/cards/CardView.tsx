@@ -21,11 +21,7 @@ interface CardViewProps {
   className?: string;
 }
 
-/**
- * A card face: cost in energy orbs, artwork, name and rules text, framed by rarity (one to five
- * stars; heaven's relics in white and gold). Every card above common gets a holographic foil that
- * follows the pointer (and tilts the card).
- */
+/** Every card above common gets a holographic foil that follows the pointer. */
 export function CardView({
   cardId,
   fused = false,

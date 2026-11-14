@@ -52,12 +52,7 @@ interface CameraRigProps {
   chase: CameraChase | null;
 }
 
-/**
- * Orbit camera that glides to its goal (the whole board, or a close-up following the
- * focus) and films events: close-ups, shakes and field-of-view kicks. Following moves camera
- * and target together, so the player's chosen orbit angle is kept. The viewer can drag across the
- * board to look around: the camera then stays where they put it (`free`) until told to follow again.
- */
+/** Following moves camera and target together so the player's orbit angle is kept; a drag sets it `free`. */
 export function CameraRig({
   layout,
   focus,
@@ -187,8 +182,7 @@ export function CameraRig({
       camera.position.lerp(goal, swing);
       zooming.current = true;
     } else {
-      // Up on a realm bridge the target rises with the player, so they stay framed. Left alone
-      // while the viewer looks around on their own.
+      // On a realm bridge the target rises with the player so they stay framed.
       if (chasing) goal.set(chase.position.x, chase.position.y * 0.8, chase.position.z);
       else goal.set(tracking ? focus[0] : 0, tracking ? focus[1] * 0.8 : 0, tracking ? focus[2] : 0);
       step.subVectors(goal, orbit.target).multiplyScalar(free ? 0 : k);
