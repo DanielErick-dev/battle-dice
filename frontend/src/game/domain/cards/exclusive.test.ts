@@ -178,28 +178,33 @@ describe("Zarek's cards", () => {
   it("Hungry Rift swallows the first harm in sight ahead, keeping the charge", () => {
     const start = holding(lair({ abilityCharge: 1 }), "zarek", "hungryRift");
     const { state, events } = play(start, "zarek", "hungryRift");
-    expect(playerOf(state, "zarek")).toMatchObject({ voidHold: [trap], abilityCharge: 1 });
+    expect(playerOf(state, "zarek")).toMatchObject({ zarek: { hold: [trap] }, abilityCharge: 1 });
     expect(state.destroyedTraps).toContain(12);
     expect(eventsOfType(events, "abilityUsed")).toEqual([]);
 
     // The lost turn at 20 is next, then nothing.
     const again = play(holding({ ...state, cardsPlayedThisTurn: 0 }, "zarek", "hungryRift"), "zarek", "hungryRift");
-    expect(playerOf(again.state, "zarek").voidHold).toEqual([trap, { kind: "skipTurn" }]);
+    expect(playerOf(again.state, "zarek").zarek.hold).toEqual([trap, { kind: "skipTurn" }]);
     const past = holding(lair({ position: 21 }), "zarek", "hungryRift");
     expectRuleError(() => play(past, "zarek", "hungryRift"), "NO_HARM_AHEAD");
-    const full = holding(lair({ voidHold: Array(VOID_CAPACITY).fill(trap) }), "zarek", "hungryRift");
+    const full = holding(lair({ zarek: { hold: Array(VOID_CAPACITY).fill(trap), idle: 0 } }), "zarek", "hungryRift");
     expectRuleError(() => play(full, "zarek", "hungryRift"), "VOID_FULL");
   });
 
   it("Void Echo copies the last thing in the Void", () => {
-    const start = holding(lair({ voidHold: [{ kind: "skipTurn" }, trap] }), "zarek", "voidEcho");
+    const start = holding(lair({ zarek: { hold: [{ kind: "skipTurn" }, trap], idle: 0 } }), "zarek", "voidEcho");
     const { state } = play(start, "zarek", "voidEcho");
-    expect(playerOf(state, "zarek").voidHold).toEqual([{ kind: "skipTurn" }, trap, trap]);
+    expect(playerOf(state, "zarek").zarek.hold).toEqual([{ kind: "skipTurn" }, trap, trap]);
     expectRuleError(() => play(holding(lair(), "zarek", "voidEcho"), "zarek", "voidEcho"), "VOID_EMPTY");
   });
 
   it("Rift Call drags an opponent back onto Zarek's rift, which strikes them", () => {
-    const opened = send(lair({ voidHold: [trap] }), { type: "placeVoid", playerId: "zarek", index: 0, tile: 30 });
+    const opened = send(lair({ zarek: { hold: [trap], idle: 0 } }), {
+      type: "placeVoid",
+      playerId: "zarek",
+      index: 0,
+      tile: 30,
+    });
     const rift = opened.state.board.tiles.length;
     const { state, events } = play(holding(opened.state, "zarek", "riftCall"), "zarek", "riftCall", {
       targetId: "rival",
@@ -219,7 +224,7 @@ describe("Zarek's cards", () => {
 
   it("aimed at an armed Themis, Rift Call is only undone", () => {
     const game = withPlayers(newGame(BOARD, { zarek: "theVoid", judge: "silentVerdict" }), {
-      zarek: { position: 5, energy: 10, voidHold: [trap] },
+      zarek: { position: 5, energy: 10, zarek: { hold: [trap], idle: 0 } },
       judge: { position: 45 },
     });
     const opened = send(game, { type: "placeVoid", playerId: "zarek", index: 0, tile: 30 });

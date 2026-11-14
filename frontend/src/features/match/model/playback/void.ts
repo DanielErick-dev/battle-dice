@@ -34,7 +34,9 @@ export const voidSteps: StepHandlers<
   voidSwallowed: (event, timings) => [
     {
       apply: (view) => {
-        const fed = withPlayer(view, event.playerId, (player) => ({ voidHold: [...player.voidHold, event.item] }));
+        const fed = withPlayer(view, event.playerId, (player) => ({
+          zarek: { ...player.zarek, hold: [...player.zarek.hold, event.item] },
+        }));
         return surfaced(
           { ...fed, destroyedTraps: [...fed.destroyedTraps, event.tile] },
           event.playerId,
@@ -54,8 +56,8 @@ export const voidSteps: StepHandlers<
         apply: (view) => {
           // The held harm leaves the Void: rifts only open from harms, the first matching one goes.
           const opened = withPlayer(view, event.playerId, (player) => {
-            const index = player.voidHold.findIndex((held) => held.kind === riftKind(rift.effect.kind));
-            return { voidHold: player.voidHold.filter((_, held) => held !== index) };
+            const index = player.zarek.hold.findIndex((held) => held.kind === riftKind(rift.effect.kind));
+            return { zarek: { ...player.zarek, hold: player.zarek.hold.filter((_, held) => held !== index) } };
           });
           return surfaced(
             { ...opened, rifts: [...opened.rifts, rift] },
@@ -75,7 +77,7 @@ export const voidSteps: StepHandlers<
     {
       apply: (view) => {
         const cast = withPlayer(view, event.playerId, (player) => ({
-          voidHold: released(player.voidHold, event.item),
+          zarek: { ...player.zarek, hold: released(player.zarek.hold, event.item) },
         }));
         // A harm let out in hell marks the tile (doubling shows once the state syncs).
         const marked = isVoidHarm(event.item)
@@ -103,8 +105,7 @@ export const voidSteps: StepHandlers<
     {
       apply: (view) => {
         const seized = withPlayer(view, event.playerId, (player) => ({
-          voidIdle: 0,
-          voidHold: [...player.voidHold, event.item],
+          zarek: { idle: 0, hold: [...player.zarek.hold, event.item] },
         }));
         return surfaced(
           absorbed(seized, event.playerId, event.tile),
@@ -122,8 +123,7 @@ export const voidSteps: StepHandlers<
     {
       apply: (view) => {
         const echoed = withPlayer(view, event.playerId, (player) => ({
-          voidHold: [...player.voidHold, event.item],
-          voidIdle: 0,
+          zarek: { idle: 0, hold: [...player.zarek.hold, event.item] },
         }));
         const tile = view.players.find((player) => player.id === event.playerId)?.position ?? 0;
         return surfaced(echoed, event.playerId, tile, "seize", "voidEchoed", event.item);

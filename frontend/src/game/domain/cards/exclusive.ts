@@ -64,11 +64,11 @@ export function exclusiveBlocker(table: HarmTable, player: Player, cardId: CardI
     case "voidHunger":
       return isAbilityReady(player) ? "ABILITY_ALREADY_READY" : null;
     case "hungryRift":
-      if (player.voidHold.length >= VOID_CAPACITY) return "VOID_FULL";
+      if (player.zarek.hold.length >= VOID_CAPACITY) return "VOID_FULL";
       return harmAhead(table, player) ? null : "NO_HARM_AHEAD";
     case "voidEcho":
-      if (player.voidHold.length === 0) return "VOID_EMPTY";
-      return player.voidHold.length >= VOID_CAPACITY ? "VOID_FULL" : null;
+      if (player.zarek.hold.length === 0) return "VOID_EMPTY";
+      return player.zarek.hold.length >= VOID_CAPACITY ? "VOID_FULL" : null;
     case "riptideLash":
       return table.elementals.tethers.some((tether) => tether.owner === player.id) ||
         lashTarget(table.board, table.players, player.id)
@@ -160,9 +160,9 @@ export function playExclusive(
       return;
     }
     case "voidEcho": {
-      const item = player.voidHold.at(-1);
+      const item = player.zarek.hold.at(-1);
       if (!item) return;
-      updatePlayer(draft, playerId, (current) => ({ voidIdle: 0, voidHold: [...current.voidHold, item] }));
+      updatePlayer(draft, playerId, (current) => ({ zarek: { idle: 0, hold: [...current.zarek.hold, item] } }));
       draft.events.push({ type: "voidEchoed", playerId, item });
       return;
     }

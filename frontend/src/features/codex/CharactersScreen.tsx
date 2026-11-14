@@ -37,7 +37,7 @@ export function CharactersScreen({ initial }: { initial?: string }) {
       <div className="grid gap-6 lg:grid-cols-[17rem_minmax(0,1fr)_minmax(0,32rem)]">
         <ul
           aria-label="Personagens"
-          className="flex gap-2 overflow-x-auto pb-2 lg:max-h-[72dvh] lg:flex-col lg:overflow-x-visible lg:overflow-y-auto lg:pr-1 lg:pb-0"
+          className="flex gap-2 overflow-x-auto pb-2 hud-scroll lg:max-h-[72dvh] lg:flex-col lg:overflow-x-visible lg:overflow-y-auto lg:pr-2 lg:pb-0 lg:[mask-image:linear-gradient(to_bottom,transparent,black_1.5rem,black_calc(100%-2.5rem),transparent)] lg:py-3"
         >
           {CHARACTER_IDS.map((id) => (
             <li key={id} className="shrink-0">

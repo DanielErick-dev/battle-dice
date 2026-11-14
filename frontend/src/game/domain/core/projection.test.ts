@@ -22,7 +22,7 @@ const VIEWERS: ViewerId[] = [...Object.keys(SEATS), null];
 /** Every kind of secret at once: seals, a seal in the Void, Themis half charged, hidden traps (one pinned). */
 function secretive(): GameState {
   const state = withPlayer(withPlayer(newGame(HARM_AHEAD_BOARD, SEATS), "themis", { abilityCharge: 3 }), "zarek", {
-    voidHold: [{ kind: "seal", seal: "bloodPact" }, { kind: "flame" }],
+    zarek: { hold: [{ kind: "seal", seal: "bloodPact" }, { kind: "flame" }], idle: 0 },
   });
   return {
     ...state,
@@ -106,9 +106,9 @@ describe("projectState", () => {
 
   it("shows a seal held in the Void only to Zarek; the rest of the Void is public", () => {
     const state = secretive();
-    expect(playerOf(projectState(state, "zarek"), "zarek").voidHold).toEqual(playerOf(state, "zarek").voidHold);
+    expect(playerOf(projectState(state, "zarek"), "zarek").zarek.hold).toEqual(playerOf(state, "zarek").zarek.hold);
     for (const viewerId of VIEWERS.filter((id) => id !== "zarek")) {
-      const held = playerOf(projectState(state, viewerId), "zarek").voidHold;
+      const held = playerOf(projectState(state, viewerId), "zarek").zarek.hold;
       expect(held).toEqual([{ kind: "seal", seal: HIDDEN }, { kind: "flame" }]);
       expect(json(projectState(state, viewerId))).not.toContain('"bloodPact"');
     }

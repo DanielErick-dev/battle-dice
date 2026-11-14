@@ -10,6 +10,7 @@ import type { RandomSource } from "../core/random";
 import type { Board } from "../board/types";
 import { NO_ELEMENTALS, NO_TENZAI } from "../characters/tenzai/types";
 import { NO_AKANE } from "../characters/akane/types";
+import { NO_ZAREK } from "../characters/zarek/types";
 import type { GameState, Player, PlayerId } from "../core/state";
 
 export interface NewPlayer {
@@ -96,8 +97,7 @@ function dealPlayer({ id, name, ability = null }: NewPlayer, { startTile, cards,
     chargeHeld: 0,
     crown: null,
     chained: 0,
-    voidHold: [],
-    voidIdle: 0,
+    zarek: NO_ZAREK,
     justiceMarks: 0,
     containedRolls: 0,
     burning: 0,

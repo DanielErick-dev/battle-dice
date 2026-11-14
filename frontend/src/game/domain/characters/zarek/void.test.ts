@@ -34,7 +34,7 @@ const place = (state: GameState, index: number, tile: number, doubled = false) =
 const onTheWay = (patch: Partial<Player> = {}) =>
   withPlayer(readyAbility(duel(), "zarek"), "zarek", { position: 11, energy: 3, ...patch });
 const holding = (items: VoidItem[], patch: Partial<Player> = {}) =>
-  withPlayer(duel(), "zarek", { voidHold: items, energy: 5, ...patch });
+  withPlayer(duel(), "zarek", { zarek: { hold: items, idle: 0 }, energy: 5, ...patch });
 /** The rival's turn, standing on `from`, rolling `die`. */
 const rivalRolls = (state: GameState, from: number, die: number) =>
   roll(onTurnOf(withPlayer(state, "rival", { position: from }), "rival"), "rival", die);
@@ -62,7 +62,7 @@ describe("Zarek's Void", () => {
       const { state, events } = answer(roll(onTheWay(), "zarek", 1).state, true);
       const item = { kind: "trap", back: 4, curse: "drain" };
       expect(events).toContainEqual({ type: "voidSwallowed", playerId: "zarek", tile: 12, item, hidden: false });
-      expect(zarek(state)).toMatchObject({ position: 12, energy: 3, abilityCharge: 0, voidHold: [item] });
+      expect(zarek(state)).toMatchObject({ position: 12, energy: 3, abilityCharge: 0, zarek: { hold: [item] } });
       expect(state.destroyedTraps).toEqual([12]);
       const again = rivalRolls(state, 11, 1);
       expect(playerOf(again.state, "rival").position).toBe(12);
@@ -71,11 +71,11 @@ describe("Zarek's Void", () => {
 
     it("takes a curse and a lost turn too", () => {
       const cursed = answer(roll(onTheWay({ position: 19 }), "zarek", 1).state, true).state;
-      expect(zarek(cursed).voidHold).toEqual([{ kind: "curse", curse: "discard" }]);
+      expect(zarek(cursed).zarek.hold).toEqual([{ kind: "curse", curse: "discard" }]);
       const { state, events } = roll(onTheWay({ position: 24 }), "zarek", 1);
       expect(events).toContainEqual({ type: "wardOffered", playerId: "zarek", tile: 25, threat: "skipTurn" });
       const swallowed = answer(state, true).state;
-      expect(zarek(swallowed)).toMatchObject({ skipTurns: 0, voidHold: [{ kind: "skipTurn" }] });
+      expect(zarek(swallowed)).toMatchObject({ skipTurns: 0, zarek: { hold: [{ kind: "skipTurn" }] } });
       expect(playerOf(rivalRolls(swallowed, 24, 1).state, "rival").skipTurns).toBe(0);
     });
 
@@ -88,19 +88,19 @@ describe("Zarek's Void", () => {
       const before = withPlayer(readyAbility(zoned, "zarek"), "zarek", { position: trap - 1 });
       const { state } = answer(roll(before, "zarek", 1).state, true);
       expect(state.hiddenTraps).toEqual([]);
-      expect(zarek(state).voidHold).toEqual([{ kind: "trap", back: HIDDEN_TRAP_PUSH }]);
+      expect(zarek(state).zarek.hold).toEqual([{ kind: "trap", back: HIDDEN_TRAP_PUSH }]);
     });
 
     it("declined, lets the harm strike and stays charged", () => {
       const { state } = answer(roll(onTheWay(), "zarek", 1).state, false);
-      expect(zarek(state)).toMatchObject({ position: 8, energy: 1, abilityCharge: VOID_CYCLE, voidHold: [] });
+      expect(zarek(state)).toMatchObject({ position: 8, energy: 1, abilityCharge: VOID_CYCLE, zarek: { hold: [] } });
       const skipped = answer(roll(onTheWay({ position: 24 }), "zarek", 1).state, false).state;
       expect(zarek(skipped).skipTurns).toBe(1);
     });
 
     it("isn't offered when not ready or when the Void is full: the harm just strikes", () => {
       const full = Array.from({ length: VOID_CAPACITY }, () => ({ kind: "skipTurn" }) as const);
-      for (const patch of [{ abilityCharge: 0 }, { voidHold: full }]) {
+      for (const patch of [{ abilityCharge: 0 }, { zarek: { hold: full, idle: 0 } }]) {
         const { state, events } = roll(onTheWay(patch), "zarek", 1);
         expect(hasEvent(events, "wardOffered")).toBe(false);
         expect(zarek(state).position).toBe(8);
@@ -137,7 +137,7 @@ describe("Zarek's Void", () => {
       expect(getTile(state.board, 30).next).toBe(rift);
       expect(getTile(state.board, rift)).toMatchObject({ role: "rift", next: 31, previous: 30 });
       expect(getTile(state.board, 31).previous).toBe(rift);
-      expect(zarek(state).voidHold).toEqual([]);
+      expect(zarek(state).zarek.hold).toEqual([]);
       // Two steps from 29 now end on the rift, which throws back 4 along the new path.
       expect(playerOf(rivalRolls(state, 29, 2).state, "rival").position).toBe(27);
       expect(playerOf(rivalRolls(state, 29, 3).state, "rival").position).toBe(31);
@@ -190,7 +190,7 @@ describe("Zarek's Void", () => {
 
     it("counts his turns since the Void last acted", () => {
       const once = roll(duel(), "zarek", 1).state;
-      expect(zarek(once).voidIdle).toBe(1);
+      expect(zarek(once).zarek.idle).toBe(1);
     });
 
     it("absorbs another's spell into the Void and leaves a purple trap of his own behind", () => {
@@ -200,7 +200,7 @@ describe("Zarek's Void", () => {
       expect(state.voidScars).toEqual([
         { tile: 20, owner: "zarek", harm: { kind: "trap", back: VOID_SCAR_BACK }, doubled: false },
       ]);
-      expect(zarek(state)).toMatchObject({ abilityCharge: 0, voidHold: [{ kind: "flame" }] });
+      expect(zarek(state)).toMatchObject({ abilityCharge: 0, zarek: { hold: [{ kind: "flame" }] } });
     });
 
     it("lets him set the absorbed spell down anywhere, and the purple trap strikes all but him", () => {
@@ -218,7 +218,7 @@ describe("Zarek's Void", () => {
       const { state } = activate(iced, "zarek", { seizeTile: 25 });
       expect(state.winter?.iced).toEqual([]);
       expect(state.enchantedTiles).toEqual([]);
-      expect(zarek(state).voidHold).toEqual([{ kind: "snow" }]);
+      expect(zarek(state).zarek.hold).toEqual([{ kind: "snow" }]);
     });
 
     it("needs the charge, room in the Void and someone else's spell on the tile", () => {
@@ -242,7 +242,7 @@ describe("the Void in the realms", () => {
     state.board.tracks.find((candidate) => candidate.realm === realm)?.tiles ?? [];
 
   it("sets harms and spells down in hell, marking a tile there instead of opening one", () => {
-    const start = withPlayer(realms(), "zarek", { voidHold: [{ kind: "skipTurn" }, { kind: "snow" }] });
+    const start = withPlayer(realms(), "zarek", { zarek: { hold: [{ kind: "skipTurn" }, { kind: "snow" }], idle: 0 } });
     const hell = track(start, "infernal");
     const first = at(hell, 0);
     const second = at(hell, 1);
@@ -253,7 +253,7 @@ describe("the Void in the realms", () => {
   });
 
   it("never in heaven: no impurity gets in", () => {
-    const start = withPlayer(realms(), "zarek", { voidHold: [{ kind: "skipTurn" }, { kind: "snow" }] });
+    const start = withPlayer(realms(), "zarek", { zarek: { hold: [{ kind: "skipTurn" }, { kind: "snow" }], idle: 0 } });
     const heaven = at(track(start, "celestial"), 0);
     expectRuleError(() => place(start, 0, heaven), "INVALID_VOID");
     expectRuleError(() => place(start, 1, heaven), "INVALID_VOID");

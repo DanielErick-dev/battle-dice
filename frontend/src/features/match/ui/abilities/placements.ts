@@ -123,7 +123,7 @@ export function placementOf(placement: Placement, scene: AbilityScene): Placemen
 /** Zarek sets down the Void's `release`th item: a harm opens a rift after the tile, a spell lands on it. */
 function releaseOf({ release, doubled }: { release: number; doubled: boolean }, scene: AbilityScene): PlacementSpec {
   const { board, view, player } = scene;
-  const item = player.voidHold[release];
+  const item = player.zarek.hold[release];
   const harm = item !== undefined && isVoidHarm(item);
   const name = item ? voidItemName(item) : "";
   return {

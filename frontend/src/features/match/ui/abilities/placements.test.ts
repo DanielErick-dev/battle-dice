@@ -122,7 +122,7 @@ describe("placementOf", () => {
     const flame: VoidItem = { kind: "flame" };
 
     it("a harm opens a rift on harm ground", () => {
-      const scene = sceneWith({ player: { voidHold: [flame, trap] } });
+      const scene = sceneWith({ player: { zarek: { hold: [flame, trap], idle: 0 } } });
       const spec = placementOf({ release: 1, doubled: false }, scene);
       expect(spec.title).toBe("Abrir fenda");
       expect(spec.tiles).toEqual(harmGround({ ...scene.view, board: scene.board }));
@@ -133,7 +133,7 @@ describe("placementOf", () => {
     });
 
     it("a spell lands on spell ground, keeping the doubled flag", () => {
-      const scene = sceneWith({ player: { voidHold: [flame] } });
+      const scene = sceneWith({ player: { zarek: { hold: [flame], idle: 0 } } });
       const spec = placementOf({ release: 0, doubled: true }, scene);
       expect(spec.title).toBe("Soltar do Vazio");
       expect(spec.tiles).toEqual(spellGround({ ...scene.view, board: scene.board }));
@@ -144,7 +144,7 @@ describe("placementOf", () => {
     });
 
     it("an empty slot offers no tiles", () => {
-      const spec = placementOf({ release: 2, doubled: false }, sceneWith({ player: { voidHold: [] } }));
+      const spec = placementOf({ release: 2, doubled: false }, sceneWith({ player: { zarek: { hold: [], idle: 0 } } }));
       expect(spec.tiles).toEqual([]);
     });
   });

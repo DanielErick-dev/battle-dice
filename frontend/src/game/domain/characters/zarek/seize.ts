@@ -8,13 +8,13 @@ import type { PlayerId } from "../../core/state";
 
 /** The Void absorbs another's spell on `tile` to set down anywhere later; a purple trap of Zarek's is left behind. */
 export function seize(draft: Draft, playerId: PlayerId, tile: TileId | undefined): void {
-  if (playerIn(draft, playerId).voidHold.length >= VOID_CAPACITY) throw new GameRuleError("VOID_FULL");
+  if (playerIn(draft, playerId).zarek.hold.length >= VOID_CAPACITY) throw new GameRuleError("VOID_FULL");
   const valid = tile !== undefined && seizableTiles(draftView(draft), playerId).includes(tile);
   const item = valid ? absorbSpell(draft, playerId, tile) : null;
   if (tile === undefined || !item) throw new GameRuleError("INVALID_VOID");
   const scar: VoidScar = { tile, owner: playerId, harm: { kind: "trap", back: VOID_SCAR_BACK }, doubled: false };
   draft.voidScars = [...draft.voidScars, scar];
-  updatePlayer(draft, playerId, (player) => ({ voidIdle: 0, voidHold: [...player.voidHold, item] }));
+  updatePlayer(draft, playerId, (player) => ({ zarek: { idle: 0, hold: [...player.zarek.hold, item] } }));
   draft.events.push({ type: "voidSeized", playerId, tile, item });
 }
 

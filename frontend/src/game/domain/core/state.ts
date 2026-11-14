@@ -9,7 +9,7 @@ import type { BlackFlame } from "../characters/kage/types";
 import type { Seal } from "../characters/scribe/types";
 import type { Crown } from "../characters/seraphiel/types";
 import type { PendingPlunder, Specter } from "../characters/warden/types";
-import type { VoidItem, VoidScar } from "../characters/zarek/types";
+import type { VoidScar, ZarekState } from "../characters/zarek/types";
 import type { Elementals, TenzaiState } from "../characters/tenzai/types";
 
 export type { PlayerId };
@@ -60,10 +60,8 @@ export interface Player {
   crown: Crown | null;
   /** Lost turns left in heaven's chains (see characters/seraphiel/); shown standing, not sitting. */
   chained: number;
-  /** Zarek's Void: what it swallowed or took, waiting to be set down (see characters/zarek/). */
-  voidHold: readonly VoidItem[];
-  /** Own turns ended since the Void last swallowed or took something. */
-  voidIdle: number;
+  /** Zarek's Void and how long it has gone hungry (NO_ZAREK for everyone else). */
+  zarek: ZarekState;
   /** Themis's Marks of Justice: one per attack aimed at an opponent; a marked one's next may be turned. */
   justiceMarks: number;
   /** Rolls left whose die can't go above CONTAINED_DIE (Themis's Containment Decree). */

@@ -18,7 +18,7 @@ interface VoidHoldProps {
 export function VoidHold({ player, canAct, onRelease }: VoidHoldProps) {
   const [open, setOpen] = useState<number | null>(null);
   if (player.ability !== "theVoid") return null;
-  const chosen = open !== null ? player.voidHold[open] : undefined;
+  const chosen = open !== null ? player.zarek.hold[open] : undefined;
   const button =
     "rounded-md px-2 py-0.5 text-[10px] font-black tracking-wider uppercase transition disabled:opacity-40";
   const release = (index: number, doubled: boolean) => {
@@ -30,11 +30,11 @@ export function VoidHold({ player, canAct, onRelease }: VoidHoldProps) {
     <div className="flex flex-col gap-1 rounded-lg bg-violet-950/40 px-2 py-1 ring-1 ring-violet-400/25">
       <div className="flex items-center gap-1.5">
         <span className="text-[9px] font-black tracking-widest text-violet-200 uppercase">
-          Vazio {player.voidHold.length}/{VOID_CAPACITY}
+          Vazio {player.zarek.hold.length}/{VOID_CAPACITY}
         </span>
         <ul className="flex flex-1 flex-wrap gap-1">
           {Array.from({ length: VOID_CAPACITY }, (_, index) => {
-            const item = player.voidHold[index];
+            const item = player.zarek.hold[index];
             return (
               <li key={index}>
                 {item ? (

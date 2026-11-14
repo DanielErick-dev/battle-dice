@@ -17,7 +17,7 @@ export function placeVoid(
   { index, tile, doubled = false }: { index: number; tile: TileId; doubled?: boolean },
 ): Board {
   const player = playerIn(draft, playerId);
-  const item = player.voidHold[index];
+  const item = player.zarek.hold[index];
   if (player.ability !== "theVoid" || !item) throw new GameRuleError("INVALID_VOID");
   const { board } = draft.state;
 
@@ -45,7 +45,9 @@ export function placeVoid(
 }
 
 function release(draft: Draft, playerId: PlayerId, index: number): void {
-  updatePlayer(draft, playerId, (player) => ({ voidHold: player.voidHold.filter((_, held) => held !== index) }));
+  updatePlayer(draft, playerId, (player) => ({
+    zarek: { ...player.zarek, hold: player.zarek.hold.filter((_, held) => held !== index) },
+  }));
 }
 
 function castSpell(draft: Draft, owner: PlayerId, item: VoidSpell, tile: TileId): void {

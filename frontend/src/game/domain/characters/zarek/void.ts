@@ -15,7 +15,7 @@ export const VOID_SCAR_BACK = 4;
 
 /** Ready, with room left in the Void. */
 export function canSwallow(player: Player): boolean {
-  return player.ability === "theVoid" && isAbilityReady(player) && player.voidHold.length < VOID_CAPACITY;
+  return player.ability === "theVoid" && isAbilityReady(player) && player.zarek.hold.length < VOID_CAPACITY;
 }
 
 export function offerSwallow(draft: Draft, playerId: PlayerId, tile: TileId, threat: Threat): void {
@@ -37,7 +37,7 @@ export function devour(draft: Draft, playerId: PlayerId, tile: TileId, threat: T
   if (hidden) draft.hiddenTraps = draft.hiddenTraps.filter((trap) => trap !== tile);
   if (!draft.destroyedTraps.includes(tile)) draft.destroyedTraps = [...draft.destroyedTraps, tile];
   draft.pinnedTraps = draft.pinnedTraps.filter((pinned) => pinned !== tile);
-  updatePlayer(draft, playerId, (player) => ({ voidIdle: 0, voidHold: [...player.voidHold, item] }));
+  updatePlayer(draft, playerId, (player) => ({ zarek: { idle: 0, hold: [...player.zarek.hold, item] } }));
   draft.events.push({ type: "voidSwallowed", playerId, tile, item, hidden });
 }
 

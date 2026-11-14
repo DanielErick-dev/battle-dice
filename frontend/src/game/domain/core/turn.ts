@@ -26,7 +26,7 @@ export function endTurn(draft: Draft, extraTurn: boolean): number {
     burning: Math.max(0, ending.burning - 1),
     akane: { ...ending.akane, emberStep: false },
     blessings: wearBlessings(draft.state.board, ending),
-    ...(ending.ability === "theVoid" && { voidIdle: ending.voidIdle + 1 }),
+    ...(ending.ability === "theVoid" && { zarek: { ...ending.zarek, idle: ending.zarek.idle + 1 } }),
   };
   burnDown(draft, ending.id);
   burnDownScarlet(draft, ending.id);

@@ -41,7 +41,7 @@ function projectPlayer(state: GameState, player: Player, viewerId: ViewerId): Pl
     // Not even the owner knows the order of their own deck.
     deck: hideCards(player.deck),
     abilityCharge: !own && player.ability === "silentVerdict" ? 0 : player.abilityCharge,
-    voidHold: own ? player.voidHold : player.voidHold.map(hideSeal),
+    zarek: own ? player.zarek : { ...player.zarek, hold: player.zarek.hold.map(hideSeal) },
   };
 }
 

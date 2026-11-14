@@ -25,6 +25,16 @@ export interface VoidScar {
   doubled: boolean;
 }
 
+/** Zarek's own state on his Player; everyone else keeps NO_ZAREK. */
+export interface ZarekState {
+  /** The Void: what it swallowed or took, waiting to be set down. */
+  hold: readonly VoidItem[];
+  /** Own turns ended since the Void last swallowed or took something. */
+  idle: number;
+}
+
+export const NO_ZAREK: ZarekState = { hold: [], idle: 0 };
+
 export type ZarekEvent =
   /** Zarek's Void took the harm on `tile` in (a `hidden` trap leaves the board): the tile is harmless for good. */
   | { type: "voidSwallowed"; playerId: PlayerId; tile: TileId; item: VoidItem; hidden: boolean }
