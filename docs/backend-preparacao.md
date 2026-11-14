@@ -89,10 +89,9 @@ TV mostra o tabuleiro (espectadora), cada jogador joga pelo celular. O jogo loca
 - Apagar o `node_modules/` vazio da raiz ou virar a raiz do workspace.
 - Fazer por último: mexe em todos os imports.
 
-## 6. Fronteira da lint ⬜
+## 6. Fronteira da lint ✅
 
-- Hoje a lint lista só o que é proibido em `game/`; trocar por "só imports relativos" (e `vitest` nos testes).
-- Fica resolvido de vez com o item 5.
+- Feito em 14/11/2026: em `game/` a lint aceita só imports relativos (e `vitest`), em vez de listar o que é proibido. Com o item 5, a fronteira vira a do próprio pacote.
 
 ## 7. Organização ✅
 

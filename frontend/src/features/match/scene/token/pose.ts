@@ -144,8 +144,29 @@ export function stepPose(acts: TokenActs, input: PoseInput): Pose {
   const sitting = lengths.sit !== undefined && sitElapsed >= 0 && sitElapsed < lengths.sit;
   const seated = resting && sitElapsed >= (lengths.sit ?? 0) * CHAIR_AT;
 
+  // Onto a wall's tile: one jump over it, played through even as the walk goes on.
+  if (signals.overWall && !acts.onWall && lengths.vault !== undefined) acts.vaultStartedAt = now;
+  acts.onWall = signals.overWall;
+  if (acts.vaultStartedAt !== null && now - acts.vaultStartedAt >= (lengths.vault ?? 0)) acts.vaultStartedAt = null;
+  const vaulting = acts.vaultStartedAt !== null;
+  const limping = signals.limping && moving && lengths.limp !== undefined;
+  // Walking back hurt, the figure keeps facing the way ahead.
+  if (limping) heading = headingOf(input.path) ?? heading;
+  // The Convergence: sits down into the lotus once, then holds it while floating.
+  if (!signals.meditating) acts.meditateStartedAt = null;
+  else acts.meditateStartedAt ??= now;
+  const meditateElapsed = elapsedSince(acts.meditateStartedAt, now);
+  const lotus =
+    signals.meditating && lengths.lotus !== undefined
+      ? meditateElapsed < (lengths.meditate ?? 0)
+        ? "meditate"
+        : "lotus"
+      : null;
+
   let clip: CharacterClip;
   if (reeling && lengths.knocked !== undefined) clip = "knocked";
+  else if (vaulting) clip = "vault";
+  else if (limping) clip = "limp";
   else if (hopping && !motion.travelling) clip = "hop";
   else if (shoving && !moving) clip = "shove";
   else if (launching) clip = "dash";
@@ -153,9 +174,11 @@ export function stepPose(acts: TokenActs, input: PoseInput): Pose {
   else if (reactClip !== null && !moving) clip = reactClip;
   else if (braking) clip = "brake";
   // Landing on its chair it sits at once: the run's linger would carry it running through the chair.
+  else if (lotus === "lotus" && moving) clip = "lotus";
   else if (moving || (acts.runLinger > 0 && !seated)) clip = levitating ? "float" : "run";
   else if (sitting) clip = "sit";
   else if (casting && castClip !== undefined && !traits.castsStill) clip = "cast";
+  else if (lotus !== null) clip = lotus;
   else clip = levitating ? "float" : seated ? "rest" : "idle";
 
   return {

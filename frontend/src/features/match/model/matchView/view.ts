@@ -14,6 +14,7 @@ import type {
   TileId,
   VoidScar,
   Winter,
+  Elementals,
 } from "@/game/domain/types";
 import type { TileEffectView } from "./effect";
 import type { MatchFx } from "./fx";
@@ -94,6 +95,8 @@ export interface MatchView {
   rifts: readonly Tile[];
   /** Tiles the Void marked purple: a harm for everyone but Zarek. */
   voidScars: readonly VoidScar[];
+  /** Tenzai's walls, bonds and breezes (another's breeze only reaches this view in the projected party state). */
+  elementals: Elementals;
   /** A Warden picking the cards their Plunder apparition takes from `victim`. */
   pendingPlunder: { owner: PlayerId; victim: PlayerId } | null;
   /** The tile a walk ends on: the figure slows to a stop on its way there. */

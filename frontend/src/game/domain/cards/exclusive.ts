@@ -18,6 +18,16 @@ import {
   supernovaFuel,
 } from "../characters/akane/cards";
 import type { Board, Threat, TileId } from "../board/types";
+import {
+  convergeAll,
+  exchangeElement,
+  exchangeSource,
+  forceTailwind,
+  fortify,
+  lashTarget,
+  riptideLash,
+} from "../characters/tenzai/cards";
+import type { Element } from "../characters/tenzai/types";
 import type { GameState, Player, PlayerId } from "../core/state";
 
 /** Charge the Void Hunger feeds Zarek's Void. */
@@ -28,7 +38,15 @@ export const HUNGRY_RIFT_RANGE = 15;
 /** What a card's blockers look at beyond the player: the board and what covers or has emptied its tiles. */
 export type HarmTable = Pick<
   GameState,
-  "board" | "blackFlames" | "winter" | "destroyedTraps" | "pinnedTraps" | "enchantedTiles" | "scarletFlames" | "players"
+  | "board"
+  | "blackFlames"
+  | "winter"
+  | "destroyedTraps"
+  | "pinnedTraps"
+  | "enchantedTiles"
+  | "scarletFlames"
+  | "players"
+  | "elementals"
 >;
 
 /** A character's own card in someone else's hand (stolen) is dead; some need something more. */
@@ -51,6 +69,13 @@ export function exclusiveBlocker(table: HarmTable, player: Player, cardId: CardI
     case "voidEcho":
       if (player.voidHold.length === 0) return "VOID_EMPTY";
       return player.voidHold.length >= VOID_CAPACITY ? "VOID_FULL" : null;
+    case "riptideLash":
+      return table.elementals.tethers.some((tether) => tether.owner === player.id) ||
+        lashTarget(table.board, table.players, player.id)
+        ? null
+        : "NO_TARGET_AHEAD";
+    case "elementalExchange":
+      return exchangeSource(table.elementals, player.id, null) ? null : "NO_CREATION";
     default:
       return null;
   }
@@ -91,6 +116,7 @@ export function playExclusive(
   cardId: CardId,
   targetId: PlayerId | null,
   rollDie: DiceRoller,
+  element: Element | null = null,
 ): void {
   const player = playerIn(draft, playerId);
 
@@ -140,6 +166,21 @@ export function playExclusive(
       draft.events.push({ type: "voidEchoed", playerId, item });
       return;
     }
+    case "tectonicFortification":
+      fortify(draft, playerId);
+      return;
+    case "riptideLash":
+      riptideLash(draft, playerId);
+      return;
+    case "forcedTailwind":
+      if (targetId !== null) forceTailwind(draft, playerId, targetId);
+      return;
+    case "elementalExchange":
+      exchangeElement(draft, playerId, element);
+      return;
+    case "elementalConvergence":
+      convergeAll(draft, playerId);
+      return;
     case "riftCall": {
       if (targetId === null) return;
       const target = playerIn(draft, targetId);
@@ -163,6 +204,7 @@ function harmTable(draft: Draft): HarmTable {
     enchantedTiles: draft.enchantedTiles,
     scarletFlames: draft.scarletFlames,
     players: draft.players,
+    elementals: draft.elementals,
   };
 }
 

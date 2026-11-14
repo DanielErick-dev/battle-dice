@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ABILITY_CYCLE, LONG_ABILITY_CYCLE, abilityCycle } from "./charge";
-import { DORMANT_FURY_MULTIPLIER, LEVITATION_TURNS, TAILWIND_BONUS } from "./basic";
+import { DORMANT_FURY_MULTIPLIER, LEVITATION_TURNS } from "./basic";
 import type { AbilityId } from "./ability";
 import { TRAP_AND_CURSE_BOARD } from "../testing/boards";
 import {
@@ -24,13 +24,13 @@ const aria = (state: GameState) => playerOf(state, "p1");
 
 describe("ability charge", () => {
   it("charges over three turns, counting the first, then stays ready until used", () => {
-    const { state, readyAt } = turnsAbilityReady(solo("tailwind"), "p1", 6);
+    const { state, readyAt } = turnsAbilityReady(solo("doubleCast"), "p1", 6);
     expect(readyAt).toEqual([3]);
     expect(aria(state).abilityCharge).toBe(ABILITY_CYCLE);
   });
 
   it("recharges from empty once used", () => {
-    const used = activate(ready(solo("tailwind")), "p1").state;
+    const used = activate(ready(solo("doubleCast")), "p1").state;
     expect(aria(used).abilityCharge).toBe(0);
     expectRuleError(() => activate(used, "p1"), "ABILITY_NOT_READY");
     const twoTurnsLater = roll(roll(used, "p1").state, "p1").state;
@@ -56,14 +56,6 @@ describe("Double Cast", () => {
     const once = play(start, "p1", "c0").state;
     expectRuleError(() => play(once, "p1", "c1"), "CARD_ALREADY_PLAYED");
     expect(play(activate(once, "p1").state, "p1", "c1").state.cardsPlayedThisTurn).toBe(2);
-  });
-});
-
-describe("Tailwind", () => {
-  it("walks further on the turn it's used", () => {
-    const { events, state } = roll(activate(ready(solo("tailwind")), "p1").state, "p1", 3);
-    expect(events).toContainEqual(expect.objectContaining({ type: "diceRolled", value: 3 + TAILWIND_BONUS }));
-    expect(aria(state).position).toBe(1 + 3 + TAILWIND_BONUS);
   });
 });
 

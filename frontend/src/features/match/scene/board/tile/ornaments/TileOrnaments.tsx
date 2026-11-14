@@ -3,7 +3,7 @@
 import type { Tile } from "@/game/domain/types";
 import type { TileTheme } from "../theme/tileTheme";
 import { AdvanceChevrons } from "./AdvanceChevrons";
-import { FloatingCard } from "./FloatingCard";
+import { CardChest } from "./CardChest";
 import { FloatingDie } from "./FloatingDie";
 import { Hourglass } from "./Hourglass";
 import { PortalVortex } from "./PortalVortex";
@@ -24,14 +24,14 @@ export function TileOrnaments({ tile, theme, highlighted, arrowAngle, occupied }
   return (
     <>
       {tile.effect.kind === "portal" && <PortalVortex color={theme.glow} active={highlighted} phase={tile.id * 1.7} />}
-      {tile.effect.kind === "trap" && <TrapSpikes color={theme.glow} />}
+      {tile.effect.kind === "trap" && <TrapSpikes sprung={occupied} />}
       {tile.effect.kind === "advance" && <AdvanceChevrons color={theme.glow} angle={arrowAngle ?? 0} />}
+      {tile.effect.kind === "card" && !tile.effect.cardId && <CardChest color={theme.glow} open={occupied} />}
       {!occupied && (
         <>
           {tile.effect.kind === "extraTurn" && <FloatingDie color={theme.glow} />}
           {tile.effect.kind === "skipTurn" && <Hourglass color={theme.glow} />}
-          {tile.effect.kind === "card" &&
-            (tile.effect.cardId ? <RelicCard cardId={tile.effect.cardId} /> : <FloatingCard color={theme.glow} />)}
+          {tile.effect.kind === "card" && tile.effect.cardId && <RelicCard cardId={tile.effect.cardId} />}
         </>
       )}
     </>

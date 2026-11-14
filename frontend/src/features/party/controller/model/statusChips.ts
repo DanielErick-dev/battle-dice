@@ -1,3 +1,4 @@
+import { ELEMENT_NAME } from "@/features/match/ui/hud/effectCopy/tenzai";
 import type { Player } from "@/game/domain/types";
 
 /** A short status shown under the phone's character: what's on them right now. */
@@ -32,5 +33,12 @@ export function statusChips(player: Player): StatusChip[] {
   if (player.containedRolls > 0) chips.push({ label: `Dado contido ×${player.containedRolls}`, tone: "bad" });
   if (player.justiceMarks > 0) chips.push({ label: `Marcas da Justiça ×${player.justiceMarks}`, tone: "info" });
   if (player.innerFlame > 0) chips.push({ label: `Chama Interna ${player.innerFlame}`, tone: "info" });
+  if (player.converged > 0) chips.push({ label: `Convergência · ${turns(player.converged)}`, tone: "good" });
+  if (player.combustion) chips.push({ label: "Dado de combustão", tone: "good" });
+  if (player.elements.length > 0)
+    chips.push({
+      label: `Órbita ${player.elements.map((element) => ELEMENT_NAME[element]).join(" · ")}`,
+      tone: "info",
+    });
   return chips;
 }

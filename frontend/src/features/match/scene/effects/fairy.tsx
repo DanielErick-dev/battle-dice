@@ -1,4 +1,6 @@
 /** Crystal Fairy: her wand and snow, the tiles she enchants and the Eternal Winter. */
+import { useFittedProp } from "@/features/characters/core/props";
+import { TILE_HEIGHT, TILE_SIZE } from "@/features/shared/board/boardLayout";
 import { useMemo } from "react";
 import { Vector3, type Object3D } from "three";
 import { HELL_ICE_ROUNDS, frozenTiles } from "@/game/domain/characters/fairy/winter";
@@ -39,16 +41,21 @@ export function FrostWandProp({ token, figure }: { token: TokenFx; figure: Objec
 export function EnchantedTiles({ fx: { view, layout, shown } }: { fx: BoardFx }) {
   return view.enchantedTiles
     .filter(({ tile }) => shown(tile))
-    .map(({ tile, owner }) => (
-      <EnchantedTileMark
-        key={`enchanted${tile}`}
-        position={layout.position(tile)}
-        outline={layout.slab(tile)?.outline}
-        color={playerColor(owner)}
-        // Snow Zarek's Void took over turns violet, so nobody mistakes it for the fairy's.
-        look={view.players.find((player) => player.id === owner)?.ability === "theVoid" ? "void" : "fairy"}
-      />
-    ));
+    .map(({ tile, owner }) => {
+      // Snow Zarek's Void took over turns violet, so nobody mistakes it for the fairy's.
+      const look = view.players.find((player) => player.id === owner)?.ability === "theVoid" ? "void" : "fairy";
+      return (
+        <group key={`enchanted${tile}`}>
+          <EnchantedTileMark
+            position={layout.position(tile)}
+            outline={layout.slab(tile)?.outline}
+            color={playerColor(owner)}
+            look={look}
+          />
+          {look === "fairy" && <SnowHeap position={layout.position(tile)} />}
+        </group>
+      );
+    });
 }
 
 /** Snow on every frozen tile, like her enchanted ones; snowed and burning tiles keep their own look. */
@@ -94,4 +101,19 @@ function streamStart(view: MatchView, layout: BoardLayout, tip: Vector3 | undefi
   const tile = view.players.find((player) => player.id === playerId)?.position ?? 0;
   const [x, y, z] = layout.position(tile);
   return new Vector3(x, y + FIGURE_HEIGHT * 0.8, z);
+}
+
+/** The fairy's snow heaped on the tile (Meshy). */
+function SnowHeap({ position }: { position: readonly [number, number, number] }) {
+  const snow = useFittedProp("snowPile");
+  const scale = (TILE_SIZE * 0.8) / snow.size[0];
+  return (
+    <mesh
+      geometry={snow.geometry}
+      material={snow.material}
+      position={[position[0], position[1] + TILE_HEIGHT / 2, position[2]]}
+      scale={scale}
+      receiveShadow
+    />
+  );
 }

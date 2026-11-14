@@ -27,6 +27,11 @@ export interface TokenActs {
   runLinger: number;
   lastVerdict: number | null;
   lastOutburst: number | null;
+  /** Jumping a wall: when it took off, and whether it's still on the wall's tile. */
+  vaultStartedAt: number | null;
+  onWall: boolean;
+  /** Sat into the lotus at this clock second (Tenzai's Convergence). */
+  meditateStartedAt: number | null;
   /** Themis passing her verdict, with the clips of it her model has. */
   reaction: { startedAt: number; clips: readonly CharacterClip[] } | null;
   sitStartedAt: number | null;
@@ -59,6 +64,9 @@ export interface PoseInput {
     | "abilityCast"
     | "verdict"
     | "outburst"
+    | "overWall"
+    | "meditating"
+    | "limping"
   >;
   levitating: boolean;
   traits: ActTraits;
@@ -118,6 +126,9 @@ export function createTokenActs(): TokenActs {
     lastHop: null,
     hopStartedAt: null,
     runLinger: 0,
+    vaultStartedAt: null,
+    onWall: false,
+    meditateStartedAt: null,
     lastVerdict: null,
     lastOutburst: null,
     reaction: null,

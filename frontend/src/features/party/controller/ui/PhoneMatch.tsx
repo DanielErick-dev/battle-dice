@@ -146,6 +146,7 @@ function PhoneTable({ store, view, plainBoard, room, onLeave }: PhoneTableProps)
               enchantedTiles: view.enchantedTiles,
               scarletFlames: view.scarletFlames,
               players: view.players,
+              elementals: view.elementals,
             }}
             player={me}
             players={view.players}

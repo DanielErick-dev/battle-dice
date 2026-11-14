@@ -1,7 +1,7 @@
 "use client";
 
 import { useGLTF } from "@react-three/drei";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import type { BufferGeometry, Mesh, MeshStandardMaterial, Object3D } from "three";
 
 /** Static models built from Meshy exports by scripts/props/build-props.mjs. */
@@ -66,6 +66,18 @@ export const PROPS = {
   bjornCrystal: "/models/props/bjorn/crystal.glb",
   roseCandelabra: "/models/props/enchantress/candelabra.glb",
   susanoo: "/models/props/kage/susanoo.glb",
+  lanternPost: "/models/props/island/lantern-post.glb",
+  islandBench: "/models/props/island/bench.glb",
+  woodenBridge: "/models/props/island/bridge.glb",
+  vineTrap: "/models/props/board/vine-trap.glb",
+  hourglass: "/models/props/board/hourglass.glb",
+  snowPile: "/models/props/fairy/snow.glb",
+  wardenSpecters: "/models/props/warden/specters.glb",
+  islandWindmill: "/models/props/island/windmill.glb",
+  bambooBoat: "/models/props/island/boat.glb",
+  hangingSign: "/models/props/island/sign.glb",
+  campfire: "/models/props/island/campfire.glb",
+  cardChest: "/models/props/board/chest.glb",
 } as const;
 export type PropId = keyof typeof PROPS;
 
@@ -89,6 +101,31 @@ function firstMesh(scene: Object3D, id: PropId): { geometry: BufferGeometry; mat
   });
   if (!found) throw new Error(`No mesh in prop ${id}`);
   return { geometry: found.geometry, material: found.material as MeshStandardMaterial };
+}
+
+/**
+ * A prop's mesh stood on its base and centred, scaled so its height is 1 (whatever size Meshy exported it at);
+ * `size` is its width, height and depth in those units.
+ */
+export function useFittedProp(id: PropId): {
+  geometry: BufferGeometry;
+  material: MeshStandardMaterial;
+  size: [number, number, number];
+} {
+  const { geometry, material } = usePropMesh(id);
+  const fitted = useMemo(() => {
+    const copy = geometry.clone();
+    copy.computeBoundingBox();
+    const box = copy.boundingBox!;
+    const height = box.max.y - box.min.y || 1;
+    copy
+      .translate(-(box.min.x + box.max.x) / 2, -box.min.y, -(box.min.z + box.max.z) / 2)
+      .scale(1 / height, 1 / height, 1 / height);
+    const size: [number, number, number] = [(box.max.x - box.min.x) / height, 1, (box.max.z - box.min.z) / height];
+    return { geometry: copy, size };
+  }, [geometry]);
+  useEffect(() => () => fitted.geometry.dispose(), [fitted]);
+  return { ...fitted, material };
 }
 
 /** A copy of a prop's material that can fade out, its colour darkened by `shade` (1 keeps it). */

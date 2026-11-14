@@ -19,10 +19,28 @@ export const OPTIONAL_CLIPS = [
   "scoff",
   "strike",
   "fume",
+  // Tenzai's four bendings, his Convergence (sitting down, then held) and the reactions everyone borrows from him.
+  "quake",
+  "tide",
+  "flare",
+  "gust",
+  "meditate",
+  "lotus",
+  "vault",
+  "punch",
+  "ouch",
+  "limp",
 ];
 
 // Clips borrowed by everyone without their own (one fall and one way of sitting fit every body).
-export const SHARED_CLIPS = { knocked: "zarek", rest: "auric" };
+export const SHARED_CLIPS = {
+  knocked: "zarek",
+  rest: "auric",
+  vault: "zephyr",
+  punch: "zephyr",
+  ouch: "zephyr",
+  limp: "zephyr",
+};
 
 // `sequences` build a clip from files in parts/, played back to back (syntax: docs/assets.md).
 const MODELS = {
@@ -44,7 +62,21 @@ const MODELS = {
   warden: {},
   kage: {},
   fairy: {},
-  zephyr: {},
+  // Tenzai: the meditation sits down slowly and its last pose is held (lotus) while he floats in his Convergence.
+  zephyr: {
+    // His menu intro sits slowly into the lotus, which he then holds floating (float); the bendings are match clips.
+    sequences: {
+      intro: ["meditate*0.6"],
+      float: ["meditate@2.8-2.97"],
+      quake: ["quake"],
+      tide: ["tide"],
+      flare: ["flare"],
+      gust: ["gust"],
+      meditate: ["meditate*0.6"],
+      lotus: ["meditate@2.8-2.97"],
+      vault: ["vault*1.4"],
+    },
+  },
   // Themis: her intro plants the sword in the ground, kneeling, then rises and gestures (the scale appears in
   // her hand, see ThemisIntro); her verdict sweeps the attack aside with her arm. She sits and falls with the
   // shared clips.

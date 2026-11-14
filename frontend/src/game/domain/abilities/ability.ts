@@ -2,7 +2,7 @@
 export type AbilityId =
   | "doubleCast" // two cards this turn
   | "theVoid" // Zarek's: swallows the harm he stops on when offered, sets it down anew (characters/zarek/)
-  | "tailwind" // this turn's roll walks TAILWIND_BONUS further
+  | "fourElements" // Tenzai's: earth wall, water bond, fire die or wind heist (characters/tenzai/)
   | "fireZone" // Akane's: sets the tiles ahead alight; Brilliant Impetus is his passive (characters/akane/)
   | "seraphielBlessing" // a random heaven blessing or heaven card (characters/seraphiel/)
   | "hellsDrag" // the Fallen Angel pulls an opponent into hell; alone, hell swallows traps ahead

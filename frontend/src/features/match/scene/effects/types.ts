@@ -39,6 +39,12 @@ export interface TokenSignals {
   outburst: { id: number; clip: CharacterClip } | null;
   /** A fresh id per trap Vinicius hoes out. */
   weeded: number | null;
+  /** On a wall's tile mid-walk: jumping over it (his own, or knocked back across one). */
+  overWall: boolean;
+  /** Tenzai in his Convergence: sits into the lotus and floats. */
+  meditating: boolean;
+  /** Knocked back by a trap: walks back hurt, still facing the way ahead. */
+  limping: boolean;
 }
 
 /** Refs the token's frame loop fills every frame, for the effects that follow its motion. */

@@ -26,7 +26,7 @@ Hoje há só 4 bênçãos fixas e 3 relíquias, sem decisões. Candidatas:
   - Mostrar o progresso na interface ("❄ 7/12").
 - **Seraphiel:** perde a Coroa Seráfica se cair de outro jeito? (hoje a Queda sempre dá a coroa infernal).
 - **Fada:** flocos de neve saindo do cetro até as armadilhas (falta o clipe de cast "mão para frente").
-- **Zéfiro (quatro elementos):** trocar o Vento a Favor por **4 habilidades, uma por elemento** (água, fogo, terra e ar), ainda sem efeitos definidos. Na intro ele "dobra" os quatro elementos em sequência, como nos desenhos (estilo Avatar). Duas formas em aberto: **rodízio** (água → fogo → terra → ar, menos apelão) ou **escolher** o elemento na hora (mais liberdade). O trono dele (`elementalThrone`) já está no jogo.
+- **Tenzai (ex-Zéfiro):** o kit dos 4 elementos está feito (ver `regras.md` §13). Falta: modelo novo no Meshy, intro dobrando os quatro elementos antes de pousar, clipes de dobra de água/ar, as runas no corpo acendendo na Convergência e a arte pintada das 5 cartas.
 - **Falas de habilidade** para todos (ex.: Kage gritando "Amaterasu"). Testar o ElevenLabs. Arquivos em `public/audio/voices/<id>/<id>-<fala>.mp3`.
 - **Coroas na cabeça:** por enquanto só os anjos usam coroa.
 

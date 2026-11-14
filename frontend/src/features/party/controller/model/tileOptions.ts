@@ -60,6 +60,8 @@ function coverNotes(view: MatchView, board: Board, tile: TileId, viewerId: Playe
   }
   if (view.blackFlames.some((flame) => flame.tile === tile)) notes.push("Fogo negro");
   if (view.scarletFlames.some((flame) => flame.tile === tile)) notes.push("Fogo escarlate");
+  const wall = view.elementals.walls.find((candidate) => candidate.tile === tile);
+  if (wall) notes.push(`Muralha (${wall.hp} de vida)`);
   if (isFrozen(view.winter, board.startTile, tile)) notes.push("Congelada");
   if (view.enchantedTiles.some((snow) => snow.tile === tile)) notes.push("Neve da fada");
   if (view.voidScars.some((scar) => scar.tile === tile)) notes.push("Marca do Vazio");

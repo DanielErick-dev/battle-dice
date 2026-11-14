@@ -61,7 +61,7 @@ Por fim, **rola o dado**: anda, resolve a casa onde parou e a vez passa. **Rolar
 - **Dado:** um dado comum de 6 faces, em 3D, que rola na tela.
 - **Cartas de lançamento** mudam o jeito de rolar (só uma por vez): 2 dados somados, 2 dados ficando com o maior, ou escolher o valor.
 - **Cartas de bônus** somam casas e se acumulam entre si e com uma de lançamento (combo).
-- Ordem do cálculo: **dado → + bônus** (cartas, Vento a Favor do Zéfiro, Asas Celestiais, coroa do Seraphiel, Ímpeto do Akane) **→ × Fúria Adormecida** do Monge (triplo), se estiver em uso **→ ÷ 2** se quem rola estiver pegando fogo.
+- Ordem do cálculo: **dado → + bônus** (cartas, Asas Celestiais, coroa do Seraphiel, Ímpeto do Akane) **→ × Fúria Adormecida** do Monge (triplo), se estiver em uso **→ ÷ 2** se quem rola estiver pegando fogo.
 - Outras formas de andar: carta **Passo do Vento** (+3), **Vendaval** (+18), casas de **avanço** (2 a 5 casas), **portais**, **Portal Místico**, a **neve da Fada** (a Fada é levada 5 casas), o selo **Ruína** jogando sozinho.
 - **Andar** é ir casa por casa para a frente; a casa onde você **para** tem efeito. Passar por cima quase nunca faz nada (as exceções são as aparições do Guardião, o atropelo do Bjorn e as flechas presas da Arqueira).
 - **Ser empurrado** é voltar casa por casa, e a casa onde você cai **não tem efeito**.
@@ -89,9 +89,9 @@ Por fim, **rola o dado**: anda, resolve a casa onde parou e a vez passa. **Rolar
 
 | Ciclo | Habilidades                                                                                                                                                                                                |
 | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 3     | Conjuração Dupla, Vento a Favor, Bênção do Serafim, Transmutação, Aposta do Coringa |
+| 3     | Conjuração Dupla, Bênção do Serafim, Transmutação, Aposta do Coringa |
 | 4     | O Vazio (+1 por armadilha), Veredito Silencioso (reativo, carga secreta) |
-| 5     | Levitação Carmesim, Fúria Adormecida, Chuva de Flechas, Ressurreição, Escritura dos 4 Selos, Aparições Espectrais, Florescimento Feérico, Maré Purificadora, Zona de Incêndio, Indomável, Canhão de Plasma |
+| 5     | Levitação Carmesim, Fúria Adormecida, Chuva de Flechas, Ressurreição, Escritura dos 4 Selos, Aparições Espectrais, Florescimento Feérico, Maré Purificadora, Zona de Incêndio, Indomável, Canhão de Plasma, Domínio dos 4 Elementos |
 | 6     | Despertar Ocular                                                                                                                                                                                           |
 | 7     | Arrastar ao Inferno, Engrenagem do Tempo                                                                                                                                                                   |
 
@@ -317,7 +317,7 @@ Conferido nos arquivos dos modelos em 07/11/2026.
 | Guardião das Sombras |       |      |                   |                                           |
 | Kage Rubra           |       |      |                   | (animação prevista)                       |
 | Fada Cristalina      | ✅    | ✅   | hop               |                                           |
-| Zéfiro               |       |      |                   |                                           |
+| Tenzai               |       |      |                   |                                           |
 | Têmis                | ✅    |      | guard             |                                           |
 | Akane                | ✅    | ✅   | strike, fume      |                                           |
 | Bjorn Presa-Gélida   | ✅    | ✅   | shove             |                                           |
@@ -328,7 +328,7 @@ Conferido nos arquivos dos modelos em 07/11/2026.
 | Unidade Alva         |       |      |                   |                                           |
 | Vinicius             |       |      |                   |                                           |
 
-Todos têm `idle`, `run`, `knocked` e `rest`. **Só idle e run próprios** (sem intro nem cast): Encantadora, Guardião, Kage, Zéfiro, Auric, Seraphiel, Cronos, Unidade Alva e Vinicius.
+Todos têm `idle`, `run`, `knocked` e `rest`. **Só idle e run próprios** (sem intro nem cast): Encantadora, Guardião, Kage, Tenzai, Auric, Seraphiel, Cronos, Unidade Alva e Vinicius.
 
 ## 9. Os 21 personagens
 
@@ -348,7 +348,7 @@ Todos são jogáveis. Cada um tem: uma **cor** (anel no chão, HUD, menus, cor d
 | 10  | Guardião das Sombras   | Sem rosto, sem rastro                  | Aparições Espectrais                    | 5     | azul fantasma       |
 | 11  | Kage Rubra             | O olhar que queima                     | Despertar Ocular                        | 6     | escarlate           |
 | 12  | Fada Cristalina        | O encanto que cura o caminho           | Florescimento Feérico                   | 5     | ciano               |
-| 13  | Zéfiro                 | O vento sempre a favor                 | Vento a Favor                           | 3     | menta               |
+| 13  | Tenzai                 | O Senhor dos Quatro Elementos          | Domínio dos 4 Elementos                 | 5     | menta               |
 | 14  | Têmis                | A Juíza Vendada | Veredito Silencioso                        | 4     | azul profundo                |
 | 15  | Akane                  | O Prodígio Escarlate                   | Zona de Incêndio                        | 5     | laranja-fogo        |
 | 16  | Bjorn Presa-Gélida     | Quem fica no caminho, voa              | Indomável (+ atropelo)                  | 5     | azul gelo           |
@@ -467,12 +467,12 @@ Todos são jogáveis. Cada um tem: uma **cor** (anel no chão, HUD, menus, cor d
 - **Animações:** intro: ergue a mão com a varinha e olha para ela, com neve e pó de fada caindo; cast com a varinha na mão; `hop` (salto ao parar na própria neve, com explosão de neve). As **asas são um modelo separado batendo em código** (o Meshy estraga o esqueleto de modelos com asas). Quem fica preso na neve aparece envolto em blocos de neve que vão caindo.
 - **Cenário:** Bosque de Cristal (neve sobre musgo, cristais brilhando por dentro em ciano e lilás, anel de flores luminosas). **Trono:** trono de gelo.
 
-### 13. Zéfiro
+### 13. Tenzai
 
-- **Estilo:** guardião dos ventos e dos **quatro elementos** (inspiração Avatar).
-- **Habilidade, Vento a Favor (carga 3):** a rolagem desta vez anda **+4** casas.
-- **Animações:** só idle e run.
-- **Em aberto:** trocar o Vento a Favor por **4 habilidades, uma por elemento** (água, fogo, terra, ar), ainda sem efeitos definidos. Duas formas: **rodízio** (água → fogo → terra → ar, menos forte) ou **escolher** na hora. Intro sonhada: ele "dobra" os quatro elementos em sequência.
+- **Estilo:** o **Senhor dos Quatro Elementos** (antes Zéfiro). Visual próprio: orbes dos elementos orbitando e runas no corpo, sem copiar nenhum personagem de outra obra.
+- **Habilidade, Domínio dos 4 Elementos (carga 5):** escolhe Terra (muralha), Água (laço), Fogo (dado de combustão) ou Vento (armadilha escondida que rouba um 6+), nunca o mesmo duas vezes seguidas. Regras completas em `regras.md` §13.
+- **Passiva, Despertar Primordial:** os 4 elementos na órbita despertam a Convergência (intocável 2 rodadas, +3 no dado, habilidade pronta).
+- **Animações:** só idle e run (falta intro dobrando os 4 elementos e cast).
 - **Cenário:** Pico do Vento (topo de montanha, grama dobrando, os 4 elementos orbitando, folhas em espiral, nuvens abaixo). **Trono:** trono elemental.
 
 ### 14. Têmis
@@ -580,7 +580,7 @@ O autor pediu que os poderes "sigam uma lógica". Hoje:
 ### Animações e modelos aguardados
 
 - Animação da Kage Rubra.
-- Intro e cast para quem só tem idle e run: Encantadora, Guardião, Kage, Zéfiro, Auric, Seraphiel (e Caído), Cronos, Unidade Alva e Vinicius.
+- Intro e cast para quem só tem idle e run: Encantadora, Guardião, Kage, Tenzai, Auric, Seraphiel (e Caído), Cronos, Unidade Alva e Vinicius.
 - Clipe `showcase` (pose de vitrine no menu) para todos.
 - Espada celestial e pouso de super-herói do Seraphiel.
 - Relógio pendurado do Cronos; árvore redonda para a ilha; cristais naturais para o Bjorn.
@@ -616,7 +616,7 @@ O autor pediu que os poderes "sigam uma lógica". Hoje:
 - **Coringa:** mais apostas e um seletor de 3 apostas aleatórias.
 - **Necromante:** cartas subindo do chão em fogo verde-azulado.
 - **Fada:** flocos de neve saindo da varinha até as armadilhas.
-- **Zéfiro:** 4 habilidades elementais (rodízio ou escolha).
+- **Tenzai:** modelo novo, intro dobrando os 4 elementos e arte das cartas.
 - **Falas de habilidade** para todos.
 - **Coroas** na cabeça de cada personagem (hoje só os anjos).
 

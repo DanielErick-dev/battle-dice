@@ -16,6 +16,7 @@ import { voidLines } from "./void";
 import { verdictLines } from "./verdict";
 import { akaneLines } from "./akane";
 import { viniciusLines } from "./vinicius";
+import { tenzaiLines } from "./tenzai";
 import { silentLines } from "./silent";
 import type { LogLine, LogLines, LogTools } from "./lines";
 
@@ -38,6 +39,7 @@ const LINES: LogLines<GameEvent["type"]> = {
   ...verdictLines,
   ...akaneLines,
   ...viniciusLines,
+  ...tenzaiLines,
   ...silentLines,
 };
 

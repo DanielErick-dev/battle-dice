@@ -1,7 +1,8 @@
 "use client";
 
+import { ConvergenceAura, ConvergenceEyes } from "@/features/characters/tenzai/ElementalVfx";
 import { useFrame } from "@react-three/fiber";
-import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { Vector3, type Group } from "three";
 import {
   CHARACTERS,
@@ -44,6 +45,8 @@ import { WindGusts, type WingTips } from "./WindGusts";
 
 /** A levitating character's hover over the pedestal (on top of its float clip's own lift) and bob. */
 const HOVER_HEIGHT = 0.36;
+/** Tenzai floats much higher, from the very start of his intro. */
+const MEDITATE_HEIGHT = 0.95;
 const HOVER_BOB = 0.035;
 /** Without an intro, a levitating character stands a moment before rising, so the lift reads. */
 const RISE_DELAY_MS = 600;
@@ -66,7 +69,7 @@ export function Presentation({
 }) {
   const character: CharacterDefinition = CHARACTERS[characterId];
   const frost = character.introFrost;
-  const showcase: CharacterClip = character.levitates ? "float" : "showcase";
+  const showcase: CharacterClip = character.levitates || character.meditates ? "float" : "showcase";
   const pourSeconds = character.introPourSeconds;
   const sword = character.introSword;
   const introVoice = character.introVoice;
@@ -114,7 +117,9 @@ export function Presentation({
     if (!hover.current) return;
     rise.current = stepLevitation(rise.current, hovering.current, delta);
     const lift = levitationLift(rise.current);
-    hover.current.position.y = lift * HOVER_HEIGHT + Math.sin(state.clock.elapsedTime * 1.6) * HOVER_BOB * lift;
+    hover.current.position.y =
+      lift * (character.meditates ? MEDITATE_HEIGHT : HOVER_HEIGHT) +
+      Math.sin(state.clock.elapsedTime * 1.6) * HOVER_BOB * lift;
   });
   const inIntro = useRef(false);
   /** Themis's sword, planted in the ground through her intro instead of in her hand. */
@@ -129,6 +134,7 @@ export function Presentation({
       const introMs = (lengths.intro ?? 0) * 1000;
       const floats = showcase === "float";
       inIntro.current = introMs > 0;
+      if (character.meditates) hovering.current = true;
       propOut.current = introMs > 0;
       timers.current = [
         window.setTimeout(() => {
@@ -183,7 +189,7 @@ export function Presentation({
         );
       }
     },
-    [showcase, pourSeconds, frost, sounds, sword, character.introSpeed, introVoice],
+    [showcase, pourSeconds, frost, sounds, sword, character.introSpeed, character.meditates, introVoice],
   );
   useEffect(() => () => timers.current.forEach((timer) => window.clearTimeout(timer)), []);
 
@@ -207,6 +213,11 @@ export function Presentation({
       {entrance && <WindGusts tips={tips} />}
       <group ref={descent} position-y={character.descends ? descentHeight(0) * FIGURE_HEIGHT : 0}>
         <group ref={hover}>
+          {character.meditates && (
+            <WhileHovering hovering={hovering}>
+              <ConvergenceAura />
+            </WhileHovering>
+          )}
           <CharacterModel
             url={character.model}
             height={FIGURE_HEIGHT}
@@ -218,6 +229,11 @@ export function Presentation({
               <>
                 {character.energyBlades && <EnergyBlades figure={figure} color={character.color} active={inIntro} />}
                 {character.levitates && <WitchStaff figure={figure} color={character.color} active={hovering} />}
+                {character.meditates && (
+                  <WhileHovering hovering={hovering}>
+                    <ConvergenceEyes figure={figure} />
+                  </WhileHovering>
+                )}
                 {character.introCards && (
                   <JesterCards
                     figure={figure}
@@ -295,4 +311,13 @@ export function Presentation({
       </group>
     </group>
   );
+}
+
+/** Shows its children only once the figure floats (Tenzai's Convergence on the stage). */
+function WhileHovering({ hovering, children }: { hovering: RefObject<boolean>; children: ReactNode }) {
+  const [shown, setShown] = useState(false);
+  useFrame(() => {
+    if (hovering.current !== shown) setShown(hovering.current);
+  });
+  return shown ? children : null;
 }

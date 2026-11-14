@@ -13,6 +13,7 @@ import type {
   TrapCurse,
   TrapWard,
   VoidItem,
+  Element,
 } from "@/game/domain/types";
 
 export type TileEffectKind =
@@ -95,7 +96,31 @@ export type TileEffectKind =
   | "supernova"
   | "weeded"
   | "burntRoll"
-  | "fireFed";
+  | "fireFed"
+  /** Tenzai bent an element (`element`), over him. */
+  | "elementBent"
+  /** A new element joined his orbit; `count` the orbit's size. */
+  | "attuned"
+  /** All four elements: the Convergence. */
+  | "convergence"
+  /** `count` the wall's hp. */
+  | "wallRaised"
+  | "wallStrengthened"
+  /** Over whoever ran into it; `count` the hp left. */
+  | "wallHit"
+  | "wallCrumbled"
+  /** `count` the rounds it holds. */
+  | "tetherBound"
+  /** Over Tenzai; `count` the tiles he was pulled. */
+  | "tetherPulled"
+  | "tetherSwapped"
+  | "combustionReady"
+  /** `count` the opponents thrown back. */
+  | "combustion"
+  | "breezeArmed"
+  /** Over Tenzai; `count` the stolen roll. */
+  | "breezeStolen"
+  | "breezeResisted";
 
 /** A tile effect or turn notice; without travel, `from` and `to` are the same tile. */
 export interface TileEffectView {
@@ -114,6 +139,8 @@ export interface TileEffectView {
     targetName: string;
   };
   realm?: RealmKind;
+  /** Tenzai's element. */
+  element?: Element;
   blessing?: {
     kind: Blessing;
     energyGained: number;

@@ -4,6 +4,7 @@ import { plural, type LogLines } from "./lines";
 
 export const AIM_WARDS: Readonly<Record<AimWard | "away", string>> = {
   untamed: "estava Indomável",
+  convergence: "estava na Convergência",
   susanoo: "estava no Susanoo",
   armour: "estava de armadura",
   aegis: "estava sob a Égide",

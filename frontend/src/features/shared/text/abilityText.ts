@@ -10,7 +10,17 @@ import {
   CARD_GAMBLE_LOST,
   CARD_GAMBLE_STOLEN,
 } from "@/game/domain/characters/jester/cardGamble";
-import { DORMANT_FURY_MULTIPLIER, TAILWIND_BONUS, LEVITATION_TURNS } from "@/game/domain/abilities/basic";
+import { DORMANT_FURY_MULTIPLIER, LEVITATION_TURNS } from "@/game/domain/abilities/basic";
+import {
+  BREEZE_THRESHOLD,
+  COMBUSTION_PUSH,
+  COMBUSTION_RADIUS,
+  CONVERGENCE_BONUS,
+  CONVERGENCE_TURNS,
+  MAX_WALLS,
+  TETHER_TURNS,
+  WALL_HP,
+} from "@/game/domain/characters/tenzai/elements";
 import {
   BURN_ROUNDS,
   FIRE_TOLL,
@@ -60,10 +70,10 @@ export const ABILITY_TEXT: Readonly<Record<AbilityId, { name: string; descriptio
     description: `Carrega em ${abilityCycle("theVoid")} turnos, e +1 a cada armadilha em que alguém cai ou que é destruída ou presa. Pronto, ao cair numa armadilha, maldição ou perde a vez, você escolhe se o Vazio a engole: ela some da casa e fica guardada (até ${VOID_CAPACITY}). Na sua vez, solte o que guardou: uma armadilha abre uma casa nova no caminho, logo depois da casa que você escolher, e pode ter a penalidade dobrada por ${VOID_DOUBLE_ENERGY} de energia. As suas fendas não te atingem. Pronto, também pode ser usado no botão para absorver o feitiço de outro numa casa (fogo, neve, gelo, selo ou aparição): ele vai para o Vazio e você o solta onde quiser, e a casa vira uma armadilha roxa sua (volta ${VOID_SCAR_BACK} casas, não te atinge). No inferno você também solta o que guardou, marcando uma casa de lá; no céu, nada entra.`,
     active: "O Vazio agiu",
   },
-  tailwind: {
-    name: "Vento a Favor",
-    description: `Carrega em ${abilityCycle("tailwind")} turnos. Ao usar, a rolagem do turno anda +${TAILWIND_BONUS} casas.`,
-    active: `+${TAILWIND_BONUS} casas na rolagem deste turno`,
+  fourElements: {
+    name: "Domínio dos 4 Elementos",
+    description: `Carrega em ${abilityCycle("fourElements")} turnos. Ao usar, escolha um elemento (nunca o mesmo da última vez). Terra: ergue uma muralha numa casa livre perto de alguém; ninguém além de você passa até as rolagens que baterem nela somarem ${WALL_HP} (até ${MAX_WALLS} muralhas). Água: prende um oponente por ${TETHER_TURNS} rodadas; sempre que ele andar, você é puxado metade. Fogo: tirando 5 ou 6 nesta rolagem, o dado vale o dobro, explode empurrando ${COMBUSTION_PUSH} casas quem estiver a até ${COMBUSTION_RADIUS} de você, e você rola de novo. Vento: armadilha escondida que rouba a próxima rolagem de ${BREEZE_THRESHOLD}+ de um oponente: ele fica parado e você anda o valor. Passiva, Despertar Primordial: cada elemento novo (habilidade ou carta sua) entra na sua órbita; com os 4, a Convergência: intocável por ${CONVERGENCE_TURNS} rodadas, +${CONVERGENCE_BONUS} no dado e a habilidade pronta de novo.`,
+    active: "Os elementos responderam",
   },
   fireZone: {
     name: "Zona de Incêndio",

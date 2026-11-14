@@ -7,6 +7,7 @@ import type { AbilityId } from "@/game/domain/abilities/ability";
 import { arrowRain } from "./arrowRain";
 import { resurrection, transmutation } from "./cardChoices";
 import { cardGamble } from "./cardGamble";
+import { fourElements } from "./fourElements";
 import { hellsDrag } from "./hellsDrag";
 import { ocularAwakening } from "./ocularAwakening";
 import { fairyBloom, forbiddenSeals, spectralApparitions, theVoid } from "./placements";
@@ -18,6 +19,7 @@ export const ABILITY_FLOWS: Partial<Readonly<Record<AbilityId, AbilityFlow>>> = 
   cardGamble,
   fairyBloom,
   forbiddenSeals,
+  fourElements,
   hellsDrag,
   ocularAwakening,
   resurrection,

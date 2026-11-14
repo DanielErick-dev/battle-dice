@@ -12,7 +12,7 @@ import { applyCardEffect } from "./effects";
 import type { PlayerId } from "../core/state";
 
 /** Turned back by Themis's Silent Verdict, these do nothing to whoever aimed them. */
-const VERDICT_UNDOES: readonly CardId[] = ["fateSwap", "riftCall"];
+const VERDICT_UNDOES: readonly CardId[] = ["fateSwap", "riftCall", "forcedTailwind"];
 
 /** Movement cards resolve the tile they end on, like a roll would. */
 export function playCard(
@@ -62,5 +62,5 @@ export function playCard(
     draft.events.push({ type: "cardBlocked", playerId, targetId: target.id, cardId: card.cardId, ward });
     return;
   }
-  applyCardEffect(draft, playerId, card, { targetId, value, portal, rollDie });
+  applyCardEffect(draft, playerId, card, { targetId, value, portal, rollDie, element: choice.element ?? null });
 }

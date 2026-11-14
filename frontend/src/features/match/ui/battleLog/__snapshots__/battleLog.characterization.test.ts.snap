@@ -170,6 +170,24 @@ exports[`battle log lines, one per branch > boardCleansed > case 1 1`] = `
 }
 `;
 
+exports[`battle log lines, one per branch > breezeArmed > case 0 1`] = `null`;
+
+exports[`battle log lines, one per branch > breezeFaded > case 0 1`] = `null`;
+
+exports[`battle log lines, one per branch > breezeResisted > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J2 (Bjorn) estava protegido da brisa",
+}
+`;
+
+exports[`battle log lines, one per branch > breezeStolen > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "🌪️ O vento de J1 (Bruxa Carmesim) roubou a rolagem de 6 de J2 (Bjorn)",
+}
+`;
+
 exports[`battle log lines, one per branch > cardBlocked > case 0 1`] = `
 {
   "actor": "p1",
@@ -263,6 +281,34 @@ exports[`battle log lines, one per branch > cardsStolen > case 2 1`] = `
 }
 `;
 
+exports[`battle log lines, one per branch > combustionExploded > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "💥 O dado de J1 (Bruxa Carmesim) explodiu: J2 (Bjorn) volta; rola de novo",
+}
+`;
+
+exports[`battle log lines, one per branch > combustionExploded > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "💥 O dado de J1 (Bruxa Carmesim) explodiu; rola de novo",
+}
+`;
+
+exports[`battle log lines, one per branch > combustionReady > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "🔥 J1 (Bruxa Carmesim) encantou o dado (×2 no 5 ou 6)",
+}
+`;
+
+exports[`battle log lines, one per branch > convergenceAwakened > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "✨ J1 (Bruxa Carmesim) entrou na Convergência: intocável por 2 rodadas",
+}
+`;
+
 exports[`battle log lines, one per branch > crownGained > case 0 1`] = `
 {
   "actor": "p1",
@@ -343,6 +389,27 @@ exports[`battle log lines, one per branch > diceRolled > case 7 1`] = `
 `;
 
 exports[`battle log lines, one per branch > discardRequired > case 0 1`] = `null`;
+
+exports[`battle log lines, one per branch > elementAttuned > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "Água entrou na órbita de J1 (Bruxa Carmesim) (2/4)",
+}
+`;
+
+exports[`battle log lines, one per branch > elementBent > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) dobrou a Terra",
+}
+`;
+
+exports[`battle log lines, one per branch > elementBent > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) dobrou a Fogo (dobrada)",
+}
+`;
 
 exports[`battle log lines, one per branch > emberSlid > case 0 1`] = `
 {
@@ -827,6 +894,34 @@ exports[`battle log lines, one per branch > susanooRepelled > case 0 1`] = `
 }
 `;
 
+exports[`battle log lines, one per branch > tetherBound > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "💧 J1 (Bruxa Carmesim) prendeu J2 (Bjorn) num Laço de Correnteza por 3 rodadas",
+}
+`;
+
+exports[`battle log lines, one per branch > tetherPulled > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) foi puxado 2 casas pela maré",
+}
+`;
+
+exports[`battle log lines, one per branch > tetherSnapped > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "O laço de J1 (Bruxa Carmesim) se desfez",
+}
+`;
+
+exports[`battle log lines, one per branch > tetherSwapped > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) trocou de lugar com J2 (Bjorn) (Chicote de Ressaca)",
+}
+`;
+
 exports[`battle log lines, one per branch > tilesEnchanted > case 0 1`] = `
 {
   "actor": "p1",
@@ -1046,6 +1141,34 @@ exports[`battle log lines, one per branch > voidSwallowed > case 0 1`] = `
 {
   "actor": "p1",
   "text": "O Vazio de J1 (Bruxa Carmesim) engoliu: perde a vez",
+}
+`;
+
+exports[`battle log lines, one per branch > wallCrumbled > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "A muralha da casa 12 caiu",
+}
+`;
+
+exports[`battle log lines, one per branch > wallHit > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "J1 (Bruxa Carmesim) bateu na muralha da casa 12 (5 de dano, restam 3)",
+}
+`;
+
+exports[`battle log lines, one per branch > wallRaised > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "🪨 J1 (Bruxa Carmesim) ergueu uma muralha na casa 12 (8 de vida)",
+}
+`;
+
+exports[`battle log lines, one per branch > wallStrengthened > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "🪨 A muralha da casa 12 agora aguenta 16",
 }
 `;
 

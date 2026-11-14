@@ -2,6 +2,7 @@ import type { AbilityPower } from "../abilities/ability";
 import type { CardId } from "../cards/catalog";
 import type { PlayerId } from "./state";
 import type { TileId, TimedBlessing } from "../board/types";
+import type { Element } from "../characters/tenzai/types";
 
 export type GameCommand =
   | { type: "rollDice"; playerId: PlayerId }
@@ -16,6 +17,8 @@ export type GameCommand =
       value?: number;
       /** Hand cards burnt to pay for a card that asks for them (see CardDefinition.sacrifices). */
       sacrificeUids?: readonly string[];
+      /** What Tenzai's Elemental Exchange turns into. */
+      element?: Element;
     }
   | { type: "discardCard"; playerId: PlayerId; cardUid: string }
   /** SACRIFICE_ENERGY for a card off the top of the deck, any time in the player's turn. */
@@ -43,6 +46,9 @@ export type GameCommand =
       frostTiles?: readonly TileId[];
       /** Zarek's Void, idle long enough: the tile whose spell it takes over. */
       seizeTile?: TileId;
+      /** Tenzai's bending; earth also needs `wallTile`, water a `targetId`. */
+      element?: Element;
+      wallTile?: TileId;
     }
   /** Zarek sets down the Void's `index`th item: a harm opens a rift right after `tile`, a spell lands on it. */
   | { type: "placeVoid"; playerId: PlayerId; index: number; tile: TileId; doubled?: boolean }

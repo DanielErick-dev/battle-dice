@@ -28,6 +28,9 @@ const IDLE_SIGNALS: PoseInput["signals"] = {
   abilityCast: null,
   verdict: null,
   outburst: null,
+  overWall: false,
+  meditating: false,
+  limping: false,
 };
 
 function input(now: number, overrides: Partial<PoseInput> = {}): PoseInput {

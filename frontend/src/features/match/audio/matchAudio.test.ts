@@ -70,7 +70,8 @@ describe("connectMatchAudio", () => {
     const trap = await setup([1], 7);
     trap.store.rollDice();
     vi.runAllTimers();
-    expect(trap.played.slice(-2)).toEqual(["trap", "leap"]);
+    // Stung, they limp back tile by tile.
+    expect(trap.played.slice(trap.played.indexOf("trap"))).toContain("step");
 
     const win = await setup([1], 19);
     win.store.rollDice();

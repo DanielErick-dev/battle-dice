@@ -1,12 +1,14 @@
 import { model, type CharacterDefinition } from "../types";
 
 export const zephyr = {
-  name: "Zéfiro",
-  epithet: "O vento sempre a favor",
+  // Tenzai now; the code id and asset folder kept the old name.
+  name: "Tenzai",
+  epithet: "O Senhor dos Quatro Elementos",
   // Mint, the colour of a clear gust.
   color: "#86efac",
   model: model("zephyr"),
-  ability: "tailwind",
+  ability: "fourElements",
+  meditates: true,
   playable: true,
   shieldColor: "#86efac",
   chair: "elementalThrone",

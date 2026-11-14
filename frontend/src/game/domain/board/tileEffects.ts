@@ -11,6 +11,7 @@ import { loseTurns } from "./harm";
 import { moveTo, playerIn, updatePlayer, type Draft } from "../core/draft";
 import { unpinPassed } from "../characters/archer/arrowRain";
 import { walkPath } from "./paths";
+import { clipAtWalls } from "../characters/tenzai/elements";
 import type { Blessing, TileEffect, TileId } from "./types";
 import type { PlayerId } from "../core/state";
 
@@ -62,13 +63,14 @@ export function applyTileEffect(
       applyBlessing(draft, playerId, landed, effect.blessing);
       break;
     case "advance": {
-      const path = walkPath(board, landed, effect.to - landed);
+      // Tenzai's walls stop the advance like any walk.
+      const { path } = clipAtWalls(draft, playerId, walkPath(board, landed, effect.to - landed));
       draft.events.push(
         { type: "advanceTriggered", playerId, from: landed, to: effect.to },
         { type: "playerMoved", playerId, path },
       );
       crossSpecters(draft, playerId, path);
-      moveTo(draft, playerId, effect.to);
+      moveTo(draft, playerId, path.at(-1) ?? landed);
       unpinPassed(draft, path);
       break;
     }

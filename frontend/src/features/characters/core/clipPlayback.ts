@@ -27,6 +27,16 @@ export const CLIP_PLAYBACK: Readonly<Record<CharacterClip, ClipPlayback>> = {
   scoff: { speed: 1, once: true },
   strike: { speed: 1, once: true },
   fume: { speed: 1, once: true },
+  quake: { speed: 1, once: true },
+  tide: { speed: 1.6, once: true },
+  flare: { speed: 1, once: true },
+  gust: { speed: 2.2, once: true },
+  meditate: { speed: 1, once: true },
+  lotus: { speed: 1, once: true },
+  vault: { speed: 1, once: true },
+  punch: { speed: 1, once: true },
+  ouch: { speed: 1.4, once: true },
+  limp: { speed: 1, once: false },
 };
 
 export const CHARACTER_CLIPS = Object.keys(CLIP_PLAYBACK) as readonly CharacterClip[];

@@ -64,7 +64,7 @@ Algumas escolhas pausam o jogo até serem respondidas: descartar com a mão chei
 - Um dado comum de **6** faces.
 - Cartas de **lançamento** mudam o jeito de rolar (2 dados somados, 2 dados ficando com o maior, valor escolhido). Só uma pode esperar a rolagem de cada vez.
 - Cartas de **bônus** somam casas e se acumulam entre si e com uma carta de lançamento (combo).
-- Ordem do cálculo: dado (ou dados) → **+** bônus de cartas, Vento a Favor, Asas Celestiais, coroa de Seraphiel e Ímpeto do Akane → **×** Fúria Adormecida, se estiver em uso → **÷ 2**, arredondando para baixo, se quem rola estiver pegando fogo.
+- Ordem do cálculo: dado (ou dados) → **+** bônus de cartas, Asas Celestiais, coroa de Seraphiel e Ímpeto do Akane → **×** Fúria Adormecida, se estiver em uso → **÷ 2**, arredondando para baixo, se quem rola estiver pegando fogo → **× 2** se o Dado de Combustão do Tenzai explodir.
 - Todo efeito de carta no dado vale para a **próxima rolagem** e fica esperando até ela acontecer, mesmo que você perca vezes no caminho.
 
 ### Energia
@@ -87,9 +87,9 @@ Energia paga as cartas. Também vem de casas de energia (+2), da Fonte de Luz (+
 
 | Ciclo | Habilidades |
 |---|---|
-| **3** | Conjuração Dupla, Vento a Favor, Bênção do Serafim, Transmutação, Aposta do Coringa |
+| **3** | Conjuração Dupla, Bênção do Serafim, Transmutação, Aposta do Coringa |
 | **4** | O Vazio (mais +1 por armadilha disparada, destruída ou presa), Veredito Silencioso (reativo, carga secreta) |
-| **5** | Levitação Carmesim, Fúria Adormecida, Chuva de Flechas, Ressurreição, Escritura dos 4 Selos, Aparições Espectrais, Florescimento Feérico, Maré Purificadora, Zona de Incêndio, Indomável, Canhão de Plasma |
+| **5** | Levitação Carmesim, Fúria Adormecida, Chuva de Flechas, Ressurreição, Escritura dos 4 Selos, Aparições Espectrais, Florescimento Feérico, Maré Purificadora, Zona de Incêndio, Indomável, Canhão de Plasma, Domínio dos 4 Elementos |
 | **6** | Despertar Ocular |
 | **7** | Arrastar ao Inferno, Engrenagem do Tempo |
 
@@ -187,6 +187,7 @@ As 18 casas alternam as **quatro bênçãos** e as **três relíquias** (ver [Re
 | Bênção | Efeito |
 |---|---|
 | **Asas Celestiais** | **+2** casas em cada rolagem |
+| **Convergência** | Passiva do Tenzai (4 elementos) | 2 rodadas, contando a atual | O mesmo que o Indomável | Bênçãos continuam valendo |
 | **Auréola Sagrada** | Armadilhas (escondidas também) e maldições não te atingem. "Perde a vez" ainda atinge. |
 | **Inspiração Divina** | A habilidade carrega em dobro (+2 por vez) |
 | **Fonte de Luz** | **+1** de energia no começo de cada vez sua |
@@ -354,7 +355,7 @@ Só as cartas dessa tabela fundem. O baralho tem 3 cópias de Passo do Vento, Er
 | **O Vazio** | Habilidade do Zarek | Reativa | Armadilha (escondida também), maldição ou perde a vez, à escolha dele: vai para o Vazio | Nada mirado; com o Vazio cheio, não é oferecido |
 
 Detalhes:
-- **Armadura Espectral, Égide, Susanoo e Indomável** são as quatro proteções "contra os outros". No jogo, quem está sob uma delas é chamado de **protegido**.
+- **Armadura Espectral, Égide, Susanoo, Indomável e Convergência** são as proteções "contra os outros". No jogo, quem está sob uma delas é chamado de **protegido**.
 - A **Bruxa Carmesim** (passiva) também ignora a neve, o gelo e o fogo negro dos outros, mesmo sem levitar.
 - Uma armadura que barra um selo ou uma aparição **não os destrói**: eles continuam lá, esperando outra pessoa.
 
@@ -362,7 +363,7 @@ Detalhes:
 
 1. Habilidades e cartas que **miram um oponente** (Rajada Arcana, Clarão Ofuscante, Troca de Destinos, Chamado do Abismo, Arrastar ao Inferno, Engrenagem do Tempo, Aposta do Coringa) **sempre** deixam escolher oponentes protegidos. O jogo não esconde ninguém: é preciso prestar atenção em quem está protegido.
 2. Mirar num protegido **gasta** a carta (energia e tudo) ou a habilidade (carga zerada), não faz nada e mostra o aviso **BLOQUEADO!**.
-3. Quem barra, nesta ordem: Indomável → Susanoo → Armadura Espectral → Égide Celestial.
+3. Quem barra, nesta ordem: Indomável → Convergência → Susanoo → Armadura Espectral → Égide Celestial.
 4. **Oponentes em outro reino não podem ser alvo.** Eles nem aparecem na lista (do céu, o Cronos não alcança o tabuleiro).
 5. Efeitos **em área**, que não escolhem alvo (Chuva de Flechas nos oponentes, o empurrão do Canhão de Plasma, o atropelo do Bjorn), simplesmente pulam os protegidos, sem BLOQUEADO.
 6. Exceção da Aposta do Coringa: sem ninguém para roubar no mesmo lugar, ela lista **todos** os oponentes e oferece o **Lance da Sorte** (ver a ficha do Coringa).
@@ -389,7 +390,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 | 10 | Guardião das Sombras | Aparições Espectrais | 5 |
 | 11 | Kage Rubra | Despertar Ocular | 6 |
 | 12 | Fada Cristalina | Florescimento Feérico | 5 |
-| 13 | Zéfiro | Vento a Favor | 3 |
+| 13 | Tenzai | Domínio dos 4 Elementos | 5 |
 | 14 | Têmis | Veredito Silencioso | 4 |
 | 15 | Akane | Zona de Incêndio | 5 |
 | 16 | Bjorn Presa-Gélida | Indomável | 5 |
@@ -696,19 +697,27 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 
 ---
 
-### 13. Zéfiro
-*O vento sempre a favor*
+### 13. Tenzai
+*O Senhor dos Quatro Elementos* (antes chamado Zéfiro; no código continua `zephyr`)
 
-**Habilidade:** Vento a Favor · **Carga:** 3
+**Habilidade:** Domínio dos 4 Elementos · **Carga:** 5
 
 **O que faz**
-1. Use antes de rolar: a rolagem desta vez anda **+4** casas.
+1. Ao usar, escolha **um elemento**. Nunca o mesmo da última vez (pode voltar a ele depois de usar outro).
+2. **Terra, Muralha Tectônica:** ergue uma muralha de **8 de vida** numa casa livre (sem jogador, portal ou outra muralha) até 6 casas à frente de qualquer jogador no caminho principal. Quem anda e chega nela **para na casa antes**, e o valor da rolagem sai da vida dela. Com 0 ela cai, mas quem bateu continua parado atrás. Só ele atravessa as próprias muralhas. No máximo **2** muralhas dele: a terceira derruba a mais antiga.
+3. **Água, Laço de Correnteza:** mira um oponente no mesmo lugar e o prende por **3 rodadas**. Sempre que o alvo anda para a frente (rolagem, Passo do Vento, marcha), Tenzai é puxado **metade** do que ele andou, arredondando para baixo. A casa onde ele cai não tem efeito, e as muralhas dos outros também o param. Alvo protegido: BLOQUEADO.
+4. **Fogo, Dado de Combustão:** encanta o dado desta vez. Se a face for **5 ou 6** (antes dos bônus), a rolagem inteira vale **o dobro**; ao parar, o dado explode e empurra **6 casas** quem estiver a até **3 casas** dele (protegidos ficam de fora), e ele ganha uma **vez extra**.
+5. **Vento, Sequestro de Brisa:** arma uma armadilha **escondida** (só ele sabe que está armada). Na próxima rolagem de um oponente que dê **6 ou mais** (já com os bônus), o oponente **não anda** e Tenzai anda esse valor; a casa onde ele cai não tem efeito. Oponente protegido: a brisa escorrega e continua armada. Só 1 brisa dele por vez.
+
+**Passiva: Despertar Primordial**
+- Cada elemento **novo** que ele dobra (pela habilidade ou pelas cartas dele) entra na órbita, um orbe girando em volta dele.
+- Com os **4**, a órbita se esvazia e vem a **Convergência**: intocável por **2 rodadas**, contando a atual (bloqueia o mesmo que o Indomável: o que os outros miram, armadilhas, maldições e perde a vez), **+3** na rolagem desta vez e a habilidade **pronta de novo**.
 
 **Detalhes e exceções**
-- Soma com os bônus de cartas, Asas e coroa.
-- Vale só para a vez em que foi usada.
+- Muralhas param qualquer andar para a frente (rolagem, cartas, casa de avanço). Só a rolagem tira vida delas. Empurrões, teleportes e o tempo invertido passam por elas.
+- Mira de Água virada pelo Veredito da Têmis prende o próprio Tenzai nela.
 
-> no código: `abilities/basic.ts` (`rollBonus`)
+> no código: `characters/tenzai/` (`elements.ts`, `cards.ts`), `handlers/turnCommands.ts` (muralha, brisa, combustão e laço na rolagem)
 
 ---
 

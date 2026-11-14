@@ -5,6 +5,7 @@ import { divineArt } from "./divine";
 import { themisArt } from "./themis";
 import { akaneArt } from "./akane";
 import { zarekArt } from "./zarek";
+import { tenzaiArt } from "./tenzai";
 
 /** Procedural artwork for each card (inline SVG, 100×70 viewBox): no image files or rights. */
 export const ART: Readonly<Record<CardId, ReactNode>> = {
@@ -13,4 +14,5 @@ export const ART: Readonly<Record<CardId, ReactNode>> = {
   ...themisArt,
   ...akaneArt,
   ...zarekArt,
+  ...tenzaiArt,
 };

@@ -1,7 +1,9 @@
 import { cardBlocker, type CardTable } from "@/game/domain/cards/blocker";
 import { cardTargets } from "@/game/domain/cards/choice";
 import { CARD_CATALOG, cardCost } from "@/game/domain/cards/catalog";
-import type { CardInstance, Player } from "@/game/domain/types";
+import type { CardInstance, Element, Player } from "@/game/domain/types";
+import { exchangeSource } from "@/game/domain/characters/tenzai/cards";
+import { ELEMENTS } from "@/game/domain/characters/tenzai/types";
 
 /** Everything that decides whether a card in hand can be played now (see CardHand). */
 export interface CardPlayContext {
@@ -16,6 +18,11 @@ export interface CardPlayContext {
 /** The opponents a card in hand can be aimed at (see cardTargets). */
 export function cardTargetsFor({ table, player, players }: CardPlayContext, card: CardInstance): Player[] {
   return cardTargets(table.board, players, player.id, card.cardId);
+}
+
+/** The elements Tenzai's Elemental Exchange can turn one of his creations into. */
+export function exchangeElements({ table, player }: CardPlayContext): Element[] {
+  return ELEMENTS.filter((element) => exchangeSource(table.elementals, player.id, element) !== null);
 }
 
 /** Why a card can't be played right now, in words; null when it can. */
@@ -50,6 +57,10 @@ export function cardBlockReason(context: CardPlayContext, card: CardInstance): s
       return "Nenhuma armadilha à vista à frente";
     case "NO_SACRIFICE":
       return "Precisa de outra carta na mão para queimar";
+    case "NO_TARGET_AHEAD":
+      return "Nenhum oponente desprotegido à sua frente";
+    case "NO_CREATION":
+      return "Precisa de uma muralha, laço ou brisa sua em jogo";
   }
   if (CARD_CATALOG[card.cardId].targetsOpponent && cardTargetsFor(context, card).length === 0) {
     if (card.cardId === "abyssCall") return "Ninguém fora do céu ou do inferno ao seu alcance";

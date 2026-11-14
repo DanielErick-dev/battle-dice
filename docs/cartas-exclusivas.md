@@ -138,14 +138,15 @@ Resolve a queixa de "não ter carta para transmutar".
 | Pó de Fada | Rara · 2 | Avance até a próxima neve sua à frente (até 10 casas). |
 | Coração de Gelo | Épica · 3 | No Inverno Eterno: o gelo avança +3 casas. Fora dele: +2 de carga. |
 
-### Zéfiro (Vento a Favor)
-Pode mudar quando ele ganhar as 4 habilidades dos elementos.
+### Tenzai (Domínio dos 4 Elementos)
+Cada carta conta o seu elemento para a passiva (Despertar Primordial).
 | Carta | Raridade · custo | Efeito |
 |---|---|---|
-| Rajada a Favor | Comum · 1 | Bônus: +2 na próxima rolagem. |
-| Sopro | Incomum · 2 | Mira: empurra 4 casas. |
-| Redemoinho | Rara · 2 | Mira: troca de lugar com um oponente a até 3 casas de você. |
-| Furacão | Épica · 3 | Todos os oponentes no seu alcance voltam 3 casas. |
+| Fortificação Tectônica (Terra) | Comum · 1 | Dobra a vida (atual e máxima) de todas as muralhas dele. Sem nenhuma, ergue uma de 6 de vida na primeira casa livre à frente do líder. |
+| Chicote de Ressaca (Água) | Comum · 2 | Com laço ativo: troca de lugar com o alvo preso (o laço continua). Sem laço: prende por 1 rodada o oponente desprotegido mais perto à frente. |
+| Vento de Cauda Forçado (Vento) | Rara · 2 | Mira: a próxima rolagem do oponente anda +3 (ajuda a chegar no 6 da brisa ou a bater na muralha). |
+| Câmbio Elemental (vira o elemento escolhido) | Rara · 3 | Gasta uma criação dele (brisa, depois laço, depois muralha) e a troca por outro elemento **dobrado**: muralha de 16 à frente do líder, laço no líder por 6 rodadas, brisa que anda o dobro do roubado, ou combustão ×4 que empurra 12. |
+| Convergência dos Quatro (os 4) | Épica · 5 | Muralha de 8 à frente do líder, laço no líder (3 rodadas), brisa armada e dado de combustão, tudo de uma vez: completa a órbita e desperta a Convergência. |
 
 ### Bjorn Presa-Gélida (Indomável)
 | Carta | Raridade · custo | Efeito |

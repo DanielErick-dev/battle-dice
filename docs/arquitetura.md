@@ -22,15 +22,16 @@ frontend/src/
 │   ├── menu/                ← seleção de personagem com as intros
 │   ├── party/tv/            ← modo festa: a TV (`/mesa`) hospeda a sala e mostra a partida como espectadora
 │   ├── party/controller/    ← modo festa: o celular (`/controle`) como controle, sem 3D
+│   ├── codex/               ← tela Personagens (`/personagens`): estilo, habilidade, cartas e dicas de cada um
 │   └── settings/            ← configurações
-├── app/                     ← rotas do Next.js (/, /jogar, /partida, /mesa, /controle, /configuracoes)
+├── app/                     ← rotas do Next.js (/, /jogar, /partida, /mesa, /controle, /configuracoes, /personagens)
 ├── components/ui/           ← peças visuais genéricas (button) no estilo shadcn/ui
 └── lib/                     ← utilitários
 ```
 
-**Direção das dependências em `features/`:** `menu` e `match` importam `characters`, que importa `shared`. `characters` e `shared` não importam `menu` nem `match`, e `match` não importa `menu`. `menu` e `settings` não importam `match`. `party` importa `match` (reusa o `MatchTable` e o `MatchStore`); ninguém importa `party`. O código da sala fica em `shared/party/`, para o menu e o celular usarem.
+**Direção das dependências em `features/`:** `menu` e `match` importam `characters`, que importa `shared`. `characters` e `shared` não importam `menu` nem `match`, e `match` não importa `menu`. `menu` e `settings` não importam `match`. `party` importa `match` (reusa o `MatchTable` e o `MatchStore`); ninguém importa `party`. `codex` importa `menu` e `match` (o palco do personagem e as cartas); ninguém importa `codex`. O código da sala fica em `shared/party/`, para o menu e o celular usarem.
 
-**Regra de ouro:** `game/` não importa nada de `features/`. As regras do jogo não sabem que existe 3D, som ou React. O ESLint garante isso: em `src/game/**`, importar `features/`, `app/`, `components/`, React, Next ou Three.js dá erro, e `game/domain/` também não pode importar `game/application/`. Isso permite:
+**Regra de ouro:** `game/` não importa nada de `features/`. As regras do jogo não sabem que existe 3D, som ou React. O ESLint garante isso: em `src/game/**` só valem imports relativos (e `vitest` nos testes); qualquer pacote, alias `@/` ou camada de apresentação dá erro, e `game/domain/` também não pode importar `game/application/`. Isso permite:
 
 - testar todas as regras com vitest, sem navegador;
 - levar o mesmo código para o servidor no futuro (o backend FastAPI vai validar as jogadas reimplementando ou espelhando essas regras);

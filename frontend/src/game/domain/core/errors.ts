@@ -44,7 +44,12 @@ export type GameErrorCode =
   | "NO_SACRIFICE"
   | "INVALID_SACRIFICE"
   | "NO_INNER_FLAME"
-  | "NO_FIRE";
+  | "NO_FIRE"
+  | "INVALID_ELEMENT"
+  | "ELEMENT_LOCKED"
+  | "INVALID_WALL"
+  | "NO_TARGET_AHEAD"
+  | "NO_CREATION";
 
 export class GameRuleError extends Error {
   constructor(readonly code: GameErrorCode) {

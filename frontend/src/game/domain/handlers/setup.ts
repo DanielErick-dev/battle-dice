@@ -8,6 +8,7 @@ import { buildDeck } from "../cards/decks";
 import { placeHiddenTraps } from "../board/hiddenTraps";
 import type { RandomSource } from "../core/random";
 import type { Board } from "../board/types";
+import { NO_ELEMENTALS } from "../characters/tenzai/types";
 import type { GameState, Player, PlayerId } from "../core/state";
 
 export interface NewPlayer {
@@ -53,6 +54,7 @@ export function openingState(
     voidScars: [],
     winter: null,
     pendingPlunder: null,
+    elementals: NO_ELEMENTALS,
   };
 }
 
@@ -103,5 +105,9 @@ function dealPlayer({ id, name, ability = null }: NewPlayer, { startTile, cards,
     impetusRolls: 0,
     fuelRolls: 0,
     emberStep: false,
+    elements: [],
+    lastElement: null,
+    converged: 0,
+    combustion: null,
   };
 }

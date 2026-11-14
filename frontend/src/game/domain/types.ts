@@ -19,6 +19,7 @@ export type * from "./characters/kage/types";
 export type * from "./characters/necromancer/types";
 export type * from "./characters/scribe/types";
 export type * from "./characters/seraphiel/types";
+export type * from "./characters/tenzai/types";
 export type * from "./characters/themis/types";
 export type * from "./characters/warden/types";
 export type * from "./characters/zarek/types";

@@ -7,6 +7,7 @@ import { drainSnow } from "../characters/fairy/snow";
 import { spreadWinter } from "../characters/fairy/winter";
 import { burnDown } from "../characters/kage/flames";
 import { burnDownScarlet, feedTheFire } from "../characters/akane/fire";
+import { wearTethers } from "../characters/tenzai/elements";
 
 /** Returns the next player's index. Timed effects wear off as their owner's turn ends; charge and energy come as one starts. */
 export function endTurn(draft: Draft, extraTurn: boolean): number {
@@ -21,6 +22,8 @@ export function endTurn(draft: Draft, extraTurn: boolean): number {
     spectralArmour: Math.max(0, ending.spectralArmour - 1),
     divineAegis: Math.max(0, ending.divineAegis - 1),
     untamed: Math.max(0, ending.untamed - 1),
+    converged: Math.max(0, ending.converged - 1),
+    combustion: null,
     burning: Math.max(0, ending.burning - 1),
     emberStep: false,
     blessings: wearBlessings(draft.state.board, ending),
@@ -28,6 +31,7 @@ export function endTurn(draft: Draft, extraTurn: boolean): number {
   };
   burnDown(draft, ending.id);
   burnDownScarlet(draft, ending.id);
+  wearTethers(draft, ending.id);
 
   // Stuck by this very turn, the extra turn still owed is spent as the first lost one.
   const passes = !extraTurn || ending.skipTurns > 0;

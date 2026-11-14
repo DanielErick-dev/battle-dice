@@ -3,6 +3,7 @@ import { flammableTiles } from "@/game/domain/characters/kage/flames";
 import { sealableTiles, sealedTiles } from "@/game/domain/characters/scribe/seals";
 import { hauntableTiles, takenForSpecters } from "@/game/domain/characters/warden/specters";
 import type { TileId } from "@/game/domain/types";
+import { wallableTiles } from "@/game/domain/characters/tenzai/elements";
 import { harmGround, seizableTiles, spellGround } from "@/game/domain/characters/zarek/ground";
 import type { MatchStore } from "../../model/matchStore";
 import type { PickCursor } from "../../scene/board/pickCursor";
@@ -13,6 +14,7 @@ import {
   SEAL_STEPS,
   SPECTER_STEPS,
   VOID_SEIZE_STEP,
+  WALL_STEP,
   voidReleaseStep,
   type PlacementStep,
 } from "../placementText";
@@ -93,6 +95,16 @@ export function placementOf(placement: Placement, scene: AbilityScene): Placemen
         confirmLabel: "Congelar",
         cursor: "frost",
         send: activating((frostTiles) => ({ frostTiles })),
+      };
+    case "wall":
+      return {
+        title: "Muralha Tectônica",
+        tone: "text-amber-500",
+        steps: [WALL_STEP],
+        tiles: wallableTiles(board, view.players, view.elementals),
+        confirmLabel: "Erguer muralha",
+        cursor: "wall",
+        send: activating(([wallTile]) => ({ element: "earth", wallTile })),
       };
     case "seize":
       return {

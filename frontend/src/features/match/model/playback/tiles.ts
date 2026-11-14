@@ -1,13 +1,26 @@
 /** What tiles do to whoever lands on them: realms, blessings, portals and traps. */
 import { blessingTurns } from "@/game/domain/board/blessings";
 import type { PlaybackTimings } from "@/features/shared/config";
-import { withPlayer, withPlayerAt, type TileEffectView } from "../matchView";
+import { withPlayer, withPlayerAt, type MatchView, type TileEffectView } from "../matchView";
 import { blessingTurnsOf } from "./helpers";
 import type { EventOf, PlaybackStep, StepHandlers } from "./types";
 
 /** A portal or a trap carries the player off: the tile flares up, then they travel to where it sends them. */
+/** Most traps send you a few tiles back along the same numbered stretch: limped back tile by tile. */
+const LIMP_MAX_TILES = 12;
+
 function carriedAwaySteps(event: EventOf<"portalEntered" | "trapTriggered">, timings: PlaybackTimings): PlaybackStep[] {
   const kind = event.type === "portalEntered" ? "portal" : "trap";
+  const back = event.from - event.to;
+  if (kind === "trap" && back > 0 && back <= LIMP_MAX_TILES) {
+    return [
+      { apply: (view) => ({ ...view, effect: { kind, ...event } }), durationMs: timings.effectWarmupMs },
+      ...Array.from({ length: back }, (_, index) => ({
+        apply: (view: MatchView) => withPlayerAt(view, event.playerId, event.from - index - 1),
+        durationMs: timings.pushStepMs * 1.6,
+      })),
+    ];
+  }
   return [
     {
       apply: (view) => ({ ...view, effect: { kind, ...event } }),

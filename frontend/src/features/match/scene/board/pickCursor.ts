@@ -1,7 +1,7 @@
 import type { TileId } from "@/game/domain/types";
 
 /** Whose ability is being placed on the board, which picks the pointer's look. */
-export type PickCursor = "seals" | "specters" | "flames" | "frost" | "void";
+export type PickCursor = "seals" | "specters" | "flames" | "frost" | "void" | "wall";
 
 /** Each placement's glow: the scribe's seals, the warden's apparitions, Kage Rubra's black fire. */
 const GLOW: Record<PickCursor, string> = {
@@ -10,6 +10,7 @@ const GLOW: Record<PickCursor, string> = {
   flames: "#fb923c",
   frost: "#a5f3fc",
   void: "#a78bfa",
+  wall: "#d97706",
 };
 
 /**

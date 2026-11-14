@@ -34,7 +34,13 @@ export type CardId =
   | "voidHunger"
   | "hungryRift"
   | "voidEcho"
-  | "riftCall";
+  | "riftCall"
+  // Tenzai's own (see characters/tenzai/cards.ts).
+  | "tectonicFortification"
+  | "riptideLash"
+  | "forcedTailwind"
+  | "elementalExchange"
+  | "elementalConvergence";
 
 export type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary";
 
@@ -131,6 +137,13 @@ export const CARD_CATALOG: Readonly<Record<CardId, CardDefinition>> = {
   hungryRift: card("hungryRift", "rare", { exclusive: "theVoid" }),
   voidEcho: card("voidEcho", "epic", { exclusive: "theVoid" }),
   riftCall: card("riftCall", "epic", { exclusive: "theVoid", targetsOpponent: true }),
+
+  tectonicFortification: card("tectonicFortification", "common", { exclusive: "fourElements" }),
+  riptideLash: card("riptideLash", "common", { exclusive: "fourElements", cost: 2, needsOpponent: true }),
+  forcedTailwind: card("forcedTailwind", "rare", { exclusive: "fourElements", targetsOpponent: true }),
+  elementalExchange: card("elementalExchange", "rare", { exclusive: "fourElements", cost: 3 }),
+  // His trump: all four elements at once, which wakes the Convergence.
+  elementalConvergence: card("elementalConvergence", "epic", { exclusive: "fourElements", cost: 5 }),
 };
 
 /** One kind per celestial tile. */

@@ -189,12 +189,17 @@ export function MatchSetupScreen() {
         </section>
 
         <section aria-labelledby="character-title" className="flex flex-col gap-3 xl:contents">
-          <h2
-            id="character-title"
-            className="text-xs font-bold tracking-[0.3em] text-zinc-400 uppercase xl:col-start-2"
-          >
-            {seats.length > 1 ? `Personagem do jogador ${seat + 1}` : "Personagem"}
-          </h2>
+          <div className="flex items-baseline justify-between gap-3 xl:col-start-2">
+            <h2 id="character-title" className="text-xs font-bold tracking-[0.3em] text-zinc-400 uppercase">
+              {seats.length > 1 ? `Personagem do jogador ${seat + 1}` : "Personagem"}
+            </h2>
+            <Link
+              href={`/personagens?personagem=${characterId}`}
+              className="relative z-20 text-xs font-bold tracking-wider text-amber-300/90 uppercase hover:text-amber-200"
+            >
+              Ver detalhes de {CHARACTERS[characterId].name} →
+            </Link>
+          </div>
           {/* The stage stays in view at the top while the character list scrolls past it. */}
           <div className="grid items-start gap-4 md:grid-cols-[18rem_1fr] xl:contents">
             {/* At most 80% of its column, at its left (the canvas bleeds a fifth of its width past each side, short of the

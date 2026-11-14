@@ -10,6 +10,7 @@ import type { Seal } from "../characters/scribe/types";
 import type { Crown } from "../characters/seraphiel/types";
 import type { PendingPlunder, Specter } from "../characters/warden/types";
 import type { VoidItem, VoidScar } from "../characters/zarek/types";
+import type { Combustion, Element, Elementals } from "../characters/tenzai/types";
 
 export type { PlayerId };
 
@@ -79,6 +80,14 @@ export interface Player {
   fuelRolls: number;
   /** Ember Step played this turn: a roll stopping on fire slides on. */
   emberStep: boolean;
+  /** Tenzai's orbit: the elements bent since the last Convergence (see characters/tenzai/). */
+  elements: readonly Element[];
+  /** The element he bent last with his ability: never twice in a row. */
+  lastElement: Element | null;
+  /** Own turns left in the Convergence (untouchable like Untamed), the current one included. */
+  converged: number;
+  /** His die enchanted for this turn's roll (Combustion Die). */
+  combustion: Combustion | null;
 }
 
 /** One physical copy of a card; `uid` tells copies of the same card apart. */
@@ -175,6 +184,8 @@ export interface GameState {
   /** Tiles Zarek's Void marked purple (see VoidScar). */
   voidScars: readonly VoidScar[];
   pendingPlunder: PendingPlunder | null;
+  /** Tenzai's walls, bonds and (secret) breezes. */
+  elementals: Elementals;
   /** Every die and shuffle draws from here, so a stateless server can resolve any command. */
   rng: RngState;
 }

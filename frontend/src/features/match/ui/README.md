@@ -2,14 +2,14 @@
 
 HTML e CSS por cima da cena 3D. Lê a `MatchView` e manda cliques para o `matchStore`.
 
-| Pasta ou arquivo  | O que tem                                                                                                     |
-| ----------------- | ------------------------------------------------------------------------------------------------------------- |
-| `MatchScreen.tsx` | Monta a tela. A lógica fica em `screen/`.                                                                     |
-| `screen/`         | Hooks da tela (`useAbilityUse`, `useCameraChoice`, `useMatchClock`) e os painéis maiores dela.                |
-| `abilities/`      | O que "Usar" faz em cada habilidade que pergunta algo. Tem README próprio.                                    |
-| `battleLog/`      | O texto do log: um mapa tipado `evento → linha`, um arquivo por tema, como em `model/playback/`.              |
-| `hud/`            | Dado, jogadores, ampulheta, banner. O texto do banner fica em `hud/effectCopy/`, um arquivo por tema.         |
-| `cards/`          | Mão, overlays e cartas. A arte desenhada fica em `cards/art/`, um arquivo por dono.                           |
+| Pasta ou arquivo  | O que tem                                                                                             |
+| ----------------- | ----------------------------------------------------------------------------------------------------- |
+| `MatchScreen.tsx` | Monta a tela. A lógica fica em `screen/`.                                                             |
+| `screen/`         | Hooks da tela (`useAbilityUse`, `useCameraChoice`, `useMatchClock`) e os painéis maiores dela.        |
+| `abilities/`      | O que "Usar" faz em cada habilidade que pergunta algo. Tem README próprio.                            |
+| `battleLog/`      | O texto do log: um mapa tipado `evento → linha`, um arquivo por tema, como em `model/playback/`.      |
+| `hud/`            | Dado, jogadores, ampulheta, banner. O texto do banner fica em `hud/effectCopy/`, um arquivo por tema. |
+| `cards/`          | Mão, overlays e cartas. A arte desenhada fica em `cards/art/`, um arquivo por dono.                   |
 
 ## Personagem ou evento novo
 

@@ -1,5 +1,5 @@
 import { at } from "../core/invariant";
-import { rollBonus, rollMultiplier } from "../abilities/basic";
+import { rollMultiplier } from "../abilities/basic";
 import { unpinPassed } from "../characters/archer/arrowRain";
 import { walkTrampling } from "../characters/bjorn/untamed";
 import { blessingCount, WINGS_BONUS } from "../board/blessings";
@@ -15,6 +15,15 @@ import { closeRifts } from "../characters/zarek/rifts";
 import { burntRoll, prepareRoll, settleRoll } from "../characters/akane/fire";
 import { slideOnEmbers } from "../characters/akane/cards";
 import type { DiceBoost, PlayerId } from "../core/state";
+import {
+  clipAtWalls,
+  combustionMultiplier,
+  detonate,
+  hitWall,
+  pullTethered,
+  stealRoll,
+} from "../characters/tenzai/elements";
+import type { StoneWall } from "../characters/tenzai/types";
 import { openingState } from "./setup";
 import { assertCanAct, settle } from "./shared";
 import type { CommandHandlers } from "./types";
@@ -36,7 +45,6 @@ export const turnCommands: CommandHandlers<"rollDice" | "forfeitTurn" | "restart
       {
         extra:
           diceBonuses.reduce((sum, { amount }) => sum + amount, 0) +
-          rollBonus(state.abilityInUse) +
           blessingCount(state.board, player, "wings") * WINGS_BONUS +
           (player.crown ? CROWN_BONUS : 0) +
           impetus,
@@ -47,12 +55,18 @@ export const turnCommands: CommandHandlers<"rollDice" | "forfeitTurn" | "restart
     );
     // On Akane's fire the whole walk is halved, rounded down: a 1 doesn't move at all.
     const burnt = player.burning > 0;
+    // Tenzai's Combustion Die: a high face multiplies the whole walk, then explodes once he stops.
+    const combustion = combustionMultiplier(player, Math.max(...thrown.dice));
+    const walked = burnt ? burntRoll(thrown.value) : thrown.value;
     const rolled = {
       ...thrown,
-      ...(burnt && { value: burntRoll(thrown.value), halved: true }),
+      ...(burnt && { halved: true }),
+      value: walked * combustion,
+      ...(combustion > 1 && { combustion }),
       ...(impetus > 0 && { impetus: true }),
     };
     updatePlayer(draft, playerId, (current) => ({
+      combustion: null,
       containedRolls: Math.max(0, current.containedRolls - 1),
       diceBoost: null, // every boost is spent by a single roll
       diceBonuses: diceBonuses.filter(({ rolls }) => rolls > 1).map((bonus) => ({ ...bonus, rolls: bonus.rolls - 1 })),
@@ -61,19 +75,28 @@ export const turnCommands: CommandHandlers<"rollDice" | "forfeitTurn" | "restart
     // Under Cronos's reversed time the roll walks back the way the player came.
     const reversed = player.reversedRolls > 0;
     if (reversed) updatePlayer(draft, playerId, (current) => ({ reversedRolls: current.reversedRolls - 1 }));
-    const path = reversed
+    let path = reversed
       ? pushPath(state.board, player.position, rolled.value, player.realmEntry)
       : walkPath(state.board, player.position, rolled.value, player.realmEntry);
     const dash = rolled.multiplier !== undefined;
+    let wall: StoneWall | null = null;
     if (reversed)
       draft.events.push({ ...rolled, reversed }, { type: "playerMoved", playerId, path, ...(dash && { dash }) });
     else {
       draft.events.push(rolled);
-      walkTrampling(draft, playerId, path, dash);
+      // Tenzai's breeze takes the whole roll for him; otherwise a wall in the way stops the walk short.
+      if (stealRoll(draft, playerId, rolled.value)) path = [];
+      else {
+        ({ path, wall } = clipAtWalls(draft, playerId, path));
+        walkTrampling(draft, playerId, path, dash);
+        if (wall) hitWall(draft, playerId, wall, rolled.value);
+      }
     }
     crossSpecters(draft, playerId, path);
     if (path.length > 0) resolveLanding(draft, playerId, path.at(-1) ?? player.position);
     unpinPassed(draft, path);
+    if (!reversed) pullTethered(draft, playerId, path.length);
+    if (combustion > 1 && player.combustion) detonate(draft, playerId, player.combustion.push);
     slideOnEmbers(draft, playerId);
     const face = thrown.best ? Math.max(...thrown.dice) : thrown.dice.reduce((sum, die) => sum + die, 0);
     settleRoll(draft, playerId, face, boost?.kind === "fixed");

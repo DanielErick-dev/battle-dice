@@ -8,6 +8,7 @@ const TRAP_WARDS: Readonly<Record<TrapWard, string>> = {
   ability: "graças à habilidade",
   halo: "graças à Auréola",
   untamed: "por estar Indomável",
+  convergence: "por estar na Convergência",
   susanoo: "graças ao Susanoo",
   fallen: "porque o inferno não fere o Caído",
 };

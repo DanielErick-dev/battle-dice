@@ -5,6 +5,7 @@ import type { BlackFlame } from "../characters/kage/types";
 import type { Seal } from "../characters/scribe/types";
 import type { Specter } from "../characters/warden/types";
 import type { VoidScar } from "../characters/zarek/types";
+import type { Elementals } from "../characters/tenzai/types";
 import type { GameEvent } from "./events";
 import type { CardInstance, GameState, Player, PlayerId } from "./state";
 import type { RandomSource } from "./random";
@@ -31,6 +32,7 @@ export interface Draft {
   scarletFlames: ScarletFlame[];
   winter: Winter | null;
   voidScars: VoidScar[];
+  elementals: Elementals;
   /** A Plunder specter caught someone this command; settle turns it into a PendingPlunder. */
   plunder: { owner: PlayerId; victim: PlayerId } | null;
   /** For reshuffles and moving sprung hidden traps. */
@@ -61,6 +63,7 @@ export function startDraft(state: GameState, random: RandomSource): Draft {
     scarletFlames: [...state.scarletFlames],
     winter: state.winter,
     voidScars: [...state.voidScars],
+    elementals: state.elementals,
     plunder: null,
     random,
   };
@@ -81,6 +84,7 @@ export function draftState(draft: Draft): GameState {
     scarletFlames: draft.scarletFlames,
     winter: draft.winter,
     voidScars: draft.voidScars,
+    elementals: draft.elementals,
   };
 }
 

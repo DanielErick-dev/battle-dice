@@ -28,6 +28,7 @@ import {
   SUPERNOVA_STEP,
 } from "@/game/domain/characters/akane/cards";
 import { BURN_ROUNDS, SCARLET_ROUNDS } from "@/game/domain/characters/akane/fire";
+import { FORCED_TAILWIND_BONUS, FORTIFY_NEW_HP, LASH_TETHER_TURNS } from "@/game/domain/characters/tenzai/cards";
 
 /** Player-facing card copy (pt-BR). Rules live in the domain; this is only what the card says. */
 export const CARD_TEXT: Readonly<Record<CardId, { name: string; description: string }>> = {
@@ -143,6 +144,27 @@ export const CARD_TEXT: Readonly<Record<CardId, { name: string; description: str
   riftCall: {
     name: "Chamado da Fenda",
     description: "Puxe um oponente de volta até a sua fenda mais próxima atrás dele. Ela o atinge.",
+  },
+  tectonicFortification: {
+    name: "Fortificação Tectônica",
+    description: `Terra. Dobra a vida das suas muralhas. Sem nenhuma, ergue uma de ${FORTIFY_NEW_HP} à frente do líder.`,
+  },
+  riptideLash: {
+    name: "Chicote de Ressaca",
+    description: `Água. Troca de lugar com quem você prendeu no laço. Sem laço, prende o oponente mais perto à frente por ${LASH_TETHER_TURNS} rodada.`,
+  },
+  forcedTailwind: {
+    name: "Vento de Cauda Forçado",
+    description: `Vento. A próxima rolagem do oponente anda +${FORCED_TAILWIND_BONUS}, querendo ou não.`,
+  },
+  elementalExchange: {
+    name: "Câmbio Elemental",
+    description: "Gasta uma criação sua (brisa, laço ou muralha) e a troca por outro elemento, com efeito dobrado.",
+  },
+  elementalConvergence: {
+    name: "Convergência dos Quatro",
+    description:
+      "Muralha à frente do líder, laço nele, brisa armada e dado de combustão, tudo de uma vez: desperta a Convergência.",
   },
 };
 

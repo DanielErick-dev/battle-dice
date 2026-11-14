@@ -19,6 +19,7 @@ import { Gate, HiddenTrap } from "./tiles";
 import { HandVial, VialThrow } from "./transmutation";
 import { HeldSword, JusticeMark, Verdict } from "./verdict";
 import { Hoe } from "./vinicius";
+import { Bending, BendingHands, Combustion, GlowingEyes, HiddenBreeze, Orbit, StoneWalls, Tethers } from "./tenzai";
 import { LightBlades, Rifts, SmashedTraps, TheVoid, VoidAtWork } from "./void";
 import type { BoardEffect, FigureEffect, TokenEffect } from "./types";
 import { BackWings, WornCrown } from "./wings";
@@ -52,6 +53,8 @@ export const TOKEN_EFFECTS: {
     InnerFlame,
     FuelFire,
     EmberFeet,
+    Orbit,
+    Combustion,
     AbilityFlash,
   ],
   ground: [FuryField, DashLanding, LevitationGlow, LevitationCast, JusticeMark],
@@ -69,6 +72,8 @@ export const TOKEN_EFFECTS: {
     BackWings,
     WornCrown,
     SlungBow,
+    GlowingEyes,
+    BendingHands,
   ],
 };
 
@@ -84,6 +89,9 @@ export const BOARD_EFFECTS: readonly BoardEffect[] = [
   EternalWinter,
   BlackFlames,
   ScarletFlames,
+  StoneWalls,
+  Tethers,
+  HiddenBreeze,
   Apparitions,
   Seals,
   Volley,
@@ -91,6 +99,7 @@ export const BOARD_EFFECTS: readonly BoardEffect[] = [
   HellsDrag,
   Verdict,
   Blaze,
+  Bending,
   SnowStream,
   DashBolt,
   HiddenTrap,

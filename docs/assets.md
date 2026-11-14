@@ -24,7 +24,7 @@ battle-dice-personagens/
 
 Regras:
 - Arquivos em **inglês, minúsculas, com hífen**: `stand-up.glb`, `arms-up.glb`.
-- Clipes que o jogo conhece: `idle`, `run`, `intro`, `showcase`, `cast`, `float`, `dash`, `land`, `shove`, `knocked`, `rest`, `hop`, `brake` (de correr para andar na última casa do trajeto; desligado no jogo, sem fonte por enquanto), `sit` (sentar no trono antes do `rest`), `guard` e `scoff` (reações da Têmis), `strike` (Akane golpeando o chão) e `fume` (pisada furiosa do Akane num 1 ou 2).
+- Clipes que o jogo conhece: `idle`, `run`, `intro`, `showcase`, `cast`, `float`, `dash`, `land`, `shove`, `knocked`, `rest`, `hop`, `brake` (de correr para andar na última casa do trajeto; desligado no jogo, sem fonte por enquanto), `sit` (sentar no trono antes do `rest`), `guard` e `scoff` (reações da Têmis), `strike` (Akane golpeando o chão), `fume` (pisada furiosa do Akane num 1 ou 2), os gestos do Tenzai `quake` (terra), `tide` (água), `flare` (fogo), `gust` (vento), `meditate`/`lotus` (Convergência) e os compartilhados com todos a partir dele: `vault` (pular a muralha), `punch` (socar a muralha), `ouch` (espinho) e `limp` (voltar ferido da armadilha).
 - Tudo o que o Daniel baixa cai solto em `Downloads/`; o Claude identifica cada arquivo (medindo o clipe), renomeia e guarda na pasta certa.
 - O que não é usado é apagado. Não deixamos pastas `extras/` ou `antigo/`.
 
@@ -44,7 +44,7 @@ Regras:
 | `warden` | Guardião das Sombras |
 | `kage` | Kage Rubra |
 | `fairy` | Fada Cristalina |
-| `zephyr` | Zéfiro |
+| `zephyr` | Tenzai (ex-Zéfiro) |
 | `themis` | Têmis |
 | `akane` | Akane |
 | `bjorn` | Bjorn Presa-Gélida |

@@ -1,6 +1,5 @@
 import type { CardChoice } from "@/game/domain/cards/choice";
 import type { GameClient, GameUpdate } from "@/game/application/gameClient";
-import type { AbilityPower } from "@/game/domain/abilities/ability";
 import type { CardId } from "@/game/domain/cards/catalog";
 import type { GameErrorCode } from "@/game/domain/core/errors";
 import type { GameCommand } from "@/game/domain/core/commands";
@@ -57,6 +56,11 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   INVALID_SACRIFICE: "Escolha a carta que vai ser queimada.",
   NO_INNER_FLAME: "Você não tem nenhuma Chama Interna para liberar.",
   NO_FIRE: "Não há fogo no tabuleiro nem oponente queimando.",
+  INVALID_ELEMENT: "Escolha um elemento.",
+  ELEMENT_LOCKED: "Não dá para dobrar o mesmo elemento duas vezes seguidas.",
+  INVALID_WALL: "A muralha só sobe numa casa livre perto de alguém.",
+  NO_TARGET_AHEAD: "Não há oponente à frente para prender.",
+  NO_CREATION: "Você precisa de uma muralha, laço ou brisa em jogo.",
 };
 
 export interface MatchStoreOptions {
@@ -177,17 +181,7 @@ export class MatchStore {
 
   /** The choice is the activateAbility command's payload (see ui/abilities). */
   activateAbility = (
-    choice: {
-      cardUids?: readonly string[];
-      sealTiles?: readonly number[];
-      specterTiles?: readonly number[];
-      targetId?: string;
-      volley?: "opponents" | "traps";
-      power?: AbilityPower;
-      flameTiles?: readonly number[];
-      frostTiles?: readonly number[];
-      seizeTile?: number;
-    } = {},
+    choice: Omit<Extract<GameCommand, { type: "activateAbility" }>, "type" | "playerId"> = {},
   ): void => {
     if (!this.view || !canActivateAbility(this.view)) return;
     this.dispatch({ type: "activateAbility", playerId: this.view.activePlayerId, ...choice });

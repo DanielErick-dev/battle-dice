@@ -22,6 +22,11 @@ export function projectState(state: GameState, viewerId: ViewerId): GameState {
     // Arrow Rain's pins reveal the hidden traps under them (see characters/archer/).
     hiddenTraps: state.hiddenTraps.filter((tile) => state.pinnedTraps.includes(tile)),
     seals: state.seals.map((seal) => (seal.owner === viewerId ? seal : { ...seal, kind: HIDDEN })),
+    // Tenzai's Breeze Heist is a trap only he knows is armed.
+    elementals: {
+      ...state.elementals,
+      breezes: state.elementals.breezes.filter((breeze) => breeze.owner === viewerId),
+    },
     rng: SEALED_RNG,
   };
 }
@@ -73,6 +78,9 @@ function projectEvent(event: GameEvent, viewerId: ViewerId): GameEvent[] {
           ? event
           : { ...event, cards: hideCards(event.cards), discarded: hideCards(event.discarded) },
       ];
+    case "breezeArmed":
+    case "breezeFaded":
+      return event.playerId === viewerId ? [event] : [];
     case "abilityReady":
       return event.ability === "silentVerdict" && event.playerId !== viewerId ? [] : [event];
     case "voidSwallowed":

@@ -8,6 +8,7 @@ import { walkTrampling } from "../bjorn/untamed";
 import { crossSpecters } from "../warden/specters";
 import { unpinPassed } from "../archer/arrowRain";
 import { markForJustice } from "./verdict";
+import { clipAtWalls, pullTethered } from "../tenzai/elements";
 import type { Board } from "../../board/types";
 import type { Player, PlayerId } from "../../core/state";
 
@@ -31,11 +32,12 @@ export function containedFace(face: number): number {
 /** Walks `tiles` ahead like a roll would (trampling, specters) and resolves the landing. */
 export function advance(draft: Draft, playerId: PlayerId, tiles: number): void {
   const { position, realmEntry } = playerIn(draft, playerId);
-  const path = walkPath(draft.state.board, position, tiles, realmEntry);
+  const { path } = clipAtWalls(draft, playerId, walkPath(draft.state.board, position, tiles, realmEntry));
   walkTrampling(draft, playerId, path);
   crossSpecters(draft, playerId, path);
   resolveLanding(draft, playerId, path.at(-1) ?? position);
   unpinPassed(draft, path);
+  pullTethered(draft, playerId, path.length);
 }
 
 /** Blind Justice: from Themis on, in turn order, everyone walks JUSTICE_MARCH tiles (she JUSTICE_MARCH_OWN) with no roll and no say. */

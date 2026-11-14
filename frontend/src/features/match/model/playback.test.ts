@@ -31,10 +31,10 @@ describe("playback of rule events", () => {
   });
 
   it("spends a used ability, in effect for the turn unless it's reactive", () => {
-    const [wind] = replay(initial(), { type: "abilityUsed", playerId: "p1", ability: "tailwind" });
-    expect(wind?.effect).toMatchObject({ kind: "abilityUsed", ability: { id: "tailwind" } });
+    const [wind] = replay(initial(), { type: "abilityUsed", playerId: "p1", ability: "doubleCast" });
+    expect(wind?.effect).toMatchObject({ kind: "abilityUsed", ability: { id: "doubleCast" } });
     expect(wind?.players[0]).toMatchObject({ abilityCharge: 0 });
-    expect(wind?.abilityInUse).toBe("tailwind");
+    expect(wind?.abilityInUse).toBe("doubleCast");
 
     const [ward] = replay(initial(), { type: "abilityUsed", playerId: "p1", ability: "theVoid" });
     expect(ward?.abilityInUse).toBeNull();

@@ -1,4 +1,5 @@
 /** Dice, walking, pushes and the flow of turns. */
+import { NO_ELEMENTALS } from "@/game/domain/characters/tenzai/types";
 import { DICE_SIDES } from "@/game/domain/core/dice";
 import { nextFxId, withFx, withPlayer, withPlayerAt, type MatchView } from "../matchView";
 import { playerTileEffect, tileOf } from "./helpers";
@@ -189,6 +190,7 @@ export const turnSteps: StepHandlers<
           blackFlames: [],
           scarletFlames: [],
           winter: null,
+          elementals: NO_ELEMENTALS,
         }),
         durationMs: 0,
       },

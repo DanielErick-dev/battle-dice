@@ -72,6 +72,21 @@ export const SHOTS: Record<TileEffectKind, Shot> = {
   timedOut: { trauma: 0.2 },
   decree: { fovKick: 0.6, trauma: 0.2 },
   judgment: { closeUp: { distance: 0.62, seconds: 1.6 }, trauma: 0.5, fovKick: 1 },
+  elementBent: { closeUp: { distance: 0.75, seconds: 1.1 } },
+  attuned: {},
+  convergence: { closeUp: { distance: 0.62, seconds: 1.6 }, fovKick: 1, trauma: 0.3 },
+  wallRaised: { trauma: 0.45 },
+  wallStrengthened: {},
+  wallHit: { trauma: 0.4 },
+  wallCrumbled: { trauma: 0.3 },
+  tetherBound: { fovKick: 0.4 },
+  tetherPulled: {},
+  tetherSwapped: { fovKick: 0.6 },
+  combustionReady: { closeUp: { distance: 0.7, seconds: 1.1 } },
+  combustion: { trauma: 0.8, fovKick: 0.9 },
+  breezeArmed: {},
+  breezeStolen: { fovKick: 0.7, trauma: 0.3 },
+  breezeResisted: {},
 };
 
 /** Cards whose cast is filmed too (the rest are covered by the effects they cause). */

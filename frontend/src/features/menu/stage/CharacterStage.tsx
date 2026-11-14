@@ -103,7 +103,7 @@ export function CharacterStage({ characterId, className }: { characterId: Charac
               </Suspense>
             </group>
           ) : (
-            <RunePedestal color={color} />
+            !(CHARACTERS[characterId] as CharacterDefinition).meditates && <RunePedestal color={color} />
           )}
           {!scenery?.weather && (
             <RisingMotes key={color} color={color} count={(quality === "high" ? 48 : 18) / (dim ? 2 : 1)} />

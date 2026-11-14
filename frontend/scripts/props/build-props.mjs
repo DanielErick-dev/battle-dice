@@ -91,6 +91,25 @@ const PROPS = {
   roseCandelabra: { file: "enchantress/props/candelabra.glb", vertices: 9_000, sloppy: true },
   // Kage Rubra's Susanoo towers over the tile: more detail than the small props.
   susanoo: { file: "kage/props/susanoo.glb", vertices: 16_000, texture: 1024 },
+  // The island's path furniture: lamp posts along the trail, benches and a wooden bridge.
+  lanternPost: { file: "island/props/lantern-post.glb", vertices: 2_200, texture: 512 },
+  islandBench: { file: "island/props/bench.glb", vertices: 6_000, texture: 1024, sloppy: true },
+  woodenBridge: { file: "island/props/bridge.glb", vertices: 12_000, texture: 1024, sloppy: true },
+  // A trap tile's thorny vines (three side by side cover a tile); the thorns spring up when it bites.
+  vineTrap: { file: "board/props/vine-trap.glb", vertices: 8_000, texture: 1024 },
+  // Floats over every lost-turn tile.
+  hourglass: { file: "board/props/hourglass.glb", vertices: 5_000, texture: 1024 },
+  // The Crystal Fairy's snow heaped on a tile.
+  snowPile: { file: "fairy/props/snow.glb", vertices: 5_000, texture: 1024 },
+  // The Shadow Warden's three apparitions, one model (moved in code).
+  wardenSpecters: { file: "warden/props/specters.glb", vertices: 18_000, texture: 1024, sloppy: true },
+  // More island furniture: a stone windmill, a bamboo boat by the shore, a hanging sign and campfires by the tents.
+  islandWindmill: { file: "island/props/windmill.glb", vertices: 4_100, texture: 1024 },
+  bambooBoat: { file: "island/props/boat.glb", vertices: 4_000, texture: 1024 },
+  hangingSign: { file: "island/props/sign.glb", vertices: 6_000, texture: 1024, sloppy: true },
+  campfire: { file: "island/props/campfire.glb", vertices: 9_000, texture: 1024, sloppy: true },
+  // Card tiles: the lid is split off in code so it can open (see CardChest).
+  cardChest: { file: "board/props/chest.glb", vertices: 9_000, texture: 1024, sloppy: true },
 };
 
 const { values } = parseArgs({ options: { source: { type: "string" }, only: { type: "string" } } });

@@ -2,15 +2,12 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 
-// game/ is pure rules, so the same code can run on the server; see docs/arquitetura.md.
+// game/ is pure rules, so the same code can run on the server; see docs/arquitetura.md. Only relative imports
+// (vitest in tests): no package, alias or presentation layer can creep in.
 const GAME_FORBIDDEN = [
   {
-    group: ["**/features", "**/features/**", "**/app/**", "**/components/**"],
-    message: "game/ can't depend on the presentation layer.",
-  },
-  {
-    group: ["react", "react/*", "react-dom", "react-dom/*", "next", "next/*", "three", "three/*", "@react-three/*"],
-    message: "game/ is pure TypeScript: no React, Next or Three.js.",
+    regex: "^(?!\\.)(?!vitest$)",
+    message: "game/ is pure TypeScript: only relative imports (and vitest in tests).",
   },
 ];
 

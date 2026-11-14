@@ -137,6 +137,21 @@ const CASES: Readonly<Record<TileEffectKind, readonly Details[]>> = {
   weeded: [{}],
   burntRoll: [{ count: 2 }, { count: 0 }],
   fireFed: [{ count: 1 }, { count: 0 }],
+  elementBent: [{ element: "earth" }, { element: "water" }, { element: "fire" }, { element: "wind" }],
+  attuned: [{ element: "fire", count: 2 }],
+  convergence: [{ count: 2 }],
+  wallRaised: [{ count: 8 }],
+  wallStrengthened: [{ count: 16 }],
+  wallHit: [{ count: 3 }, { count: 0 }],
+  wallCrumbled: [{}],
+  tetherBound: [{ count: 3 }],
+  tetherPulled: [{ count: 2 }],
+  tetherSwapped: [{}],
+  combustionReady: [{ count: 2 }],
+  combustion: [{ count: 2 }, { count: 1 }, { count: 0 }],
+  breezeArmed: [{}],
+  breezeStolen: [{ count: 6 }],
+  breezeResisted: [{}],
 };
 
 const nameOf = (id: string) => (id === "p1" ? "Bruxa" : null);

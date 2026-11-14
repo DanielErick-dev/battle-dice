@@ -1,4 +1,4 @@
-import type { CardInstance, PlayerId, TileId } from "@/game/domain/types";
+import type { CardInstance, Element, PlayerId, TileId } from "@/game/domain/types";
 
 // Every animation below carries an `id` that changes with each one, so the scene and audio replay it once.
 
@@ -144,6 +144,16 @@ export interface MatchFx {
   blaze: BlazeView | null;
   /** Blind Justice under way: the camera follows each walker in turn. */
   march: { playerId: PlayerId } | null;
+  /** Tenzai bending: a burst of the element at his figure (or at `tile`), `targetId` for a bond or a heist. */
+  bending: BendingView | null;
+}
+
+export interface BendingView {
+  id: number;
+  playerId: PlayerId;
+  kind: Element | "explosion" | "heist" | "convergence";
+  tile?: TileId;
+  targetId?: PlayerId;
 }
 
 export const NO_FX: MatchFx = {
@@ -161,6 +171,7 @@ export const NO_FX: MatchFx = {
   verdict: null,
   blaze: null,
   march: null,
+  bending: null,
 };
 
 // Generic over the view so this module needn't import view.ts (which imports MatchFx from here).

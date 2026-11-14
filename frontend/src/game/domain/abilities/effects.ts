@@ -1,4 +1,5 @@
 import { bloom } from "../characters/fairy/bloom";
+import { bendElement } from "../characters/tenzai/elements";
 import { freezeTiles } from "../characters/fairy/winter";
 import { cleansingTide } from "../characters/auric/cleansingTide";
 import { hellsDrag } from "../characters/seraphiel/seraph";
@@ -31,7 +32,7 @@ type AbilityEffect = (
 /** What each activated ability does; null for those that only boost the turn or answer the board's prompts. */
 export const ABILITY_EFFECTS: Readonly<Record<AbilityId, AbilityEffect | null>> = {
   doubleCast: null,
-  tailwind: null,
+  fourElements: (draft, playerId, choice) => bendElement(draft, playerId, choice),
   dormantFury: null,
   silentVerdict: null,
   weeding: null,

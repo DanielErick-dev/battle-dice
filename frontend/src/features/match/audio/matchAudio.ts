@@ -97,6 +97,24 @@ const EFFECT_SOUNDS: Record<TileEffectKind, (sounds: MatchSounds, effect: TileEf
       : effect.specter.owner === effect.playerId
         ? sounds.bonus()
         : sounds.penalty(),
+  elementBent: (sounds) => sounds.powerUp(),
+  attuned: (sounds) => sounds.bonus(),
+  convergence: (sounds) => {
+    sounds.thunder(0.6);
+    sounds.powerUp();
+  },
+  wallRaised: (sounds) => sounds.thunder(0.4),
+  wallStrengthened: (sounds) => sounds.shieldBlock(),
+  wallHit: (sounds) => sounds.shieldBlock(),
+  wallCrumbled: (sounds) => sounds.thunder(0.3),
+  tetherBound: (sounds) => sounds.boost(),
+  tetherPulled: (sounds) => sounds.boost(),
+  tetherSwapped: (sounds) => sounds.boost(),
+  combustionReady: (sounds) => sounds.bonus(),
+  combustion: (sounds) => sounds.thunder(0.8),
+  breezeArmed: (sounds) => sounds.bonus(),
+  breezeStolen: (sounds) => sounds.penalty(),
+  breezeResisted: (sounds) => sounds.shieldBlock(),
 };
 
 function playTransition(previous: MatchView, next: MatchView, sounds: MatchSounds): void {

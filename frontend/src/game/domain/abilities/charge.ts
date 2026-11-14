@@ -18,7 +18,7 @@ export const VOID_CYCLE = 4;
 const ABILITY_CYCLES: Readonly<Record<AbilityId, number>> = {
   doubleCast: ABILITY_CYCLE,
   theVoid: VOID_CYCLE,
-  tailwind: ABILITY_CYCLE,
+  fourElements: LONG_ABILITY_CYCLE,
   seraphielBlessing: ABILITY_CYCLE,
   transmutation: ABILITY_CYCLE,
   cardGamble: ABILITY_CYCLE,

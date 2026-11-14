@@ -10,7 +10,6 @@ import { MenuBackdrop } from "./MenuShell";
 
 /** Shown so the menu hints at where the game is going. */
 const COMING_SOON: readonly { label: string; icon: LucideIcon }[] = [
-  { label: "Personagens", icon: Users },
   { label: "Cartas", icon: Layers },
   { label: "Loja", icon: ShoppingBag },
 ];
@@ -51,8 +50,15 @@ export function HomeScreen() {
               <Settings className="size-4" />
               Configurações
             </Link>
+            <Link
+              href="/personagens"
+              className="flex h-12 items-center justify-center gap-3 rounded-2xl bg-white/5 text-sm font-bold tracking-wider text-zinc-200 uppercase ring-1 ring-white/10 transition hover:bg-white/10 hover:text-white"
+            >
+              <Users className="size-4" />
+              Personagens
+            </Link>
 
-            <ul className="mt-2 grid grid-cols-3 gap-2">
+            <ul className="mt-2 grid grid-cols-2 gap-2">
               {COMING_SOON.map(({ label, icon: Icon }) => (
                 <li
                   key={label}

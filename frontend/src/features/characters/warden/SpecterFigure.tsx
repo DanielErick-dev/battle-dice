@@ -1,5 +1,7 @@
 "use client";
 
+import { useFittedProp } from "../core/props";
+
 import { useFrame } from "@react-three/fiber";
 import { Suspense, useMemo, useRef } from "react";
 import { AdditiveBlending, type Group, type MeshBasicMaterial } from "three";
@@ -35,6 +37,22 @@ interface SpecterFigureProps {
  * feet on the tile, named.
  * Everyone else sees the Warden standing there, exactly as the real one stands.
  */
+const TRIO_HEIGHT = 1.35;
+
+/** The three wraiths (Meshy) the Warden's own eyes see on an apparition, drifting up and down. */
+function SpecterTrio() {
+  const trio = useFittedProp("wardenSpecters");
+  const drift = useRef<Group>(null);
+  useFrame(({ clock }) => {
+    if (drift.current) drift.current.position.y = 0.12 + Math.sin(clock.elapsedTime * 1.6) * 0.08;
+  });
+  return (
+    <group ref={drift}>
+      <mesh geometry={trio.geometry} material={trio.material} scale={TRIO_HEIGHT} />
+    </group>
+  );
+}
+
 export function SpecterFigure({ model, position, color, disguised, facing, label }: SpecterFigureProps) {
   const clip = useRef<CharacterClip>("idle");
   const body = useRef<Group>(null);
@@ -80,7 +98,7 @@ export function SpecterFigure({ model, position, color, disguised, facing, label
       )}
       <group ref={body} rotation-y={facing}>
         <Suspense fallback={null}>
-          <CharacterModel url={model} height={FIGURE_HEIGHT} clip={clip} ghost={disguised ? undefined : color} />
+          {disguised ? <CharacterModel url={model} height={FIGURE_HEIGHT} clip={clip} /> : <SpecterTrio />}
         </Suspense>
       </group>
       {label && !disguised && <NameTag text={label} color="#7dd3fc" y={FIGURE_HEIGHT + 0.3} size={EFFECT_SCALE} />}

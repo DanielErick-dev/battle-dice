@@ -22,6 +22,8 @@ import {
 import { quench } from "../characters/akane/fire";
 import { playExclusive } from "./exclusive";
 import type { TileId } from "../board/types";
+import type { Element } from "../characters/tenzai/types";
+import { clipAtWalls, pullTethered } from "../characters/tenzai/elements";
 import type { CardInstance, PlayerId } from "../core/state";
 
 export const ARCANE_BLAST_PUSH = 7;
@@ -40,6 +42,8 @@ export interface CardEffectContext {
   portal: TileId | null;
   rollDie: DiceRoller;
   doubled?: boolean;
+  /** Tenzai's Elemental Exchange. */
+  element?: Element | null;
 }
 
 /** What the card does once paid for and past every ward; exclusive cards go on to playExclusive. */
@@ -47,7 +51,7 @@ export function applyCardEffect(
   draft: Draft,
   playerId: PlayerId,
   card: CardInstance,
-  { targetId, value, portal, rollDie, doubled = false }: CardEffectContext,
+  { targetId, value, portal, rollDie, doubled = false, element = null }: CardEffectContext,
 ): void {
   // Turned by Themis's verdict, the attack comes back twice as hard.
   const times = doubled ? VERDICT_MULTIPLIER : 1;
@@ -62,12 +66,13 @@ export function applyCardEffect(
       const reversed = reversedRolls > 0;
       const path = reversed
         ? pushPath(board, position, windTiles, realmEntry)
-        : walkPath(board, position, windTiles, realmEntry);
+        : clipAtWalls(draft, playerId, walkPath(board, position, windTiles, realmEntry)).path;
       if (reversed) draft.events.push({ type: "playerMoved", playerId, path });
       else walkTrampling(draft, playerId, path);
       crossSpecters(draft, playerId, path);
       resolveLanding(draft, playerId, path.at(-1) ?? position);
       unpinPassed(draft, path);
+      if (!reversed) pullTethered(draft, playerId, path.length);
       break;
     }
     case "abyssCall":
@@ -204,6 +209,6 @@ export function applyCardEffect(
       }));
       break;
     default:
-      playExclusive(draft, playerId, card.cardId, targetId, rollDie);
+      playExclusive(draft, playerId, card.cardId, targetId, rollDie, element);
   }
 }

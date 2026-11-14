@@ -1,29 +1,43 @@
 "use client";
 
-import { TILE_HEIGHT } from "@/features/shared/board/boardLayout";
+import { useFrame } from "@react-three/fiber";
+import { useRef } from "react";
+import type { Group } from "three";
+import { useFittedProp } from "@/features/characters/core/props";
+import { TILE_HEIGHT, TILE_SIZE } from "@/features/shared/board/boardLayout";
 
-const SPIKE_SPOTS: readonly [number, number][] = [
-  [-0.35, 0.05],
-  [0, -0.1],
-  [0.35, 0.05],
-  [0.2, -0.45],
-  [0.5, -0.4],
-];
+/** Three strips of thorny vines side by side cover the tile. */
+const STRIPS = 3;
+const COVER = TILE_SIZE * 0.86;
+/** How far the thorns spring up when someone steps in, and how fast they grow and settle back. */
+const SPRUNG_SCALE = 2.6;
+const GROW_RATE = 14;
+const SETTLE_RATE = 3;
 
-export function TrapSpikes({ color }: { color: string }) {
+/** A trap tile's bed of thorny vines (Meshy): when someone steps in, the thorns shoot up. */
+export function TrapSpikes({ sprung }: { sprung: boolean }) {
+  const vine = useFittedProp("vineTrap");
+  const bed = useRef<Group>(null);
+  const [width, , depth] = vine.size;
+  const scale = COVER / width;
+  const lift = useRef(1);
+  useFrame((_, delta) => {
+    const target = sprung ? SPRUNG_SCALE : 1;
+    const rate = sprung ? GROW_RATE : SETTLE_RATE;
+    lift.current += (target - lift.current) * Math.min(1, delta * rate);
+    if (bed.current) bed.current.scale.y = lift.current;
+  });
   return (
-    <group position-y={TILE_HEIGHT / 2}>
-      {SPIKE_SPOTS.map(([x, z]) => (
-        <mesh key={`${x}:${z}`} position={[x, 0.16, z]} castShadow>
-          <coneGeometry args={[0.1, 0.32, 6]} />
-          <meshStandardMaterial
-            color="#3a0a0f"
-            emissive={color}
-            emissiveIntensity={0.5}
-            metalness={0.6}
-            roughness={0.3}
-          />
-        </mesh>
+    <group ref={bed} position-y={TILE_HEIGHT / 2}>
+      {Array.from({ length: STRIPS }, (_, index) => (
+        <mesh
+          key={index}
+          geometry={vine.geometry}
+          material={vine.material}
+          scale={[scale, scale, (COVER / STRIPS / (depth * scale)) * scale]}
+          position-z={(index - (STRIPS - 1) / 2) * (COVER / STRIPS)}
+          castShadow
+        />
       ))}
     </group>
   );

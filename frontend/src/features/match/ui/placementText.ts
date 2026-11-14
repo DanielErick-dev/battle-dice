@@ -1,3 +1,4 @@
+import { WALL_HP } from "@/game/domain/characters/tenzai/elements";
 import { BLOOD_PACT_ENERGY, RUIN_PUSH, SEAL_KINDS } from "@/game/domain/characters/scribe/seals";
 import { FLAME_ENERGY, FLAME_PUSH, FLAME_TILES } from "@/game/domain/characters/kage/flames";
 import { PLUNDER_CARDS, SPECTER_KINDS } from "@/game/domain/characters/warden/specters";
@@ -106,3 +107,11 @@ export function voidReleaseStep(name: string, harm: boolean, doubled: boolean): 
     tag: harm ? "Fenda" : "Vazio",
   };
 }
+
+export const WALL_STEP: PlacementStep = {
+  name: "Casa da muralha",
+  effect: `Ninguém além de você passa até as rolagens que baterem nela somarem ${WALL_HP}`,
+  tone: "bg-amber-700",
+  color: "#b45309",
+  tag: "Muralha",
+};

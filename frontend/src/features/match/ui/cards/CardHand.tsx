@@ -8,10 +8,11 @@ import { CARD_CATALOG, cardCost, type CardId } from "@/game/domain/cards/catalog
 import { HAND_LIMIT, SACRIFICE_ENERGY } from "@/game/domain/cards/hand";
 import { DICE_SIDES } from "@/game/domain/core/dice";
 import { FUSION_COPIES, fusibleInHand } from "@/game/domain/cards/fusion";
-import type { CardInstance, Player } from "@/game/domain/types";
+import type { CardInstance, Element, Player } from "@/game/domain/types";
 import { cn } from "@/lib/utils";
 import { CardBack } from "./CardBack";
-import { cardBlockReason, cardTargetsFor } from "./cardBlockReason";
+import { cardBlockReason, cardTargetsFor, exchangeElements } from "./cardBlockReason";
+import { ELEMENT_NAME } from "../hud/effectCopy/tenzai";
 import { CardChoicePicker } from "./CardChoicePicker";
 import { CardView } from "./CardView";
 import { CARD_TEXT, cardText } from "./cardText";
@@ -98,7 +99,7 @@ export function CardHand({
       return;
     }
     const { needsValue, targetsOpponent } = CARD_CATALOG[card.cardId];
-    if (blockedReason(card) || needsValue || targetsOpponent) return;
+    if (blockedReason(card) || needsValue || targetsOpponent || card.cardId === "elementalExchange") return;
     play(card);
   };
 
@@ -243,6 +244,7 @@ export function CardHand({
                   card={card}
                   reason={reason}
                   opponents={targetsFor(card)}
+                  elements={card.cardId === "elementalExchange" ? exchangeElements(playContext) : []}
                   onPlay={(choice) => play(card, choice)}
                   onClose={() => setSelectedUid(null)}
                 />
@@ -259,6 +261,8 @@ interface CardActionProps {
   card: CardInstance;
   reason: string | null;
   opponents: readonly Player[];
+  /** The Elemental Exchange: what it may turn into. */
+  elements: readonly Element[];
   onPlay: (choice: CardChoice) => void;
   onClose: () => void;
 }
@@ -267,7 +271,7 @@ interface CardActionProps {
  * Beside the pulled-out card, where it stays in view: why it can't be played, the choice it
  * needs, or a reminder that a second click plays it.
  */
-function CardAction({ card, reason, opponents, onPlay, onClose }: CardActionProps) {
+function CardAction({ card, reason, opponents, elements, onPlay, onClose }: CardActionProps) {
   const definition = CARD_CATALOG[card.cardId];
   const button =
     "rounded-lg bg-orange-600 px-3 py-2 text-xs font-black tracking-wider text-white uppercase transition hover:bg-orange-500 active:scale-95";
@@ -284,6 +288,15 @@ function CardAction({ card, reason, opponents, onPlay, onClose }: CardActionProp
       </button>
       {reason ? (
         <p className="pr-3 text-xs font-semibold text-zinc-300">{reason}</p>
+      ) : elements.length > 0 ? (
+        <>
+          <p className="text-[11px] font-bold tracking-wider text-zinc-300 uppercase">Vira qual elemento?</p>
+          {elements.map((element) => (
+            <button key={element} type="button" onClick={() => onPlay({ element })} className={button}>
+              {ELEMENT_NAME[element]} dobrado
+            </button>
+          ))}
+        </>
       ) : definition.needsValue ? (
         <>
           <p className="text-[11px] font-bold tracking-wider text-zinc-300 uppercase">Escolha o valor</p>

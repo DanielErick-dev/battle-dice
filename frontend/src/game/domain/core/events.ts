@@ -14,6 +14,7 @@ import type { KageEvent } from "../characters/kage/types";
 import type { NecromancerEvent } from "../characters/necromancer/types";
 import type { ScribeEvent } from "../characters/scribe/types";
 import type { SeraphielEvent } from "../characters/seraphiel/types";
+import type { TenzaiEvent } from "../characters/tenzai/types";
 import type { ThemisEvent } from "../characters/themis/types";
 import type { WardenEvent } from "../characters/warden/types";
 import type { ZarekEvent } from "../characters/zarek/types";
@@ -38,6 +39,7 @@ export type GameEvent =
   | NecromancerEvent
   | ScribeEvent
   | SeraphielEvent
+  | TenzaiEvent
   | ThemisEvent
   | WardenEvent
   | ZarekEvent;
@@ -60,6 +62,8 @@ type TurnEvent =
       halved?: boolean;
       /** Under Akane's Brilliant Impetus (its bonus is in `bonus`). */
       impetus?: boolean;
+      /** Tenzai's Combustion Die went off: `value` is already multiplied by it. */
+      combustion?: number;
     }
   /** `dash`: crossed in a flash of lightning (a Dormant Fury roll) rather than run. */
   | { type: "playerMoved"; playerId: PlayerId; path: readonly TileId[]; dash?: boolean }

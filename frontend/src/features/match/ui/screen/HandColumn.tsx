@@ -43,6 +43,7 @@ export function HandColumn({
               enchantedTiles: view.enchantedTiles,
               scarletFlames: view.scarletFlames,
               players: view.players,
+              elementals: view.elementals,
             }}
             player={player}
             // Who each card can be aimed at (see cardTargets); a protected one turns it away.

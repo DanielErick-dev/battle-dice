@@ -37,6 +37,11 @@ export const CARD_PALETTE: Readonly<Record<CardId, { from: string; to: string }>
   hungryRift: { from: "#6d28d9", to: "#09090b" },
   voidEcho: { from: "#7c3aed", to: "#030712" },
   riftCall: { from: "#5b21b6", to: "#0a0a0a" },
+  tectonicFortification: { from: "#a16207", to: "#1c1917" },
+  riptideLash: { from: "#0284c7", to: "#082f49" },
+  forcedTailwind: { from: "#34d399", to: "#022c22" },
+  elementalExchange: { from: "#f97316", to: "#1e1b4b" },
+  elementalConvergence: { from: "#67e8f9", to: "#0f172a" },
 };
 
 /** Painted illustrations (public/cards/); the drawn artwork stays as the fallback if one fails to load. */

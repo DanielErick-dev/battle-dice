@@ -7,7 +7,7 @@ import type { TokenSignals } from "../effects";
 
 export function tokenSignals(view: MatchView, player: Player): TokenSignals {
   const { effect } = view;
-  const { trample, drag, dash, cast, blaze } = view.fx;
+  const { trample, drag, dash, cast } = view.fx;
   const id = player.id;
   const own = effect?.playerId === id ? effect : null;
   const isDashing = dash?.playerId === id && !dash.arrived;
@@ -37,14 +37,34 @@ export function tokenSignals(view: MatchView, player: Player): TokenSignals {
     abilityCast: own?.kind === "abilityUsed" ? effectKey(own) : null,
     fell: own?.kind === "fallen" ? effectKey(own) : null,
     verdict: view.fx.verdict?.judgeId === id ? view.fx.verdict.id : null,
-    outburst: blaze?.playerId === id && blaze.act ? { id: blaze.id, clip: blaze.act } : null,
+    outburst: outburstOf(view, id, own),
     weeded: own?.kind === "weeded" ? effectKey(own) : null,
+    overWall: view.elementals.walls.some((wall) => wall.tile === player.position),
+    meditating: player.converged > 0,
+    // Stung by a trap, they stagger back tile by tile (see carriedAwaySteps).
+    limping: own?.kind === "trap",
   };
+}
+
+/** Tenzai's gesture for each element he bends. */
+const BENDING_CLIPS = { earth: "quake", water: "tide", fire: "flare", wind: "gust" } as const;
+
+/** A one-off clip the figure acts out: Akane's fury, Tenzai bending, punching a wall, a trap's sting. */
+function outburstOf(view: MatchView, id: string, own: TileEffectView | null): TokenSignals["outburst"] {
+  const { blaze, bending } = view.fx;
+  if (blaze?.playerId === id && blaze.act) return { id: blaze.id, clip: blaze.act };
+  // The burst at a tile or on a bond's target is the element arriving, not him casting it.
+  if (bending?.playerId === id && bending.tile === undefined && bending.targetId === undefined) {
+    const clip = bending.kind in BENDING_CLIPS ? BENDING_CLIPS[bending.kind as keyof typeof BENDING_CLIPS] : null;
+    if (clip) return { id: 1000 + bending.id, clip };
+  }
+  if (own?.kind === "wallHit") return { id: 2000 + effectKey(own), clip: "punch" };
+  if (own?.kind === "trap" || own?.kind === "hiddenTrap") return { id: 3000 + effectKey(own), clip: "ouch" };
+  return null;
 }
 
 const TELEPORTS: ReadonlySet<TileEffectView["kind"]> = new Set([
   "portal",
-  "trap",
   "hiddenTrap",
   "teleport",
   "realmEnter",

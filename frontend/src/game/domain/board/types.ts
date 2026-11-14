@@ -39,7 +39,7 @@ export interface ActiveBlessing {
 export type TrapCurse = "discard" | "drain";
 
 /** What kept a trap, curse or lost-turn tile off a player ("fallen": the Fallen Angel in his own hell). */
-export type TrapWard = "shield" | "ability" | "halo" | "untamed" | "susanoo" | "fallen";
+export type TrapWard = "shield" | "ability" | "halo" | "untamed" | "convergence" | "susanoo" | "fallen";
 
 /** What's about to strike a player who could swallow it with their Void. */
 export type Threat = "trap" | "hiddenTrap" | "curse" | "skipTurn";

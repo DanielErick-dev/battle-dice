@@ -61,7 +61,8 @@ export function PlayerToken({
   faceToward = null,
 }: PlayerTokenProps) {
   const { isTeleporting, isDashing, isFuryAwake, isActive } = signals;
-  const isLevitating = player.levitating > 0;
+  // Tenzai floats through his Convergence like the Witch does.
+  const isLevitating = player.levitating > 0 || player.converged > 0;
   const traits = actTraits(character);
   const fallen = isFallen(player);
   const group = useRef<Group>(null);

@@ -40,29 +40,29 @@ Cada cenário tem a **sua pasta** (`tribunal/`, `witchHollow/`…), sempre no me
 
 O que é comum a vários cenários fica em `kit/`: `textures.ts` (`useNoiseTexture`; `useCanvasTexture` fica em `features/shared/three/`), `geometry.ts` (tubos afunilados, rochas, o raio do chão), `Floor.tsx` (o chão pintado), `materials.ts`, `motion.ts` (balanços e pulsos), `groundDressing.ts` (pétalas e folhas espalhadas no chão), peças prontas (`GlowPoints`, `GroundMist`, `GrassTufts`, `FallingPetals`, `FlickerSprite`) e `dispose.ts`. A arte da partida que os cenários reaproveitam (props, disco suave, gelo, runas) entra **só** por `kit/matchAssets.ts`: se algo mudar de lugar lá, o conserto é em um arquivo.
 
-| Pasta             | Personagem           | O que tem                                                                                                            |
-| ----------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `Graveyard`       | Necromante           | Cemitério                                                                                                            |
-| `FrozenWastes`    | Bjorn                | Neve, cristais de geleira, rochas e nevasca                                                                          |
-| `Sanctuary`       | Seraphiel            | Altar de mármore sobre nuvens, colunas, penas e raios de luz                                                         |
-| `Scriptorium`     | Escriba da Carne     | Lajes de pedra, velas, páginas espalhadas e livros                                                                   |
-| `VoidRift`        | Cavaleiro do Vazio   | Obsidiana rachada com fendas violeta pulsando, lascas flutuando e um vórtice de névoa escura                         |
-| `MistRuins`       | Guardião das Sombras | Ruínas ao luar, colunas quebradas, névoa rasteira e fogos-fátuos                                                     |
-| `BurningShrine`   | Kage Rubra           | Pátio de santuário chamuscado com torii, lanternas de pedra, fogo negro e brasas subindo                             |
-| `BloodRoseGarden` | Encantadora Carmesim | Círculo de sangue sobre terra escura, roseiras, vinhas com espinhos, candelabros e pétalas caindo                    |
-| `Tribunal`        | Têmis                | Arena de pedra antiga sob um arco com hera, bacia de oferendas com fogo sagrado dourado (assets do Meshy)            |
-| `SunkenTemple`    | Auric                | Templo dourado submerso, corais, cáusticas e bolhas                                                                  |
-| `GearWorks`       | Cronos               | Engrenagens engatadas girando no chão, anel de algarismos cujos ponteiros às vezes voltam                            |
-| `HangarBay`       | Unidade Alva         | Plataforma de lançamento hexagonal com varredura nas juntas e mira holográfica                                       |
-| `WitchHollow`     | Bruxa Carmesim       | Chão de floresta escura, raízes retorcidas, cogumelos vermelhos, anel de pedras e caldeirão borbulhando sobre o fogo |
-| `AlchemyLab`      | Alquimista Esmeralda | Piso de ardósia, círculo de transmutação brilhando, bancada com frascos verdes borbulhando e alambique de latão      |
-| `CardTable`       | Coringa Carmesim     | Piso arlequim carmesim e preto, cartas espalhadas e flutuando, fichas, dados e lâmpadas de circo piscando            |
+| Pasta             | Personagem           | O que tem                                                                                                                                                                        |
+| ----------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Graveyard`       | Necromante           | Cemitério                                                                                                                                                                        |
+| `FrozenWastes`    | Bjorn                | Neve, cristais de geleira, rochas e nevasca                                                                                                                                      |
+| `Sanctuary`       | Seraphiel            | Altar de mármore sobre nuvens, colunas, penas e raios de luz                                                                                                                     |
+| `Scriptorium`     | Escriba da Carne     | Lajes de pedra, velas, páginas espalhadas e livros                                                                                                                               |
+| `VoidRift`        | Cavaleiro do Vazio   | Obsidiana rachada com fendas violeta pulsando, lascas flutuando e um vórtice de névoa escura                                                                                     |
+| `MistRuins`       | Guardião das Sombras | Ruínas ao luar, colunas quebradas, névoa rasteira e fogos-fátuos                                                                                                                 |
+| `BurningShrine`   | Kage Rubra           | Pátio de santuário chamuscado com torii, lanternas de pedra, fogo negro e brasas subindo                                                                                         |
+| `BloodRoseGarden` | Encantadora Carmesim | Círculo de sangue sobre terra escura, roseiras, vinhas com espinhos, candelabros e pétalas caindo                                                                                |
+| `Tribunal`        | Têmis                | Arena de pedra antiga sob um arco com hera, bacia de oferendas com fogo sagrado dourado (assets do Meshy)                                                                        |
+| `SunkenTemple`    | Auric                | Templo dourado submerso, corais, cáusticas e bolhas                                                                                                                              |
+| `GearWorks`       | Cronos               | Engrenagens engatadas girando no chão, anel de algarismos cujos ponteiros às vezes voltam                                                                                        |
+| `HangarBay`       | Unidade Alva         | Plataforma de lançamento hexagonal com varredura nas juntas e mira holográfica                                                                                                   |
+| `WitchHollow`     | Bruxa Carmesim       | Chão de floresta escura, raízes retorcidas, cogumelos vermelhos, anel de pedras e caldeirão borbulhando sobre o fogo                                                             |
+| `AlchemyLab`      | Alquimista Esmeralda | Piso de ardósia, círculo de transmutação brilhando, bancada com frascos verdes borbulhando e alambique de latão                                                                  |
+| `CardTable`       | Coringa Carmesim     | Piso arlequim carmesim e preto, cartas espalhadas e flutuando, fichas, dados e lâmpadas de circo piscando                                                                        |
 | `SakuraCourtyard` | Akane                | Pátio de pedra do Meshy com lanternas, duas árvores de flor de brasa do Meshy (tronco com magma) soltando pétalas que pegam fogo no estalo, lanterna do Meshy e papéis queimando |
-| `FarmPlot`        | Vinicius             | Horta cercada do Meshy (com remesh), a roça dele para capinar |
-| `ElvenGlade`      | Arqueira Élfica      | Chão de musgo, raízes e tronco caído, samambaias, cogumelos brilhando, alvo de palha com flechas e vaga-lumes        |
-| `CrystalGrove`    | Fada Cristalina      | Neve sobre musgo, cristais que brilham por dentro (ciano e lilás), anel de flores luminosas e brilhos subindo        |
-| `WindPeak`        | Zéfiro               | Topo de montanha com grama dobrando ao vento, os quatro elementos orbitando, folhas em espiral e nuvens abaixo       |
-| `StormTemple`     | Monge Ancião         | Terraço de mosteiro, incensário com fumaça, sino de bronze, bandeirinhas de oração e raios ao longe                  |
+| `FarmPlot`        | Vinicius             | Horta cercada do Meshy (com remesh), a roça dele para capinar                                                                                                                    |
+| `ElvenGlade`      | Arqueira Élfica      | Chão de musgo, raízes e tronco caído, samambaias, cogumelos brilhando, alvo de palha com flechas e vaga-lumes                                                                    |
+| `CrystalGrove`    | Fada Cristalina      | Neve sobre musgo, cristais que brilham por dentro (ciano e lilás), anel de flores luminosas e brilhos subindo                                                                    |
+| `WindPeak`        | Tenzai               | Topo de montanha com grama dobrando ao vento, os quatro elementos orbitando, folhas em espiral e nuvens abaixo                                                                   |
+| `StormTemple`     | Monge Ancião         | Terraço de mosteiro, incensário com fumaça, sino de bronze, bandeirinhas de oração e raios ao longe                                                                              |
 
 Os efeitos de cada intro (lâminas, cartas, ossos, gelo…) vêm de `features/characters/`, os mesmos da partida. A ficha de cada personagem (`features/characters/sheets/`) diz qual cenário e quais efeitos ele usa.
 

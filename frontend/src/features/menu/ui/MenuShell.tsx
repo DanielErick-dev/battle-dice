@@ -39,7 +39,8 @@ export function MenuPage({
           wide && "xl:max-w-[110rem]",
         )}
       >
-        <header className="flex items-center gap-3">
+        {/* Above the character stage, whose canvas bleeds past its box over the header. */}
+        <header className="relative z-20 flex items-center gap-3">
           <Link
             href="/"
             aria-label="Voltar ao menu"

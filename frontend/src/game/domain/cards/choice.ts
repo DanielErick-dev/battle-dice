@@ -6,6 +6,7 @@ import { DICE_SIDES } from "../core/dice";
 import { dragTargets } from "../characters/seraphiel/seraph";
 import { riftBehind } from "./exclusive";
 import type { Board } from "../board/types";
+import type { Element } from "../characters/tenzai/types";
 import type { CardInstance, Player, PlayerId } from "../core/state";
 
 export interface CardChoice {
@@ -13,6 +14,8 @@ export interface CardChoice {
   value?: number;
   /** Hand cards burnt to pay for a card that asks for them (see CardDefinition.sacrifices). */
   sacrificeUids?: readonly string[];
+  /** What Tenzai's Elemental Exchange turns into. */
+  element?: Element;
 }
 
 /** Anyone in the same place, protected or not; the Call of the Abyss only reaches the main path (see dragTargets). */

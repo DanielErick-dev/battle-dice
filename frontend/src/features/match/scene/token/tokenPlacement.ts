@@ -28,7 +28,7 @@ export function tokenPosition(view: MatchView, layout: BoardLayout, playerId: st
   const player = view.players.find((candidate) => candidate.id === playerId);
   if (!player) return [0, 0, 0];
   const [x, y, z] = layout.position(player.position);
-  return [x, y + (player.levitating > 0 ? LEVITATE_HEIGHT : 0), z];
+  return [x, y + (player.levitating > 0 || player.converged > 0 ? LEVITATE_HEIGHT : 0), z];
 }
 
 /** Where a figure heads: its tile (shifted aside when shared), unless a trample places it. */

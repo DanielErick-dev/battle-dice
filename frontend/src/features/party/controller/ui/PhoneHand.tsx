@@ -5,10 +5,16 @@ import type { CardChoice } from "@/game/domain/cards/choice";
 import { FUSION_COPIES, fusibleInHand } from "@/game/domain/cards/fusion";
 import { HAND_LIMIT, SACRIFICE_ENERGY } from "@/game/domain/cards/hand";
 import { DICE_SIDES } from "@/game/domain/core/dice";
-import type { CardInstance, Player } from "@/game/domain/types";
+import type { CardInstance, Element, Player } from "@/game/domain/types";
 import { cn } from "@/lib/utils";
 import { playerColor } from "@/features/characters";
-import { cardBlockReason, cardTargetsFor, type CardPlayContext } from "@/features/match/ui/cards/cardBlockReason";
+import {
+  cardBlockReason,
+  cardTargetsFor,
+  exchangeElements,
+  type CardPlayContext,
+} from "@/features/match/ui/cards/cardBlockReason";
+import { ELEMENT_NAME } from "@/features/match/ui/hud/effectCopy/tenzai";
 import { CardChoicePicker } from "@/features/match/ui/cards/CardChoicePicker";
 import { CardView } from "@/features/match/ui/cards/CardView";
 import { CARD_TEXT, cardText } from "@/features/match/ui/cards/cardText";
@@ -126,6 +132,7 @@ export function PhoneHand({
           card={open}
           reason={cardBlockReason(context, open)}
           targets={cardTargetsFor(context, open)}
+          elements={open.cardId === "elementalExchange" ? exchangeElements(context) : []}
           onPlay={(choice) => play(open, choice)}
           onClose={() => setOpenUid(null)}
         />
@@ -158,12 +165,14 @@ interface CardSheetProps {
   card: CardInstance;
   reason: string | null;
   targets: readonly Player[];
+  /** The Elemental Exchange: what it may turn into. */
+  elements: readonly Element[];
   onPlay: (choice: CardChoice) => void;
   onClose: () => void;
 }
 
 /** One card up close: its full text and what playing it asks (a die value, a target), or why it can't be played. */
-function CardSheet({ card, reason, targets, onPlay, onClose }: CardSheetProps) {
+function CardSheet({ card, reason, targets, elements, onPlay, onClose }: CardSheetProps) {
   const { needsValue, targetsOpponent } = CARD_CATALOG[card.cardId];
   return (
     <div
@@ -183,6 +192,17 @@ function CardSheet({ card, reason, targets, onPlay, onClose }: CardSheetProps) {
 
         {reason ? (
           <p className="rounded-xl bg-white/5 px-4 py-3 text-center text-sm font-semibold text-zinc-300">{reason}</p>
+        ) : elements.length > 0 ? (
+          <>
+            <p className={cn(PHONE.label, "text-center")}>Vira qual elemento?</p>
+            <div className="grid grid-cols-2 gap-2">
+              {elements.map((element) => (
+                <button key={element} type="button" onClick={() => onPlay({ element })} className={PHONE.primary}>
+                  {ELEMENT_NAME[element]} dobrado
+                </button>
+              ))}
+            </div>
+          </>
         ) : needsValue ? (
           <>
             <p className={cn(PHONE.label, "text-center")}>Escolha o valor do dado</p>

@@ -35,7 +35,17 @@ export type CharacterClip =
   | "guard"
   | "scoff"
   | "strike"
-  | "fume";
+  | "fume"
+  | "quake"
+  | "tide"
+  | "flare"
+  | "gust"
+  | "meditate"
+  | "lotus"
+  | "vault"
+  | "punch"
+  | "ouch"
+  | "limp";
 
 /** Seconds each clip lasts, for the clips a model has. */
 export type ClipLengths = Partial<Record<CharacterClip, number>>;
@@ -97,6 +107,8 @@ export interface CharacterDefinition {
   introPourSeconds?: number;
   /** Hovers on the menu stage (floating instead of a showcase) with a staff in hand, as when levitating. */
   levitates?: boolean;
+  /** Hovers on the menu stage in the lotus with his Convergence aura (Tenzai), no staff. */
+  meditates?: boolean;
   /** Their menu intro is a descent out of heaven in a column of light, landing on the pedestal (see HeavenDescent). */
   descends?: boolean;
   /** Playing cards circle them through the intro and gather into their raised hand (see JesterCards). */

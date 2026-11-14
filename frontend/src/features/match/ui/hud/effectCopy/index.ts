@@ -11,6 +11,7 @@ import { jesterCopy } from "./jester";
 import { scribeCopy } from "./scribe";
 import { wardenCopy } from "./warden";
 import { viniciusCopy } from "./vinicius";
+import { tenzaiCopy } from "./tenzai";
 import type { Copy, CopyEntry } from "./types";
 
 const EFFECT_COPY: Readonly<Record<TileEffectKind, CopyEntry>> = {
@@ -26,6 +27,7 @@ const EFFECT_COPY: Readonly<Record<TileEffectKind, CopyEntry>> = {
   ...scribeCopy,
   ...wardenCopy,
   ...viniciusCopy,
+  ...tenzaiCopy,
 };
 
 /** What the banner says for this effect. */
