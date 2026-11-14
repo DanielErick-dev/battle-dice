@@ -15,11 +15,7 @@ import { useGlowColor } from "../shared/glowColor";
 const BURST_SECONDS = 1.8;
 const BURST_MOTES = 64;
 
-/**
- * The burst of power as a levitation starts: two shockwaves racing out over the ground, a pillar
- * of light that flares and narrows, and motes flung up and out. Plays once; remount (new `key`)
- * to play it again.
- */
+/** Plays once; remount with a new `key` to replay. */
 export function LevitationBurst({ size, color }: { size: number; color: string }) {
   const beam = useLightColumnTexture();
   const mote = useMoteTexture();

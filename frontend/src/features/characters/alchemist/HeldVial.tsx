@@ -31,12 +31,7 @@ interface HeldVialProps {
   mouth?: RefObject<Vector3>;
 }
 
-/**
- * A small alchemist's vial, glowing liquid inside, held in the figure's right hand while
- * `active` is on. Bound to the hand bone (Mixamo rig) and kept upright in the figure's own
- * frame, like the witch's staff, unless tipped forward to pour. Meshy figures can't hold props,
- * so it's made in code.
- */
+/** Meshy figures can't hold props, so the vial is made in code and kept upright in the figure's frame. */
 export function HeldVial(props: HeldVialProps) {
   const hand = useMemo(() => findBone(props.figure, "RightHand"), [props.figure]);
   return hand ? createPortal(<Held {...props} hand={hand} />, hand) : null;
@@ -93,10 +88,7 @@ function Held({ figure, hand, color, active, tilt, mouth }: HeldVialProps & { ha
 /** Bulb radius of the held vial, in model units. */
 const HELD_SIZE = 0.05;
 
-/**
- * The vial itself, `size` being its bulb's radius: a round glass bulb of glowing liquid, a neck
- * and a cork (popped while `uncorked`).
- */
+/** The vial, `size` being its bulb's radius; the cork pops while `uncorked`. */
 export function Vial({ color, size, uncorked }: { color: string; size: number; uncorked?: RefObject<boolean> }) {
   const glow = useGlowColor(color, 1.8);
   const liquid = useRef<Mesh>(null);

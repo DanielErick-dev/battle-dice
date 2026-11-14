@@ -44,12 +44,7 @@ const points = Array.from({ length: STRIP_POINTS }, () => new Vector3());
 const ringStart = itemAt(points, 0);
 const ringEnd = itemAt(points, RING_POINTS);
 
-/**
- * A field of electricity around the figure while its power gathers (Dormant Fury waiting for the
- * roll): arcs crawl and snap over a dome around it, re-forming many times a second, and rings of
- * lightning crackle on the ground at its feet. Charges up while `active` and dies down after.
- * Mounted in the token's frame (the figure stands at its origin), `size` the figure's height.
- */
+/** Charges up while `active` and dies down after; in the token's frame, `size` the figure's height. */
 export function ElectricField({ active, color, size }: { active: boolean; color: string; size: number }) {
   const root = useRef<Group>(null);
   const glowMaterial = useRef<MeshBasicMaterial>(null);

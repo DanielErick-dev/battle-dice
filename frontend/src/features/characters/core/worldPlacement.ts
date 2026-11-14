@@ -2,11 +2,7 @@ import { Quaternion, Vector3, type Object3D } from "three";
 
 const scratch = { quaternion: new Quaternion(), scale: new Vector3() };
 
-/**
- * Puts `object` (a child of `parent`) at a pose given in world space: `position`, optionally
- * `quaternion`, and a world-space `size` multiplier. For effects mounted inside a scaled, turned
- * figure (bound to its skeleton) but laid out in world units.
- */
+/** For effects bound inside a scaled, turned figure but laid out in world units. */
 export function placeInWorld(
   object: Object3D,
   parent: Object3D,

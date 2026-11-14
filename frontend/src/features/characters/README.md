@@ -10,6 +10,25 @@ Menu e partida usam esta pasta; ela não importa nenhum dos dois.
 
 Personagem novo = uma ficha em `sheets/` e uma linha em `CHARACTERS`.
 
+## Clipes de animação
+
+Os clipes (`CharacterClip` em `types.ts`) saem do `scripts/characters/build-characters.mjs`. Todo modelo tem `idle` e `run`; os outros são opcionais:
+
+| Clipe             | Quando toca                                                                                                |
+| ----------------- | ---------------------------------------------------------------------------------------------------------- |
+| `intro`           | uma vez no menu, quando o personagem é escolhido                                                           |
+| `showcase`        | em loop no menu depois da intro (sem ele, `idle`)                                                          |
+| `cast`            | uma vez ao usar a habilidade                                                                               |
+| `float`           | em loop enquanto levita (sem ele, `idle`)                                                                  |
+| `dash` / `land`   | ao se jogar no avanço relâmpago e ao pousar dele                                                           |
+| `shove`           | quando o Bjorn empurra quem atropelou                                                                      |
+| `knocked`         | quando alguém é arremessado; todos pegam emprestado de um modelo (`SHARED_CLIPS` no manifest do build)     |
+| `rest` / `sit`    | `rest` em loop, sentado na cadeira, enquanto perde turnos; `sit` ao se sentar antes (compartilhados igual) |
+| `brake`           | ao parar depois de correr, desacelerando até andar                                                         |
+| `hop`             | quando a Fada para na própria neve, antes dela a levar adiante                                             |
+| `guard` / `scoff` | da Têmis: ao dar o veredito ela se guarda, aponta (`cast`) para o julgado e debocha quando volta nele      |
+| `strike` / `fume` | do Akane: golpeia o chão quando o fogo explode (Sangue Quente, Ímpeto) e bate o pé de raiva num dado baixo |
+
 ## Pastas
 
 | Pasta           | O que tem                                                                                                                                                                                                                                                                                                                             |

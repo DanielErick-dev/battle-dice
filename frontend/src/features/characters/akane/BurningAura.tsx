@@ -29,10 +29,7 @@ const BODY: readonly (readonly [number, number, number])[] = [
   [5.6, 0.95, 0.18],
 ];
 
-/**
- * Someone on Akane's fire: flames licking round their feet, a hot glow and sparks rising off them. `fierce` is Akane
- * under his own Impetus: a wider, brighter blaze.
- */
+/** Someone on Akane's fire; `fierce` is Akane under his own Impetus, a wider, brighter blaze. */
 export function BurningAura({ fierce = false }: { fierce?: boolean }) {
   const disc = useSoftDisc();
   const glow = useRef<Sprite>(null);

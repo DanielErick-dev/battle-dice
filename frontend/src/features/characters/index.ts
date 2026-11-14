@@ -86,11 +86,7 @@ export interface RosterEntry {
   character: CharacterId;
 }
 
-/**
- * The players of a local match, one per character, in turn order. Several may play the same
- * character: the player id is their seat and character (`p2:witch`), and a character
- * played more than once is named with each one's seat.
- */
+/** The player id is seat and character (`p2:witch`), so the same character can be played more than once. */
 export function rosterOf(characters: readonly CharacterId[]): RosterEntry[] {
   return characters.map((character, index) => {
     const { name, ability } = CHARACTERS[character];

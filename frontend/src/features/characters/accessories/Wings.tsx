@@ -20,14 +20,7 @@ const LEAN = 0.18;
 
 preloadProps(Object.values(WINGS).map(({ prop }) => prop));
 
-/**
- * Wings on a figure's back: a separate model (PROPS.fairyWings, seraphWings…), beating in code.
- * Meshy's rig binds wings to the arms (raising an arm drags the wing's membrane with it), so the
- * figures are made without them. The pair is split down the middle into a left and a right wing,
- * each turning on the spine; they follow the upper spine around but keep upright with the figure.
- * While `folded` is on (seated) they sweep shut behind the back and fold away.
- * Mounted inside the figure (its own frame, in model units).
- */
+/** Separate from the figure because Meshy's rig binds wings to the arms; split in two and beaten in code. */
 export function Wings({
   figure,
   wings,
@@ -79,8 +72,7 @@ export function Wings({
     root.current.visible = fold.current < 0.98;
     root.current.scale.setScalar(Math.max(0.001, 1 - fold.current));
     root.current.position.copy(figure.worldToLocal(spine.getWorldPosition(scratch))).add(offset);
-    // Tips swing back (-z) and forward again: the right wing turns one way about the spine, the left
-    // the other; folding, they sweep shut behind the back.
+    // The two wings turn opposite ways about the spine, so one sign drives both.
     const driven = stroke?.current ?? null;
     const wanted = (driven ?? Math.sin(clock.elapsedTime * look.beatRate) * look.idle) * (1 - fold.current);
     shown.current = approach(shown.current, wanted, SMOOTHING, delta);

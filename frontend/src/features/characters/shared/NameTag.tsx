@@ -8,11 +8,7 @@ import { context2d } from "@/features/shared/three/canvasTexture";
 const SCREEN_HEIGHT = 0.012;
 const CANVAS_HEIGHT = 48;
 
-/**
- * A short tag over something on the board (a player's name, a seal's or an apparition's): a dark
- * pill edged in `color`, always drawn on top and the same size on screen at any distance. Dimmer
- * when not `active` (not the player whose turn it is).
- */
+/** Drawn on top at a fixed screen size; dimmer when not `active` (not the player whose turn it is). */
 export function NameTag({
   text,
   color,

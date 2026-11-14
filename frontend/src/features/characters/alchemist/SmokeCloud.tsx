@@ -11,12 +11,7 @@ import { useSmokeTexture } from "./vialTextures";
 const CLOUD_SECONDS = 5.2;
 const CLOUD_PUFFS = 32;
 
-/**
- * A cloud of emerald smoke bursting up around a whole figure, from its feet to over its head,
- * billowing out and fading slowly. Sprites of soft smoke (always facing the camera) with a few
- * glowing ones inside. `size` is the figure's height; it bursts `delay` seconds after mounting.
- * Plays once; remount (new `key`) to replay.
- */
+/** Plays once, `delay` seconds after mounting; remount with a new `key` to replay. */
 export function SmokeCloud({ size, color, delay = 0 }: { size: number; color: string; delay?: number }) {
   const smoke = useSmokeTexture();
   const tint = useMemo(() => new Color(color), [color]);

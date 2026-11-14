@@ -1,4 +1,4 @@
-/** Easing curves and per-frame approaches shared by the character effects (pure, see easing.test.ts). */
+/** Easing curves and per-frame approaches shared by the character effects. */
 
 export function clamp01(x: number): number {
   return Math.min(1, Math.max(0, x));

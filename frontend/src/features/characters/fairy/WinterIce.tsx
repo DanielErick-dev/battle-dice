@@ -32,12 +32,7 @@ interface FrozenTile {
   melt?: number;
 }
 
-/**
- * The tiles Eternal Winter froze (see fairy.ts), under the same snow as an enchanted tile: a white
- * slab, drifts and ice crystals in the fairy's colour; the slab between frozen tiles frosts over too,
- * so the ice reads as one field. The covers, each its slab's shape, are merged into one mesh; the
- * rest is instanced, since the ice can cover the whole path.
- */
+/** Covers merged into one mesh and the rest instanced, since the ice can cover the whole path. */
 export function WinterIce({
   tiles,
   color,

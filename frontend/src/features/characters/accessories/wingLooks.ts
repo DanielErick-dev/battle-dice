@@ -41,8 +41,7 @@ export const WINGS = {
     beatRate: 4.2,
     icy: true,
   },
-  // Seraphiel's feathered wings, and his burnt ones once fallen: tips above his head, great slow
-  // beats at rest, and mighty ones when driven (his entrance).
+  // Seraphiel's wings, burnt once fallen: great slow beats at rest, mighty ones when driven by his entrance.
   seraph: {
     prop: "seraphWings",
     height: 1.6,

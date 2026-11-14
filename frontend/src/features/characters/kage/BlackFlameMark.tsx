@@ -13,11 +13,7 @@ import { FIRE_EMBER_GLOW, FIRE_MODEL_BOTTOM, FIRES, FLAME_TIME, useEmberTexture,
 
 const TILE_TOP = TILE_HEIGHT / 2;
 
-/**
- * A tile under Kage Rubra's black fire (Amaterasu): the tile is gone under a charred, smouldering
- * slab, and black flames edged in red burn all over it, swaying and breathing slowly (their height
- * and glow rise and fall), sparks rising off them. Flares up as it's lit.
- */
+/** Flares up as it's lit. */
 export function BlackFlameMark({
   position,
   color,

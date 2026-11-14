@@ -26,13 +26,7 @@ const scratch = {
   lift: new Vector3(),
 };
 
-/**
- * Cold breath steaming from the figure's mouth in regular puffs, out the way its face points and
- * rising as they go. Meshy rigs carry a joint at the front of the face (`headfront`): on a long
- * muzzle, the breath comes from there. `heavyAt` (seconds after mounting) makes the puff then a
- * heavier one, as after a blow; `active` (on by default) fades it in and out. `size` is the
- * figure's height in world units.
- */
+/** Breath leaves Meshy's `headfront` joint, so a long muzzle breathes from its tip; `heavyAt` makes one puff heavier. */
 export function ColdBreath({
   figure,
   size,

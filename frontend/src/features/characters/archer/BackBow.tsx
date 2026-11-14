@@ -22,11 +22,7 @@ const HIDE_RATE = 5;
 
 preloadProps(["elvenBow"]);
 
-/**
- * The Elven Archer's bow (PROPS.elvenBow): slung on her back during the match, drawn into her left
- * hand when she uses her ability (each new `cast` id) and slung back once the volley is over. Folds
- * away while she sits (it would go through the throne). Mounted inside the figure (its own frame).
- */
+/** Drawn on each new `cast` id; folds away while she sits, or it would go through the throne. */
 export function BackBow({
   figure,
   cast,

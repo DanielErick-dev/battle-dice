@@ -23,10 +23,7 @@ const CHAR = new Color("#140804");
 /** How long the chair takes to burn away. */
 const BURN_SECONDS = 0.8;
 
-/**
- * Akane's menu intro: he starts slouched on a plain school chair; as he gets up (`riseSeconds` into the intro)
- * it bursts into flames and burns away. In the figure's frame, `size` tall; mounted fresh with every intro.
- */
+/** The chair bursts into flames as he gets up (`riseSeconds`); in the figure's frame, mounted fresh per intro. */
 export function ChairIntro({ size, riseSeconds }: { size: number; riseSeconds: number }) {
   const chair = useRef<Group>(null);
   const age = useAge();

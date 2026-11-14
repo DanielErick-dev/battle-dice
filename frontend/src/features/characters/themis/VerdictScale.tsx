@@ -47,10 +47,7 @@ interface VerdictScaleProps {
   phase: "weigh" | "tip";
 }
 
-/**
- * Themis's Silent Verdict: a giant bronze scale on a Greek column comes down between the judge (-x) and the
- * one judged (+x), weighs, swinging, then drops on their side and strikes them.
- */
+/** Themis's Silent Verdict, between the judge (-x) and the one judged (+x). */
 export function VerdictScale({ span, phase }: VerdictScaleProps) {
   const age = useAge();
   const root = useRef<Group>(null);

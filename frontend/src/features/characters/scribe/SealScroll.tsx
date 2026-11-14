@@ -40,12 +40,7 @@ const DROP_SECONDS = 1.3;
 
 const BONE = "#e3d6bd";
 
-/**
- * A forbidden seal on its tile, the same for every kind so nobody but its writer knows which it
- * is: a page of stitched skin bearing an eye written in blood, held up over a pool of blood by
- * bone claws curling out of the tile, breathing slowly and dripping. The eye smoulders faintly in
- * its writer's colour. Its writer alone also sees its name (`label`). Snaps in as it's written.
- */
+/** Looks the same for every kind so nobody but its writer, who alone sees `label`, knows which it is. */
 export function SealScroll({ position, color, label }: { position: Vec3; color: string; label?: string }) {
   const root = useRef<Group>(null);
   const page = useRef<Group>(null);
@@ -165,10 +160,7 @@ export function SealScroll({ position, color, label }: { position: Vec3; color: 
   );
 }
 
-/**
- * The page: tanned, mottled skin with ragged edges, stitched together down the middle and
- * along the sides, veined, with an eye written in blood in the middle, its ink running.
- */
+/** The seal's page of stitched skin, an eye written in blood in its middle. */
 function useSkinPage(): CanvasTexture {
   const texture = useMemo(() => {
     const width = 192;

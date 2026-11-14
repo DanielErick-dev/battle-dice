@@ -12,11 +12,7 @@ import { withRim, type RimUniforms } from "../shared/rimGlow";
  * cupped hands): how much bigger than its export it's drawn.
  */
 const SCALE = 2.5;
-/**
- * Where the middle of the bust stands, in world units from her feet (she stands 3 tall): raised over
- * her, its chest above her head (so it towers over the tile rather than spreading across the board,
- * in the way of those beside her), and only a little behind her, so she's inside it.
- */
+/** Raised over her so it towers over the tile instead of spreading across her neighbours. */
 const CENTRE: [number, number, number] = [0, 2.9, -0.3];
 /** How far below its place it rises from as it takes form. */
 const RISE_DEPTH = 3.5;
@@ -31,15 +27,7 @@ const FADE_RATE = 1.1;
 
 preloadProps(["susanoo"]);
 
-/**
- * Kage Rubra's Susanoo, while her Spectral Armour lasts: a spirit warrior of red bone and fire rises
- * out of the ground round her and towers over her, she standing inside it, its hands reaching out
- * ahead. In the figure's own frame (+z ahead), in world units. Breathes and glows while it stands;
- * sinks and fades once the armour is gone. No lights: its own glow, through the bloom.
- *
- * Drawn in two passes: its depth first, then its colour over only the nearest surface, so the
- * see-through body shows its outside alone (the back of its skull doesn't wash out its face).
- */
+/** Drawn depth first, then colour on the nearest surface only, so the see-through body doesn't wash out its face. */
 export function Susanoo({ active }: { active: boolean }) {
   const { geometry, material } = usePropMesh("susanoo");
   const spirit = useMemo(() => {

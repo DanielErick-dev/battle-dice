@@ -93,11 +93,7 @@ const VERTEX = /* glsl */ `
   }
 `;
 
-/**
- * Water: deep and dark at the foot, thinning to a lit turquoise up the face where the light comes
- * through, the sky caught at grazing angles and a glint of sun; foam on the curling lip, in streaks
- * pouring down the face and churning at the foot. Kept under 1.0 so the bloom leaves it alone.
- */
+/** Kept under 1.0 so the bloom leaves the water alone. */
 const FRAGMENT = /* glsl */ `
   uniform float uTime;
   uniform float uOpacity;
@@ -135,13 +131,7 @@ const FRAGMENT = /* glsl */ `
   }
 `;
 
-/**
- * Cleansing Tide, in world space: a breaking wave rises on the player's tile and rolls over the
- * tiles ahead (`path`, the player's own first), spray torn off its lip and mist over it, every tile
- * it crosses left glistening wet, and at the end of its reach it breaks in a burst of spray. Timed
- * like the playback (DEFAULT_TIMINGS.tideMs); mounted with a fresh key per wave, it fades itself
- * out. The water takes a touch of the caster's colour. No lights: the shader paints its own.
- */
+/** Timed like the playback (DEFAULT_TIMINGS.tideMs) and keyed per wave; the shader paints its own light. */
 export function TidalWave({ path, color }: { path: readonly Vec3[]; color: string }) {
   const crest = useRef<Group>(null);
   const surface = useRef<{ material: ShaderMaterial } | null>(null);
@@ -243,8 +233,7 @@ export function TidalWave({ path, color }: { path: readonly Vec3[]; color: strin
       wetMaterial.opacity = 0.32 * wetness;
     });
 
-    // Spray: each drop tears off the lip, flies up and ahead and falls away, over and over while it
-    // rolls; the break throws it higher, all at once.
+    // The break throws all the spray at once, higher than while rolling.
     const positions = sprayGeometry.getAttribute("position") as BufferAttribute;
     const cos = Math.cos(facing);
     const sin = Math.sin(facing);

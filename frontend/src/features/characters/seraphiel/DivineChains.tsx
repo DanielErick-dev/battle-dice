@@ -17,11 +17,7 @@ const ANCHOR_RADIUS = 0.95;
 const LINK_SIZE = 0.09;
 const SHOW_RATE = 4;
 
-/**
- * Heaven's chains on the Fallen Angel (Player.chained): golden rings of chain wrapped round him,
- * slowly turning, and chains staked to the floor round him, glowing with a holy light. In the
- * figure's own frame, in world units. They tighten in as he's bound and let go once he's free.
- */
+/** In the figure's own frame, in world units; tightens as he's bound and lets go once free. */
 export function DivineChains({ active }: { active: boolean }) {
   const root = useRef<Group>(null);
   const rings = useRef<(Group | null)[]>([]);

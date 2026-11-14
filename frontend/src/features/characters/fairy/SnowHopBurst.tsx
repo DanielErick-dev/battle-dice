@@ -29,12 +29,7 @@ const SPIN = 1.4;
 const DUST = new Color("#8fe9ff").multiplyScalar(2.6);
 const SNOW = new Color("#f2fbff").multiplyScalar(1.5);
 
-/**
- * The Crystal Fairy hopping on her own snow (in the token's effect frame, a figure 1.9 tall): as her
- * feet leave the ground, snowflakes burst out round her in a swirl, flying up and out and drifting
- * back down, a cloud of glittering fairy dust and falling snow wraps her, and a ring of frost rolls
- * out over the tile. Mounted with a fresh key per hop, it fades itself out.
- */
+/** In the token's effect frame (a figure 1.9 tall); keyed per hop, it fades itself out. */
 export function SnowHopBurst() {
   const flakes = useMemo(() => {
     const random = seededRandom(31);

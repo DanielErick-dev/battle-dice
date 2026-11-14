@@ -18,11 +18,7 @@ const FADE_RATE = 2;
 const BLADE_CORE = "#1c0f2e";
 const HANDS = ["RightHand", "LeftHand"] as const;
 
-/**
- * Two blades of light held in the figure's hands while `active` is on. Meshy animates only the
- * skeleton, so swords modelled on the hips stay there; these stand in for them in sword moves.
- * Each blade is bound to a hand bone (Mixamo rig) and runs along it, past the fingers.
- */
+/** Meshy animates only the skeleton, so the swords modelled on the hips stay there; these stand in for them. */
 export function EnergyBlades({
   figure,
   color,

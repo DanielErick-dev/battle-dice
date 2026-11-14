@@ -34,11 +34,7 @@ const ARC_SECONDS = 0.09;
 /** Sparks crackling off each hand while charged. */
 const SPARKS_PER_HAND = 3;
 
-/**
- * A strike from the sky (see `strikeSeconds`): how long it shows (at full strength for the first
- * part), how high it starts over the figure (shares of its height), how wide its bolt is against
- * the limbs', and the column of light and the flash on the ground round it.
- */
+/** The sky strike: how long, how high (shares of the figure's height) and how wide against the limbs' bolts. */
 const STRIKE_SECONDS = 0.75;
 const STRIKE_PEAK = 0.18;
 const STRIKE_HEIGHT = 3.4;
@@ -59,17 +55,7 @@ const scratch = { point: new Vector3(), a: new Vector3() };
 /** A bolt's points in world space, rebuilt for every strip. */
 const bolt = Array.from({ length: POINTS }, () => new Vector3());
 
-/**
- * Lightning crackling off the figure's hands and feet as it moves: every swing leaves a
- * thin, jagged, forked bolt along the limb's path that flickers into new shapes, and now and
- * then an arc jumps between the hands. A limb that barely moves draws none, so the faster the
- * move, the longer the bolt. Lit while `active` (the intro on the menus, a lightning dash in a
- * match), it dies down after. While `charged`, sparks crackle off both hands even standing still
- * (the power gathering before the dash). At `strikeSeconds` after mounting (an intro's
- * landing), one thick bolt falls straight from the sky through the figure into the ground,
- * inside a column of light, flashing on the floor. Placed in world space from the bones, so it follows the figure
- * wherever it stands.
- */
+/** Bolt length follows limb speed, so a still limb draws none; placed in world space from the bones. */
 export function LimbLightning({
   figure,
   size,

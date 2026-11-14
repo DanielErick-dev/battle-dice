@@ -10,12 +10,9 @@ export const monk = {
   ability: "dormantFury",
   playable: true,
   shieldColor: "#facc15",
-  // His intro (put together by the build, see manifest.mjs) is a capoeira ginga and a spinning
-  // jump: the lightning follows every swing of his limbs. Using Dormant Fury, he stands charging
-  // until the roll; out of the dash he drops from the sky and touches down 0.4 s into his land clip.
+  // Out of the dash he drops from the sky and touches down 0.4 s into his land clip.
   limbLightning: true,
-  // The spinning jump touches down 4.8 s into the intro clip (2.8 s of ginga, then 2 s of jump),
-  // played a third faster.
+  // Touchdown is 4.8 s into the clip (2.8 s ginga, 2 s jump), which plays a third faster.
   introSpeed: 1.35,
   introStrikeSeconds: 4.8,
   castsStill: true,

@@ -10,10 +10,7 @@ import { useGlowColor } from "../shared/glowColor";
 const RADIUS = 1.0;
 const GOLD = "#ffc94d";
 
-/**
- * Themis's Mark of Justice on a marked player: a golden rune circle turning at their feet, out of the way of
- * anything floating over their head; each further mark turns it faster and brighter.
- */
+/** At their feet, clear of anything floating over their head; each further mark turns it faster and brighter. */
 export function JusticeMarkRing({ marks }: { marks: number }) {
   const runes = useRuneTexture();
   const glow = useGlowColor(GOLD, 1.4 + 0.3 * Math.min(marks, 4));

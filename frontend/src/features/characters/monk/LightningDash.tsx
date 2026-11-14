@@ -39,13 +39,7 @@ const STRIKE_SECONDS = DEFAULT_TIMINGS.dashStrikeMs / 1000;
 const STEP_SECONDS = DEFAULT_TIMINGS.dashStepMs / 1000;
 const ORIGIN = new Vector3();
 
-/**
- * Dormant Fury's dash, in world space: once the player has thrown themselves forward (dashLaunchMs),
- * lightning strikes them where they stand, a bolt
- * races along every tile they cross (as fast as the token), and another strike drops on the tile
- * where they step out of it. Timed like the playback (DEFAULT_TIMINGS); mounted with a fresh key
- * per dash, it fades itself out.
- */
+/** Timed like the playback (DEFAULT_TIMINGS, from dashLaunchMs) and keyed per dash; it fades itself out. */
 export function LightningDash({ path, color }: { path: readonly Vec3[]; color: string }) {
   const travelSeconds = Math.max(1, path.length - 1) * STEP_SECONDS;
   const strikeAt = LAUNCH_SECONDS;

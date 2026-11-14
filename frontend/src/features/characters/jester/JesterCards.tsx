@@ -37,11 +37,7 @@ const SPIRAL_CLIMB = 0.25;
 /** The cards flying into the hand, and the flash as they meet. */
 const GATHER_SECONDS = 0.35;
 const FLASH_SECONDS = 0.6;
-/**
- * The kept card: past the fingertips (the hand bone sits at the wrist), along the forearm's line,
- * and drawn a little towards the camera so the fingers never cut through it; bigger than the
- * others, and how fast it fades once put away. Distances are shares of the figure's height.
- */
+/** The kept card sits past the fingertips (the hand bone is at the wrist), nudged to the camera so fingers never cut it. */
 const HELD_REACH = 0.1;
 const HELD_LIFT = 0.03;
 const HELD_TOWARDS_CAMERA = 0.06;
@@ -58,13 +54,7 @@ const SUITS = [
   { symbol: "♣", color: "#1b1b24" },
 ] as const;
 
-/**
- * The Jester's intro, like the cards sewn on her costume come alive: a ring of playing cards
- * appears around her, whirls up in a spiral through her pirouette and, as she strikes her pose,
- * gathers into whichever hand she holds up. One card stays there, an ace she looks at, until the
- * intro is over (`active` false). Everything is placed in world space from her bones, so it
- * follows the figure wherever it stands. Mounted fresh with every intro.
- */
+/** Placed in world space from her bones so it follows the figure; mounted fresh with every intro. */
 export function JesterCards({
   figure,
   size,

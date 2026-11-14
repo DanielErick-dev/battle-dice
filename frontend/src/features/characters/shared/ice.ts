@@ -8,13 +8,9 @@ import { context2d } from "@/features/shared/three/canvasTexture";
 export const ICE = new Color("#dff4ff");
 export const GLACIER = new Color("#60a5fa");
 
-/**
- * One shard of ice 1 tall, standing on its origin (its foot sunk a little below): an uneven
- * six-sided column, a little wider at the foot, rising to an off-centre point; or, `broken`, ending
- * in a slanted break. Faces are left flat so each catches the light on its own.
- */
 type Corner = [number, number, number];
 
+/** A shard 1 tall standing on its origin, `broken` ending in a slanted break; flat faces each catch the light. */
 export function iceShard(random: RandomSource, radius: number, broken: boolean): BufferGeometry {
   const sides = 6;
   const shoulder = broken ? 0.75 + random() * 0.2 : 0.62 + random() * 0.15;

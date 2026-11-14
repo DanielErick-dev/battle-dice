@@ -86,11 +86,7 @@ void main() {
 }
 `;
 
-/**
- * Akane's clothes on fire without burning up: tongues of flame licking up a second skin of his own mesh, following
- * the cloth as he moves, kept off his face and hair. `igniteAt`: seconds after mounting it lights (the snap of his
- * fingers in his intro), spreading up from his feet; lit from the start without it.
- */
+/** Flames on a second skin of his own mesh so they follow the cloth; `igniteAt` (his intro's snap) delays it. */
 export function ClothFire({ figure, igniteAt = 0 }: { figure: Object3D; igniteAt?: number }) {
   const age = useAge();
   const sheath = useMemo(() => {

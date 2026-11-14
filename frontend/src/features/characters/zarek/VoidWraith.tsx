@@ -30,11 +30,7 @@ interface VoidWraithProps {
   call: { id: number; at: Vec3 } | null;
 }
 
-/**
- * The Void itself, a wraith of black smoke (PROPS.voidWraith) drifting low over the board: now and
- * then it comes out to roam, and whenever Zarek calls on it, it rushes to the tile and stays till
- * done. Not rigged: it bobs, leans into its drift and breathes in code.
- */
+/** Not rigged: it bobs, leans into its drift and breathes in code. */
 export function VoidWraith({ roam, call }: VoidWraithProps) {
   const { geometry, material } = usePropMesh("voidWraith");
   // Its texture reads grey under the moon: darkened to black smoke, with no glow: the Void is pure black.

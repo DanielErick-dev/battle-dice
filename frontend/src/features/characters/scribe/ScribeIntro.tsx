@@ -51,16 +51,7 @@ const scratch = {
 };
 const UP = new Vector3(0, 1, 0);
 
-/**
- * The Flesh Scribe's intro. A page of parchment unrolls in the air before his hand and, as he
- * writes, runes of blood appear on it, glowing, ink sparking and dripping off the pen; meanwhile
- * a ritual circle of blood writes itself on the floor round him. When he throws his arms up the
- * circle flares and the page tears into four scrolls (his four seals) that fly out round him,
- * unrolling: aged parchment between dark wooden rods with brass ends, written in dried blood
- * whose runes smoulder red, each closed with a wax seal. As his arms come down they
- * burn away from the edges in, shedding embers, and the circle fades. Placed in world space round
- * him; mounted fresh with every intro.
- */
+/** Placed in world space round him and mounted fresh with every intro. */
 export function ScribeIntro({
   figure,
   size,
@@ -187,8 +178,7 @@ export function ScribeIntro({
     hips.getWorldPosition(scratch.point);
     fingertip.getWorldPosition(scratch.tip);
     if (t >= beats.writeSeconds - PAGE_UNROLL_SECONDS && !anchor.current) {
-      // Facing the way he faces, out beside his writing hand (so it doesn't hide him), a little in
-      // front of his fingertip and hanging so the finger writes about its middle.
+      // Beside his writing hand so the page doesn't hide him, hung so the finger writes about its middle.
       figure.getWorldQuaternion(scratch.facing);
       const forward = new Vector3(0, 0, 1).applyQuaternion(scratch.facing).setY(0).normalize();
       const across = new Vector3().crossVectors(UP, forward);

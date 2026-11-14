@@ -32,12 +32,7 @@ function bodyRadius(y: number): number {
   return 0.2 + Math.sin(Math.min(1, (y - 1.6) / 0.45) * Math.PI) * 0.06;
 }
 
-/**
- * The fairy's snow holding a player fast: lumps of packed snow climb up and wrap their whole body,
- * hugging it, ice shards jutting out (`rounds` 2 or more); a round later they slide down and only
- * grip the legs (`rounds` 1); then the snow falls away (0). Each lump settles in as the snow climbs
- * past it. In the token's effects frame (see EFFECT_SCALE).
- */
+/** Wraps the whole body while `rounds` >= 2, only the legs at 1, gone at 0; in the token's effects frame. */
 export function SnowBind({ rounds }: { rounds: number }) {
   const lumps = useMemo(() => {
     const random = seededRandom(83);
@@ -116,8 +111,7 @@ export function SnowBind({ rounds }: { rounds: number }) {
       lumps.forEach((lump, index) => {
         // A lump packs in as the snow climbs past it, and crumbles as it slides away below it.
         const grown = clamp01((top - lump.y) / 0.18);
-        // Not packed in yet: tucked away inside the body, never at zero scale (its normals would turn
-        // to NaN, and the bloom would smear that over the whole screen).
+        // Never at zero scale: the normals would turn NaN and the bloom would smear that over the screen.
         const radius = (bodyRadius(lump.y) * lump.out + lump.size * 0.35) * (0.4 + 0.6 * grown);
         dummy.position.set(Math.cos(lump.angle) * radius, lump.y, Math.sin(lump.angle) * radius);
         dummy.rotation.set(lump.spin, lump.angle, 0);

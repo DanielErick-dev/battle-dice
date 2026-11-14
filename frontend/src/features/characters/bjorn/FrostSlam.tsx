@@ -36,13 +36,7 @@ const FADE_RATE = 0.8;
 
 const scratch = { hand: new Vector3(), point: new Vector3() };
 
-/**
- * Bjorn's intro: frost gathers round his raised fist, and as it slams the ground the floor
- * freezes over in a web of cracks, ice spikes burst out round the blow, a shockwave and a spray
- * of ice dust and chunks of snow fly out and the camera jolts. Once the intro is over (`active`
- * false) the spikes sink back and the frost melts away. His cold breath steams (see ColdBreath)
- * all the while he's on the stage, heavier after the blow. Mounted fresh with every intro.
- */
+/** Mounted fresh with every intro; the spikes sink and the frost melts once `active` is false. */
 export function FrostSlam({
   figure,
   size,

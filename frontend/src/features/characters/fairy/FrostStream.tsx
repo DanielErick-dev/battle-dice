@@ -38,12 +38,7 @@ const PUFF_SECONDS = DEFAULT_TIMINGS.frostStreamMs / 1000 - TRAVEL_SECONDS;
 const DUST = new Color("#9be7ff").multiplyScalar(2.4);
 const SNOW = new Color("#f2fbff").multiplyScalar(1.6);
 
-/**
- * Fairy Bloom's snow, in world space: a swirling stream of snowflakes and glittering dust leaves the
- * wand's tip (`from`, where it was as she cast) and arcs to the tile she's enchanting, landing in a
- * puff as the tile goes white. Timed like the playback (DEFAULT_TIMINGS.frostStreamMs); mounted with
- * a fresh key per tile, it fades itself out.
- */
+/** Timed like the playback (DEFAULT_TIMINGS.frostStreamMs) and keyed per tile; it fades itself out. */
 export function FrostStream({ from, to }: { from: Vector3; to: Vec3 }) {
   const curve = useMemo(() => {
     const start = from.clone();

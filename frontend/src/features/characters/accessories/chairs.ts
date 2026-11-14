@@ -3,11 +3,7 @@ import { preloadProps, type PropId } from "../core/props";
 /** The shared `rest` clip keeps the hips this high off the floor (FIGURE_HEIGHT units): every seat's top sits just under them. */
 export const SEAT_TOP = 0.74;
 
-/**
- * A character's own chair (a Meshy model, see PROPS): how tall to draw it so its seat meets the
- * hips (SEAT_TOP), how far its middle sits from the hips (+z ahead) and how far round it's turned
- * to face the way the figure does.
- */
+/** A character's own chair: its height so the seat meets SEAT_TOP, its offset from the hips (+z ahead) and turn. */
 export interface ChairModel {
   prop: PropId;
   height: number;

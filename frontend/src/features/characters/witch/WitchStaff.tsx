@@ -27,12 +27,7 @@ const FADE_RATE = 2;
 const WOOD = "#1e1014";
 const SHARDS = 3;
 
-/**
- * A witch's staff floating at the figure's right palm while `active` is on. Bound to the hand
- * bone (Mixamo rig) so it goes where the hand goes, but placed and kept upright in the figure's
- * own frame, so the wrist's turns in the float pose don't swing it about or through the hand. Made in code: Meshy figures can't
- * hold props. No lights (they'd recompile the scene), only additive glow for the bloom.
- */
+/** Bound to the hand but kept upright in the figure's frame, so the float pose's wrist turns don't swing it. */
 export function WitchStaff({ figure, color, active }: { figure: Object3D; color: string; active: RefObject<boolean> }) {
   return (
     <InHand figure={figure} bone="RightHand">
@@ -79,8 +74,7 @@ function Staff({
     if (!node.visible) return;
 
     const time = state.clock.elapsedTime;
-    // Undo the hand's own turn and scale: upright and model-sized in the figure's frame, held
-    // in front of the palm (the offset turned with the figure, then brought into the hand's space).
+    // Undo the hand's own turn and scale: upright and model-sized in the figure's frame.
     figure.getWorldQuaternion(scratch.figure);
     hand.getWorldScale(scratch.handScale);
     figure.getWorldScale(scratch.figureScale);

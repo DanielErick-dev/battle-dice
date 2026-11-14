@@ -104,10 +104,7 @@ export function FireBolt({
   );
 }
 
-/**
- * Flames bursting out of the ground and racing outward in a ring, with a flash at the middle; `reach` is the ring's
- * final radius in effect units (the figure is ~1.9 tall). Foot at the origin.
- */
+/** A ring of flames racing outward; `reach` is its final radius in effect units (the figure is ~1.9 tall). */
 export function FireRing({
   delay = 0,
   reach = 1.6,
@@ -209,10 +206,7 @@ export function FlamePillar({
 
 const DRAW_IN = 0.8;
 
-/**
- * Scarlet Supernova: every fire on the board streams back into Akane as embers, then he explodes in a blinding sphere,
- * a ring of flames sweeping out across the board and a pillar of fire on him.
- */
+/** Scarlet Supernova: every fire on the board streams back into Akane, then he explodes. */
 export function Supernova({ at, sources }: { at: Vec3; sources: readonly Vec3[] }) {
   const disc = useSoftDisc();
   const [ends] = useState(() => ({

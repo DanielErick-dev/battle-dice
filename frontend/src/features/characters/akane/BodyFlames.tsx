@@ -43,11 +43,7 @@ const UP = new Vector3(0, 1, 0);
 /** Seconds a flame takes to flare up as it lights. */
 const LIGHT_SECONDS = 0.25;
 
-/**
- * Akane's fire: a live flame off each palm, always upright whatever the hand does. Each trails behind and stretches
- * when its hand moves fast, breathes on its own and sheds embers. `igniteAt`: seconds after mounting they light (the
- * snap of his fingers in his intro); lit from the start without it.
- */
+/** A flame off each palm, kept upright whatever the hand does; `igniteAt` (his intro's snap) delays it. */
 export function BodyFlames({ figure, igniteAt = 0 }: { figure: Object3D; igniteAt?: number }) {
   return SPOTS.map((spot, index) => (
     <InHand key={spot.bone} figure={figure} bone={spot.bone}>

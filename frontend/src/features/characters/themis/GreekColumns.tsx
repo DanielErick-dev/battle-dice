@@ -17,10 +17,7 @@ const SHUDDER = 0.02;
 
 preloadProps(["greekColumn"]);
 
-/**
- * Two ivy-crowned Greek columns flanking Themis on her intro stage: they push up out of the ground as her
- * sword strikes it (`riseSeconds`, in real seconds) and stay standing. Menu stage only, never in a match.
- */
+/** Columns flanking Themis that rise as her sword strikes (`riseSeconds`, real seconds); menu stage only. */
 export function GreekColumns({ size, riseSeconds }: { size: number; riseSeconds: number }) {
   const age = useAge();
   const column = usePropMesh("greekColumn");

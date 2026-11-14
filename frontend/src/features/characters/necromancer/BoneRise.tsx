@@ -63,15 +63,7 @@ const heave = (x: number) => x - Math.sin(x * Math.PI * 2 * HEAVES) / (Math.PI *
 
 preloadProps(["skull", "skeletalHand", "skeleton"]);
 
-/**
- * The Necromancer's intro: as his arms rise, a shadow spreads over the ground, skeletal hands
- * slowly claw their way out of it and two skeletons drag themselves out of the earth behind him;
- * skulls with dim, sickly eyes rise to hang round his head while he holds his arms up, and
- * dissolve into grave smoke as he lowers them. Once the intro is over (`active` false) the dead
- * sink back into the ground and it all fades. Placed in world space round his hips, on the
- * floor he stands on; the hands and skeletons are cut at the floor, so they seem to come out of
- * it (the canvas needs `localClippingEnabled`). Mounted fresh with every intro.
- */
+/** Hands and skeletons are clipped at the floor so they seem to rise from it (needs `localClippingEnabled`). */
 export function BoneRise({
   figure,
   size,

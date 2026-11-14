@@ -56,11 +56,7 @@ interface FrostWandProps {
   flourish?: { from: number; to: number };
 }
 
-/**
- * The Crystal Fairy's frost wand (a snowflake crowning an icy shaft), held in her right hand while
- * `active` is on. Bound to the hand bone and pointing the way her fingers do, so reaching forward
- * aims it ahead. Meshy figures can't hold props, so it's a separate model (PROPS.frostWand).
- */
+/** Meshy figures can't hold props, so the wand is a separate model bound to the hand bone. */
 export function FrostWand(props: FrostWandProps) {
   return (
     <InHand figure={props.figure} bone={props.hand ?? "RightHand"}>
@@ -110,10 +106,7 @@ function Held({ figure, hand, active, tip, flourish }: Omit<FrostWandProps, "han
   );
 }
 
-/**
- * Snow and fairy dust pouring off the wand's head between `from` and `to` seconds: a cloud of
- * glittering dust, falling snow, a bright halo, and snowflakes spiralling up round the wand.
- */
+/** Snow and fairy dust pouring off the wand's head between `from` and `to` seconds. */
 function Flourish({ from, to }: { from: number; to: number }) {
   const root = useRef<Group>(null);
   const swirl = useRef<InstancedMesh>(null);

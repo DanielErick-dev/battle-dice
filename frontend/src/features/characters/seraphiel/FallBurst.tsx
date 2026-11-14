@@ -23,11 +23,7 @@ const DRIFT = Array.from({ length: FEATHERS }, (_, index) => ({
   delay: scatter(index + 0.4) * 0.4,
 }));
 
-/**
- * The Fall, round Seraphiel as hell takes him: white feathers torn off his wings drift down,
- * catching fire and turning to ash, while a ring of fire rolls out over the ground and embers
- * rise through him. In the token's effect frame; mounted fresh with every fall.
- */
+/** In the token's effect frame; mounted fresh with every fall. */
 export function FallBurst() {
   const root = useRef<Group>(null);
   const ring = useRef<Mesh>(null);

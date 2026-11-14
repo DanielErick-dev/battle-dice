@@ -18,10 +18,7 @@ function jitter(seed: number): number {
   return x - Math.floor(x) - 0.5;
 }
 
-/**
- * A wall of stacked stones across the path, rising out of the ground; it sinks and cracks as its hp drops, and
- * shows what's left of it above.
- */
+/** A wall of stacked stones across the path; it sinks and cracks as its hp drops. */
 export function StoneWall({
   position,
   heading,

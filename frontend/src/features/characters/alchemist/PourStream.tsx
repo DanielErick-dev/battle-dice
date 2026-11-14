@@ -10,11 +10,7 @@ import { useSparkTexture } from "./vialTextures";
 const POUR_DROPS = 40;
 const POUR_GRAVITY = 5.5;
 
-/**
- * Glowing liquid pouring from a vial down to the floor (local y = 0 of wherever it's placed):
- * drops leave `mouth` (world space) while `pouring` is on and fall under gravity. `size` is
- * the figure's height.
- */
+/** Drops leave `mouth` (world space) and fall to local y = 0; `size` is the figure's height. */
 export function PourStream({
   size,
   color,

@@ -24,11 +24,7 @@ const PIN_PULSE_RATE = 2.2;
 const COLUMN_HEIGHT = 2.4;
 const RUNE_TURN_RATE = 0.6;
 
-/**
- * A trap Arrow Rain pinned down: four arrows of light stuck in the tile inside a double ring of
- * binding (the inner one broken into turning runes), under a faint column of light, fading upwards,
- * that marks it from across the board. It pulses until the archer walks past and frees it.
- */
+/** Pulses until the archer walks past and frees the trap. */
 export function PinnedTrapMark({ position, color }: { position: Vec3; color: string }) {
   const glow = useGlowColor(color, 1.3);
   const arrows = useArrowMaterials();

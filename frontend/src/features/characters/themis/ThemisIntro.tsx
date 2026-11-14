@@ -52,13 +52,7 @@ const UP = new Vector3(0, 1, 0);
 
 preloadProps(["justiceSword"]);
 
-/**
- * Themis's intro, `beats` in the clip's own time (played at `speed`): kneeling, she drives her sword into the
- * ground, where it stays planted with a golden ripple and a burst of rays of light; as she rises and gestures,
- * light gathers in her hand and the sword trembles on a thread of it, harder and harder,
- * tears itself out of the ground and flies back into her fist (the stage keeps the held one out of her hand
- * meanwhile, see JusticeSword's `away`). Mounted fresh with every intro.
- */
+/** `beats` are in the clip's own time (played at `speed`); the stage hides her held sword meanwhile (`away`). */
 export function ThemisIntro({
   figure,
   size,

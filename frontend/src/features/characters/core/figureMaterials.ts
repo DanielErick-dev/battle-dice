@@ -30,8 +30,7 @@ function shadowMaterial(rim: string): MeshStandardMaterial {
     emissiveIntensity: 0.08,
     transparent: true,
     opacity: 0.72,
-    // Writing depth keeps the far side of the body (the back arm, the other leg) from showing
-    // through the near one, which made the shadow look twisted.
+    // Depth writes stop the far limbs showing through the near ones, which twisted the shadow.
     depthWrite: true,
     roughness: 1,
   });

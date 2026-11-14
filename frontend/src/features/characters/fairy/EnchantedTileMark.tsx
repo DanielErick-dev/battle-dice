@@ -19,11 +19,7 @@ const LOOKS = {
   void: { slab: "#c7b2f2", drift: "#cdb9f5", shine: "#6d28d9", crystal: "#d9c8ff", dust: "#b794ff" },
 } as const;
 
-/**
- * A tile the Crystal Fairy enchanted: buried for good under fresh snow, a smooth white slab with
- * drifts heaped where the spikes were and a couple of ice crystals, so nothing of what it was
- * shows. Fairy dust glitters over it in her colour. Snows in as it's enchanted.
- */
+/** Buried for good so nothing of what the tile was shows; snows in as it's enchanted. */
 export function EnchantedTileMark({
   position,
   color,

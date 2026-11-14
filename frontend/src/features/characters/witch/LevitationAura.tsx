@@ -25,11 +25,7 @@ interface AuraProps {
   height: number;
 }
 
-/**
- * What shows a figure is levitating, drawn from the ground it left: a turning rune sigil, a
- * column of light up to its feet and motes spiralling up into it. All brighter while it's
- * still rising. Additive glow only, no lights (they'd recompile the scene).
- */
+/** Additive glow only, since lights would recompile the scene. */
 export function LevitationAura({ size, color, progress, height }: AuraProps) {
   const runes = useRuneTexture();
   const beam = useLightColumnTexture();

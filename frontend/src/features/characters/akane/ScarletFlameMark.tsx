@@ -20,10 +20,7 @@ const FIRES = [
   { x: 0.24, z: 0.25, width: 0.23 },
 ];
 
-/**
- * A tile under Akane's scarlet fire: glowing embers over the slab and live flames burning on it, lower and brighter
- * than Kage Rubra's black fire. Flares up from nothing as it's lit.
- */
+/** A tile under Akane's scarlet fire, lower and brighter than Kage Rubra's black fire; flares up as it's lit. */
 export function ScarletFlameMark({
   position,
   outline = SQUARE_SLAB,

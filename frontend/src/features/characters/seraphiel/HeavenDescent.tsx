@@ -60,12 +60,7 @@ const SPRAY_MOTES = Array.from({ length: SPRAY }, (_, index) => ({
   lift: 0.15 + scatter(index + 0.7) * 0.5,
 }));
 
-/**
- * A figure coming down out of heaven onto the stage (see CharacterDefinition.descends): a column
- * of light falls from the sky onto the ground, feathers drift down round it, and as the feet
- * touch a ring of light rolls out over the floor with a flash and a spray of motes, then the
- * column fades. On the ground, sized by the figure's height. Additive glow only, no lights.
- */
+/** On the ground, sized by the figure's height; additive glow only, no lights. */
 export function HeavenDescent({ size, color }: { size: number; color: string }) {
   const beam = useBeamTexture();
   const feather = useFeatherTexture();

@@ -26,11 +26,7 @@ interface CharacterModelProps {
   children?: (figure: Object3D) => ReactNode;
 }
 
-/**
- * A rigged character playing its idle or run loop, or a one-shot clip once, crossfading
- * between them. Each instance gets its own copy of the skeleton, so several players can share one
- * model file. A clip the model lacks is ignored and the current one keeps playing.
- */
+/** Each instance clones the skeleton so several players can share one model file; missing clips are ignored. */
 export function CharacterModel({
   url,
   height,

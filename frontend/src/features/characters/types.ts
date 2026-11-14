@@ -3,20 +3,7 @@ import type { CrownId } from "./accessories/HeadCrown";
 import type { ChairId } from "./accessories/chairs";
 import type { WingsId } from "./accessories/wingLooks";
 
-/**
- * Animation clips of a character model, built by scripts/characters/build-characters.mjs.
- * Every model has idle and run. Optional: intro plays once on the menus as the character is
- * picked, then showcase loops to present them (idle stands in without it); cast plays once as
- * they use their ability; float loops while they levitate (idle stands in without it); land plays
- * dash plays once as they throw themselves into a lightning dash, land as they touch down out of it.
- * shove plays once as Bjorn shoves someone he trampled; knocked as anyone is sent flying
- * (every model borrows it from one, see SHARED_CLIPS in the build manifest); rest loops, seated on a
- * chair, while they've lost turns (shared the same way); hop plays once as the Crystal Fairy stops on
- * her own snow, before it carries her on. brake plays once as they come to a stop out of a run, slowing
- * to a walk, and sit as they settle onto their chair before rest. guard and scoff are Themis's: passing
- * her verdict she guards, points (her cast) at the one judged, and scoffs as it turns on them. strike and fume
- * are Akane's: he strikes the ground as his fire bursts out (Hot Blood, the Impetus) and stomps in a fury on a low roll.
- */
+/** Animation clips a model may carry; what each one is for is in this folder's README. */
 export type CharacterClip =
   | "idle"
   | "run"
@@ -125,7 +112,7 @@ export interface CharacterDefinition {
   introBones?: IntroBoneBeats;
   /** Frost gathers on their fist and the floor freezes over where it slams down in the intro (see FrostSlam). */
   introFrost?: IntroFrostBeats;
-  /** Their intro gets up off their own chair, which bursts into flames at the snap of their fingers (see ThroneIntro). */
+  /** Their intro gets up off their own chair, which bursts into flames at the snap of their fingers (see ChairIntro). */
   /** Their intro gets up off a school chair that burns away as they rise, then snaps their fingers (see ChairIntro). */
   introChair?: { riseSeconds: number; snapSeconds: number };
   /** The ground they stand on in the menu, in place of the rune pedestal (see menu/stage/scenery). */

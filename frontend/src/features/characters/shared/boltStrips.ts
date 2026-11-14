@@ -47,11 +47,7 @@ export function jag(points: Vector3[], seed: number, size: number) {
   }
 }
 
-/**
- * Writes strip `strip` of `geometry` along `points` (world space, as many as the strip holds),
- * facing the camera, into `group`'s space; a width of 0 hides it. The tips taper so the bolt ends
- * in points, unless `closed` (a loop).
- */
+/** Faces the camera in `group`'s space; a width of 0 hides it, and the tips taper unless `closed`. */
 export function writeStrip(
   geometry: BufferGeometry,
   strip: number,

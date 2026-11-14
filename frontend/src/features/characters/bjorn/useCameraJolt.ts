@@ -6,11 +6,7 @@ import type { Vector3 } from "three";
 const JOLT = 0.06;
 const JOLT_DECAY = 9;
 
-/**
- * Shakes the camera round where it stands `since` seconds after a blow, settling quickly; it's put
- * back on unmount. Where it stands is kept on the camera, so an intro played again mid-jolt doesn't
- * take the jolted spot for it.
- */
+/** The rest spot is kept on the camera, so an intro replayed mid-jolt doesn't take the jolted spot as home. */
 export function useCameraJolt(): (since: number) => void {
   const camera = useThree((state) => state.camera);
   const home = useMemo(() => (camera.userData.home ??= camera.position.clone()) as Vector3, [camera]);

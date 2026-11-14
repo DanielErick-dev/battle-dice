@@ -52,13 +52,7 @@ const scratch = {
 };
 const UP = new Vector3(0, 1, 0);
 
-/**
- * The Elven Archer's intro: her bow (the 3D model) appears in her left hand as she aims, an arrow
- * nocked and brightening; at `releaseSeconds` it flies off the way
- * she aims, curls up into the sky and bursts, and a ring of arrows rains down
- * round her, stuck in the pedestal for a while after (the bow fades once the intro is over). Placed in world
- * space from her bones. Mounted fresh with every intro.
- */
+/** Placed in world space from her bones and mounted fresh with every intro. */
 export function ArcherIntro({
   figure,
   size,

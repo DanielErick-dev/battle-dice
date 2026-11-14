@@ -120,11 +120,7 @@ export function ring(cx: number, cy: number, rx: number, ry = rx, segments = 48)
   });
 }
 
-/**
- * Writing that appears as it's written: a transparent canvas `width`×`height` on which
- * `drawUpTo(progress)` draws that share of `strokes` (white, to be tinted by a material), and
- * `penAt(progress)` says where the pen is then (0 to 1 across and down the page).
- */
+/** `drawUpTo(progress)` draws that share of `strokes` in white for a material to tint; `penAt` says where the pen is. */
 export function createWriting(strokes: Stroke[], width: number, height: number, lineWidth: number) {
   const canvas = document.createElement("canvas");
   canvas.width = width;

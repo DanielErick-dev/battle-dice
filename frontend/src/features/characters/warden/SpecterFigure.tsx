@@ -31,12 +31,6 @@ interface SpecterFigureProps {
   label?: string;
 }
 
-/**
- * A Shadow Warden's apparition on its tile. Its Warden sees it for what it is: a see-through
- * shadow of themselves glowing at the edges, rising out of a pool of darkness and standing on it,
- * feet on the tile, named.
- * Everyone else sees the Warden standing there, exactly as the real one stands.
- */
 const TRIO_HEIGHT = 1.35;
 
 /** The three wraiths (Meshy) the Warden's own eyes see on an apparition, drifting up and down. */
@@ -53,6 +47,7 @@ function SpecterTrio() {
   );
 }
 
+/** Its Warden sees a shadow of themselves; everyone else sees the Warden standing there, like the real one. */
 export function SpecterFigure({ model, position, color, disguised, facing, label }: SpecterFigureProps) {
   const clip = useRef<CharacterClip>("idle");
   const body = useRef<Group>(null);

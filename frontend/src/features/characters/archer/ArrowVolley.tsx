@@ -39,13 +39,7 @@ const TRAIL_LENGTH = 2.6;
 
 const TILE_TOP = TILE_HEIGHT / 2;
 
-/**
- * Arrow Rain, in world space: a sheaf of arrows of light leaves the archer straight up into the
- * sky while sights lock onto every target tile (an opponent, or a trap ahead to pin down); then
- * the rain falls on them, streaking, each hit flashing on the stone with a shockwave. Timed like
- * the playback (DEFAULT_TIMINGS.arrowVolleyMs); mounted with a fresh key per volley, it fades
- * itself out. No lights: bloom does the glow.
- */
+/** Timed like the playback (DEFAULT_TIMINGS.arrowVolleyMs) and keyed per volley; bloom does the glow, no lights. */
 export function ArrowVolley({ from, targets, color }: { from: Vec3; targets: readonly Vec3[]; color: string }) {
   const rising = useRef<(Group | null)[]>([]);
   const falling = useRef<(Group | null)[]>([]);

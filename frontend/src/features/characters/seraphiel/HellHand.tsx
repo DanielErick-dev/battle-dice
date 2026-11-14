@@ -89,13 +89,7 @@ const CRACK_FRAGMENT = /* glsl */ `
   }
 `;
 
-/**
- * Hell's Drag on the board: the ground cracks open under the victim, glowing like a furnace; a
- * huge charred hand with burning veins rises out of it behind them, its fingers curl over them, and
- * it sinks back into the crack with them in its fist; then the crack seals. Placed on the victim's
- * tile (`groundY`: the top of it, where the hand is cut off so it seems to come out of the floor)
- * in the token effects' scale (the canvas needs `localClippingEnabled`). Mounted fresh with every drag.
- */
+/** Clipped at `groundY` so the hand seems to come out of the floor (needs `localClippingEnabled`). */
 export function HellHand({ groundY }: { groundY: number }) {
   const root = useRef<Group>(null);
   const hand = useRef<Group>(null);
@@ -258,10 +252,7 @@ function Finger({
   );
 }
 
-/**
- * Charred skin, nearly black, split by veins of fire that pulse (in object space, so they stay put
- * on the hand as it moves), and an ember rim where it turns from the view. Cut off at `floor`.
- */
+/** Fire veins pulse in object space so they stay put as the hand moves; cut off at `floor`. */
 function burningSkin(floor: Plane): MeshStandardMaterial {
   const material = new MeshStandardMaterial({
     color: "#140806",

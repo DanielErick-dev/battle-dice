@@ -25,12 +25,7 @@ const BURST_SECONDS = 1.6;
 const SPARKS = 48;
 const PUFFS = 7;
 
-/**
- * The alchemist's ability: a vial flung from her hand arcs down in front of her and shatters
- * with golden sparks, and a cloud of emerald smoke bursts up around her. In the figure's frame (it faces +z), sized
- * by `size` (the figure's height). Plays once; remount (new `key`) to play it again. Additive
- * glow only, no lights (they'd recompile the scene).
- */
+/** In the figure's frame (+z ahead); additive glow only, since lights would recompile the scene. */
 export function VialShatter({ size, color }: { size: number; color: string }) {
   const glow = useGlowColor(color, 1.6);
   const gold = useMemo(() => new Color("#fcd34d").multiplyScalar(2), []);

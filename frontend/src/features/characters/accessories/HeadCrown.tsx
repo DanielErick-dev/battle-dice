@@ -25,12 +25,7 @@ export type CrownId = keyof typeof CROWNS;
 
 preloadProps(Object.values(CROWNS).map(({ prop }) => prop));
 
-/**
- * A crown on a figure's head (a Meshy prop): it follows the head bone, tilting with it. The bone
- * leans a little at rest (Mixamo's head points slightly forward), so only its turn away from the
- * bind pose is applied, and the crown stands level while the figure does.
- * Mounted inside the figure (its own frame, in model units).
- */
+/** Only the head's turn away from bind pose is applied: Mixamo's head leans forward at rest, the crown must not. */
 export function HeadCrown({ figure, crown }: { figure: Object3D; crown: CrownId }) {
   const look: CrownLook = CROWNS[crown];
   const { geometry, material } = usePropMesh(look.prop);
