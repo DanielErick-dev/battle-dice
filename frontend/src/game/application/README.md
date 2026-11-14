@@ -123,3 +123,10 @@ O FastAPI faz o papel do `MatchHost`; a TV vira só mais uma espectadora. O `Web
 - se o socket cair, o `RemoteGameClient` rejeita os envios pendentes e avisa por `onLost`; o celular reabre e o `join` com o mesmo `clientId` recupera o assento.
 
 Nada mais muda: `new RemoteGameClient(() => new WebSocketTransport(sala), pedido)`.
+
+## Replay
+
+- O `LocalGameClient` guarda o estado de abertura e cada comando aceito (`recording`). Como o sorteio mora no próprio estado, isso refaz a partida inteira.
+- `replayGameClient.ts`: o `ReplayGameClient` toca uma gravação, um comando por `step()`; é um cliente de espectador que recusa comandos.
+- Na tela, `features/match/model/replay.ts` alimenta o próximo comando só quando a animação anterior terminou. O botão **Assistir replay** fica na tela de fim de partida.
+- Com o backend, a gravação (semente + comandos) é o que o servidor salva para o histórico de partidas.

@@ -1,4 +1,5 @@
 import { LocalGameClient } from "@/game/application/localGameClient";
+import type { MatchRecording } from "@/game/application/replayGameClient";
 import { createGame } from "@/game/domain/core/engine";
 import type { PlayerId } from "@/game/domain/core/ids";
 import type { BoardDefinition } from "@/game/domain/board/board";
@@ -12,13 +13,20 @@ export interface LocalMatchOptions {
   seat?: PlayerId | null;
 }
 
+export interface LocalMatch {
+  store: MatchStore;
+  /** The match so far, for watching it again (see model/replay.ts). */
+  recording: () => MatchRecording;
+}
+
 /** Composition root for an offline match. A room match will swap in a network GameClient. */
 export function createLocalMatch(
   board: BoardDefinition,
   roster: readonly RosterEntry[],
   { chargedAbilities = false, seat = null }: LocalMatchOptions = {},
-): MatchStore {
+): LocalMatch {
   // Offline the browser hosts the match, so it picks the seed; online the server will.
   const seed = Math.floor(Math.random() * 2 ** 32);
-  return new MatchStore(new LocalGameClient(createGame(board, roster, { seed, chargedAbilities }), undefined, seat));
+  const client = new LocalGameClient(createGame(board, roster, { seed, chargedAbilities }), undefined, seat);
+  return { store: new MatchStore(client), recording: () => client.recording };
 }

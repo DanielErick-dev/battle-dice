@@ -5,6 +5,7 @@ import type { PlayerId } from "../domain/core/ids";
 import { projectEvents, projectState } from "../domain/core/projection";
 import type { GameState } from "../domain/types";
 import type { CommandResult, GameClient, GameUpdate, GameUpdateListener, Snapshot } from "./gameClient";
+import type { MatchRecording } from "./replayGameClient";
 
 type Resolve = (state: GameState, command: GameCommand) => GameTransition;
 
@@ -12,6 +13,9 @@ type Resolve = (state: GameState, command: GameCommand) => GameTransition;
 export class LocalGameClient implements GameClient {
   private readonly listeners = new Set<GameUpdateListener>();
   private seq = 0;
+  private readonly opening: GameState;
+  /** Every accepted command, in order: with the opening state they replay the whole match. */
+  private readonly played: GameCommand[] = [];
 
   /**
    * `resolve` is swapped only by tests that need loaded dice. A `localPlayerId` pins this screen to one seat
@@ -21,7 +25,14 @@ export class LocalGameClient implements GameClient {
     private state: GameState,
     private readonly resolve: Resolve = applyCommand,
     private readonly localPlayerId: PlayerId | null = null,
-  ) {}
+  ) {
+    this.opening = state;
+  }
+
+  /** The opening state and the accepted commands so far (see ReplayGameClient). */
+  get recording(): MatchRecording {
+    return { opening: this.opening, commands: [...this.played] };
+  }
 
   async connect(): Promise<Snapshot> {
     return { seq: this.seq, state: this.visible(this.state), localPlayerId: this.localPlayerId };
@@ -36,6 +47,7 @@ export class LocalGameClient implements GameClient {
       throw error;
     }
     this.state = transition.state;
+    this.played.push(command);
     this.seq += 1;
     const update: GameUpdate = {
       seq: this.seq,

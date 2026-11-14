@@ -93,7 +93,10 @@ interface MatchProps {
 }
 
 function Match({ preset, mapId, roster, chargedAbilities, seat, hourglass, audio }: MatchProps) {
-  const { store, view } = useMatch(preset.definition, roster, { chargedAbilities, seat });
+  const { store, view, replaying, watchReplay, leaveReplay } = useMatch(preset.definition, roster, {
+    chargedAbilities,
+    seat,
+  });
   useMatchAudio(store, audio.sounds);
   if (!view || !store.board) {
     return (
@@ -104,15 +107,33 @@ function Match({ preset, mapId, roster, chargedAbilities, seat, hourglass, audio
   }
   return (
     <MatchTable
+      // A fresh scene for the replay and again for the live match: neither carries the other's animations.
+      key={replaying ? "replay" : "live"}
       store={store}
       view={view}
       plainBoard={store.board}
       preset={preset}
       mapId={mapId}
       roster={roster}
-      hourglass={hourglass}
+      hourglass={hourglass && !replaying}
       audio={audio}
-    />
+      onReplay={watchReplay}
+    >
+      {replaying && (
+        <div className="pointer-events-auto absolute top-4 left-1/2 z-30 flex -translate-x-1/2 items-center gap-3 rounded-full bg-black/70 py-1.5 pr-1.5 pl-4 ring-1 ring-white/15">
+          <span className="flex items-center gap-2 text-xs font-black tracking-[0.3em] text-red-400 uppercase">
+            <span className="size-2 animate-pulse rounded-full bg-red-500" /> Replay
+          </span>
+          <button
+            type="button"
+            onClick={leaveReplay}
+            className="rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold tracking-wider text-white uppercase hover:bg-white/20"
+          >
+            Sair do replay
+          </button>
+        </div>
+      )}
+    </MatchTable>
   );
 }
 
