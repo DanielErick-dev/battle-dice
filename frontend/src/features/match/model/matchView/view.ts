@@ -1,5 +1,6 @@
 import type { AbilityId } from "@/game/domain/abilities/ability";
 import type { GameEvent } from "@/game/domain/core/events";
+import type { MatchStats } from "@/game/domain/stats/matchStats";
 import type {
   BlackFlame,
   CardInstance,
@@ -106,6 +107,8 @@ export interface MatchView {
   isAnimating: boolean;
   /** Turns started so far: tells one turn from the next even when the same player plays again (the hourglass). */
   turnCount: number;
+  /** Everyone's tally so far, for the end-of-match screen (see game/domain/stats). */
+  stats: MatchStats;
   /** A refused move, shown briefly; the id lets a repeated refusal show again. */
   error: { id: number; message: string } | null;
 }

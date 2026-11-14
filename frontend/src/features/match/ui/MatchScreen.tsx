@@ -1,5 +1,7 @@
 "use client";
 
+import { playerColor } from "@/features/characters";
+import { EndGamePanel } from "./hud/EndGamePanel";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { preferences, usePreference } from "@/features/settings/preferences";
@@ -121,6 +123,8 @@ export interface MatchTableProps extends Omit<MatchProps, "chargedAbilities" | "
   plainBoard: Board;
   /** "Jogar novamente" when this screen restarts the match itself (the party TV hosts it); else store.restart. */
   onRestart?: () => void;
+  /** "Assistir replay" on the end-of-match screen, when this screen can replay the match. */
+  onReplay?: () => void;
   /** Extra classes for the screen (the party TV scales its HUD up). */
   className?: string;
   /** Overlays drawn above the HUD (the party TV's turn and presence notes). */
@@ -138,6 +142,7 @@ export function MatchTable({
   hourglass,
   audio,
   onRestart,
+  onReplay,
   className,
   children,
 }: MatchTableProps) {
@@ -267,6 +272,17 @@ export function MatchTable({
         </footer>
       </div>
 
+      {view.winnerId !== null && !view.isAnimating && (
+        <EndGamePanel
+          key={view.winnerId}
+          stats={view.stats}
+          players={view.players}
+          winnerId={view.winnerId}
+          colorOf={playerColor}
+          onRestart={store.spectator && !onRestart ? undefined : (onRestart ?? store.restart)}
+          onReplay={onReplay}
+        />
+      )}
       <CastOverlay cast={view.fx.cast} />
       <DrawOverlay drawing={view.fx.drawing} />
       <FusionOverlay fusing={view.fx.fusing} />

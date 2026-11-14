@@ -2,6 +2,7 @@ import { currentPlayer } from "@/game/domain/handlers/shared";
 import { riftsOf } from "@/game/domain/characters/zarek/rifts";
 import type { GameState } from "@/game/domain/types";
 import { NO_FX } from "./fx";
+import { emptyStats } from "@/game/domain/stats/matchStats";
 import type { MatchView, SealView, SpecterView } from "./view";
 
 export function createInitialView(state: GameState): MatchView {
@@ -39,6 +40,7 @@ export function createInitialView(state: GameState): MatchView {
     isAnimating: false,
     turnCount: 0,
     error: null,
+    stats: emptyStats(state.players),
   };
 }
 

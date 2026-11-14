@@ -8,6 +8,7 @@ import type { Board, TimedBlessing } from "@/game/domain/types";
 import { DEFAULT_TIMINGS, type PlaybackTimings } from "@/features/shared/config";
 import { canActivateAbility, canPlayCard, canRoll, createInitialView, type MatchView } from "./matchView";
 import { updateSteps, type PlaybackStep } from "./playback";
+import { tallyStats } from "@/game/domain/stats/matchStats";
 
 const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   NOT_YOUR_TURN: "Não é a sua vez.",
@@ -240,7 +241,10 @@ export class MatchStore {
     // A repeat or an update the snapshot already covers; a gap is fine, the last step syncs to the full state.
     if (seq <= this.seq) return;
     this.seq = seq;
-    this.queue.push(...updateSteps(events, state, this.timings));
+    this.queue.push(...updateSteps(events, state, this.timings), {
+      apply: (view) => ({ ...view, stats: tallyStats(view.stats, events) }),
+      durationMs: 0,
+    });
     if (this.timer === null) this.runNextStep();
   };
 
