@@ -30,11 +30,18 @@ export function MatchSetupScreen() {
   const setSeats = (next: readonly string[]) => preferences.players.set(next.join(","));
   /** Party mode: the TV opens a room and each player joins from a phone (/mesa draws the room code). */
   const [party, setParty] = useState(false);
+  /** Seats (0-based) the computer plays; only on this screen, never in party mode. */
+  const [bots, setBots] = useState<readonly number[]>([]);
+  const botSeats = party ? [] : bots.filter((index) => index < seats.length);
   const setupQuery =
     `tabuleiro=${encodeURIComponent(boardId)}&mapa=${encodeURIComponent(mapId)}` +
     `&jogadores=${encodeURIComponent(seats.join(","))}` +
     (chargedAbilities ? "&carregadas=1" : "");
-  const matchHref = party ? `/mesa?${setupQuery}` : `/partida?${setupQuery}` + (hourglass ? "" : "&ampulheta=0");
+  const matchHref = party
+    ? `/mesa?${setupQuery}`
+    : `/partida?${setupQuery}` +
+      (hourglass ? "" : "&ampulheta=0") +
+      (botSeats.length > 0 ? `&bots=${botSeats.map((index) => index + 1).join(",")}` : "");
 
   return (
     <MenuPage title="Nova partida" subtitle="Escolha o modo, os jogadores e os personagens." wide>
@@ -133,6 +140,30 @@ export function MatchSetupScreen() {
                     <span className="text-xs font-black tracking-widest text-zinc-400">J{index + 1}</span>
                     <span className="text-sm font-bold tracking-wide uppercase">{character.name}</span>
                   </button>
+                  {!party && (
+                    <button
+                      type="button"
+                      aria-pressed={botSeats.includes(index)}
+                      title={
+                        botSeats.includes(index)
+                          ? "O computador joga: clique para um humano"
+                          : "Deixar o computador jogar"
+                      }
+                      onClick={() =>
+                        setBots(
+                          botSeats.includes(index) ? botSeats.filter((other) => other !== index) : [...botSeats, index],
+                        )
+                      }
+                      className={cn(
+                        "mr-1 grid h-7 place-items-center rounded-lg px-2 text-[10px] font-black tracking-wider uppercase",
+                        botSeats.includes(index)
+                          ? "bg-sky-500/30 text-sky-200"
+                          : "text-zinc-500 hover:bg-white/10 hover:text-white",
+                      )}
+                    >
+                      Bot
+                    </button>
+                  )}
                   {seats.length > 1 && (
                     <button
                       type="button"
@@ -140,6 +171,9 @@ export function MatchSetupScreen() {
                       title="Remover jogador"
                       onClick={() => {
                         setSeats(seats.filter((_, other) => other !== index));
+                        setBots(
+                          botSeats.flatMap((other) => (other === index ? [] : [other > index ? other - 1 : other])),
+                        );
                         if (index <= seat) setPicking(Math.max(0, seat - 1));
                       }}
                       className="mr-1 grid size-7 place-items-center rounded-lg text-zinc-400 hover:bg-white/10 hover:text-white"

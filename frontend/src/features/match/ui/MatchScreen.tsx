@@ -57,12 +57,26 @@ interface MatchScreenProps {
   hourglass: boolean;
   /** Dev only: the seat ("p2") this screen is pinned to, as online; null = everyone at this screen. */
   seat: string | null;
+  /** Seats (0-based) the computer plays. */
+  bots?: readonly number[];
 }
 
 /** A local match on the chosen board: everyone plays at this screen, taking turns. */
-export function MatchScreen({ boardId, mapId, characters, chargedAbilities, hourglass, seat }: MatchScreenProps) {
+export function MatchScreen({
+  boardId,
+  mapId,
+  characters,
+  chargedAbilities,
+  hourglass,
+  seat,
+  bots = [],
+}: MatchScreenProps) {
   const preset = boardPresetFor(boardId);
-  const [roster] = useState(() => rosterOf(characters));
+  const [roster] = useState(() =>
+    rosterOf(characters).map((entry, index) =>
+      bots.includes(index) ? { ...entry, name: `${entry.name} (bot)` } : entry,
+    ),
+  );
   const seatId = roster.find(({ id }) => id.split(":")[0] === seat)?.id ?? null;
   const audio = useGameAudio();
   // Start fetching the models while the arena's code is still loading.
@@ -78,6 +92,7 @@ export function MatchScreen({ boardId, mapId, characters, chargedAbilities, hour
       seat={seatId}
       hourglass={hourglass}
       audio={audio}
+      bots={bots}
     />
   );
 }
@@ -90,12 +105,14 @@ interface MatchProps {
   seat: string | null;
   hourglass: boolean;
   audio: GameAudio;
+  bots: readonly number[];
 }
 
-function Match({ preset, mapId, roster, chargedAbilities, seat, hourglass, audio }: MatchProps) {
+function Match({ preset, mapId, roster, chargedAbilities, seat, hourglass, audio, bots }: MatchProps) {
   const { store, view, replaying, watchReplay, leaveReplay } = useMatch(preset.definition, roster, {
     chargedAbilities,
     seat,
+    bots,
   });
   useMatchAudio(store, audio.sounds);
   if (!view || !store.board) {
@@ -137,7 +154,7 @@ function Match({ preset, mapId, roster, chargedAbilities, seat, hourglass, audio
   );
 }
 
-export interface MatchTableProps extends Omit<MatchProps, "chargedAbilities" | "seat"> {
+export interface MatchTableProps extends Omit<MatchProps, "chargedAbilities" | "seat" | "bots"> {
   store: MatchStore;
   view: MatchView;
   /** The board without the Void's rifts, as the snapshot brought it. */
@@ -178,7 +195,7 @@ export function MatchTable({
   const onReady = useCallback(() => setReady(true), []);
   const nameOf = (id: string | null) => view.players.find((player) => player.id === id)?.name ?? null;
   const activePlayer = activePlayerOf(view);
-  const controls = viewerControls(view, store.pinnedSeat, store.spectator);
+  const controls = viewerControls(view, store.pinnedSeat, store.spectator, store.computerSeats);
   const viewer = view.players.find((player) => player.id === controls.viewerId);
   // The path as it stands, with the rifts Zarek's Void opened (the store's board is the plain one).
   const board = useMemo(() => withRifts(plainBoard, view.rifts), [plainBoard, view.rifts]);

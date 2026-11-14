@@ -35,6 +35,7 @@ export function useMatch(
     return match.store.close;
   }, [match]);
   useEffect(() => () => replay?.stop(), [replay]);
+  useEffect(() => match.startBots(), [match]);
 
   const store = replay?.store ?? match.store;
   const view = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);

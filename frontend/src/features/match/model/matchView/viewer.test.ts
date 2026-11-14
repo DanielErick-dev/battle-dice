@@ -101,4 +101,9 @@ describe("viewerControls", () => {
       expect(viewerControls(view({ winnerId: "p1" }), null, true).waitingFor).toBeNull();
     });
   });
+  it("never speaks for the computer's seats: on a bot's turn the screen only watches", () => {
+    const botTurn = viewerControls(view({ activePlayerId: "p2" }), null, false, ["p2"]);
+    expect(botTurn).toMatchObject({ viewerId: null, ownsTurn: false, canRoll: false, waitingFor: "p2" });
+    expect(viewerControls(view({ activePlayerId: "p1" }), null, false, ["p2"]).ownsTurn).toBe(true);
+  });
 });

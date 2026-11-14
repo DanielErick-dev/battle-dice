@@ -33,13 +33,20 @@ function promptOwner(view: MatchView): PlayerId | null {
  * `seat` is the pinned seat, or null in hot-seat, where the screen always speaks for whoever's turn it is.
  * A `spectator` (the party TV) has no seat either, but speaks for no one: it only watches.
  */
-export function viewerControls(view: MatchView, seat: PlayerId | null, spectator = false): ViewerControls {
-  const speaksFor = (id: PlayerId | undefined) => !spectator && id !== undefined && (seat === null || id === seat);
+export function viewerControls(
+  view: MatchView,
+  seat: PlayerId | null,
+  spectator = false,
+  bots: readonly PlayerId[] = [],
+): ViewerControls {
+  // The computer's seats speak for themselves (see model/bots.ts): the screen only watches them.
+  const speaksFor = (id: PlayerId | undefined) =>
+    !spectator && id !== undefined && !bots.includes(id) && (seat === null || id === seat);
   const ownsTurn = speaksFor(view.activePlayerId);
   const owner = promptOwner(view);
   const waitingOn = owner ?? view.activePlayerId;
   return {
-    viewerId: spectator ? null : (seat ?? view.activePlayerId),
+    viewerId: spectator || (seat === null && bots.includes(view.activePlayerId)) ? null : (seat ?? view.activePlayerId),
     ownsTurn,
     canRoll: ownsTurn && canRoll(view),
     canPlayCard: ownsTurn && canPlayCard(view),

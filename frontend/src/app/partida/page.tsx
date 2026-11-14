@@ -15,31 +15,47 @@ interface MatchPageProps {
     carregadas?: string;
     ampulheta?: string;
     assento?: string;
+    bots?: string;
   }>;
 }
 
 // /partida?tabuleiro=training&mapa=dungeon&jogadores=witch,zarek&carregadas=1&ampulheta=0 (legacy `personagem` for one player).
 // Unknown or locked values fall back to the defaults. In development, `assento=p2` pins the screen to the second player.
 export default async function MatchPage({ searchParams }: MatchPageProps) {
-  const { tabuleiro = "", mapa = "", jogadores, personagem = "", carregadas, ampulheta, assento } = await searchParams;
+  const {
+    tabuleiro = "",
+    mapa = "",
+    jogadores,
+    personagem = "",
+    carregadas,
+    ampulheta,
+    assento,
+    bots = "",
+  } = await searchParams;
   const boardId = boardPresetFor(tabuleiro).id;
   const mapId = mapPresetFor(mapa).id;
   const characters = parseCharacterList(jogadores ?? personagem);
   const chargedAbilities = carregadas === "1";
   const hourglass = ampulheta !== "0";
+  // `bots=2,3`: the computer plays those seats (1-based, as on the setup screen).
+  const botSeats = bots
+    .split(",")
+    .map((seatNumber) => Number(seatNumber) - 1)
+    .filter((index) => Number.isInteger(index) && index >= 0 && index < characters.length);
   // Stands in for the seat a room server will hand out; never in a production build.
   const seat = process.env.NODE_ENV === "development" ? (assento ?? null) : null;
 
   // Keyed so that starting another match from the same page gets a fresh store.
   return (
     <ClientMatchScreen
-      key={`${boardId}:${mapId}:${characters.join(",")}:${chargedAbilities}:${hourglass}:${seat}`}
+      key={`${boardId}:${mapId}:${characters.join(",")}:${chargedAbilities}:${hourglass}:${seat}:${botSeats.join(",")}`}
       boardId={boardId}
       mapId={mapId}
       characters={characters}
       chargedAbilities={chargedAbilities}
       hourglass={hourglass}
       seat={seat}
+      bots={botSeats}
     />
   );
 }

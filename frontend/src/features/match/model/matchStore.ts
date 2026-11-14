@@ -73,6 +73,8 @@ export interface MatchStoreOptions {
 export class MatchStore {
   /** Null until the first snapshot arrives. */
   board: Board | null = null;
+  /** Seats the computer plays (see model/bots.ts): the screen never speaks for them. */
+  computerSeats: readonly PlayerId[] = [];
   private view: MatchView | null = null;
   private seat: PlayerId | null = null;
   private seq = -1;

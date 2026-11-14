@@ -29,6 +29,11 @@ export class LocalGameClient implements GameClient {
     this.opening = state;
   }
 
+  /** The authoritative state right now (computer players read it to pick their move). */
+  get current(): GameState {
+    return this.state;
+  }
+
   /** The opening state and the accepted commands so far (see ReplayGameClient). */
   get recording(): MatchRecording {
     return { opening: this.opening, commands: [...this.played] };

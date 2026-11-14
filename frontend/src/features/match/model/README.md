@@ -45,3 +45,9 @@ Para escrever num passo de animação, use `withFx(view, { tide: ... })` e `next
 Animação nova de personagem = um tipo novo em `matchView/fx.ts` + um campo no `MatchFx` (e `null` no `NO_FX`).
 
 O React lê o store pelo `useMatch` (em `hooks/`), que usa `useSyncExternalStore`: a tela redesenha sempre que a view muda.
+
+## Bots, replay e estatísticas
+
+- `bots.ts`: os jogadores do computador (marcados como **Bot** na tela Nova Partida, `?bots=2,3` na URL). Quando a tela está parada e é a vez de um deles (ou um aviso espera por ele), pede o lance a `game/domain/bots/simpleBot.ts` e manda direto ao cliente. A tela nunca joga por eles (`viewerControls` recebe `store.computerSeats`).
+- `replay.ts`: assiste de novo a partida gravada pelo `LocalGameClient`, um comando por vez, esperando cada animação acabar (veja o README da application).
+- As estatísticas (`game/domain/stats/matchStats.ts`) são somadas na `MatchView.stats` a cada atualização e aparecem na tela de fim de partida (`ui/hud/EndGamePanel.tsx`) com os prêmios.
