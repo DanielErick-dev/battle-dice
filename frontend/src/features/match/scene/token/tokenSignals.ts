@@ -40,7 +40,7 @@ export function tokenSignals(view: MatchView, player: Player): TokenSignals {
     outburst: outburstOf(view, id, own),
     weeded: own?.kind === "weeded" ? effectKey(own) : null,
     overWall: view.elementals.walls.some((wall) => wall.tile === player.position),
-    meditating: player.converged > 0,
+    meditating: player.tenzai.converged > 0,
     // Stung by a trap, they stagger back tile by tile (see carriedAwaySteps).
     limping: own?.kind === "trap",
   };

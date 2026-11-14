@@ -33,11 +33,12 @@ export function statusChips(player: Player): StatusChip[] {
   if (player.containedRolls > 0) chips.push({ label: `Dado contido ×${player.containedRolls}`, tone: "bad" });
   if (player.justiceMarks > 0) chips.push({ label: `Marcas da Justiça ×${player.justiceMarks}`, tone: "info" });
   if (player.innerFlame > 0) chips.push({ label: `Chama Interna ${player.innerFlame}`, tone: "info" });
-  if (player.converged > 0) chips.push({ label: `Convergência · ${turns(player.converged)}`, tone: "good" });
-  if (player.combustion) chips.push({ label: "Dado de combustão", tone: "good" });
-  if (player.elements.length > 0)
+  if (player.tenzai.converged > 0)
+    chips.push({ label: `Convergência · ${turns(player.tenzai.converged)}`, tone: "good" });
+  if (player.tenzai.combustion) chips.push({ label: "Dado de combustão", tone: "good" });
+  if (player.tenzai.orbit.length > 0)
     chips.push({
-      label: `Órbita ${player.elements.map((element) => ELEMENT_NAME[element]).join(" · ")}`,
+      label: `Órbita ${player.tenzai.orbit.map((element) => ELEMENT_NAME[element]).join(" · ")}`,
       tone: "info",
     });
   return chips;

@@ -8,7 +8,7 @@ import type { TokenFx } from "./types";
 
 export function LevitationGlow({ token }: { token: TokenFx }) {
   // Tenzai floats in his Convergence without the Witch's glow.
-  if (token.player.converged > 0) return null;
+  if (token.player.tenzai.converged > 0) return null;
   return (
     <LevitationAura size={FIGURE_HEIGHT} color={token.color} progress={token.live.rise} height={LEVITATE_HEIGHT} />
   );
@@ -24,6 +24,6 @@ export function LevitationCast({ token }: { token: TokenFx }) {
 /** Mounted on every figure: it only shows while levitating. */
 export function LevitationStaff({ token, figure }: { token: TokenFx; figure: Object3D }) {
   // Tenzai floats in his Convergence without a staff.
-  if (token.player.converged > 0) return null;
+  if (token.player.tenzai.converged > 0) return null;
   return <WitchStaff figure={figure} color={token.color} active={token.live.levitating} />;
 }

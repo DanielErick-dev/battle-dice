@@ -147,7 +147,7 @@ export function pullTethered(draft: Draft, targetId: PlayerId, steps: number): v
 }
 
 export function enchantDie(draft: Draft, playerId: PlayerId, multiplier: number, push: number): void {
-  updatePlayer(draft, playerId, () => ({ combustion: { multiplier, push } }));
+  updatePlayer(draft, playerId, (player) => ({ tenzai: { ...player.tenzai, combustion: { multiplier, push } } }));
   draft.events.push({ type: "combustionReady", playerId, multiplier });
 }
 
@@ -159,7 +159,8 @@ export function armBreeze(draft: Draft, owner: PlayerId, doubled: boolean): void
 
 /** The roll's multiplier when his enchanted die shows COMBUSTION_FACE or more; 1 otherwise. */
 export function combustionMultiplier(player: Player, face: number): number {
-  return player.combustion && face >= COMBUSTION_FACE ? player.combustion.multiplier : 1;
+  const { combustion } = player.tenzai;
+  return combustion && face >= COMBUSTION_FACE ? combustion.multiplier : 1;
 }
 
 /** After an exploding roll: everyone touchable within COMBUSTION_RADIUS of where he stopped is thrown back, and he rolls again. */
@@ -231,19 +232,18 @@ export function wearTethers(draft: Draft, owner: PlayerId): void {
 export function attune(draft: Draft, playerId: PlayerId, elements: readonly Element[]): void {
   for (const element of elements) {
     const player = playerIn(draft, playerId);
-    if (!isTenzai(player) || player.elements.includes(element)) continue;
-    const orbit = ELEMENTS.filter((candidate) => candidate === element || player.elements.includes(candidate));
-    updatePlayer(draft, playerId, () => ({ elements: orbit }));
+    if (!isTenzai(player) || player.tenzai.orbit.includes(element)) continue;
+    const orbit = ELEMENTS.filter((candidate) => candidate === element || player.tenzai.orbit.includes(candidate));
+    updatePlayer(draft, playerId, (current) => ({ tenzai: { ...current.tenzai, orbit } }));
     draft.events.push({ type: "elementAttuned", playerId, element, elements: orbit });
   }
-  if (playerIn(draft, playerId).elements.length === ELEMENTS.length) converge(draft, playerId);
+  if (playerIn(draft, playerId).tenzai.orbit.length === ELEMENTS.length) converge(draft, playerId);
 }
 
 /** The orbit is spent: untouchable for CONVERGENCE_TURNS, the ability ready again and CONVERGENCE_BONUS on this roll. */
 function converge(draft: Draft, playerId: PlayerId): void {
   updatePlayer(draft, playerId, (player) => ({
-    elements: [],
-    converged: Math.max(player.converged, CONVERGENCE_TURNS),
+    tenzai: { ...player.tenzai, orbit: [], converged: Math.max(player.tenzai.converged, CONVERGENCE_TURNS) },
     abilityCharge: abilityCycle(player.ability),
     diceBonuses: [...player.diceBonuses, { amount: CONVERGENCE_BONUS, rolls: 1 }],
   }));
@@ -255,18 +255,18 @@ function converge(draft: Draft, playerId: PlayerId): void {
 export function bendElement(draft: Draft, playerId: PlayerId, { element, wallTile, targetId }: ElementChoice): void {
   const player = playerIn(draft, playerId);
   if (!element || !ELEMENTS.includes(element)) throw new GameRuleError("INVALID_ELEMENT");
-  if (element === player.lastElement) throw new GameRuleError("ELEMENT_LOCKED");
+  if (element === player.tenzai.lastElement) throw new GameRuleError("ELEMENT_LOCKED");
   if (element === "water") {
     const target = tetherTargets(draft.state.board, draft.players, playerId).find((other) => other.id === targetId);
     if (!target) throw new GameRuleError("INVALID_TARGET");
-    updatePlayer(draft, playerId, () => ({ lastElement: element }));
+    updatePlayer(draft, playerId, (current) => ({ tenzai: { ...current.tenzai, lastElement: element } }));
     draft.events.push({ type: "elementBent", playerId, element });
     const aim = aimAbility(draft, playerId, target, "fourElements");
     if (aim) bindTether(draft, aim.by, aim.at, TETHER_TURNS);
     attune(draft, playerId, [element]);
     return;
   }
-  updatePlayer(draft, playerId, () => ({ lastElement: element }));
+  updatePlayer(draft, playerId, (current) => ({ tenzai: { ...current.tenzai, lastElement: element } }));
   draft.events.push({ type: "elementBent", playerId, element });
   if (element === "earth") raiseWall(draft, playerId, wallTile, WALL_HP);
   else if (element === "fire") enchantDie(draft, playerId, COMBUSTION_MULTIPLIER, COMBUSTION_PUSH);
@@ -282,7 +282,7 @@ export function bendableElements(
   elementals: Elementals,
 ): Element[] {
   return ELEMENTS.filter((element) => {
-    if (element === player.lastElement) return false;
+    if (element === player.tenzai.lastElement) return false;
     if (element === "water") return tetherTargets(board, players, player.id).length > 0;
     if (element === "earth") return wallableTiles(board, players, elementals).length > 0;
     return true;

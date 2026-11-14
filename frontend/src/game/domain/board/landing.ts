@@ -68,7 +68,7 @@ export function resolveLanding(draft: Draft, playerId: PlayerId, landed: TileId)
   }
   // Untamed: they take the hit and don't even notice. A hidden trap shows itself and moves on.
   const unharmed = playerIn(draft, playerId);
-  if (harm && (unharmed.untamed > 0 || unharmed.converged > 0)) {
+  if (harm && (unharmed.untamed > 0 || unharmed.tenzai.converged > 0)) {
     if (threat === "hiddenTrap") moveHiddenTrap(draft, landed);
     draft.events.push({
       type: "trapBlocked",

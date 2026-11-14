@@ -74,17 +74,17 @@ export function Bending({ fx: { view, layout } }: { fx: BoardFx }) {
 }
 
 export function Orbit({ token }: { token: TokenFx }) {
-  const { converged, elements } = token.player;
+  const { converged, orbit } = token.player.tenzai;
   if (converged > 0) return <ConvergenceAura />;
-  return elements.length > 0 && <ElementOrbit elements={elements} />;
+  return orbit.length > 0 && <ElementOrbit elements={orbit} />;
 }
 
 export function GlowingEyes({ token, figure }: { token: TokenFx; figure: Object3D }) {
-  return token.player.converged > 0 && <ConvergenceEyes figure={figure} />;
+  return token.player.tenzai.converged > 0 && <ConvergenceEyes figure={figure} />;
 }
 
 export function Combustion({ token }: { token: TokenFx }) {
-  return token.player.combustion !== null && <CombustionHands />;
+  return token.player.tenzai.combustion !== null && <CombustionHands />;
 }
 
 const CLIP_ELEMENTS = { quake: "earth", tide: "water", flare: "fire", gust: "wind" } as const;

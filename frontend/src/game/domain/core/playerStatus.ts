@@ -12,7 +12,7 @@ export function isSeated(player: Player): boolean {
 
 /** Nothing other players aim at them gets through, from cards to a trample. */
 export function isUntouchable(player: Player): boolean {
-  return player.spectralArmour > 0 || player.untamed > 0 || player.converged > 0;
+  return player.spectralArmour > 0 || player.untamed > 0 || player.tenzai.converged > 0;
 }
 
 /** Also blocks the board's traps, curses and lost turns, but not hidden traps or black fire. */
@@ -24,7 +24,7 @@ export type AimWard = "untamed" | "convergence" | "susanoo" | "armour" | "aegis"
 
 export function aimWard(player: Player): AimWard | null {
   if (player.untamed > 0) return "untamed";
-  if (player.converged > 0) return "convergence";
+  if (player.tenzai.converged > 0) return "convergence";
   if (inSusanoo(player)) return "susanoo";
   if (player.spectralArmour > 0) return "armour";
   if (player.divineAegis > 0) return "aegis";

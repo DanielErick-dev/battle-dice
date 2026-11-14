@@ -66,7 +66,7 @@ export const turnCommands: CommandHandlers<"rollDice" | "forfeitTurn" | "restart
       ...(impetus > 0 && { impetus: true }),
     };
     updatePlayer(draft, playerId, (current) => ({
-      combustion: null,
+      tenzai: { ...current.tenzai, combustion: null },
       containedRolls: Math.max(0, current.containedRolls - 1),
       diceBoost: null, // every boost is spent by a single roll
       diceBonuses: diceBonuses.filter(({ rolls }) => rolls > 1).map((bonus) => ({ ...bonus, rolls: bonus.rolls - 1 })),
@@ -96,7 +96,7 @@ export const turnCommands: CommandHandlers<"rollDice" | "forfeitTurn" | "restart
     if (path.length > 0) resolveLanding(draft, playerId, path.at(-1) ?? player.position);
     unpinPassed(draft, path);
     if (!reversed) pullTethered(draft, playerId, path.length);
-    if (combustion > 1 && player.combustion) detonate(draft, playerId, player.combustion.push);
+    if (combustion > 1 && player.tenzai.combustion) detonate(draft, playerId, player.tenzai.combustion.push);
     slideOnEmbers(draft, playerId);
     const face = thrown.best ? Math.max(...thrown.dice) : thrown.dice.reduce((sum, die) => sum + die, 0);
     settleRoll(draft, playerId, face, boost?.kind === "fixed");

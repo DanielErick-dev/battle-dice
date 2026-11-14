@@ -39,6 +39,20 @@ export interface Elementals {
 
 export const NO_ELEMENTALS: Elementals = { walls: [], tethers: [], breezes: [] };
 
+/** Tenzai's own state on his Player (see characters/tenzai/); everyone else keeps NO_TENZAI. */
+export interface TenzaiState {
+  /** The elements bent since the last Convergence, in ELEMENTS order. */
+  orbit: readonly Element[];
+  /** The element he bent last with his ability: never twice in a row. */
+  lastElement: Element | null;
+  /** Own turns left in the Convergence (untouchable like Untamed), the current one included. */
+  converged: number;
+  /** His die enchanted for this turn's roll (Combustion Die). */
+  combustion: Combustion | null;
+}
+
+export const NO_TENZAI: TenzaiState = { orbit: [], lastElement: null, converged: 0, combustion: null };
+
 /** His die enchanted for this turn's roll (Combustion Die): a 5 or 6 explodes. */
 export interface Combustion {
   multiplier: number;

@@ -28,6 +28,7 @@ import {
 } from "./elements";
 import { FORCED_TAILWIND_BONUS, FORTIFY_NEW_HP } from "./cards";
 import type { ActivateOptions } from "../../testing";
+import type { TenzaiState } from "./types";
 
 const BOARD: BoardDefinition = { size: 120, effects: {} };
 
@@ -37,6 +38,8 @@ const bend = (state: GameState, options: ActivateOptions, dice = [1]) =>
 /** Tenzai at 10, the rival at 20. */
 const placed = (start = duel()) => withPlayers(start, { tenzai: { position: 10 }, rival: { position: 20 } });
 const rivalRolls = (state: GameState, die: number) => roll(onTurnOf(state, "rival"), "rival", die);
+const withTenzai = (state: GameState, patch: Partial<TenzaiState>) =>
+  withPlayer(state, "tenzai", { tenzai: { ...playerOf(state, "tenzai").tenzai, ...patch } });
 const withHand = (state: GameState, ...cardIds: Parameters<typeof card>[0][]) =>
   withPlayer(state, "tenzai", { hand: cardIds.map((id) => card(id)), energy: 10 });
 
@@ -44,7 +47,7 @@ describe("Mastery of the Four Elements", () => {
   it(`charges in ${LONG_ABILITY_CYCLE} turns and never bends the same element twice in a row`, () => {
     expect(abilityCycle("fourElements")).toBe(LONG_ABILITY_CYCLE);
     const { state } = bend(placed(), { element: "fire" });
-    expect(playerOf(state, "tenzai").lastElement).toBe("fire");
+    expect(playerOf(state, "tenzai").tenzai.lastElement).toBe("fire");
     expectRuleError(() => bend(state, { element: "fire" }), "ELEMENT_LOCKED");
     expect(() => bend(state, { element: "wind" })).not.toThrow();
   });
@@ -72,9 +75,9 @@ describe("Tectonic Wall", () => {
   it(`only rises on a free plain tile near someone, and his oldest crumbles past ${MAX_WALLS}`, () => {
     expectRuleError(() => bend(placed(), { element: "earth", wallTile: 20 }), "INVALID_WALL");
     expectRuleError(() => bend(placed(), { element: "earth", wallTile: 60 }), "INVALID_WALL");
-    let state = withPlayer(placed(), "tenzai", { lastElement: null });
+    let state = placed();
     for (const tile of [21, 22, 23])
-      state = bend(withPlayer(state, "tenzai", { lastElement: null }), { element: "earth", wallTile: tile }).state;
+      state = bend(withTenzai(state, { lastElement: null }), { element: "earth", wallTile: tile }).state;
     expect(state.elementals.walls.map((wall) => wall.tile)).toEqual([22, 23]);
   });
 });
@@ -120,7 +123,7 @@ describe("Combustion Die", () => {
   it("does nothing on a lower face, and is spent by the roll either way", () => {
     const { state } = bend(placed(), { element: "fire" });
     const calm = roll(state, "tenzai", 4);
-    expect(playerOf(calm.state, "tenzai")).toMatchObject({ position: 14, combustion: null });
+    expect(playerOf(calm.state, "tenzai")).toMatchObject({ position: 14, tenzai: { combustion: null } });
   });
 });
 
@@ -152,11 +155,10 @@ describe("Breeze Heist", () => {
 
 describe("Primordial Awakening", () => {
   it("each new element joins the orbit; all four wake the Convergence", () => {
-    const three = withPlayer(placed(), "tenzai", { elements: ["earth", "water", "fire"], lastElement: "fire" });
+    const three = withTenzai(placed(), { orbit: ["earth", "water", "fire"], lastElement: "fire" });
     const { state, events } = bend(three, { element: "wind" });
     expect(playerOf(state, "tenzai")).toMatchObject({
-      elements: [],
-      converged: CONVERGENCE_TURNS,
+      tenzai: { orbit: [], converged: CONVERGENCE_TURNS },
       abilityCharge: abilityCycle("fourElements"),
     });
     expect(playerOf(state, "tenzai").diceBonuses).toContainEqual({ amount: CONVERGENCE_BONUS, rolls: 1 });
@@ -164,7 +166,7 @@ describe("Primordial Awakening", () => {
   });
 
   it("makes him untouchable to the board's harm and to what others aim at him", () => {
-    const converged = withPlayer(placed(), "tenzai", { converged: 2 });
+    const converged = withTenzai(placed(), { converged: 2 });
     const { state } = rivalRolls(withPlayer(converged, "rival", { hand: [card("arcaneBlast")], energy: 10 }), 1);
     expect(playerOf(state, "tenzai").position).toBe(10);
     const blasted = play(
@@ -222,7 +224,7 @@ describe("Tenzai's cards", () => {
     expect(state.elementals.walls).toHaveLength(1);
     expect(state.elementals.tethers).toHaveLength(1);
     expect(state.elementals.breezes).toHaveLength(1);
-    expect(playerOf(state, "tenzai")).toMatchObject({ converged: CONVERGENCE_TURNS, elements: [] });
-    expect(playerOf(state, "tenzai").combustion).not.toBeNull();
+    expect(playerOf(state, "tenzai").tenzai).toMatchObject({ converged: CONVERGENCE_TURNS, orbit: [] });
+    expect(playerOf(state, "tenzai").tenzai.combustion).not.toBeNull();
   });
 });

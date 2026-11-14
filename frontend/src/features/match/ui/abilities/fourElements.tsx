@@ -48,8 +48,8 @@ function ElementPicker({ ctx }: { ctx: AbilityContext }) {
       title="Domínio dos 4 Elementos"
       tone="text-cyan-200"
       subtitle={
-        player.lastElement
-          ? `Qual elemento? (${ELEMENT_NAME[player.lastElement]} foi o último e descansa agora)`
+        player.tenzai.lastElement
+          ? `Qual elemento? (${ELEMENT_NAME[player.tenzai.lastElement]} foi o último e descansa agora)`
           : "Qual elemento?"
       }
       alternatives={ELEMENTS.filter((element) => open.has(element)).map((element) => ({

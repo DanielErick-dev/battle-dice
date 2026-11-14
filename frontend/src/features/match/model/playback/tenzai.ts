@@ -51,7 +51,7 @@ export const tenzaiSteps: StepHandlers<
   elementAttuned: (event, timings) => [
     {
       apply: (view) => ({
-        ...withPlayer(view, event.playerId, () => ({ elements: event.elements })),
+        ...withPlayer(view, event.playerId, (player) => ({ tenzai: { ...player.tenzai, orbit: event.elements } })),
         effect: {
           ...playerTileEffect(view, event.playerId, "attuned"),
           element: event.element,
@@ -64,9 +64,8 @@ export const tenzaiSteps: StepHandlers<
   convergenceAwakened: (event, timings) => [
     {
       apply: (view) => ({
-        ...withPlayer(bending(view, { playerId: event.playerId, kind: "convergence" }), event.playerId, () => ({
-          elements: [],
-          converged: event.turns,
+        ...withPlayer(bending(view, { playerId: event.playerId, kind: "convergence" }), event.playerId, (player) => ({
+          tenzai: { ...player.tenzai, orbit: [], converged: event.turns },
         })),
         effect: { ...playerTileEffect(view, event.playerId, "convergence"), count: event.turns },
       }),
@@ -183,7 +182,9 @@ export const tenzaiSteps: StepHandlers<
   combustionReady: (event, timings) => [
     {
       apply: (view) => ({
-        ...withPlayer(view, event.playerId, () => ({ combustion: { multiplier: event.multiplier, push: 0 } })),
+        ...withPlayer(view, event.playerId, (player) => ({
+          tenzai: { ...player.tenzai, combustion: { multiplier: event.multiplier, push: 0 } },
+        })),
         effect: { ...playerTileEffect(view, event.playerId, "combustionReady"), count: event.multiplier },
       }),
       durationMs: timings.noticeMs,
@@ -195,8 +196,8 @@ export const tenzaiSteps: StepHandlers<
         ...withPlayer(
           bending(view, { playerId: event.playerId, kind: "explosion", tile: event.tile }),
           event.playerId,
-          () => ({
-            combustion: null,
+          (player) => ({
+            tenzai: { ...player.tenzai, combustion: null },
           }),
         ),
         effect: {
