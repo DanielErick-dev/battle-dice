@@ -3,7 +3,7 @@ import { CLASSIC_BOARD } from "../../domain/board/presets";
 import { createGame } from "../../domain/core/engine";
 import { loadedDice, withPlayer } from "../../domain/testing";
 import type { GameUpdate } from "../gameClient";
-import { MatchHost, type MatchHostOptions } from "./matchHost";
+import { COMPUTER_NAME, MatchHost, type MatchHostOptions } from "./matchHost";
 import { MemoryRoom } from "./memoryTransport";
 import type { JoinRequest } from "./remoteGameClient";
 import { HostRefusedError, JoinRefusedError, RemoteGameClient } from "./remoteGameClient";
@@ -156,6 +156,31 @@ describe("party mode over a transport", () => {
     const { bran } = await seated();
     bran.close();
     expect((await bran.connect()).localPlayerId).toBe("p2");
+  });
+
+  it("hands a seat to the computer: its phone is let go, no phone can take it, and only the host plays it", async () => {
+    const { host, aria, bran, client, sentTo } = await seated();
+    host.setComputer("p2", true);
+
+    expect(sentTo("phone-b").some(({ type }) => type === "closed")).toBe(true);
+    expect(host.seats().map(({ controllerName }) => controllerName)).toEqual(["Ana", COMPUTER_NAME]);
+    await expect(client({ clientId: "phone-c", role: "player" }).connect()).rejects.toEqual(
+      new JoinRefusedError("ROOM_FULL"),
+    );
+    await aria.send({ type: "rollDice", playerId: "p1" });
+    await expect(bran.send({ type: "rollDice", playerId: "p2" })).rejects.toBeDefined();
+    expect(await host.sendAsComputer({ type: "rollDice", playerId: "p2" })).toEqual({ ok: true });
+    expect(await host.sendAsComputer({ type: "rollDice", playerId: "p1" })).toEqual({
+      ok: false,
+      code: "NOT_YOUR_SEAT",
+    });
+  });
+
+  it("gives a computer seat back to the phones", async () => {
+    const { host, client } = await seated();
+    host.setComputer("p2", true);
+    host.setComputer("p2", false);
+    expect((await client({ clientId: "phone-c", role: "player" }).connect()).localPlayerId).toBe("p2");
   });
 
   it("refuses a seat when the room is full, taken or unknown", async () => {

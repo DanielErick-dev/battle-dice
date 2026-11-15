@@ -109,7 +109,7 @@ interface MatchProps {
 }
 
 function Match({ preset, mapId, roster, chargedAbilities, seat, hourglass, audio, bots }: MatchProps) {
-  const { store, view, replaying, watchReplay, leaveReplay } = useMatch(preset.definition, roster, {
+  const { store, view, replaying, watchReplay, leaveReplay, onSceneReady } = useMatch(preset.definition, roster, {
     chargedAbilities,
     seat,
     bots,
@@ -135,6 +135,7 @@ function Match({ preset, mapId, roster, chargedAbilities, seat, hourglass, audio
       hourglass={hourglass && !replaying}
       audio={audio}
       onReplay={watchReplay}
+      onReady={onSceneReady}
     >
       {replaying && (
         <div className="pointer-events-auto absolute top-4 left-1/2 z-30 flex -translate-x-1/2 items-center gap-3 rounded-full bg-black/70 py-1.5 pr-1.5 pl-4 ring-1 ring-white/15">
@@ -163,6 +164,8 @@ export interface MatchTableProps extends Omit<MatchProps, "chargedAbilities" | "
   onRestart?: () => void;
   /** "Assistir replay" on the end-of-match screen, when this screen can replay the match. */
   onReplay?: () => void;
+  /** Called once the scene has loaded and the curtain lifts (the computer players wait for it). */
+  onReady?: () => void;
   /** Extra classes for the screen (the party TV scales its HUD up). */
   className?: string;
   /** Overlays drawn above the HUD (the party TV's turn and presence notes). */
@@ -181,6 +184,7 @@ export function MatchTable({
   audio,
   onRestart,
   onReplay,
+  onReady: onSceneReady,
   className,
   children,
 }: MatchTableProps) {
@@ -192,7 +196,10 @@ export function MatchTable({
   const models = useMemo(() => [...new Set(roster.flatMap(({ character }) => modelsOf(character)))], [roster]);
   /** The scene has loaded and compiled everything: the curtain lifts. */
   const [ready, setReady] = useState(false);
-  const onReady = useCallback(() => setReady(true), []);
+  const onReady = useCallback(() => {
+    setReady(true);
+    onSceneReady?.();
+  }, [onSceneReady]);
   const nameOf = (id: string | null) => view.players.find((player) => player.id === id)?.name ?? null;
   const activePlayer = activePlayerOf(view);
   const controls = viewerControls(view, store.pinnedSeat, store.spectator, store.computerSeats);

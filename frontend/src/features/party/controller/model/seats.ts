@@ -42,5 +42,7 @@ const REFUSALS: Readonly<Record<JoinRefusal, string>> = {
 
 /** A refused join in words; anything else (no answer) means the room isn't open. */
 export function joinRefusalMessage(reason: JoinRefusal | null): string {
-  return reason ? REFUSALS[reason] : "Nenhuma sala respondeu com esse código. Confira o código na TV.";
+  return reason
+    ? REFUSALS[reason]
+    : "Nenhuma sala respondeu com esse código. Confira o código na TV e se o celular está no mesmo Wi-Fi.";
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ExternalLink, Play, Smartphone } from "lucide-react";
+import { ArrowLeft, Bot, ExternalLink, Play, Smartphone } from "lucide-react";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { CHARACTERS, type RosterEntry } from "@/features/characters";
@@ -11,15 +11,26 @@ interface TvLobbyProps {
   code: string;
   seats: readonly TvSeat[];
   roster: readonly RosterEntry[];
+  /** This machine's address on the home network (see app/mesa/lanOrigin.ts). */
+  lanOrigin: string | null;
   onStart: () => void;
+  /** Hands the seat to the computer, or back to the phones. */
+  onToggleComputer: (seat: TvSeat) => void;
 }
 
-/** Where each phone opens the controller; read on the client, the screen never renders on the server. */
-const controllerUrl = (code: string) => `${window.location.origin}/controle?sala=${encodeURIComponent(code)}`;
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
+/** Phones on other devices reach the room through the dev relay (npm run dev:party); without it, only this browser. */
+const ACROSS_DEVICES = Boolean(process.env.NEXT_PUBLIC_WS_URL);
+
+/** Where each phone opens the controller: on localhost a phone can't follow it, so the home-network address instead. */
+function controllerUrl(code: string, lanOrigin: string | null): string {
+  const origin = LOCAL_HOSTS.has(window.location.hostname) && lanOrigin ? lanOrigin : window.location.origin;
+  return `${origin}/controle?sala=${encodeURIComponent(code)}`;
+}
 
 /** Before the match: the room code and QR for the phones, who has joined, and the start button. */
-export function TvLobby({ code, seats, roster, onStart }: TvLobbyProps) {
-  const url = controllerUrl(code);
+export function TvLobby({ code, seats, roster, lanOrigin, onStart, onToggleComputer }: TvLobbyProps) {
+  const url = controllerUrl(code, lanOrigin);
   const ready = everySeatTaken(seats);
   const missing = seats.filter(({ controllerName }) => controllerName === null).length;
 
@@ -57,11 +68,18 @@ export function TvLobby({ code, seats, roster, onStart }: TvLobbyProps) {
               Aponte a câmera do celular para o código ou abra <span className="font-mono text-amber-200">{url}</span>
             </p>
             <div className="flex max-w-md flex-col gap-3 rounded-2xl bg-white/[0.04] p-4 text-left text-sm text-zinc-300 ring-1 ring-white/10">
-              <p>
-                <span className="font-bold text-white">Por enquanto, tudo no mesmo navegador.</span> O servidor online
-                ainda está a caminho, então cada controle é uma aba (ou janela) deste mesmo navegador, neste computador.
-                Quando o servidor chegar, o QR code vai funcionar direto do celular.
-              </p>
+              {ACROSS_DEVICES ? (
+                <p>
+                  <span className="font-bold text-white">Celulares no mesmo Wi-Fi deste computador.</span> Escaneie o QR
+                  code e o controle já abre nesta sala. Também dá para jogar numa aba deste navegador.
+                </p>
+              ) : (
+                <p>
+                  <span className="font-bold text-white">Só neste navegador.</span> Sem o relay, cada controle é uma aba
+                  (ou janela) deste mesmo navegador. Para entrar pelo celular, rode{" "}
+                  <span className="font-mono text-amber-200">npm run dev:party</span>.
+                </p>
+              )}
               <button
                 type="button"
                 onClick={() => window.open(url, "_blank")}
@@ -81,12 +99,26 @@ export function TvLobby({ code, seats, roster, onStart }: TvLobbyProps) {
                 const character = roster.find(({ id }) => id === seat.playerId)?.character;
                 const color = character ? CHARACTERS[character].color : "#a1a1aa";
                 const joined = seat.controllerName !== null;
+                const status = seat.computer ? (
+                  <>
+                    <Bot className="size-4" /> computador
+                  </>
+                ) : (
+                  <>
+                    <Smartphone className="size-4" />
+                    {joined ? seat.controllerName : "aguardando celular…"}
+                  </>
+                );
                 return (
                   <li
                     key={seat.playerId}
                     className={cn(
-                      "flex items-center gap-3 rounded-2xl px-4 py-3 ring-1 transition",
-                      joined ? "bg-emerald-500/10 ring-emerald-400/50" : "bg-white/[0.04] ring-white/10",
+                      "flex flex-wrap items-center gap-3 rounded-2xl px-4 py-3 ring-1 transition",
+                      seat.computer
+                        ? "bg-sky-500/10 ring-sky-400/50"
+                        : joined
+                          ? "bg-emerald-500/10 ring-emerald-400/50"
+                          : "bg-white/[0.04] ring-white/10",
                     )}
                   >
                     <span
@@ -98,12 +130,28 @@ export function TvLobby({ code, seats, roster, onStart }: TvLobbyProps) {
                     <span
                       className={cn(
                         "ml-auto flex items-center gap-2 text-base",
-                        joined ? "font-bold text-emerald-300" : "text-zinc-500",
+                        seat.computer
+                          ? "font-bold text-sky-300"
+                          : joined
+                            ? "font-bold text-emerald-300"
+                            : "text-zinc-500",
                       )}
                     >
-                      <Smartphone className="size-4" />
-                      {joined ? seat.controllerName : "aguardando celular…"}
+                      {status}
                     </span>
+                    <button
+                      type="button"
+                      onClick={() => onToggleComputer(seat)}
+                      aria-pressed={seat.computer}
+                      className={cn(
+                        "flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold tracking-wider uppercase ring-1 transition-colors",
+                        seat.computer
+                          ? "bg-sky-500/20 text-sky-200 ring-sky-400/60 hover:bg-sky-500/30"
+                          : "text-zinc-400 ring-white/15 hover:bg-white/10 hover:text-white",
+                      )}
+                    >
+                      <Bot className="size-3.5" /> Bot
+                    </button>
                   </li>
                 );
               })}

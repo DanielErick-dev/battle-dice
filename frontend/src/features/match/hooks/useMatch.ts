@@ -18,6 +18,8 @@ interface UseMatchResult {
   watchReplay: () => void;
   /** Back to the live match. */
   leaveReplay: () => void;
+  /** The board has loaded on screen: only then do the computer players start moving. */
+  onSceneReady: () => void;
 }
 
 /** One store per mount: remount (e.g. with a `key`) to start another match. */
@@ -35,11 +37,13 @@ export function useMatch(
     return match.store.close;
   }, [match]);
   useEffect(() => () => replay?.stop(), [replay]);
-  useEffect(() => match.startBots(), [match]);
+  const [sceneReady, setSceneReady] = useState(false);
+  useEffect(() => (sceneReady ? match.startBots() : undefined), [match, sceneReady]);
+  const onSceneReady = useCallback(() => setSceneReady(true), []);
 
   const store = replay?.store ?? match.store;
   const view = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
   const watchReplay = useCallback(() => setReplay(startReplay(match.recording())), [match]);
   const leaveReplay = useCallback(() => setReplay(null), []);
-  return { store, view, replaying: replay !== null, watchReplay, leaveReplay };
+  return { store, view, replaying: replay !== null, watchReplay, leaveReplay, onSceneReady };
 }

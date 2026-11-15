@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { joinPartyOnChannel, type MatchHost } from "@/game/application/party";
 import type { RosterEntry } from "@/features/characters";
 import type { GameAudio } from "@/features/match/hooks/useGameAudio";
 import { useMatchAudio } from "@/features/match/hooks/useMatchAudio";
+import { driveBots } from "@/features/match/model/bots";
 import { MatchStore } from "@/features/match/model/matchStore";
 import type { MatchView } from "@/features/match/model/matchView";
 import { MatchTable } from "@/features/match/ui/MatchScreen";
@@ -39,6 +40,18 @@ export function TvMatch({ host, code, seats, preset, mapId, roster, audio }: TvM
     store.open().catch(() => {});
     return store.close;
   }, [store]);
+  const [sceneReady, setSceneReady] = useState(false);
+  const onSceneReady = useCallback(() => setSceneReady(true), []);
+  // The TV hosts the match, so it plays the computer's seats itself, once the board is on screen.
+  useEffect(() => {
+    if (!sceneReady) return;
+    return driveBots(
+      store,
+      () => host.state,
+      (command) => host.sendAsComputer(command),
+      host.computerSeats,
+    );
+  }, [store, host, sceneReady]);
   const view = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
   useMatchAudio(store, audio.sounds);
 
@@ -60,6 +73,7 @@ export function TvMatch({ host, code, seats, preset, mapId, roster, audio }: TvM
       hourglass={false}
       audio={audio}
       onRestart={() => void host.restart()}
+      onReady={onSceneReady}
     >
       <TurnBanner view={view} seats={seats} />
       <PresenceNotes seats={seats} />

@@ -8,6 +8,9 @@ import { LocalGameClient } from "../localGameClient";
 import type { ControllerMessage, HostMessage, JoinMessage, SeatPresence, WireCommandResult } from "./protocol";
 import type { HostTransport } from "./transport";
 
+/** What the seat list shows for a computer seat. */
+export const COMPUTER_NAME = "Bot";
+
 type Resolve = (state: GameState, command: GameCommand) => GameTransition;
 
 export interface MatchHostOptions {
@@ -32,6 +35,8 @@ interface Client {
 export class MatchHost {
   private readonly game: LocalGameClient;
   private readonly clients = new Map<string, Client>();
+  /** Seats the computer plays, driven by the host screen; no phone may take them. */
+  private readonly computers = new Set<PlayerId>();
   private readonly history: GameUpdate[] = [];
   private readonly listeners = new Set<() => void>();
   private current: GameState;
@@ -66,6 +71,8 @@ export class MatchHost {
   /** Each seat and who holds it, as sent in presence. */
   seats(): SeatPresence[] {
     return this.current.players.map((player) => {
+      if (this.computers.has(player.id))
+        return { playerId: player.id, playerName: player.name, controllerName: COMPUTER_NAME, character: null };
       const holder = [...this.clients.values()].find(({ seat }) => seat === player.id);
       return {
         playerId: player.id,
@@ -94,6 +101,28 @@ export class MatchHost {
       this.post({ type: "closed", to: clientId, reason: "SEAT_RELEASED" });
     }
     this.changed();
+  }
+
+  get computerSeats(): PlayerId[] {
+    return [...this.computers];
+  }
+
+  /** Hands a seat to the computer (freeing any phone on it) or back to the phones. */
+  setComputer(playerId: PlayerId, computer: boolean): void {
+    if (!this.current.players.some(({ id }) => id === playerId)) return;
+    if (!computer) {
+      this.computers.delete(playerId);
+      return this.changed();
+    }
+    this.computers.add(playerId);
+    this.releaseSeat(playerId);
+  }
+
+  /** A move for one of the computer's seats, sent by the host screen's bot driver. */
+  async sendAsComputer(command: GameCommand): Promise<WireCommandResult> {
+    if (command.type === "restart" || !this.computers.has(command.playerId))
+      return { ok: false, code: "NOT_YOUR_SEAT" };
+    return this.game.send(command);
   }
 
   restart(): Promise<CommandResult> {
@@ -129,13 +158,15 @@ export class MatchHost {
     let assigned: PlayerId | null = null;
     if (role === "player") {
       const holderOf = (id: PlayerId) =>
-        [...this.clients.entries()].find(([other, client]) => other !== clientId && client.seat === id);
+        this.computers.has(id) ||
+        [...this.clients.entries()].some(([other, client]) => other !== clientId && client.seat === id);
       if (seat !== undefined) {
         if (!this.current.players.some(({ id }) => id === seat)) return this.refuse(clientId, "UNKNOWN_SEAT");
         if (holderOf(seat)) return this.refuse(clientId, "SEAT_TAKEN");
         assigned = seat;
       } else {
-        assigned = previous?.seat ?? this.current.players.find(({ id }) => !holderOf(id))?.id ?? null;
+        const kept = previous?.seat && !holderOf(previous.seat) ? previous.seat : null;
+        assigned = kept ?? this.current.players.find(({ id }) => !holderOf(id))?.id ?? null;
         if (assigned === null) return this.refuse(clientId, "ROOM_FULL");
       }
     }

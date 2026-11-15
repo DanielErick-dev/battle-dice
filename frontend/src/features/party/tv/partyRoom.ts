@@ -4,6 +4,8 @@ import type { PlayerId } from "@/game/domain/core/ids";
 export interface TvSeat extends SeatPresence {
   /** The name the seat's phone last joined with; kept after it drops, for "<nome> desconectou". */
   lastController: string | null;
+  /** The computer plays it (MatchHost.setComputer). */
+  computer: boolean;
 }
 
 export interface PartyRoomSnapshot {
@@ -53,9 +55,11 @@ export class PartyRoom {
   getSnapshot = (): PartyRoomSnapshot => this.snapshot;
 
   private refresh(host: MatchHost): void {
+    const computers = host.computerSeats;
     const seats = host.seats().map((seat) => {
-      if (seat.controllerName !== null) this.lastController.set(seat.playerId, seat.controllerName);
-      return { ...seat, lastController: this.lastController.get(seat.playerId) ?? null };
+      const computer = computers.includes(seat.playerId);
+      if (seat.controllerName !== null && !computer) this.lastController.set(seat.playerId, seat.controllerName);
+      return { ...seat, computer, lastController: this.lastController.get(seat.playerId) ?? null };
     });
     this.snapshot = { host, seats };
     this.notify();

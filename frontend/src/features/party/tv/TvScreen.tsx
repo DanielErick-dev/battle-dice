@@ -21,6 +21,10 @@ interface TvScreenProps {
   mapId: MapId;
   characters: readonly CharacterId[];
   chargedAbilities: boolean;
+  /** Seats (0-based) the computer starts on, from the setup screen. */
+  bots?: readonly number[];
+  /** This machine's address on the home network, for the phones' QR when the TV is open on localhost. */
+  lanOrigin?: string | null;
 }
 
 /** Scales every rem on the page while the TV screen is up: the HUD is read from a sofa (see globals.css). */
@@ -33,7 +37,15 @@ function useTvScale(): void {
 }
 
 /** The party TV: hosts the match in this tab, shows the lobby until everyone is seated, then the board as a spectator. */
-export function TvScreen({ code, boardId, mapId, characters, chargedAbilities }: TvScreenProps) {
+export function TvScreen({
+  code,
+  boardId,
+  mapId,
+  characters,
+  chargedAbilities,
+  bots = [],
+  lanOrigin = null,
+}: TvScreenProps) {
   const preset = boardPresetFor(boardId);
   const [roster] = useState(() => rosterOf(characters));
   const [room] = useState(() => {
@@ -42,7 +54,14 @@ export function TvScreen({ code, boardId, mapId, characters, chargedAbilities }:
       seed: Math.floor(Math.random() * 2 ** 32),
       chargedAbilities,
     });
-    return new PartyRoom(() => hostPartyOnChannel(code, state));
+    return new PartyRoom(() => {
+      const host = hostPartyOnChannel(code, state);
+      for (const index of bots) {
+        const player = roster[index];
+        if (player) host.setComputer(player.id, true);
+      }
+      return host;
+    });
   });
   const { host, seats } = useSyncExternalStore(room.subscribe, room.getSnapshot, room.getSnapshot);
   const [started, setStarted] = useState(false);
@@ -63,6 +82,16 @@ export function TvScreen({ code, boardId, mapId, characters, chargedAbilities }:
       </main>
     );
   }
-  if (!started) return <TvLobby code={code} seats={seats} roster={roster} onStart={() => setStarted(true)} />;
+  if (!started)
+    return (
+      <TvLobby
+        lanOrigin={lanOrigin}
+        code={code}
+        seats={seats}
+        roster={roster}
+        onStart={() => setStarted(true)}
+        onToggleComputer={(seat) => host.setComputer(seat.playerId, !seat.computer)}
+      />
+    );
   return <TvMatch host={host} code={code} seats={seats} preset={preset} mapId={mapId} roster={roster} audio={audio} />;
 }

@@ -17,6 +17,10 @@ A TV (rota `/mesa`) é a **anfitriã** da partida: roda o `MatchHost` nesta aba 
 3. Lobby: os celulares entram; cada assento fica verde com o nome de quem entrou.
 4. **Começar**: a TV entra como espectadora e mostra a partida. Em `npm run dev` há um botão "Dev: começar com assentos vazios" para olhar o tabuleiro sem celulares.
 
+## Bots
+
+O "Bot" da tela `/jogar` também vale no modo festa (vai para `/mesa?bots=2`, e o assento já abre marcado). No lobby, cada assento tem um botão **Bot**: `MatchHost.setComputer` entrega o assento ao computador (solta o celular que estava nele, e nenhum celular consegue pegá-lo depois). O assento aparece como "Bot" na lista e conta como ocupado para o "Começar". Na partida, o `TvMatch` roda o mesmo `driveBots` da partida no PC, e os lances passam por `host.sendAsComputer`, que só aceita comandos dos assentos do computador.
+
 ## Espectadora, não hot-seat
 
 O snapshot de espectador vem com `localPlayerId` `null`, igual ao hot-seat. Por isso o `MatchStore` recebe `{ spectator: true }`: `viewerControls(view, seat, true)` não fala por ninguém (`viewerId` `null`, nenhum botão, nenhuma pergunta, sem ampulheta nem pausa) e o `dispatch` não envia nada. O tabuleiro, os bonecos, a câmera, os banners, o histórico e o painel de jogadores continuam, com o que a projeção de espectador mostra (nenhum segredo). O hot-seat no PC (`/partida`) não muda.
