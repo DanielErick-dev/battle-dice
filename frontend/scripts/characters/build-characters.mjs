@@ -70,34 +70,39 @@ for (const [id, model] of Object.entries(CHARACTER_MODELS)) {
 async function buildCharacter(model, output) {
   const { id: folder, fallbacks = {}, sequences = {} } = model;
   const ownExport = (clip) => exportOf(model, clip);
-  const basePath = await firstExisting(REQUIRED_CLIPS.map(ownExport));
+  const basePath = await bodyOf(model);
   if (!basePath) throw new Error(`No export of ${folder} itself to take the mesh from`);
   const document = await io.read(basePath);
   const root = document.getRoot();
   // Meshy adds a one-frame ".001" rest pose next to each clip; the clips are copied in below.
   root.listAnimations().forEach((animation) => animation.dispose());
+  // A new `body` may lack a bone the old clips move (a fingertip): those channels are dropped, not fatal.
+  const bones = new Set(root.listNodes().map((node) => node.getName()));
+  const add = (name, channels) =>
+    addAnimation(document, name, model.body ? channels.filter((channel) => bones.has(channel.bone)) : channels);
 
   for (const name of REQUIRED_CLIPS) {
-    if (await exists(ownExport(name))) addAnimation(document, name, await exportChannels(ownExport(name)));
+    if (sequences[name]) add(name, await sequenceChannels(model, name));
+    else if (await exists(ownExport(name))) add(name, await exportChannels(ownExport(name)));
     else if (fallbacks[name]) {
       const lender = CHARACTER_MODELS[fallbacks[name]];
       console.warn(`  (no ${folder}/${name}.glb: borrowed from ${lender.id})`);
-      addAnimation(document, name, borrowed(await exportChannels(exportOf(lender, name)), { hipsScale: null }));
+      add(name, borrowed(await exportChannels(exportOf(lender, name)), { hipsScale: null }));
     } else throw new Error(`Missing ${ownExport(name)}`);
   }
   for (const name of OPTIONAL_CLIPS) {
     const lender = SHARED_CLIPS[name] && CHARACTER_MODELS[SHARED_CLIPS[name]];
-    if (sequences[name]) addAnimation(document, name, await sequenceChannels(model, name));
+    if (sequences[name]) add(name, await sequenceChannels(model, name));
     else if (lender && (lender === model || !(await exists(ownExport(name))))) {
       const channels = await clipChannels(lender, name);
       if (!channels) {
         console.warn(`  (no ${lender.id}/${name}.glb: shared "${name}" clip left out)`);
         continue;
       }
-      const lenderRest = restHipsHeight(await io.read(exportOf(lender, REQUIRED_CLIPS[0])));
+      const lenderRest = restHipsHeight(await io.read(await bodyOf(lender)));
       const own = borrowed(channels, { hipsScale: restHipsHeight(document) / lenderRest });
-      addAnimation(document, name, name === "rest" ? handsOnLap(stillPose(own), document) : own);
-    } else if (await exists(ownExport(name))) addAnimation(document, name, await exportChannels(ownExport(name)));
+      add(name, name === "rest" ? handsOnLap(stillPose(own), document) : own);
+    } else if (await exists(ownExport(name))) add(name, await exportChannels(ownExport(name)));
     else console.warn(`  (no ${folder}/${name}.glb: "${name}" clip left out)`);
   }
 
@@ -122,6 +127,12 @@ async function buildCharacter(model, output) {
   await io.write(output, document);
 }
 
+/** The export the mesh comes from: the manifest's `body` file, else the first required clip found. */
+async function bodyOf(model) {
+  if (model.body) return path.join(values.source, model.id, `${model.body}.glb`);
+  return firstExisting(REQUIRED_CLIPS.map((clip) => exportOf(model, clip)));
+}
+
 function exportOf(model, clip) {
   return path.join(values.source, model.id, `${clip}.glb`);
 }
@@ -141,7 +152,7 @@ async function exportChannels(file) {
 async function sequenceChannels(model, name) {
   const played = [];
   // Parts made on an earlier body (`retargetParts`) keep only rotations and the hips, scaled to this one.
-  const bodyHips = model.retargetParts && restHipsHeight(await io.read(exportOf(model, REQUIRED_CLIPS[0])));
+  const bodyHips = model.retargetParts && restHipsHeight(await io.read(await bodyOf(model)));
   for (const part of model.sequences[name]) {
     const [, file, from, to, speed, mode] = part.match(
       /^([^@:*]+)(?:@([\d.]+)(?:-([\d.]+))?)?(?:\*([\d.]+))?(?::(\w+))?$/,

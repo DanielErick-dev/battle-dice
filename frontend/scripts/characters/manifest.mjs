@@ -64,8 +64,16 @@ const MODELS = {
   fairy: {},
   // Tenzai: the meditation sits down slowly and its last pose is held (lotus) while he floats in his Convergence.
   zephyr: {
+    // The Runebound Acolyte body (body.glb); every clip was made on his first body, so all of them live in parts/.
+    body: "body",
+    retargetParts: true,
     // His menu intro sits slowly into the lotus, which he then holds floating (float); the bendings are match clips.
     sequences: {
+      idle: ["idle"],
+      run: ["run"],
+      punch: ["punch"],
+      ouch: ["ouch"],
+      limp: ["limp"],
       intro: ["meditate*0.6"],
       float: ["meditate@2.8-2.97"],
       quake: ["quake"],

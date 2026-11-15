@@ -56,6 +56,11 @@ const CARD_IMAGES: Partial<Record<CardId, string>> = {
   scarletFever: "/cards/scarletFever.webp",
   pureFuel: "/cards/pureFuel.webp",
   scarletSupernova: "/cards/scarletSupernova.webp",
+  tectonicFortification: "/cards/tectonicFortification.webp",
+  elementalExchange: "/cards/elementalExchange.webp",
+  riptideLash: "/cards/riptideLash.webp",
+  forcedTailwind: "/cards/forcedTailwind.webp",
+  elementalConvergence: "/cards/elementalConvergence.webp",
 };
 
 /** The painted image to show, or null to draw the card (no image, or this one already failed to load). */
