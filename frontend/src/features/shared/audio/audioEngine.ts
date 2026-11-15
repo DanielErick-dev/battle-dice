@@ -23,7 +23,8 @@ export class AudioEngine {
 
   unlock(): void {
     const context = this.ensureContext();
-    if (context?.state === "suspended") void context.resume();
+    // Rejects if dispose closes the context first (React's dev remount does exactly that).
+    if (context?.state === "suspended") context.resume().catch(() => undefined);
   }
 
   /** The context, only once it's actually playing. */
@@ -87,7 +88,7 @@ export class AudioEngine {
 
   dispose(): void {
     this.readyListeners.clear();
-    void this.context?.close();
+    this.context?.close().catch(() => undefined);
     this.context = null;
     this.buses.clear();
     this.samples.clear();

@@ -182,6 +182,7 @@ export function TileMesh({
             theme={theme}
             highlighted={highlighted}
             arrowAngle={arrowAngle}
+            heading={heading}
             occupied={occupied}
           />
         )}

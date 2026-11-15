@@ -20,6 +20,8 @@ import { Woods } from "./Woods";
 /** How far round a piece the ground is sampled: it sits on the lowest point, never hanging off a slope. */
 const TOWN_FOOTPRINT = 1;
 const COAST_FOOTPRINT = 0.5;
+/** Pieces afloat keep their height: settling them would sink them to the sea floor. */
+const AFLOAT = new Set(["boat-row-small", "structure-platform-dock"]);
 /** Every few lamp posts, a bench beside one. */
 const BENCH_EVERY = 3;
 
@@ -53,7 +55,10 @@ export function Island({ trail, shape }: { trail: readonly Vec3[]; shape: Island
     [town, shape],
   );
   const coastItems = useMemo(
-    () => coast.pieces.map((piece) => ({ ...piece, y: settled(shape, piece, COAST_FOOTPRINT) })),
+    () =>
+      coast.pieces.map((piece) =>
+        AFLOAT.has(piece.piece) ? piece : { ...piece, y: settled(shape, piece, COAST_FOOTPRINT) },
+      ),
     [coast, shape],
   );
   // Kit pieces swapped for Meshy models at the same spots.

@@ -6,20 +6,21 @@ import type { Group } from "three";
 import { useFittedProp } from "@/features/characters/core/props";
 import { TILE_HEIGHT, TILE_SIZE } from "@/features/shared/board/boardLayout";
 
-/** Three strips of thorny vines side by side cover the tile. */
-const STRIPS = 3;
-const COVER = TILE_SIZE * 0.86;
+/** Strips of thorny vines laid side by side along the way, covering the whole slab. */
+const STRIPS = 4;
+const LENGTH = TILE_SIZE * 0.95;
+const ACROSS = TILE_SIZE * 1.05;
 /** How far the thorns spring up when someone steps in, and how fast they grow and settle back. */
 const SPRUNG_SCALE = 2.6;
 const GROW_RATE = 14;
 const SETTLE_RATE = 3;
 
 /** A trap tile's bed of thorny vines (Meshy): when someone steps in, the thorns shoot up. */
-export function TrapSpikes({ sprung }: { sprung: boolean }) {
+export function TrapSpikes({ sprung, heading }: { sprung: boolean; heading: number }) {
   const vine = useFittedProp("vineTrap");
   const bed = useRef<Group>(null);
   const [width, , depth] = vine.size;
-  const scale = COVER / width;
+  const scale = LENGTH / width;
   const lift = useRef(1);
   useFrame((_, delta) => {
     const target = sprung ? SPRUNG_SCALE : 1;
@@ -28,14 +29,14 @@ export function TrapSpikes({ sprung }: { sprung: boolean }) {
     if (bed.current) bed.current.scale.y = lift.current;
   });
   return (
-    <group ref={bed} position-y={TILE_HEIGHT / 2}>
+    <group ref={bed} position-y={TILE_HEIGHT / 2} rotation-y={-heading}>
       {Array.from({ length: STRIPS }, (_, index) => (
         <mesh
           key={index}
           geometry={vine.geometry}
           material={vine.material}
-          scale={[scale, scale, (COVER / STRIPS / (depth * scale)) * scale]}
-          position-z={(index - (STRIPS - 1) / 2) * (COVER / STRIPS)}
+          scale={[scale, scale, ACROSS / STRIPS / depth]}
+          position-z={(index - (STRIPS - 1) / 2) * (ACROSS / STRIPS)}
           castShadow
         />
       ))}

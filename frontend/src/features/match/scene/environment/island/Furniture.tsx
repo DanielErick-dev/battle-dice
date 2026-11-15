@@ -1,7 +1,9 @@
 "use client";
 
 import { Sparkles } from "@react-three/drei";
-import { Color, MeshStandardMaterial, SphereGeometry } from "three";
+import { useFrame } from "@react-three/fiber";
+import { useRef } from "react";
+import { Color, type Group, MeshStandardMaterial, SphereGeometry } from "three";
 import { useFittedProp, type PropId } from "@/features/characters/core/props";
 import type { Vec3 } from "@/features/shared/board/boardLayout";
 
@@ -51,13 +53,24 @@ export const MESHY_SWAPS: Readonly<Record<string, { prop: PropId; height: number
   campfire_logs: { prop: "campfire", height: 0.6 },
 };
 
-/** A swapped kit piece (see MESHY_SWAPS); a campfire also crackles with sparks. */
+/** A swapped kit piece (see MESHY_SWAPS); a campfire also crackles with sparks, a boat rocks on the swell. */
 export function SwappedPiece({ item }: { item: { piece: string; x: number; y: number; z: number; turn: number } }) {
   const swap = MESHY_SWAPS[item.piece];
+  const rocking = useRef<Group>(null);
+  const floats = item.piece === "boat-row-small";
+  useFrame(({ clock }) => {
+    if (!floats || !rocking.current) return;
+    const time = clock.elapsedTime + item.x;
+    rocking.current.position.y = Math.sin(time * 1.1) * 0.05;
+    rocking.current.rotation.z = Math.sin(time * 0.8) * 0.06;
+    rocking.current.rotation.x = Math.sin(time * 0.6 + 1) * 0.04;
+  });
   if (!swap) return null;
   return (
     <group position={[item.x, item.y, item.z]} rotation-y={item.turn}>
-      <FittedMesh prop={swap.prop} height={swap.height} />
+      <group ref={rocking}>
+        <FittedMesh prop={swap.prop} height={swap.height} />
+      </group>
       {item.piece === "campfire_logs" && (
         <Sparkles count={14} scale={[0.6, 1.2, 0.6]} position-y={0.7} size={4} speed={1.6} color="#ffb347" />
       )}

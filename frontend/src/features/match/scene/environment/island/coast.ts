@@ -77,6 +77,12 @@ export function planCoast(
     );
   }
 
+  // Fishing boats riding at anchor off the front and the sides, a little way out from the beach.
+  for (const { x, z, angle } of shoreline(shape, 24)) {
+    if (Math.sin(angle) < -0.2 || random() < 0.55) continue;
+    const out = 2.2 + random() * 1.5;
+    add("boat-row-small", x + Math.cos(angle) * out, WATER_LEVEL - 0.05, z + Math.sin(angle) * out, 0.6);
+  }
   // The countryside: the spots the island scattered get kit pieces.
   scatter.bushes.forEach((spot, index) =>
     add(cycle(BUSHES, index), spot.x, spot.y, spot.z, NATURE_SCALE * (0.8 + spot.size)),

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
+import { floatCopy } from "@/features/characters/core/floatCopy";
 import { PROP_HEIGHT, usePropMesh, type PropId } from "@/features/characters/core/props";
 import { Instances, type Placed } from "../shared/Instances";
 
@@ -8,7 +9,7 @@ import { Instances, type Placed } from "../shared/Instances";
 function useUnitProp(id: PropId) {
   const { geometry, material } = usePropMesh(id);
   const unit = useMemo(() => {
-    const copy = geometry.clone();
+    const copy = floatCopy(geometry);
     copy.computeBoundingBox();
     const box = copy.boundingBox!;
     copy.translate(0, -box.min.y, 0).scale(1 / PROP_HEIGHT, 1 / PROP_HEIGHT, 1 / PROP_HEIGHT);

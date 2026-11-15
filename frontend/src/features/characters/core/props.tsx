@@ -3,6 +3,7 @@
 import { useGLTF } from "@react-three/drei";
 import { useEffect, useMemo } from "react";
 import type { BufferGeometry, Mesh, MeshStandardMaterial, Object3D } from "three";
+import { floatCopy } from "./floatCopy";
 
 /** Static models built from Meshy exports by scripts/props/build-props.mjs. */
 export const PROPS = {
@@ -114,7 +115,7 @@ export function useFittedProp(id: PropId): {
 } {
   const { geometry, material } = usePropMesh(id);
   const fitted = useMemo(() => {
-    const copy = geometry.clone();
+    const copy = floatCopy(geometry);
     copy.computeBoundingBox();
     const box = copy.boundingBox!;
     const height = box.max.y - box.min.y || 1;
