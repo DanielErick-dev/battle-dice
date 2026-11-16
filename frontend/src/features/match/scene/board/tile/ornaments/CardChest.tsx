@@ -7,7 +7,7 @@ import { BufferAttribute, BufferGeometry, type Group } from "three";
 import { useFittedProp } from "@/features/characters/core/props";
 import { TILE_HEIGHT } from "@/features/shared/board/boardLayout";
 
-const CHEST_WIDTH = 1.35;
+const CHEST_WIDTH = 1.46;
 /** Above this share of its height a triangle belongs to the lid. */
 const LID_SPLIT = 0.62;
 const OPEN_ANGLE = -1.9;

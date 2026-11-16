@@ -122,6 +122,8 @@ export interface CharacterDefinition {
    * in their hands while it waits for the roll (see LimbLightning).
    */
   limbLightning?: boolean;
+  /** Bands of energy climbing their body on the menu stage, once `delaySeconds` into the intro (see BodyEnergy). */
+  bodyEnergy?: { delaySeconds: number };
   /** Playback speed of their intro (1 by default); the intro's beats below are in the clip's own seconds. */
   introSpeed?: number;
   /** Seconds into the intro when a bolt falls from the sky and runs down their legs (with limbLightning). */

@@ -106,7 +106,7 @@ function streamStart(view: MatchView, layout: BoardLayout, tip: Vector3 | undefi
 /** The fairy's snow heaped on the tile (Meshy). */
 function SnowHeap({ position }: { position: readonly [number, number, number] }) {
   const snow = useFittedProp("snowPile");
-  const scale = (TILE_SIZE * 0.8) / snow.size[0];
+  const scale = (TILE_SIZE * 0.155) / snow.size[0];
   return (
     <mesh
       geometry={snow.geometry}

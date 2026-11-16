@@ -106,8 +106,8 @@ const MODELS = {
   seraphielFallen: {},
   cronos: {},
   // Unidade Alva: switched off, head bowed. Only the bowed stretch of the export (it bows from 0 to 0.87 s and lifts
-  // back after 2.1), slowed into a ~2 s hold; the intro's crossfade then lifts the neck straight into the idle.
-  alva: { sequences: { intro: ["power-on@0.9-1.7*0.35"] } },
+  // back after 2.1), slowed into a ~1.5 s hold; the intro's crossfade then lifts the neck straight into the idle.
+  alva: { sequences: { intro: ["power-on@0.9-1.7*0.45"] } },
   vinicius: {},
 };
 

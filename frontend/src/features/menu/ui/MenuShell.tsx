@@ -3,15 +3,12 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
-/** The night sky every menu screen shares; the moon is left off pages full of text, where it would sit behind it. */
-export function MenuBackdrop({ moon = true }: { moon?: boolean }) {
+/** The night sky every menu screen shares. */
+export function MenuBackdrop() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_20%,#2e1f5e_0%,#120e2a_45%,#05060b_80%)]" />
       <div className="menu-stars absolute inset-0 opacity-70" />
-      {moon && (
-        <div className="absolute top-[8%] right-[12%] size-40 rounded-full bg-[radial-gradient(circle,#fef3c7_0%,#fde68a55_35%,transparent_70%)] blur-sm sm:size-56" />
-      )}
       <div className="absolute inset-x-0 bottom-0 h-1/3 bg-[linear-gradient(to_top,#0b1a3a_0%,#0b1a3a88_40%,transparent_100%)]" />
     </div>
   );
@@ -32,7 +29,7 @@ export function MenuPage({
 }) {
   return (
     <main className="relative min-h-dvh w-full overflow-x-clip bg-[#05060b] text-white">
-      <MenuBackdrop moon={false} />
+      <MenuBackdrop />
       <div
         className={cn(
           "relative mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-6 sm:px-8 sm:py-10",

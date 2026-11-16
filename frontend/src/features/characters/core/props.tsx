@@ -41,6 +41,8 @@ export const PROPS = {
   ashenThrone: "/models/props/seraphielFallen/chair.glb",
   clockworkThrone: "/models/props/cronos/chair.glb",
   cyberThrone: "/models/props/alva/chair.glb",
+  hangarPad: "/models/props/alva/landing-pad.glb",
+  hangarCable: "/models/props/alva/power-cable.glb",
   hangarReactor: "/models/props/alva/alien-reactor.glb",
   hangarGenerator: "/models/props/alva/power-generator.glb",
   hangarCapsule: "/models/props/alva/crystal-capsule.glb",
@@ -132,10 +134,11 @@ export function useFittedProp(id: PropId): {
     copy.computeBoundingBox();
     const box = copy.boundingBox!;
     const height = box.max.y - box.min.y || 1;
+    // Read before the transforms below: three recomputes `box` in place as they apply.
+    const size: [number, number, number] = [(box.max.x - box.min.x) / height, 1, (box.max.z - box.min.z) / height];
     copy
       .translate(-(box.min.x + box.max.x) / 2, -box.min.y, -(box.min.z + box.max.z) / 2)
       .scale(1 / height, 1 / height, 1 / height);
-    const size: [number, number, number] = [(box.max.x - box.min.x) / height, 1, (box.max.z - box.min.z) / height];
     return { geometry: copy, size };
   }, [geometry]);
   useEffect(() => () => fitted.geometry.dispose(), [fitted]);

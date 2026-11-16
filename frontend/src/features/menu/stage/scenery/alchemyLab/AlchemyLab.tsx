@@ -27,7 +27,7 @@ const CIRCLE_SIZE = 1.3;
 preloadProps(["elixirEmerald", "elixirEssence", "arcaneGrimoire", "alchemyCounter"]);
 
 /** The Meshy counter at her left, turned to face her, with potions and her grimoire on top. */
-const COUNTER = { x: -1.0, z: 0.05, turn: Math.PI / 2 - 0.25, width: 0.78 };
+const COUNTER = { x: -1.0, z: 0.05, turn: Math.PI / 2 - 0.25, width: 0.99 };
 /** Its potions and book, along the top: across (x), in depth (z) and how tall each stands. */
 const COUNTER_ITEMS = [
   { prop: "elixirEssence", x: -0.26, z: 0.02, height: 0.2, turn: 0.4 },

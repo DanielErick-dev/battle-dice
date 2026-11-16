@@ -29,7 +29,7 @@ export function Lantern({ position }: { position: Vec3 }) {
   );
 }
 
-const BENCH_LENGTH = 1.3;
+const BENCH_LENGTH = 1.37;
 
 /** A wooden bench (Meshy) by the trail. */
 export function Bench({ position, turn }: { position: Vec3; turn: number }) {

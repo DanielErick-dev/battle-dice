@@ -60,6 +60,10 @@ const PROPS = {
   clockworkThrone: { file: "cronos/props/chair.glb", vertices: 9_000 },
   cyberThrone: { file: "alva/props/chair.glb", vertices: 9_000 },
   // Unidade Alva's menu habitat, the hangar: machines round the back, a drone hovering over it.
+  // Flattened in code to a thin disc under her: the bay's floor.
+  hangarPad: { file: "alva/props/landing-pad.glb", vertices: 20_000, texture: 2048, sloppy: true },
+  // A braided power cable, flange at one end (-Z, on the floor) and a clamp raised at the other (+Z).
+  hangarCable: { file: "alva/props/power-cable.glb", vertices: 12_000, texture: 1024, sloppy: true },
   hangarReactor: { file: "alva/props/alien-reactor.glb", vertices: 12_000, texture: 1024, sloppy: true },
   hangarGenerator: { file: "alva/props/power-generator.glb", vertices: 14_000, texture: 1024, sloppy: true },
   hangarCapsule: { file: "alva/props/crystal-capsule.glb", vertices: 5_500, texture: 1024 },

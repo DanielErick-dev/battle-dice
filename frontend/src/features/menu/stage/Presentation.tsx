@@ -25,6 +25,7 @@ import { BackBow } from "@/features/characters/archer/BackBow";
 import { PlantedHoe } from "@/features/characters/vinicius/HeldHoe";
 import { JusticeSword } from "@/features/characters/themis/JusticeSword";
 import { ThemisIntro } from "@/features/characters/themis/ThemisIntro";
+import { BodyEnergy } from "@/features/characters/alva/BodyEnergy";
 import { EnergyBlades } from "@/features/characters/zarek/EnergyBlades";
 import { ArcherIntro } from "@/features/characters/archer/ArcherIntro";
 import { BoneRise } from "@/features/characters/necromancer/BoneRise";
@@ -291,6 +292,9 @@ export function Presentation({
                   <Wings figure={figure} wings={character.wings} stroke={stroke} tips={entrance ? tips : undefined} />
                 )}
                 {character.crown && <HeadCrown figure={figure} crown={character.crown} />}
+                {character.bodyEnergy && (
+                  <BodyEnergy figure={figure} color="#5fd8ff" delaySeconds={character.bodyEnergy.delaySeconds} />
+                )}
                 {/* His fire lights at the snap of his fingers in his intro. */}
                 {character.handFlame && <BodyFlames figure={figure} igniteAt={character.introChair?.snapSeconds} />}
                 {character.handFlame && <ClothFire figure={figure} igniteAt={character.introChair?.snapSeconds} />}
