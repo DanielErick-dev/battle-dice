@@ -12,6 +12,7 @@ import { CROWN_BONUS } from "../characters/seraphiel/seraph";
 import { crossSpecters } from "../characters/warden/specters";
 import { CONTAINED_DIE, containedFace } from "../characters/themis/cards";
 import { closeRifts } from "../characters/zarek/rifts";
+import { takeVoidRoll } from "../characters/zarek/apex";
 import { burntRoll, prepareRoll, settleRoll } from "../characters/akane/fire";
 import { slideOnEmbers } from "../characters/akane/cards";
 import type { DiceBoost, PlayerId } from "../core/state";
@@ -82,7 +83,7 @@ export const turnCommands: CommandHandlers<"rollDice" | "forfeitTurn" | "restart
     else {
       draft.events.push(rolled);
       // Tenzai's breeze takes the whole roll for him; otherwise walls in the way eat part of the walk.
-      if (stealRoll(draft, playerId, rolled.value)) path = [];
+      if (takeVoidRoll(draft, playerId, rolled.value) || stealRoll(draft, playerId, rolled.value)) path = [];
       else path = walkThroughWalls(draft, playerId, path, (tiles) => walkTrampling(draft, playerId, tiles, dash));
     }
     crossSpecters(draft, playerId, path);

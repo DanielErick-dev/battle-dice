@@ -51,7 +51,8 @@ export type CardId =
   | "overloadThruster"
   | "firewallLock"
   | "dataCollapse"
-  | "apocalypseProtocol";
+  | "apocalypseProtocol"
+  | "voidApex";
 
 export type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary";
 
@@ -148,6 +149,8 @@ export const CARD_CATALOG: Readonly<Record<CardId, CardDefinition>> = {
   hungryRift: card("hungryRift", "rare", { exclusive: "theVoid" }),
   voidEcho: card("voidEcho", "epic", { exclusive: "theVoid" }),
   riftCall: card("riftCall", "epic", { exclusive: "theVoid", targetsOpponent: true }),
+  // His trump: every opponent not protected falls into the Void, their rolls walking him, and his harms come home.
+  voidApex: card("voidApex", "epic", { exclusive: "theVoid", cost: 5, needsOpponent: true }),
 
   tectonicFortification: card("tectonicFortification", "common", { exclusive: "fourElements" }),
   riptideLash: card("riptideLash", "common", { exclusive: "fourElements", cost: 2, needsOpponent: true }),

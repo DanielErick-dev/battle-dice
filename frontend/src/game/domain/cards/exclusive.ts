@@ -1,5 +1,6 @@
 import { chargeAbility, isAbilityReady } from "../abilities/charge";
 import { VOID_CAPACITY, devour } from "../characters/zarek/void";
+import { voidApex } from "../characters/zarek/apex";
 import { getTile } from "../board/board";
 import type { DiceRoller } from "../core/dice";
 import { CARD_CATALOG, type CardId } from "./catalog";
@@ -231,6 +232,9 @@ export function playExclusive(
       return;
     case "apocalypseProtocol":
       apocalypseProtocol(draft, playerId);
+      return;
+    case "voidApex":
+      voidApex(draft, playerId);
       return;
     case "riftCall": {
       if (targetId === null) return;

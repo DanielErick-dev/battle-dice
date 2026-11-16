@@ -17,7 +17,7 @@ import { HandVial, VialThrow } from "./transmutation";
 import { HeldSword, JusticeMark, Verdict } from "./verdict";
 import { Hoe } from "./vinicius";
 import { Bending, BendingHands, Combustion, GlowingEyes, HiddenBreeze, Orbit, StoneWalls, Tethers } from "./tenzai";
-import { LightBlades, Rifts, SmashedTraps, TheVoid, VoidAtWork } from "./void";
+import { ApexPocket, LightBlades, Rifts, SmashedTraps, TheVoid, VoidAtWork } from "./void";
 import type { BoardEffect, FigureEffect, TokenEffect } from "./types";
 import { BackWings, WornCrown } from "./wings";
 
@@ -81,6 +81,7 @@ export const BOARD_EFFECTS: readonly BoardEffect[] = [
   Rifts,
   VoidAtWork,
   TheVoid,
+  ApexPocket,
   PinnedTraps,
   EnchantedTiles,
   EternalWinter,

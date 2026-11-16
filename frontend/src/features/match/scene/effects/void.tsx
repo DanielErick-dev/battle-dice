@@ -6,6 +6,8 @@ import { EnergyBlades } from "@/features/characters/zarek/EnergyBlades";
 import { RiftMaw } from "@/features/characters/zarek/RiftMaw";
 import { VoidSurge } from "@/features/characters/zarek/VoidSurge";
 import { VoidWraith } from "@/features/characters/zarek/VoidWraith";
+import { VoidPocket } from "@/features/characters/zarek/VoidPocket";
+import { POCKET_RADIUS, voidPocket } from "../token/tokenPlacement";
 import { SmashedTrapMark } from "../vfx/TrapSmash";
 import type { BoardFx, TokenFx } from "./types";
 
@@ -66,4 +68,10 @@ export function TheVoid({ fx: { view, board, layout } }: { fx: BoardFx }) {
     return { id: rift.id, at };
   }, [rift, layout]);
   return present && <VoidWraith roam={roam} call={call} />;
+}
+
+/** The Void Apex's pocket out at sea, while anyone is held in it (their figures stand there, see tokenPlacement). */
+export function ApexPocket({ fx: { view, layout } }: { fx: BoardFx }) {
+  if (!view.players.some((player) => player.voidBound)) return null;
+  return <VoidPocket position={voidPocket(layout)} radius={POCKET_RADIUS} />;
 }

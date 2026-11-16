@@ -129,6 +129,8 @@ const EFFECT_SOUNDS: Record<TileEffectKind, (sounds: MatchSounds, effect: TileEf
   dataCollapse: (sounds) => sounds.penalty(),
   alvaThrust: (sounds) => sounds.boost(),
   apocalypse: (sounds) => sounds.thunder(),
+  voidApex: (sounds) => sounds.thunder(),
+  voidRollTaken: (sounds) => sounds.portal(),
 };
 
 function playTransition(previous: MatchView, next: MatchView, sounds: MatchSounds): void {

@@ -2,321 +2,98 @@
 
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
-import {
-  AdditiveBlending,
-  Color,
-  LatheGeometry,
-  MeshBasicMaterial,
-  MeshStandardMaterial,
-  SpriteMaterial,
-  Vector2,
-  type Mesh,
-  type Sprite,
-  type Texture,
-} from "three";
-import { GROUND_RADIUS, taperedTube } from "../kit/geometry";
-import { useCanvasTexture } from "@/features/shared/three/canvasTexture";
-import { Flask } from "./Flask";
-import { BENCH, BENCH_TOP, flaskHeight, FLASKS } from "./layout";
-import { paintChalkCircle, paintLabFloor } from "./textures";
+import { AdditiveBlending, Color, SpriteMaterial, type PointLight, type Sprite } from "three";
 import { preloadProps, useFittedProp, useSoftDisc } from "../kit/matchAssets";
-import { itemAt } from "@/features/shared/collections/items";
 
-const CIRCLE_SIZE = 1.3;
+preloadProps(["alchemyCircle", "alchemyCounter", "alchemySanctuary", "alchemyCauldron"]);
 
-preloadProps(["elixirEmerald", "elixirEssence", "arcaneGrimoire", "alchemyCounter"]);
+/** The Meshy ritual circle: its raised middle sunk level with the floor she stands on, its standing rim around her. */
+const CIRCLE = { diameter: 2.7, platform: 0.24 / 1.12 };
+/** The Meshy counter at her left, turned to face her. */
+const COUNTER = { x: -0.8, z: 0.22, turn: Math.PI / 2 - 0.25, width: 0.99 };
+/** The alchemist's sanctuary behind her, and the cauldron at her right. */
+const SANCTUARY = { x: -0.45, z: -0.85, turn: 0.35, height: 1.25 };
+const CAULDRON = { x: 0.95, z: -0.3, turn: -0.6, height: 0.62 };
+const BREW = new Color("#3dff9a");
+/** Bubbles of glow rising off the brew: how many and how long each takes. */
+const BUBBLES = 7;
+const BUBBLE_SECONDS = 1.8;
 
-/** The Meshy counter at her left, turned to face her, with potions and her grimoire on top. */
-const COUNTER = { x: -1.0, z: 0.05, turn: Math.PI / 2 - 0.25, width: 0.99 };
-/** Its potions and book, along the top: across (x), in depth (z) and how tall each stands. */
-const COUNTER_ITEMS = [
-  { prop: "elixirEssence", x: -0.26, z: 0.02, height: 0.2, turn: 0.4 },
-  { prop: "elixirEmerald", x: -0.12, z: -0.04, height: 0.16, turn: -0.3 },
-  { prop: "arcaneGrimoire", x: 0.12, z: 0.02, height: 0.07, turn: 0.25 },
-  { prop: "elixirEmerald", x: 0.28, z: -0.02, height: 0.12, turn: 1.1 },
-] as const;
-
-const ALEMBIC = { x: 0.56, z: -0.6, turn: -0.5 };
-
-/** The still's pot outline, bottom up, before it's turned; it sits on a stand this high. */
-const POT_PROFILE = [
-  [0, 0],
-  [0.07, 0.01],
-  [0.1, 0.05],
-  [0.1, 0.1],
-  [0.075, 0.15],
-  [0.04, 0.17],
-  [0.035, 0.2],
-] as const;
-
-const STAND = 0.1;
-
-const HEAD_Y = STAND + 0.2;
-
-const BEAK: [number, number, number][] = [
-  [0.03, HEAD_Y + 0.04, 0],
-  [0.14, HEAD_Y + 0.02, 0.01],
-  [0.24, 0.26, 0.03],
-  [0.31, 0.19, 0.04],
-];
-const BEAK_TIP = itemAt(BEAK, BEAK.length - 1);
-
-const RECEIVER = { x: 0.31, z: 0.04, size: 0.05 };
-
-const LIQUID_GLOW = 1.5;
-
-const FLAME = new Color("#7dffb0").multiplyScalar(2);
-
-/** The Emerald Alchemist's stage: tiled floor, a chalk circle, a bench of bubbling flasks and a brass still. */
+/** The Emerald Alchemist's stage: a ritual circle, her counter, her sanctuary and a bubbling cauldron. */
 export function AlchemyLab() {
-  const tiles = useCanvasTexture({ size: 512, draw: paintLabFloor, seed: 13, fadeFrom: 0.3 });
-  const chalk = useCanvasTexture({ size: 512, draw: paintChalkCircle, seed: 3 });
-  const disc = useSoftDisc();
-  const materials = useMemo(
-    () => ({
-      floor: new MeshStandardMaterial({ map: tiles, transparent: true, roughness: 0.8, depthWrite: false }),
-      chalk: new MeshBasicMaterial({
-        map: chalk,
-        color: "#e6fff2",
-        opacity: 0.65,
-        transparent: true,
-        depthWrite: false,
-      }),
-      circleGlow: new MeshBasicMaterial({
-        map: chalk,
-        color: "#10b981",
-        transparent: true,
-        depthWrite: false,
-        blending: AdditiveBlending,
-      }),
-      wood: new MeshStandardMaterial({ color: "#3b2617", roughness: 0.9 }),
-      darkWood: new MeshStandardMaterial({ color: "#24170e", roughness: 1 }),
-      glass: new MeshStandardMaterial({
-        color: "#d6fff0",
-        transparent: true,
-        opacity: 0.28,
-        roughness: 0.05,
-        depthWrite: false,
-      }),
-      cork: new MeshStandardMaterial({ color: "#8a6a45", roughness: 1 }),
-      brass: new MeshStandardMaterial({ color: "#b8873a", metalness: 0.55, roughness: 0.38 }),
-      iron: new MeshStandardMaterial({ color: "#232326", metalness: 0.6, roughness: 0.6 }),
-      leather: new MeshStandardMaterial({ color: "#1f3b2c", roughness: 0.75 }),
-      paper: new MeshStandardMaterial({ color: "#d2c6a4", roughness: 0.9 }),
-      liquids: FLASKS.map(({ liquid }) => liquidMaterial(liquid)),
-      distillate: liquidMaterial("#3cf2a8"),
-      halo: glowSprite(disc, new Color("#22e39a"), 0.16),
-      spill: new MeshBasicMaterial({
-        map: disc,
-        color: "#22e39a",
-        opacity: 0.45,
-        transparent: true,
-        depthWrite: false,
-        blending: AdditiveBlending,
-        toneMapped: false,
-      }),
-      flame: glowSprite(disc, FLAME, 1),
-    }),
-    [tiles, chalk, disc],
-  );
-  useEffect(
-    () => () =>
-      Object.values(materials)
-        .flat()
-        .forEach((material) => material.dispose()),
-    [materials],
-  );
-  const geometries = useMemo(
-    () => ({
-      pot: new LatheGeometry(
-        POT_PROFILE.map(([x, y]) => new Vector2(x, y)),
-        24,
-      ),
-      beak: taperedTube(BEAK, 0.014, 0.55),
-    }),
-    [],
-  );
-  useEffect(() => () => Object.values(geometries).forEach((geometry) => geometry.dispose()), [geometries]);
-  const props = {
-    elixirEmerald: useFittedProp("elixirEmerald"),
-    elixirEssence: useFittedProp("elixirEssence"),
-    arcaneGrimoire: useFittedProp("arcaneGrimoire"),
-  };
+  const circle = useFittedProp("alchemyCircle");
   const counter = useFittedProp("alchemyCounter");
+  const sanctuary = useFittedProp("alchemySanctuary");
+  const cauldron = useFittedProp("alchemyCauldron");
+  const disc = useSoftDisc();
+  const circleScale = CIRCLE.diameter / Math.max(circle.size[0], circle.size[2]);
   const counterScale = COUNTER.width / counter.size[0];
-  const flames = useRef<(Sprite | null)[]>([]);
-  const drop = useRef<Mesh>(null);
-  const circleGlow = useRef<Mesh>(null);
+  // One each: every bubble fades on its own.
+  const glows = useMemo(
+    () =>
+      Array.from(
+        { length: BUBBLES },
+        () =>
+          new SpriteMaterial({
+            map: disc,
+            color: BREW.clone().multiplyScalar(1.6),
+            transparent: true,
+            depthWrite: false,
+            blending: AdditiveBlending,
+            toneMapped: false,
+          }),
+      ),
+    [disc],
+  );
+  useEffect(() => () => glows.forEach((material) => material.dispose()), [glows]);
+  const bubbles = useRef<(Sprite | null)[]>([]);
+  const light = useRef<PointLight>(null);
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
-    if (circleGlow.current)
-      (circleGlow.current.material as MeshBasicMaterial).opacity = 0.35 + 0.25 * Math.sin(t * 1.2);
-    flames.current.forEach((flame, index) => {
-      if (!flame) return;
-      const flicker = 1 + 0.14 * Math.sin(t * 14 + index * 2.1) + 0.07 * Math.sin(t * 31 + index);
-      flame.scale.set(0.035 * flicker, 0.06 * (2 - flicker), 1);
+    if (light.current) light.current.intensity = 1.6 + 0.4 * Math.sin(t * 3.1) + 0.2 * Math.sin(t * 7.3);
+    bubbles.current.forEach((bubble, index) => {
+      if (!bubble) return;
+      const progress = (t / BUBBLE_SECONDS + index / BUBBLES) % 1;
+      const angle = index * 2.4;
+      bubble.position.set(Math.cos(angle) * 0.12, CAULDRON.height * 0.85 + progress * 0.35, Math.sin(angle) * 0.12);
+      bubble.scale.setScalar(0.07 * (1 - progress) + 0.02);
+      bubble.material.opacity = 1 - progress;
     });
-    if (drop.current) {
-      // A drop gathers at the beak's tip, then falls into the receiver.
-      const life = (t * 0.55) % 1;
-      const [x, y, z] = BEAK_TIP;
-      const fall = life < 0.7 ? 0 : (life - 0.7) / 0.3;
-      drop.current.position.set(x, y - 0.012 - fall * fall * 0.07, z);
-      drop.current.scale.setScalar(0.006 * Math.min(1, life / 0.7 + 0.3));
-    }
   });
 
   return (
     <group>
-      <mesh material={materials.floor} rotation-x={-Math.PI / 2} position-y={0.001} renderOrder={-1}>
-        <circleGeometry args={[GROUND_RADIUS, 64]} />
-      </mesh>
-      <mesh material={materials.chalk} rotation-x={-Math.PI / 2} position-y={0.003} renderOrder={1}>
-        <planeGeometry args={[CIRCLE_SIZE, CIRCLE_SIZE]} />
-      </mesh>
       <mesh
-        ref={circleGlow}
-        material={materials.circleGlow}
-        rotation-x={-Math.PI / 2}
-        position-y={0.004}
-        renderOrder={2}
-      >
-        <planeGeometry args={[CIRCLE_SIZE, CIRCLE_SIZE]} />
-      </mesh>
-      <group position={[BENCH.x, 0, BENCH.z]} rotation-y={BENCH.turn}>
-        <mesh material={materials.wood} position-y={BENCH.height}>
-          <boxGeometry args={[BENCH.width, 0.035, BENCH.depth]} />
-        </mesh>
-        <mesh material={materials.darkWood} position-y={0.14}>
-          <boxGeometry args={[BENCH.width - 0.06, 0.025, BENCH.depth - 0.04]} />
-        </mesh>
-        {[-1, 1].flatMap((sideX) =>
-          [-1, 1].map((sideZ) => (
-            <mesh
-              key={`${sideX}:${sideZ}`}
-              material={materials.darkWood}
-              position={[sideX * (BENCH.width / 2 - 0.03), BENCH.height / 2, sideZ * (BENCH.depth / 2 - 0.025)]}
-            >
-              <boxGeometry args={[0.035, BENCH.height, 0.035]} />
-            </mesh>
-          )),
-        )}
-        {/* Her potions (Meshy), the emerald and the essence by turns, each glowing where it stands. */}
-        {FLASKS.map((flask, index) => {
-          const potion = props[index % 2 === 0 ? "elixirEmerald" : "elixirEssence"];
-          const height = Math.max(0.1, flaskHeight(flask) * 1.25);
-          return (
-            <group key={index} position={[flask.x, BENCH_TOP, flask.z]}>
-              <mesh geometry={potion.geometry} material={potion.material} scale={height} rotation-y={index} />
-              <sprite material={materials.halo} position-y={height * 0.4} scale={flask.size * 6} />
-            </group>
-          );
-        })}
-        {/* Below: a stoppered jar and a ledger. */}
-        <group position={[-0.16, 0.1525, 0]}>
-          <Flask
-            kind="tall"
-            size={0.035}
-            glass={materials.glass}
-            liquid={itemAt(materials.liquids, 2)}
-            cork={materials.cork}
-          />
-        </group>
-        <mesh
-          geometry={props.arcaneGrimoire.geometry}
-          material={props.arcaneGrimoire.material}
-          position={[0.12, 0.1525, 0.01]}
-          rotation={[-Math.PI / 2, 0, 0.2]}
-          scale={0.13}
-        />
-      </group>
-      <group position={[ALEMBIC.x, 0, ALEMBIC.z]} rotation-y={ALEMBIC.turn}>
-        {/* A three-legged stand with a burner under the pot. */}
-        {[0, 1, 2].map((leg) => {
-          const angle = (leg / 3) * Math.PI * 2;
-          return (
-            <mesh
-              key={leg}
-              material={materials.iron}
-              position={[Math.cos(angle) * 0.085, STAND / 2, Math.sin(angle) * 0.085]}
-            >
-              <cylinderGeometry args={[0.007, 0.007, STAND, 6]} />
-            </mesh>
-          );
-        })}
-        <mesh material={materials.iron} position-y={STAND} rotation-x={Math.PI / 2}>
-          <torusGeometry args={[0.085, 0.008, 6, 24]} />
-        </mesh>
-        <mesh material={materials.brass} position-y={0.012}>
-          <cylinderGeometry args={[0.03, 0.035, 0.024, 12]} />
-        </mesh>
-        {[-0.012, 0.012].map((x, index) => (
-          <sprite
-            key={index}
-            ref={(sprite) => {
-              flames.current[index] = sprite;
-            }}
-            material={materials.flame}
-            position={[x, 0.05, 0]}
-          />
-        ))}
-        <sprite material={materials.halo} position-y={0.05} scale={0.3} />
-        <mesh geometry={geometries.pot} material={materials.brass} position-y={STAND} />
-        <mesh material={materials.brass} position-y={HEAD_Y}>
-          <sphereGeometry args={[0.055, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2]} />
-        </mesh>
-        <mesh geometry={geometries.beak} material={materials.brass} />
-        <mesh ref={drop} material={materials.distillate}>
-          <sphereGeometry args={[1, 8, 6]} />
-        </mesh>
-        <group position={[RECEIVER.x, 0, RECEIVER.z]}>
-          <Flask kind="round" size={RECEIVER.size} glass={materials.glass} liquid={materials.distillate} />
-          <sprite material={materials.halo} position-y={RECEIVER.size} scale={0.3} />
-        </group>
-      </group>
-      {/* A vial knocked over, its brew glowing on the tiles. */}
-      <group position={[0.52, 0, 0.3]} rotation-y={-0.7}>
-        <mesh material={materials.spill} position={[0.07, 0.003, 0]} rotation-x={-Math.PI / 2} renderOrder={1}>
-          <planeGeometry args={[0.3, 0.22]} />
-        </mesh>
-        <group position={[0, 0.02, 0]} rotation-z={Math.PI / 2}>
-          <Flask
-            kind="tall"
-            size={0.02}
-            glass={materials.glass}
-            liquid={itemAt(materials.liquids, 0)}
-            cork={materials.cork}
-          />
-        </group>
-      </group>
-      <group position={[COUNTER.x, 0, COUNTER.z]} rotation-y={COUNTER.turn}>
-        <mesh geometry={counter.geometry} material={counter.material} scale={counterScale} castShadow />
-        {COUNTER_ITEMS.map((item, index) => (
-          <group key={index} position={[item.x, counterScale, item.z]} rotation-y={item.turn}>
-            <mesh geometry={props[item.prop].geometry} material={props[item.prop].material} scale={item.height} />
-            {item.prop !== "arcaneGrimoire" && (
-              <sprite material={materials.halo} position-y={item.height * 0.45} scale={item.height * 1.6} />
-            )}
-          </group>
+        geometry={circle.geometry}
+        material={circle.material}
+        position-y={-CIRCLE.platform * circleScale + 0.004}
+        scale={circleScale}
+        receiveShadow
+      />
+      <mesh
+        geometry={counter.geometry}
+        material={counter.material}
+        position={[COUNTER.x, 0, COUNTER.z]}
+        rotation-y={COUNTER.turn}
+        scale={counterScale}
+        castShadow
+      />
+      <mesh
+        geometry={sanctuary.geometry}
+        material={sanctuary.material}
+        position={[SANCTUARY.x, 0, SANCTUARY.z]}
+        rotation-y={SANCTUARY.turn}
+        scale={SANCTUARY.height}
+        castShadow
+      />
+      <group position={[CAULDRON.x, 0, CAULDRON.z]} rotation-y={CAULDRON.turn}>
+        <mesh geometry={cauldron.geometry} material={cauldron.material} scale={CAULDRON.height} castShadow />
+        <pointLight ref={light} position-y={CAULDRON.height * 1.1} color={BREW} distance={1.6} decay={1.6} />
+        {glows.map((material, index) => (
+          <sprite key={index} ref={(sprite) => void (bubbles.current[index] = sprite)} material={material} />
         ))}
       </group>
     </group>
   );
-}
-
-function liquidMaterial(color: string): MeshBasicMaterial {
-  return new MeshBasicMaterial({ color: new Color(color).multiplyScalar(LIQUID_GLOW), toneMapped: false });
-}
-
-function glowSprite(map: Texture, color: Color, opacity: number): SpriteMaterial {
-  return new SpriteMaterial({
-    map,
-    color,
-    opacity,
-    transparent: true,
-    depthWrite: false,
-    blending: AdditiveBlending,
-    toneMapped: false,
-  });
 }

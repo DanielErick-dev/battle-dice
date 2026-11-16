@@ -66,7 +66,7 @@ export function CharactersScreen({ initial }: { initial?: string }) {
 
         <div className="flex flex-col items-center">
           <CharacterStage characterId={selected} className="h-80 w-72 sm:h-[28rem] sm:w-96" />
-          <p className="relative z-10 mt-2 text-2xl font-black tracking-[0.2em] uppercase">{character.name}</p>
+          <p className="relative z-10 mt-20 text-2xl font-black tracking-[0.2em] uppercase">{character.name}</p>
           <p className="relative z-10 text-xs font-semibold tracking-widest text-zinc-400 uppercase">
             {character.epithet}
           </p>

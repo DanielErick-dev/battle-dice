@@ -163,6 +163,8 @@ const CASES: Readonly<Record<TileEffectKind, readonly Details[]>> = {
   dataCollapse: [{ count: 8 }],
   alvaThrust: [{ count: 10 }],
   apocalypse: [{}],
+  voidApex: [{ count: 2 }, { count: 0 }],
+  voidRollTaken: [{ count: 5 }],
 };
 
 const nameOf = (id: string) => (id === "p1" ? "Bruxa" : null);

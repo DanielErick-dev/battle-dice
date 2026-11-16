@@ -1,25 +1,11 @@
 /** Tenzai: his bendings, walls, bonds, the Combustion Die, the Breeze Heist and the Convergence. */
-import type { PlayerId, TileId } from "@/game/domain/types";
-import type { PlaybackTimings } from "@/features/shared/config";
 import { nextFxId, withFx, withPlayer, withPlayerAt, type MatchView } from "../matchView";
 import type { BendingView } from "../matchView/fx";
-import { playerTileEffect, tileOf } from "./helpers";
-import type { PlaybackStep, StepHandlers } from "./types";
+import { carried, playerTileEffect, tileOf } from "./helpers";
+import type { StepHandlers } from "./types";
 
 function bending(view: MatchView, fx: Omit<BendingView, "id">): MatchView {
   return withFx(view, { bending: { ...fx, id: nextFxId(view.fx.bending) } });
-}
-
-/** Walked along `path` without the tile at the end doing anything (pulled by a bond, carried by a stolen roll). */
-function carried(playerId: PlayerId, path: readonly TileId[], timings: PlaybackTimings): PlaybackStep[] {
-  const end = path.at(-1);
-  return path.map((tile) => ({
-    apply: (view) => ({
-      ...withPlayerAt(view, playerId, tile),
-      walkEnd: end === undefined ? null : { playerId, tile: end },
-    }),
-    durationMs: timings.stepMs,
-  }));
 }
 
 /** How long each bending holds the camera on him: his whole gesture (quake/tide/flare/gust, sped up) and a beat after. */

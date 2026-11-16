@@ -88,7 +88,8 @@ const PROPS = {
   seraphCrown: { file: "seraphiel/props/crown.glb", vertices: 6_000 },
   fallenCrown: { file: "seraphielFallen/props/crown.glb", vertices: 6_000 },
   // Habitat pieces on the menu stages (see features/menu/stage/scenery): stand behind the figure, so kept light.
-  kageTorii: { file: "kage/props/torii.glb", vertices: 9_000, texture: 1024 },
+  // Her menu habitat: a round stone stage under a torii, lanterns and a fence round it.
+  kageStage: { file: "kage/props/torii-stage.glb", vertices: 60_000, texture: 2048 },
   witchCauldron: { file: "witch/props/cauldron.glb", vertices: 8_000 },
   kageTree: { file: "kage/props/tree.glb", vertices: 20_000, texture: 1024, sloppy: true },
   auricPillars: { file: "auric/props/pillars.glb", vertices: 10_000, texture: 1024, sloppy: true },
@@ -122,10 +123,11 @@ const PROPS = {
   // Tenzai's fire and earth: his orbit charms, the flame in his hand and the stones of his wall.
   tenzaiFlame: { file: "zephyr/props/flame.glb", vertices: 3_000, texture: 512 },
   tenzaiBoulder: { file: "zephyr/props/boulder.glb", vertices: 2_500, texture: 512 },
-  // The Alchemist's potions and grimoire (her charms) and the counter beside her habitat.
-  elixirEmerald: { file: "alchemist/props/elixir-emerald.glb", vertices: 4_000, texture: 512, sloppy: true },
-  elixirEssence: { file: "alchemist/props/elixir-essence.glb", vertices: 5_000, texture: 512, sloppy: true },
-  arcaneGrimoire: { file: "alchemist/props/grimoire.glb", vertices: 3_000, texture: 512 },
+  // The counter beside the Alchemist in her habitat.
+  // Her menu habitat: an emerald ritual circle as the floor, an alchemist's sanctuary behind her, a cauldron.
+  alchemyCircle: { file: "alchemist/props/ritual-circle.glb", vertices: 24_000, texture: 2048, sloppy: true },
+  alchemySanctuary: { file: "alchemist/props/sanctuary.glb", vertices: 14_000, texture: 1024, sloppy: true },
+  alchemyCauldron: { file: "alchemist/props/cauldron.glb", vertices: 14_000, texture: 1024, sloppy: true },
   alchemyCounter: { file: "alchemist/props/counter.glb", vertices: 9_000, texture: 1024, sloppy: true },
   witchStaff: { file: "witch/props/staff.glb", vertices: 5_000, texture: 1024 },
   gravestone: { file: "necromancer/props/gravestone.glb", vertices: 6_000, texture: 1024, sloppy: true },

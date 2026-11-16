@@ -26,6 +26,8 @@ export function statusChips(player: Player): StatusChip[] {
     chips.push({ label: `Perde a vez${player.skipTurns > 1 ? ` ×${player.skipTurns}` : ""}`, tone: "bad" });
   if (player.chained > 0) chips.push({ label: `Acorrentado · ${turns(player.chained)}`, tone: "bad" });
   if (player.silencedTurns > 0) chips.push({ label: "Silenciado", tone: "bad" });
+  if (player.voidBound)
+    chips.push({ label: `No Vazio · ${turns(player.voidBound.turns)} (o dado move o Zarek)`, tone: "bad" });
   if (isBlackedOut(player)) chips.push({ label: "Apagão do PEM", tone: "bad" });
   if (inBrownout(player)) chips.push({ label: "Subtensão", tone: "bad" });
   if (player.corrupted > 0) chips.push({ label: `Corrompidas ×${player.corrupted}`, tone: "bad" });

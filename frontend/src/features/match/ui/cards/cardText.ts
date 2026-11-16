@@ -1,3 +1,4 @@
+import { APEX_PULLS, APEX_TURNS } from "@/game/domain/characters/zarek/apex";
 import {
   COLLAPSE_PER_CARD,
   FIREWALL_TURNS,
@@ -151,6 +152,10 @@ export const CARD_TEXT: Readonly<Record<CardId, { name: string; description: str
     description: `O Vazio engole a primeira armadilha, maldição ou “perde a vez” nas próximas ${HUNGRY_RIFT_RANGE} casas, sem gastar a carga.`,
   },
   voidEcho: { name: "Eco do Vazio", description: "A última coisa guardada no Vazio vira duas." },
+  voidApex: {
+    name: "Ápice do Vazio",
+    description: `Todos os oponentes sem proteção são sequestrados para o Vazio por ${APEX_TURNS} rodadas: lá dentro nenhuma carta funciona, e o dado deles move você. Depois, o Vazio puxa de volta até ${APEX_PULLS} das suas fendas.`,
+  },
   riftCall: {
     name: "Chamado da Fenda",
     description: "Puxe um oponente de volta até a sua fenda mais próxima atrás dele. Ela o atinge.",

@@ -3,7 +3,8 @@ import { abilityCycle } from "@/game/domain/abilities/charge";
 import { VOID_SCAR_BACK, isHarm as isVoidHarm } from "@/game/domain/characters/zarek/void";
 import type { PlayerId, TileEffect, TileId, VoidItem } from "@/game/domain/types";
 import { nextFxId, withFx, withPlayer, type MatchView, type TileEffectKind, type VoidRiftView } from "../matchView";
-import { playerTileEffect } from "./helpers";
+import { APEX_TURNS } from "@/game/domain/characters/zarek/apex";
+import { carried, playerTileEffect } from "./helpers";
 import type { StepHandlers } from "./types";
 
 /** The Void surfaces on `tile`; the banner names what it did, over Zarek. */
@@ -29,8 +30,43 @@ function released(hold: readonly VoidItem[], item: VoidItem): VoidItem[] {
 }
 
 export const voidSteps: StepHandlers<
-  "voidSwallowed" | "riftOpened" | "voidCast" | "voidSeized" | "voidEchoed" | "voidFed"
+  | "voidSwallowed"
+  | "riftOpened"
+  | "voidCast"
+  | "voidSeized"
+  | "voidEchoed"
+  | "voidFed"
+  | "voidApex"
+  | "voidRollTaken"
+  | "voidReleased"
 > = {
+  voidApex: (event, timings) => [
+    {
+      apply: (view) => ({
+        ...view,
+        players: view.players.map((player) =>
+          event.victims.includes(player.id)
+            ? { ...player, voidBound: { owner: event.playerId, turns: APEX_TURNS } }
+            : player,
+        ),
+        effect: { ...playerTileEffect(view, event.playerId, "voidApex"), count: event.victims.length },
+      }),
+      durationMs: timings.noticeMs * 1.4,
+    },
+  ],
+  voidRollTaken: (event, timings) => [
+    {
+      apply: (view) => ({
+        ...view,
+        effect: { ...playerTileEffect(view, event.victimId, "voidRollTaken"), count: event.value },
+      }),
+      durationMs: timings.noticeMs,
+    },
+    ...carried(event.playerId, event.path, timings),
+  ],
+  voidReleased: (event) => [
+    { apply: (view) => withPlayer(view, event.playerId, () => ({ voidBound: null })), durationMs: 0 },
+  ],
   voidSwallowed: (event, timings) => [
     {
       apply: (view) => {

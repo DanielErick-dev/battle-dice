@@ -13,6 +13,7 @@ import type { VoidScar, ZarekState } from "../characters/zarek/types";
 import type { Elementals, TenzaiState } from "../characters/tenzai/types";
 import type { AlchemistState, Inversion, PendingRaid } from "../characters/alchemist/types";
 import type { AlvaState } from "../characters/alva/types";
+import type { VoidBound } from "../characters/zarek/apex";
 
 export type { PlayerId };
 
@@ -82,6 +83,8 @@ export interface Player {
   alva: AlvaState;
   /** Her Corrupted Cards: they weigh on the hand past its limit for her effects, and let her see it. */
   corrupted: number;
+  /** Inside Zarek's Void (the Void Apex): their rolls walk him; counted down as their turns end. */
+  voidBound: VoidBound | null;
   /** Her EMP, counted down as own turns start: blackout (no cards, no ability) above BROWNOUT_TURNS, brownout below. */
   emp: number;
 }

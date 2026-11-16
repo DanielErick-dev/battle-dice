@@ -68,6 +68,7 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   BLACKED_OUT: "Apagão do PEM: sem cartas e sem habilidade.",
   NO_CORRUPTED: "Não há Carta Corrompida para apagar.",
   NO_OVERLOADED_OPPONENT: "Nenhum oponente está com mais de 5 cartas.",
+  IN_THE_VOID: "Dentro do Vazio nenhuma carta funciona.",
   INVALID_WALL: "A muralha só sobe numa casa livre perto de alguém.",
   NO_TARGET_AHEAD: "Não há oponente à frente para prender.",
   NO_CREATION: "Você precisa de uma muralha, laço ou brisa em jogo.",

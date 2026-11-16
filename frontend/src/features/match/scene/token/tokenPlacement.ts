@@ -23,16 +23,37 @@ export function headingAlong(direction: Vec3): number {
   return headingOf(direction) ?? 0;
 }
 
-/** Where a player's figure is: on their tile, raised while they levitate. */
+/** How far out to sea, past the trail's near end, Zarek's Void holds those it swallowed; and its radius. */
+const POCKET_OFFSHORE = 7;
+export const POCKET_RADIUS = TILE_SIZE * 1.6;
+
+/** The middle of the Void's pocket, out at sea off the near shore. */
+export function voidPocket(layout: BoardLayout): Vec3 {
+  const nearZ = Math.max(...layout.trail.map(([, , z]) => z));
+  return [0, 0, nearZ + POCKET_OFFSHORE];
+}
+
+/** Where a swallowed player floats in the Void's pocket: round its middle, each in their own place. */
+function pocketSpot(player: Player, view: MatchView, layout: BoardLayout): Vec3 {
+  const [x, y, z] = voidPocket(layout);
+  const inside = view.players.filter((candidate) => candidate.voidBound);
+  const angle = (inside.indexOf(player) / Math.max(1, inside.length)) * Math.PI * 2;
+  const spread = inside.length > 1 ? POCKET_RADIUS * 0.5 : 0;
+  return [x + Math.cos(angle) * spread, y, z + Math.sin(angle) * spread];
+}
+
+/** Where a player's figure is: on their tile (in the Void's pocket while swallowed), raised while they levitate. */
 export function tokenPosition(view: MatchView, layout: BoardLayout, playerId: string): Vec3 {
   const player = view.players.find((candidate) => candidate.id === playerId);
   if (!player) return [0, 0, 0];
+  if (player.voidBound) return pocketSpot(player, view, layout);
   const [x, y, z] = layout.position(player.position);
   return [x, y + (player.levitating > 0 || player.tenzai.converged > 0 ? LEVITATE_HEIGHT : 0), z];
 }
 
 /** Where a figure heads: its tile (shifted aside when shared), unless a trample places it. */
 export function tokenTarget(player: Player, view: MatchView, board: Board, layout: BoardLayout): Vec3 {
+  if (player.voidBound) return pocketSpot(player, view, layout);
   const trampled = trampleTarget(player.id, view, board, layout);
   if (trampled) return trampled;
   const [x, y, z] = layout.position(player.position);

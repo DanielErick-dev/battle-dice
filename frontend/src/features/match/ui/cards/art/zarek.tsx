@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 /** Zarek's own. */
-export const zarekArt: Record<"voidHunger" | "hungryRift" | "voidEcho" | "riftCall", ReactNode> = {
+export const zarekArt: Record<"voidHunger" | "hungryRift" | "voidEcho" | "riftCall" | "voidApex", ReactNode> = {
   // A maw of darkness opening, ringed with violet.
   voidHunger: (
     <g>
@@ -62,6 +62,16 @@ export const zarekArt: Record<"voidHunger" | "hungryRift" | "voidEcho" | "riftCa
       <circle cx="74" cy="26" r="6" fill="#e5e7eb" />
       <path d="M68 50 Q74 32 80 50 Z" fill="#e5e7eb" />
       <path d="M60 30 L68 26 M62 34 L69 30" stroke="#a78bfa" strokeWidth="1.5" strokeLinecap="round" />
+    </g>
+  ),
+  // A huge violet maw swallowing small figures.
+  voidApex: (
+    <g>
+      <circle cx="50" cy="38" r="24" fill="#1e1b4b" stroke="#a78bfa" strokeWidth="2" />
+      <circle cx="50" cy="38" r="12" fill="#000000" />
+      <circle cx="28" cy="58" r="4" fill="#e5e7eb" />
+      <circle cx="72" cy="58" r="4" fill="#e5e7eb" />
+      <path d="M28 58 Q38 46 44 40 M72 58 Q62 46 56 40" stroke="#c4b5fd" strokeWidth="1.5" fill="none" />
     </g>
   ),
 };

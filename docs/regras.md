@@ -304,6 +304,7 @@ A meta é **5 cartas próprias** por personagem. Hoje só três têm cartas no j
 | **Fenda Faminta** | Zarek | Rara | 2 | O Vazio engole a primeira armadilha, maldição ou "perde a vez" visível nas próximas **15** casas, sem gastar a carga. |
 | **Eco do Vazio** | Zarek | Épica | 3 | A última coisa guardada no Vazio vira duas. |
 | **Chamado da Fenda** | Zarek | Épica | 3 | Mira: puxa o oponente até a fenda do Zarek mais próxima atrás dele, e ela o atinge. Se cair no Veredito, é só anulada. |
+| **Ápice do Vazio** | Zarek | Épica (Triunfo) | 5 | Todos os oponentes sem proteção (Indomável, Susanoo, armadura, Convergência) são sequestrados para o Vazio (saem do tabuleiro) por **3** rodadas deles: lá dentro nenhuma carta funciona, e o dado deles move o Zarek (a casa onde ele para não faz nada). Depois, o Vazio puxa de volta até **3** fendas e marcas dele, sorteadas, quantas couberem. |
 
 ### Relíquias do céu
 

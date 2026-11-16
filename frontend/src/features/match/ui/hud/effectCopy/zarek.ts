@@ -1,6 +1,7 @@
 import { voidItemName } from "../../voidText";
 import type { TileEffectView } from "../../../model/matchView";
 import type { CopyEntries } from "./types";
+import { APEX_TURNS } from "@/game/domain/characters/zarek/apex";
 
 function voidName({ void: held }: TileEffectView): string {
   return held?.item ? voidItemName(held.item) : "algo";
@@ -33,5 +34,18 @@ export const zarekCopy = {
     title: "ECO DO VAZIO!",
     tone: "text-violet-300",
     subtitle: (effect, name) => `No Vazio de ${name}, ${voidName(effect)} agora são dois`,
+  },
+  voidApex: {
+    title: "ÁPICE DO VAZIO!",
+    tone: "text-violet-300",
+    subtitle: ({ count }, name) =>
+      count
+        ? `${count} ${count === 1 ? "oponente cai" : "oponentes caem"} no Vazio: por ${APEX_TURNS} rodadas, os dados deles movem ${name}`
+        : "Todos estavam protegidos",
+  },
+  voidRollTaken: {
+    title: "O VAZIO ROUBOU O DADO!",
+    tone: "text-violet-300",
+    subtitle: ({ count }, name) => `${name} tirou ${count ?? 0}, mas quem anda é o Zarek`,
   },
 } satisfies CopyEntries;

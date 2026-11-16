@@ -112,5 +112,6 @@ function dealPlayer({ id, name, ability = null }: NewPlayer, { startTile, cards,
     alva: NO_ALVA,
     corrupted: 0,
     emp: 0,
+    voidBound: null,
   };
 }

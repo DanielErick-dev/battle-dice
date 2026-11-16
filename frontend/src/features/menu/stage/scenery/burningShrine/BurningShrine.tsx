@@ -2,30 +2,31 @@
 
 import { useFrame } from "@react-three/fiber";
 import { useMemo } from "react";
-import { Color, MeshStandardMaterial, SpriteMaterial, type Sprite } from "three";
+import { Color, SpriteMaterial, type Sprite } from "three";
 import { seededRandom } from "@/game/domain/core/random";
 import { useDisposal } from "../kit/dispose";
-import { GroundDisc } from "../kit/Floor";
 import { GlowPoints, usePointBuffers } from "../kit/GlowPoints";
-import { usePropMesh, useSoftDisc } from "../kit/matchAssets";
+import { preloadProps, useFittedProp, usePropMesh, useSoftDisc } from "../kit/matchAssets";
 import { HOT_GLOW } from "../kit/materials";
 import { flicker, rise, type Flicker } from "../kit/motion";
 import { useRefList } from "../kit/refs";
 import { useCanvasTexture } from "@/features/shared/three/canvasTexture";
-import { paintFlame, paintShrineGround } from "./textures";
+import { paintFlame } from "./textures";
 
-/** Wide enough to reach under the tree, behind the torii. */
-const FLOOR_RADIUS = 1.45;
+preloadProps(["kageStage", "kageTree"]);
+
 const EMBER = new Color("#ff7a3c").multiplyScalar(1.8);
-/** The torii (a Meshy prop) towers behind her, its beams well over her head (she stands 1.7). */
-const TORII = { z: -0.86, height: 2.15 };
-/** Small crimson trees (a Meshy prop, 2 tall in its export) at her sides, by the torii's pillars. */
+/**
+ * The Meshy torii stage: its torii (the model's height) towering behind her, its spread (`spread`, across and in depth)
+ * kept narrower so the fence and rocks fit the frame. Its round stone floor is centred a little in front of the
+ * model's middle (`circleZ`, in its height) and tops out at `floor` of it: set level with her feet.
+ */
+const STAGE = { height: 1.75, spread: 1.15, circleZ: 0.3, floor: 0.137 };
+/** Small crimson trees (a Meshy prop, 2 tall in its export) on the stone circle at her sides. */
 const TREES = [
-  { x: 0.98, z: -0.4, height: 0.95, turn: -0.3 },
-  { x: -0.98, z: -0.45, height: 0.88, turn: 2.6 },
+  { x: 0.48, z: -0.3, height: 0.8, turn: -0.3 },
+  { x: -0.48, z: -0.34, height: 0.76, turn: 2.6 },
 ];
-/** How tall the prop is in its export (its top beam, the longest side, spans 2). */
-const TORII_EXPORT_HEIGHT = 1.72;
 /** Patches of her black fire still burning; `tongues` is how many flames each has. */
 const BLACK_FIRES = [
   { x: -0.5, z: -0.8, tongues: 5, size: 0.16 },
@@ -39,17 +40,15 @@ const EMBER_HEIGHT = 1.9;
 
 /** Kage Rubra's stage in place of the rune pedestal; origin on the floor, every flame is a sprite. */
 export function BurningShrine() {
-  const tiles = useCanvasTexture({ size: 512, draw: paintShrineGround, seed: 79, fadeFrom: 0.62 });
   const flame = useCanvasTexture({ size: 128, draw: paintFlame });
-  const torii = usePropMesh("kageTorii");
+  const stage = useFittedProp("kageStage");
   const tree = usePropMesh("kageTree");
   const materials = useMemo(
     () => ({
-      floor: new MeshStandardMaterial({ map: tiles, transparent: true, roughness: 0.9, depthWrite: false }),
       blackFire: new SpriteMaterial({ map: flame, color: "#030102", transparent: true, depthWrite: false }),
       blackRim: new SpriteMaterial({ map: flame, color: "#ff2a12", opacity: 0.55, ...HOT_GLOW }),
     }),
-    [tiles, flame],
+    [flame],
   );
   useDisposal(materials);
   const [tongues, bind] = useRefList<Sprite>();
@@ -82,12 +81,12 @@ export function BurningShrine() {
 
   return (
     <group>
-      <GroundDisc material={materials.floor} radius={FLOOR_RADIUS} />
       <mesh
-        geometry={torii.geometry}
-        material={torii.material}
-        scale={TORII.height / TORII_EXPORT_HEIGHT}
-        position={[0, TORII.height / 2, TORII.z]}
+        geometry={stage.geometry}
+        material={stage.material}
+        scale={[STAGE.spread, STAGE.height, STAGE.spread]}
+        position={[0, -STAGE.floor * STAGE.height + 0.004, -STAGE.circleZ * STAGE.spread]}
+        receiveShadow
       />
       {TREES.map(({ x, z, height, turn }) => (
         <mesh

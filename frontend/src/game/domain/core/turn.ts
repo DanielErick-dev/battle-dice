@@ -10,6 +10,7 @@ import { burnDownScarlet, feedTheFire } from "../characters/akane/fire";
 import { wearTethers } from "../characters/tenzai/elements";
 import { wearInversion } from "../characters/alchemist/inversion";
 import { tickOverload } from "../characters/alva/systems";
+import { wearVoidBound } from "../characters/zarek/apex";
 
 /** Returns the next player's index. Timed effects wear off as their owner's turn ends; charge and energy come as one starts. */
 export function endTurn(draft: Draft, earnedExtraTurn: boolean): number {
@@ -38,6 +39,7 @@ export function endTurn(draft: Draft, earnedExtraTurn: boolean): number {
   burnDownScarlet(draft, ending.id);
   wearTethers(draft, ending.id);
   wearInversion(draft, ending.id);
+  wearVoidBound(draft, ending.id);
 
   // Stuck by this very turn, the extra turn still owed is spent as the first lost one.
   const passes = !extraTurn || ending.skipTurns > 0;

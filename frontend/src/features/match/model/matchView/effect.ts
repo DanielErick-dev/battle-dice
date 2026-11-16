@@ -141,7 +141,11 @@ export type TileEffectKind =
   | "dataCollapse"
   /** `count` the tiles she flies. */
   | "alvaThrust"
-  | "apocalypse";
+  | "apocalypse"
+  /** Zarek's Void Apex; `count` the opponents swallowed. */
+  | "voidApex"
+  /** Over whoever rolled from inside the Void; `count` the roll Zarek took. */
+  | "voidRollTaken";
 
 /** A tile effect or turn notice; without travel, `from` and `to` are the same tile. */
 export interface TileEffectView {

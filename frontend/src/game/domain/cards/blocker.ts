@@ -16,6 +16,8 @@ export type CardTable = HarmTable;
 export function cardBlocker(table: CardTable, player: Player, cardId: CardId): GameErrorCode | null {
   const { board } = table;
   if (player.silencedTurns > 0) return "SILENCED";
+  // Inside Zarek's Void no card works at all.
+  if (player.voidBound) return "IN_THE_VOID";
   if (isBlackedOut(player)) return "BLACKED_OUT";
   if (player.energy < cardCost(cardId)) return "NOT_ENOUGH_ENERGY";
   if (cardId === "arcaneShield" && player.shielded) return "ALREADY_SHIELDED";

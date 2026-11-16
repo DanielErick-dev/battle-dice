@@ -82,9 +82,9 @@ export function HomeScreen() {
             characterId={characterId}
             className="h-80 w-72 sm:h-96 sm:w-80 lg:aspect-[5/6] lg:h-auto lg:w-[min(40vw,calc(66dvh*5/6))]"
           />
-          {/* The stage draws past its box (a habitat's floor can reach down here): the words stay on top. */}
+          {/* The stage draws past its box: the words sit well below it, clear of a habitat's floor. */}
           <div className="relative z-10 flex flex-col items-center [text-shadow:0_2px_8px_rgba(0,0,0,0.9)]">
-            <p className="mt-2 text-center text-2xl font-black tracking-[0.2em] uppercase">{character.name}</p>
+            <p className="mt-20 text-center text-2xl font-black tracking-[0.2em] uppercase">{character.name}</p>
             <p className="text-xs font-semibold tracking-widest text-zinc-400 uppercase">{character.epithet}</p>
             <p className="mt-1 text-xs font-bold tracking-wider text-violet-300 uppercase">
               {ABILITY_TEXT[character.ability].name}

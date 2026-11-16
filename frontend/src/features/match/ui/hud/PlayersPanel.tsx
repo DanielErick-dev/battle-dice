@@ -133,6 +133,14 @@ export function PlayersPanel({ players, activePlayerId, viewerId, board, inversi
                     Corrompidas ×{player.corrupted}
                   </span>
                 )}
+                {player.voidBound && (
+                  <span
+                    title="Dentro do Vazio: o dado move o Zarek"
+                    className="rounded-full bg-violet-500/25 px-1.5 text-[9px] font-bold text-violet-200 uppercase"
+                  >
+                    No Vazio ×{player.voidBound.turns}
+                  </span>
+                )}
                 {isBlackedOut(player) && (
                   <span
                     title="Apagão do PEM: sem cartas e sem habilidade"

@@ -58,7 +58,8 @@ export type GameErrorCode =
   | "GRAVEYARDS_EMPTY"
   | "BLACKED_OUT"
   | "NO_CORRUPTED"
-  | "NO_OVERLOADED_OPPONENT";
+  | "NO_OVERLOADED_OPPONENT"
+  | "IN_THE_VOID";
 
 export class GameRuleError extends Error {
   constructor(readonly code: GameErrorCode) {

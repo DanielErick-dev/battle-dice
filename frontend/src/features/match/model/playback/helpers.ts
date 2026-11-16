@@ -3,7 +3,8 @@ import type { AbilityId } from "@/game/domain/abilities/ability";
 import { blessingTurns } from "@/game/domain/board/blessings";
 import type { PlayerId, TileId } from "@/game/domain/types";
 import type { PlaybackTimings } from "@/features/shared/config";
-import { type MatchView, type TileEffectView } from "../matchView";
+import { withPlayerAt, type MatchView, type TileEffectView } from "../matchView";
+import type { PlaybackStep } from "./types";
 
 /**
  * How long an ability's use holds the playback: the Alchemist's vial is thrown and bursts before her
@@ -44,4 +45,16 @@ export function tileOf(event: { playerId: PlayerId; tile: TileId }) {
 export function playerTileEffect(view: MatchView, playerId: PlayerId, kind: TileEffectView["kind"]): TileEffectView {
   const tile = view.players.find((player) => player.id === playerId)?.position ?? 0;
   return { kind, playerId, from: tile, to: tile };
+}
+
+/** Walked along `path` without the tile at the end doing anything (pulled by a bond, carried by a stolen roll). */
+export function carried(playerId: PlayerId, path: readonly TileId[], timings: PlaybackTimings): PlaybackStep[] {
+  const end = path.at(-1);
+  return path.map((tile) => ({
+    apply: (view) => ({
+      ...withPlayerAt(view, playerId, tile),
+      walkEnd: end === undefined ? null : { playerId, tile: end },
+    }),
+    durationMs: timings.stepMs,
+  }));
 }

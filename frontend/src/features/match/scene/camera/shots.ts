@@ -98,6 +98,8 @@ export const SHOTS: Record<TileEffectKind, Shot> = {
   dataCollapse: { trauma: 0.4 },
   alvaThrust: {},
   apocalypse: { closeUp: { distance: 0.62, seconds: 1.6 }, trauma: 0.6 },
+  voidApex: { closeUp: { distance: 0.62, seconds: 1.8 }, trauma: 0.7, fovKick: 1 },
+  voidRollTaken: {},
 };
 
 /** Cards whose cast is filmed too (the rest are covered by the effects they cause). */

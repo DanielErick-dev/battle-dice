@@ -47,4 +47,9 @@ export type ZarekEvent =
   /** The Void Echo: the last thing in the Void, now twice. */
   | { type: "voidEchoed"; playerId: PlayerId; item: VoidItem }
   /** Traps sprung, smashed or pinned charged the Void. */
-  | { type: "voidFed"; playerId: PlayerId; charge: number };
+  | { type: "voidFed"; playerId: PlayerId; charge: number }
+  /** The Void Apex swallowed `victims` (the protected stay out) for APEX_TURNS of their turns. */
+  | { type: "voidApex"; playerId: PlayerId; victims: readonly PlayerId[] }
+  /** `victimId` rolled `value` from inside the Void: Zarek walked `path` with it. */
+  | { type: "voidRollTaken"; playerId: PlayerId; victimId: PlayerId; value: number; path: readonly TileId[] }
+  | { type: "voidReleased"; playerId: PlayerId };
