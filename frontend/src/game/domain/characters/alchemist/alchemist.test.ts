@@ -171,3 +171,26 @@ describe("The Alchemist's cards", () => {
     expect(state.pendingRaid).toMatchObject({ picks: OPUS_PICKS, own: false });
   });
 });
+
+describe("Graveyard Condenser cap", () => {
+  it("fills up to one pick, however many cards go at once", () => {
+    const start = withPlayers(duel(), {
+      alchemist: { discard: [card("luckyCharm", "mine")], alchemist: { condensed: 0, extraTurns: 0 } },
+      rival: { hand: copies("windStep", 6, "w"), energy: 10 },
+    });
+    // Six cards burnt at once: still a single pick, and nothing banked for another.
+    const burnt = withPlayer(start, "rival", { hand: [card("healingHerb")], discard: copies("windStep", 6, "w") });
+    const { state } = play(
+      onTurnOf(
+        withPlayer(burnt, "alchemist", { alchemist: { condensed: CONDENSER_CARDS - 1, extraTurns: 0 } }),
+        "rival",
+      ),
+      "rival",
+      "test:healingHerb",
+    );
+    expect(state.pendingRaid).toMatchObject({ picks: 1, own: true });
+    const taken = send(state, { type: "raidGraveyard", playerId: "alchemist", cardUids: ["mine"] }).state;
+    expect(playerOf(taken, "alchemist").alchemist.condensed).toBe(0);
+    expect(taken.pendingRaid).toBeNull();
+  });
+});

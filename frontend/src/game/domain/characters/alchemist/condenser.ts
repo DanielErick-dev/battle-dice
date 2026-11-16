@@ -8,11 +8,13 @@ import type { PendingRaid } from "./types";
 /** Cards that must reach any graveyard (hers included) for her Condenser to fill and give her one of hers back. */
 export const CONDENSER_CARDS = 4;
 
-/** `count` cards just went to a graveyard: every Alchemist's Condenser takes them in. */
+/** `count` cards just went to a graveyard: every Alchemist's Condenser takes them in, up to full (no backlog). */
 export function feedCondenser(draft: Draft, count: number): void {
   if (count <= 0) return;
   for (const player of draft.players.filter(isAlchemist)) {
-    const condensed = player.alchemist.condensed + count;
+    // A full Condenser takes no more, so a pile of burnt cards gives one pick, not a run of them.
+    const condensed = Math.min(CONDENSER_CARDS, player.alchemist.condensed + count);
+    if (condensed === player.alchemist.condensed) continue;
     updatePlayer(draft, player.id, (current) => ({ alchemist: { ...current.alchemist, condensed } }));
     draft.events.push({ type: "condenserFed", playerId: player.id, condensed });
   }

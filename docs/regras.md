@@ -486,7 +486,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 2. **Para os oponentes**, casas boas viram ruins: avançar N vira recuar N; jogar de novo vira perde a vez (1); casa de carta vira descartar 1 carta aleatória; portal do céu leva ao inferno; bênção vira maldição (energia e fonte drenam energia, as outras custam uma carta). As casas ruins continuam ruins.
 3. **Para ela**, casas ruins viram boas: armadilha que recua N vira avançar N (escondida: avança 5); perde a vez vira **tantas jogadas extras quanto perderia**, jogadas em seguida; maldição de descarte vira comprar 1 carta, a de drenar vira +2 de energia; portal do inferno leva ao céu. As casas boas continuam boas.
 
-**Passiva, Condensador de Cemitério:** conta toda carta que vai para qualquer cemitério (jogada, descartada, queimada; dela ou dos oponentes). A cada **4**, ela escolhe **1 carta do próprio cemitério** para voltar à mão. Acumula: se o cemitério dela estiver vazio, a carga espera.
+**Passiva, Condensador de Cemitério:** conta toda carta que vai para qualquer cemitério (jogada, descartada, queimada; dela ou dos oponentes). A cada **4**, ela escolhe **1 carta do próprio cemitério** para voltar à mão. Cheio, o Condensador para de contar até ela pegar a carta: muitas cartas de uma vez (a Sobrecarga da Unidade Alva, por exemplo) dão só uma escolha. Se o cemitério dela estiver vazio, a escolha espera.
 
 **Detalhes e exceções**
 - A inversão age antes de escudos e defesas: para ela não há nada a defender; um oponente intocável (Indomável, Convergência) não sofre nada na casa estragada.

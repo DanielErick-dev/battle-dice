@@ -41,7 +41,10 @@ function splitLid(geometry: BufferGeometry, cut: number): { body: BufferGeometry
   return { body: pick(parts.body), lid: pick(parts.lid) };
 }
 
-/** A gem chest (Meshy) on a card tile: its lid swings open and a card rises out when someone stops there. */
+/**
+ * A gem chest (Meshy) on a card tile: its lid swings open and a card rises out when someone stops there, then the
+ * chest sinks away so it doesn't stand in their figure; it comes back once they leave.
+ */
 export function CardChest({ color, open, heading }: { color: string; open: boolean; heading: number }) {
   const chest = useFittedProp("cardChest");
   const [, , depth] = chest.size;
@@ -56,9 +59,19 @@ export function CardChest({ color, open, heading }: { color: string; open: boole
   );
   const hinge = useRef<Group>(null);
   const card = useRef<Group>(null);
+  const box = useRef<Group>(null);
   const opening = useRef(0);
+  /** How far it has sunk away under someone standing there (0 to 1). */
+  const gone = useRef(0);
   useFrame(({ clock }, delta) => {
     opening.current += ((open ? 1 : 0) - opening.current) * Math.min(1, delta * (open ? 6 : 3));
+    // Sinks only once the lid is open, so the opening still shows.
+    const sinking = open && opening.current > 0.9;
+    gone.current += ((sinking ? 1 : 0) - gone.current) * Math.min(1, delta * (sinking ? 3 : 4));
+    if (box.current) {
+      box.current.scale.setScalar(scale * (1 - gone.current));
+      box.current.visible = gone.current < 0.98;
+    }
     if (hinge.current) hinge.current.rotation.x = OPEN_ANGLE * opening.current;
     if (card.current) {
       card.current.visible = opening.current > 0.05;
@@ -69,7 +82,7 @@ export function CardChest({ color, open, heading }: { color: string; open: boole
   const hingeZ = -depth / 2;
   return (
     <group position={[CORNER[0], TILE_HEIGHT / 2, CORNER[1]]} rotation-y={-heading}>
-      <group scale={scale}>
+      <group ref={box} scale={scale}>
         <mesh geometry={body} material={chest.material} castShadow />
         <group ref={hinge} position={[0, LID_SPLIT, hingeZ]}>
           <mesh geometry={lid} material={chest.material} position={[0, -LID_SPLIT, -hingeZ]} castShadow />

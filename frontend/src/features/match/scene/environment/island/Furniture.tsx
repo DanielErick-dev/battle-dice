@@ -9,9 +9,9 @@ import type { Vec3 } from "@/features/shared/board/boardLayout";
 
 /** How tall a lamp post stands next to the trail: a little over a figure (3). */
 const POST_HEIGHT = 3.2;
-/** The lamp's glass, as a share of the post's height (the Meshy post's lantern hangs at the top). */
-const LAMP_AT = 0.86;
-const lampGeometry = new SphereGeometry(0.15, 12, 8);
+/** Where the Meshy post's lantern hangs off its arm, as shares of the post's height (measured on the model). */
+const LAMP_AT = { x: -0.09, y: 0.76 };
+const lampGeometry = new SphereGeometry(0.1, 12, 8);
 const lampMaterial = new MeshStandardMaterial({
   color: "#fff1c1",
   emissive: new Color("#fbbf24").multiplyScalar(2.2),
@@ -24,7 +24,11 @@ export function Lantern({ position }: { position: Vec3 }) {
   return (
     <group position={position}>
       <mesh geometry={post.geometry} material={post.material} scale={POST_HEIGHT} castShadow />
-      <mesh geometry={lampGeometry} material={lampMaterial} position-y={POST_HEIGHT * LAMP_AT} />
+      <mesh
+        geometry={lampGeometry}
+        material={lampMaterial}
+        position={[POST_HEIGHT * LAMP_AT.x, POST_HEIGHT * LAMP_AT.y, 0]}
+      />
     </group>
   );
 }

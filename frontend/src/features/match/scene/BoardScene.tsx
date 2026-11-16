@@ -89,7 +89,12 @@ export default function BoardScene({
   const layout = useMemo(() => withRiftPositions(roadLayout, board), [roadLayout, board]);
   const playerIds = view.players.map((player) => player.id).join(",");
   const wandTips = useMemo(() => new Map(playerIds.split(",").map((id) => [id, new Vector3()])), [playerIds]);
-  const occupiedTiles = new Set(view.players.map((player) => player.position));
+  // Only where someone has stopped: a tile walked over on the way (spikes, a chest) stays as it was.
+  const passing = (player: (typeof view.players)[number]) =>
+    view.walkEnd?.playerId === player.id && view.walkEnd.tile !== player.position;
+  const occupiedTiles = new Set(
+    view.players.filter((player) => !passing(player) && !player.voidBound).map((player) => player.position),
+  );
   const mainTiles = useMemo(() => board.tiles.filter((tile) => !tile.track), [board]);
   const trapZoneTiles = useMemo(() => new Set(board.trapZones.flatMap((zone) => zone.tiles)), [board]);
   // Snowed-over, frozen and burning tiles hide what stands on them under the spell.

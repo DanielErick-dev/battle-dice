@@ -120,7 +120,7 @@ export const ABILITY_TEXT: Readonly<Record<AbilityId, { name: string; descriptio
   },
   grandInversion: {
     name: "Grande Inversão Alquímica",
-    description: `Carrega em ${abilityCycle("grandInversion")} turnos. Ao usar, inverte o tabuleiro por ${INVERSION_TURNS} rodadas: para os oponentes, as casas boas viram ruins (avanço vira recuo, jogar de novo vira perde a vez, carta vira perda, céu vira inferno, bênção vira maldição); para você, as ruins viram boas (armadilha vira avanço, perde a vez vira tantas jogadas extras quanto perderia, maldição vira bênção, inferno vira céu). Passiva, Condensador de Cemitério: a cada ${CONDENSER_CARDS} cartas que vão para qualquer cemitério (as suas também), você escolhe uma do seu cemitério para voltar à mão.`,
+    description: `Carrega em ${abilityCycle("grandInversion")} turnos. Ao usar, inverte o tabuleiro por ${INVERSION_TURNS} rodadas: para os oponentes, as casas boas viram ruins (avanço vira recuo, jogar de novo vira perde a vez, carta vira perda, céu vira inferno, bênção vira maldição); para você, as ruins viram boas (armadilha vira avanço, perde a vez vira tantas jogadas extras quanto perderia, maldição vira bênção, inferno vira céu). Passiva, Condensador de Cemitério: a cada ${CONDENSER_CARDS} cartas que vão para qualquer cemitério (as suas também), você escolhe uma do seu cemitério para voltar à mão (cheio, ele para de contar até você pegar a carta).`,
     active: "Tabuleiro invertido",
   },
 
