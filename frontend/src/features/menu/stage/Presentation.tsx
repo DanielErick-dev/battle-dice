@@ -61,11 +61,14 @@ export function Presentation({
   characterId,
   sounds,
   gustRef,
+  onIntro,
 }: {
   characterId: CharacterId;
   sounds: StageSounds;
   /** Set every frame to how hard the entrance's wind blows (see seraphielEntrance). */
   gustRef: RefObject<number>;
+  /** Told when the intro starts (performance.now() in seconds) and null once gone, for scenery acting on it. */
+  onIntro: (at: number | null) => void;
 }) {
   const character: CharacterDefinition = CHARACTERS[characterId];
   const frost = character.introFrost;
@@ -103,8 +106,9 @@ export function Presentation({
   useEffect(
     () => () => {
       gustRef.current = 0;
+      onIntro(null);
     },
-    [gustRef],
+    [gustRef, onIntro],
   );
   useFrame((state, delta) => {
     const since = age(state.clock.elapsedTime);
@@ -130,6 +134,7 @@ export function Presentation({
   const onClipLengths = useCallback(
     (lengths: ClipLengths) => {
       timers.current.forEach((timer) => window.clearTimeout(timer));
+      onIntro(performance.now() / 1000);
       // Without an intro, straight to the showcase (a levitating one after a beat, to rise).
       const introMs = (lengths.intro ?? 0) * 1000;
       const floats = showcase === "float";
@@ -189,7 +194,7 @@ export function Presentation({
         );
       }
     },
-    [showcase, pourSeconds, frost, sounds, sword, character.introSpeed, character.meditates, introVoice],
+    [showcase, pourSeconds, frost, sounds, sword, character.introSpeed, character.meditates, introVoice, onIntro],
   );
   useEffect(() => () => timers.current.forEach((timer) => window.clearTimeout(timer)), []);
 

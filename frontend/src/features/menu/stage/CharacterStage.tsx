@@ -1,8 +1,9 @@
 "use client";
 
 import { ContactShadows } from "@react-three/drei";
-import { Canvas } from "@react-three/fiber";
-import { Suspense, useRef, useState } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Suspense, useCallback, useRef, useState, type RefObject } from "react";
+import type { AmbientLight, DirectionalLight, SpotLight } from "three";
 import { CHARACTERS, type CharacterDefinition, type CharacterId } from "@/features/characters";
 import { preferences, usePreference } from "@/features/settings/preferences";
 import { cn } from "@/lib/utils";
@@ -48,6 +49,15 @@ export function CharacterStage({ characterId, className }: { characterId: Charac
   const turn = useDragTurn(() => setEncore((count) => count + 1));
   /** How hard the wind blows through the stage (0 to 1): Seraphiel's wingbeats. */
   const gust = useRef(0);
+  /** Share of the light that's on, for scenery that switches it (see SceneryProps.lights). */
+  const lights = useRef(1);
+  const introAt = useRef<number | null>(null);
+  const setLights = useCallback((level: number) => void (lights.current = level), []);
+  const introSeconds = useCallback(
+    () => (introAt.current === null ? null : performance.now() / 1000 - introAt.current),
+    [],
+  );
+  const onIntro = useCallback((at: number | null) => void (introAt.current = at), []);
 
   return (
     <div
@@ -83,19 +93,27 @@ export function CharacterStage({ characterId, className }: { characterId: Charac
             gl.localClippingEnabled = true;
           }}
         >
-          <ambientLight intensity={dim ? 0.22 : 0.6} />
-          <directionalLight position={[2.5, 4, 3]} intensity={dim ? 1.3 : 2.2} />
-          <directionalLight position={[-3, 2, -2.5]} intensity={3} color={color} />
-          <spotLight position={[1.5, 3, -2.5]} angle={0.5} penumbra={0.8} intensity={dim ? 5 : 12} color={color} />
+          <StageLights dim={dim} color={color} level={lights} />
           <Suspense fallback={null}>
             <Turntable angleRef={turn.angle} draggingRef={turn.dragging}>
-              <Presentation key={`${characterId}:${encore}`} characterId={characterId} sounds={sounds} gustRef={gust} />
+              <Presentation
+                key={`${characterId}:${encore}`}
+                characterId={characterId}
+                sounds={sounds}
+                gustRef={gust}
+                onIntro={onIntro}
+              />
             </Turntable>
           </Suspense>
           {scenery ? (
             <group position-y={FLOOR_Y}>
               <Suspense fallback={null}>
-                <scenery.component gust={gust} intro={`${characterId}:${encore}`} />
+                <scenery.component
+                  gust={gust}
+                  intro={`${characterId}:${encore}`}
+                  setLights={setLights}
+                  introSeconds={introSeconds}
+                />
                 {/* Part of the ground, so they stay put while the figure is turned; replayed with each intro. */}
                 {introSword && (
                   <GreekColumns
@@ -117,5 +135,29 @@ export function CharacterStage({ characterId, className }: { characterId: Charac
         </Canvas>
       </div>
     </div>
+  );
+}
+
+/** The stage's lights, each scaled every frame by `level`. */
+function StageLights({ dim, color, level }: { dim: boolean; color: string; level: RefObject<number> }) {
+  const ambient = useRef<AmbientLight>(null);
+  const key = useRef<DirectionalLight>(null);
+  const rim = useRef<DirectionalLight>(null);
+  const spot = useRef<SpotLight>(null);
+  const base = { ambient: dim ? 0.22 : 0.6, key: dim ? 1.3 : 2.2, rim: 3, spot: dim ? 5 : 12 };
+  useFrame(() => {
+    const scale = level.current;
+    if (ambient.current) ambient.current.intensity = base.ambient * scale;
+    if (key.current) key.current.intensity = base.key * scale;
+    if (rim.current) rim.current.intensity = base.rim * scale;
+    if (spot.current) spot.current.intensity = base.spot * scale;
+  });
+  return (
+    <>
+      <ambientLight ref={ambient} intensity={base.ambient} />
+      <directionalLight ref={key} position={[2.5, 4, 3]} intensity={base.key} />
+      <directionalLight ref={rim} position={[-3, 2, -2.5]} intensity={base.rim} color={color} />
+      <spotLight ref={spot} position={[1.5, 3, -2.5]} angle={0.5} penumbra={0.8} intensity={base.spot} color={color} />
+    </>
   );
 }

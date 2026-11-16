@@ -1,10 +1,12 @@
 "use client";
 
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { AdditiveBlending, Color, MeshStandardMaterial, ShaderMaterial, type Group, type Mesh } from "three";
 import { useCanvasTexture } from "@/features/shared/three/canvasTexture";
 import { Reticle } from "./Reticle";
+import { PowerUp } from "./PowerUp";
+import type { SceneryProps } from "../types";
 import { DECK, HAZARD, PAD, SEAMS } from "./textures";
 import { preloadProps, useFittedProp } from "../kit/matchAssets";
 import { uniform } from "@/features/shared/three/uniform";
@@ -47,6 +49,7 @@ const SEAM_FRAGMENT = /* glsl */ `
   uniform sampler2D uSeams;
   uniform float uTime;
   uniform vec3 uColor;
+  uniform float uPower;
   varying vec2 vUv;
   void main() {
     float seam = texture2D(uSeams, vUv).r;
@@ -55,14 +58,14 @@ const SEAM_FRAGMENT = /* glsl */ `
     float wave = fract(uTime * 0.3) * 1.15;
     float scan = exp(-pow((radius - wave) / 0.07, 2.0));
     float rim = 1.0 - smoothstep(0.5, 0.95, radius);
-    float glow = seam * (0.16 + 1.5 * scan) * rim;
+    float glow = seam * (0.16 + 1.5 * scan) * rim * uPower;
     gl_FragColor = vec4(uColor * glow, glow);
     #include <colorspace_fragment>
   }
 `;
 
 /** Unidade Alva's stage in place of the rune pedestal; origin on the floor. */
-export function HangarBay() {
+export function HangarBay({ intro, setLights, introSeconds }: SceneryProps) {
   const deck = useCanvasTexture(DECK);
   const seams = useCanvasTexture(SEAMS);
   const pad = useCanvasTexture(PAD);
@@ -85,7 +88,7 @@ export function HangarBay() {
         depthWrite: false,
       }),
       seams: new ShaderMaterial({
-        uniforms: { uSeams: { value: seams }, uTime: { value: 0 }, uColor: { value: SEAM } },
+        uniforms: { uSeams: { value: seams }, uTime: { value: 0 }, uPower: { value: 0 }, uColor: { value: SEAM } },
         vertexShader: SEAM_VERTEX,
         fragmentShader: SEAM_FRAGMENT,
         transparent: true,
@@ -100,11 +103,19 @@ export function HangarBay() {
   );
   useEffect(() => () => Object.values(materials).forEach((material) => material.dispose()), [materials]);
   const scan = useRef<Mesh>(null);
+  /** 0 while she is switched off, 1 once powered up (see PowerUp). */
+  const power = useRef(0);
+  const onPower = useCallback((level: number) => void (power.current = level), []);
   const hover = useRef<Group>(null);
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
-    if (scan.current) uniform(scan.current.material as ShaderMaterial, "uTime").value = t;
+    if (scan.current) {
+      const material = scan.current.material as ShaderMaterial;
+      uniform(material, "uTime").value = t;
+      // The seams stay dark until the bay powers up.
+      uniform(material, "uPower").value = power.current;
+    }
     if (hover.current) {
       hover.current.position.y = DRONE.y + Math.sin(t * 1.3) * 0.05;
       hover.current.rotation.y = -0.6 + Math.sin(t * 0.4) * 0.35;
@@ -127,6 +138,7 @@ export function HangarBay() {
         <ringGeometry args={[PAD_RADIUS + 0.02, PAD_RADIUS + 0.02 + HAZARD_WIDTH, 96]} />
       </mesh>
       <Reticle />
+      <PowerUp key={intro} setLights={setLights} introSeconds={introSeconds} onPower={onPower} />
       {MACHINES.map(({ prop, x, z, height, turn }) => (
         <mesh
           key={prop}
