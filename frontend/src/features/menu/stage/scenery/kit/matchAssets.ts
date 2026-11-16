@@ -2,7 +2,7 @@
 export { useFeatherTexture } from "@/features/characters/seraphiel/HeavenDescent";
 export { iceShard } from "@/features/characters/shared/ice";
 export { drawParchment, pageStrokes } from "@/features/characters/shared/parchment";
-export { PROP_HEIGHT, Prop, usePropMesh } from "@/features/characters/core/props";
+export { PROP_HEIGHT, Prop, preloadProps, useFittedProp, usePropMesh } from "@/features/characters/core/props";
 export { useRuneTexture } from "@/features/characters/shared/runeCircle";
 export { useSoftDisc } from "@/features/characters/shared/softDisc";
 export { FlameCard } from "@/features/characters/akane/FlameCard";

@@ -89,7 +89,7 @@ Energia paga as cartas. Também vem de casas de energia (+2), da Fonte de Luz (+
 |---|---|
 | **3** | Conjuração Dupla, Bênção do Serafim, Transmutação, Aposta do Coringa |
 | **4** | O Vazio (mais +1 por armadilha disparada, destruída ou presa), Veredito Silencioso (reativo, carga secreta) |
-| **5** | Levitação Carmesim, Fúria Adormecida, Chuva de Flechas, Ressurreição, Escritura dos 4 Selos, Aparições Espectrais, Florescimento Feérico, Maré Purificadora, Zona de Incêndio, Indomável, Canhão de Plasma, Domínio dos 4 Elementos |
+| **5** | Levitação Carmesim, Fúria Adormecida, Chuva de Flechas, Ressurreição, Escritura dos 4 Selos, Aparições Espectrais, Florescimento Feérico, Maré Purificadora, Zona de Incêndio, Indomável, Pulso Eletromagnético, Domínio dos 4 Elementos |
 | **6** | Despertar Ocular |
 | **7** | Arrastar ao Inferno, Engrenagem do Tempo |
 
@@ -345,7 +345,7 @@ Só as cartas dessa tabela fundem. O baralho tem 3 cópias de Passo do Vento, Er
 | Proteção | De onde vem | Duração | O que bloqueia | O que **não** bloqueia |
 |---|---|---|---|---|
 | **Escudo Arcano** | Carta; Égide Arcana; Santuário Celestial | Até a próxima armadilha | Uma armadilha (comum, escondida ou do inferno), e aí se gasta | Maldições, perde a vez, nada mirado |
-| **Armadura Espectral** | Égide Arcana (4); Égide Celestial (3/9) | Rodadas, contando a atual | Tudo o que os **outros** fazem contra você: cartas e habilidades miradas, selos, aparições, neve e gelo da Fada, fogo negro, atropelo, o empurrão do Susanoo quando a Kage para na sua casa, Chuva de Flechas, Canhão de Plasma | Armadilhas, maldições e perde a vez do tabuleiro |
+| **Armadura Espectral** | Égide Arcana (4); Égide Celestial (3/9) | Rodadas, contando a atual | Tudo o que os **outros** fazem contra você: cartas e habilidades miradas, selos, aparições, neve e gelo da Fada, fogo negro, atropelo, o empurrão do Susanoo quando a Kage para na sua casa, Chuva de Flechas, Pulso Eletromagnético | Armadilhas, maldições e perde a vez do tabuleiro |
 | **Égide Celestial** | Relíquia | 3 rodadas (9 fundida) | O mesmo que a Armadura Espectral (ela vem junto) | O mesmo |
 | **Susanoo** | Despertar Ocular da Kage Rubra | 3 rodadas | Tudo o que a Armadura bloqueia, **mais** armadilhas, maldições e perde a vez do tabuleiro. Ninguém para na casa dela. | A **armadilha escondida** e o **fogo negro** de outra pessoa (atacam por dentro) |
 | **Indomável** | Habilidade do Bjorn | 3 rodadas | Tudo o que a Armadura bloqueia, **mais** armadilhas (escondidas também), maldições e perde a vez. Desfaz o tempo invertido. | Bênçãos continuam valendo (é bom) |
@@ -365,7 +365,7 @@ Detalhes:
 2. Mirar num protegido **gasta** a carta (energia e tudo) ou a habilidade (carga zerada), não faz nada e mostra o aviso **BLOQUEADO!**.
 3. Quem barra, nesta ordem: Indomável → Convergência → Susanoo → Armadura Espectral → Égide Celestial.
 4. **Oponentes em outro reino não podem ser alvo.** Eles nem aparecem na lista (do céu, o Cronos não alcança o tabuleiro).
-5. Efeitos **em área**, que não escolhem alvo (Chuva de Flechas nos oponentes, o empurrão do Canhão de Plasma, o atropelo do Bjorn), simplesmente pulam os protegidos, sem BLOQUEADO.
+5. Efeitos **em área**, que não escolhem alvo (Chuva de Flechas nos oponentes, o PEM e a Sobrecarga de Memória da Unidade Alva, o atropelo do Bjorn), simplesmente pulam os protegidos, sem BLOQUEADO.
 6. Exceção da Aposta do Coringa: sem ninguém para roubar no mesmo lugar, ela lista **todos** os oponentes e oferece o **Lance da Sorte** (ver a ficha do Coringa).
 
 > no código: `core/playerStatus.ts` (`aimWard`, `isUntouchable`, `inSusanoo`), `board/reach.ts` (`opponentsInSpace`, `sameSpace`), `cards/play.ts`
@@ -381,7 +381,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 | 1 | Zarek, o Cavaleiro do Vazio | O Vazio | 4 |
 | 2 | Encantadora Carmesim | Conjuração Dupla | 3 |
 | 3 | Bruxa Carmesim | Levitação Carmesim | 5 |
-| 4 | Alquimista Esmeralda | Transmutação | 3 |
+| 4 | Alquimista Esmeralda | Grande Inversão Alquímica | 5 |
 | 5 | Monge Ancião | Fúria Adormecida | 5 |
 | 6 | Arqueira Élfica | Chuva de Flechas | 5 |
 | 7 | Coringa Carmesim | Aposta do Coringa | 3 |
@@ -397,7 +397,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 | 17 | Auric | Maré Purificadora | 5 |
 | 18 | Seraphiel (e o Anjo Caído) | Bênção do Serafim / Arrastar ao Inferno | 3 / 7 |
 | 19 | Cronos | Engrenagem do Tempo | 7 |
-| 20 | Unidade Alva | Canhão de Plasma | 5 |
+| 20 | Unidade Alva | Pulso Eletromagnético | 5 |
 | 21 | Vinicius | Capina (passiva) | — |
 
 ---
@@ -408,7 +408,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 **Habilidade:** O Vazio · **Carga:** 4 · **Tipo:** reativa (o botão só aparece para "Absorver", ver abaixo)
 
 **Passiva: o Vazio se alimenta**
-- Cada armadilha em que **qualquer jogador** cai, ou que é **destruída** ou **presa** (Canhão de Plasma, Chuva de Flechas), dá **+1** de carga ao Vazio. O que o próprio Vazio engole não conta.
+- Cada armadilha em que **qualquer jogador** cai, ou que é **destruída** ou **presa** (Chuva de Flechas, capina), dá **+1** de carga ao Vazio. O que o próprio Vazio engole não conta.
 
 **Engolir**
 1. Com o Vazio pronto e com espaço (guarda até **4** coisas), quando uma **armadilha** (comum, escondida ou do inferno), uma **maldição** ou um **perde a vez** vai te atingir, o jogo pausa e pergunta se o Vazio engole.
@@ -476,22 +476,32 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 ---
 
 ### 4. Alquimista Esmeralda
-*Mestra das transmutações*
+*Mestra da Grande Inversão*
 
-**Habilidade:** Transmutação · **Carga:** 3
+**Habilidade:** Grande Inversão Alquímica · **Carga:** 5
 
 **O que faz**
-1. Escolha **2 cartas** da mão.
-2. Os **níveis** de raridade delas se somam (comum 1, incomum 2, rara 3, épica 4, lendária 5), até no máximo **5**.
-3. Você ganha uma carta aleatória **desse nível**, no lugar da primeira carta escolhida. As duas escolhidas somem do jogo.
+1. Por **2 rodadas** (dela), o tabuleiro fica invertido.
+2. **Para os oponentes**, casas boas viram ruins: avançar N vira recuar N; jogar de novo vira perde a vez (1); casa de carta vira descartar 1 carta aleatória; portal do céu leva ao inferno; bênção vira maldição (energia e fonte drenam energia, as outras custam uma carta). As casas ruins continuam ruins.
+3. **Para ela**, casas ruins viram boas: armadilha que recua N vira avançar N (escondida: avança 5); perde a vez vira **tantas jogadas extras quanto perderia**, jogadas em seguida; maldição de descarte vira comprar 1 carta, a de drenar vira +2 de energia; portal do inferno leva ao céu. As casas boas continuam boas.
+
+**Passiva, Condensador de Cemitério:** conta toda carta que vai para qualquer cemitério (jogada, descartada, queimada; dela ou dos oponentes). A cada **4**, ela escolhe **1 carta do próprio cemitério** para voltar à mão. Acumula: se o cemitério dela estiver vazio, a carga espera.
 
 **Detalhes e exceções**
-- A carta nova é permanente: depois de jogada, ela vai para o seu descarte e volta ao baralho.
-- O nível 5 inclui a Troca de Destinos e as **relíquias do céu**.
-- Sozinho, nunca sai carta que mira oponente. Se um nível só tiver cartas assim, o sorteio desce um nível.
-- **Com menos de 2 cartas na mão**, não há o que sacrificar: você ganha uma carta aleatória de **nível 3** (rara). Se a mão estiver cheia, ela vai direto para o descarte.
+- A inversão age antes de escudos e defesas: para ela não há nada a defender; um oponente intocável (Indomável, Convergência) não sofre nada na casa estragada.
+- Neve da fada, fogo, selos e marcas do Vazio continuam cobrindo a casa como antes.
+- A escolha no cemitério pausa o jogo até ela escolher, mesmo fora do turno dela.
 
-> no código: `characters/alchemist/transmutation.ts`
+**Cartas exclusivas**
+| Carta | Raridade · custo | Efeito |
+|---|---|---|
+| Passo Catalítico | Comum · 1 | Avança até a primeira casa ruim em até 12 à frente e inverte ela para você, com ou sem a habilidade ligada. |
+| Contaminação de Polaridade | Comum · 2 | Mira: o oponente corre até a casa boa mais próxima em até 12 à frente dele, que vira ruim para ele. |
+| Saqueadora de Cemitério | Rara · 2 | Escolha 2 cartas de qualquer cemitério e traga para a mão. |
+| Troca Equivalente Estrita | Rara · 3 | Só com você numa casa ruim e o alvo fora de uma: trocam de lugar, a casa ruim pega o oponente e o bônus invertido dela vale para você. |
+| Grande Obra da Pedra Filosofal | Épica · 5 | Queima a sua mão, cada oponente perde a melhor carta (mais rara, depois mais cara), você pega 3 de qualquer cemitério e o tabuleiro inverte por 4 rodadas. |
+
+> no código: `characters/alchemist/` (`inversion.ts`, `condenser.ts`, `cards.ts`)
 
 ---
 
@@ -704,7 +714,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 
 **O que faz**
 1. Ao usar, escolha **um elemento**. Nunca o mesmo da última vez (pode voltar a ele depois de usar outro).
-2. **Terra, Muralha Tectônica:** ergue uma muralha de **8 de vida** numa casa livre (sem jogador, portal ou outra muralha) até 6 casas à frente de qualquer jogador no caminho principal. Quem anda e chega nela **para na casa antes**, e o valor da rolagem sai da vida dela. Com 0 ela cai, mas quem bateu continua parado atrás. Só ele atravessa as próprias muralhas. No máximo **2** muralhas dele: a terceira derruba a mais antiga.
+2. **Terra, Muralha Tectônica:** ergue uma muralha de **8 de vida** numa casa livre (sem jogador, portal ou outra muralha) até 6 casas à frente de qualquer jogador no caminho principal. Na rolagem, a muralha **come o que sobra do movimento** de quem chega nela, até a vida dela. Se sobrar mais que a vida, ela cai e a pessoa **continua andando** com o resto (ex.: muralha de 4 a 2 casas, tirou 18: anda 2, gasta 4 na muralha e anda mais 12). Se não sobrar, a pessoa para na casa antes e a muralha perde o que sobrou. Só ele atravessa as próprias muralhas. No máximo **2** muralhas dele: a terceira derruba a mais antiga.
 3. **Água, Laço de Correnteza:** mira um oponente no mesmo lugar e o prende por **3 rodadas**. Sempre que o alvo anda para a frente (rolagem, Passo do Vento, marcha), Tenzai é puxado **metade** do que ele andou, arredondando para baixo. A casa onde ele cai não tem efeito, e as muralhas dos outros também o param. Alvo protegido: BLOQUEADO.
 4. **Fogo, Dado de Combustão:** encanta o dado desta vez. Se a face for **5 ou 6** (antes dos bônus), a rolagem inteira vale **o dobro**; ao parar, o dado explode e empurra **6 casas** quem estiver a até **3 casas** dele (protegidos ficam de fora), e ele ganha uma **vez extra**.
 5. **Vento, Sequestro de Brisa:** arma uma armadilha **escondida** (só ele sabe que está armada). Na próxima rolagem de um oponente que dê **6 ou mais** (já com os bônus), o oponente **não anda** e Tenzai anda esse valor; a casa onde ele cai não tem efeito. Oponente protegido: a brisa escorrega e continua armada. Só 1 brisa dele por vez.
@@ -714,7 +724,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - Com os **4**, a órbita se esvazia e vem a **Convergência**: intocável por **2 rodadas**, contando a atual (bloqueia o mesmo que o Indomável: o que os outros miram, armadilhas, maldições e perde a vez), **+3** na rolagem desta vez e a habilidade **pronta de novo**.
 
 **Detalhes e exceções**
-- Muralhas param qualquer andar para a frente (rolagem, cartas, casa de avanço). Só a rolagem tira vida delas. Empurrões, teleportes e o tempo invertido passam por elas.
+- Muralhas param qualquer andar para a frente que não seja rolagem (cartas, casa de avanço, laço, brisa). Só a rolagem tira vida delas e pode atravessá-las. Empurrões, teleportes e o tempo invertido passam por elas.
 - Mira de Água virada pelo Veredito da Têmis prende o próprio Tenzai nela.
 
 > no código: `characters/tenzai/` (`elements.ts`, `cards.ts`), `handlers/turnCommands.ts` (muralha, brisa, combustão e laço na rolagem)
@@ -908,17 +918,33 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 ### 20. Unidade Alva
 *Alvo travado*
 
-**Habilidade:** Canhão de Plasma · **Carga:** 5
+**Habilidade:** Pulso Eletromagnético (PEM) · **Carga:** 5, contada só depois que o PEM inteiro acaba
 
-**O que faz**
-1. Destrói **para sempre** as próximas **2** armadilhas à sua frente, inclusive as escondidas, mas não as maldições.
-2. Empurra **6** casas para trás o oponente **mais adiantado** ao alcance (no mesmo lugar e não protegido).
+**PEM**
+1. **Apagão (2 rodadas):** todos os oponentes não protegidos ficam sem jogar cartas, sem apagar Corrompidas e sem usar o botão da habilidade. Reações do tabuleiro (Vazio, Veredito) e passivas continuam.
+2. **Subtensão (1 rodada depois):** as cartas de movimento deles valem a metade, para baixo (Passo do Vento anda a metade; Amuleto da Sorte e Despertar Ancestral somam a metade no dado).
 
-**Detalhes e exceções**
-- O empurrão é efeito em área: se o mais adiantado estiver protegido, o tiro vai no próximo mais adiantado sem proteção, e não há BLOQUEADO.
-- Sem oponente ao alcance, só as armadilhas são destruídas.
+**Passiva: Sobrecarga de Memória**
+- A cada **3** rodadas dela (no começo da vez dela), todo oponente com **mais de 5** cartas na mão perde **5 cartas reais** sorteadas, que vão para o cemitério. Quem tiver menos de 5 reais perde todas.
+- As **Cartas Corrompidas contam** para passar de 5, mas **nunca queimam**.
+- Protegidos (Indomável, armadura...) escapam.
 
-> no código: `characters/alva/plasmaCannon.ts`, `board/traps.ts` (`blastTrapsAhead`)
+**Cartas Corrompidas (spyware)**
+- Ficam na mão da vítima e **furam o limite de 8**. Contam como carta para tudo da Unidade Alva (Sobrecarga, Propulsor, Colapso).
+- Enquanto a vítima tiver pelo menos 1, a Unidade Alva **vê a mão dela** (no painel dos jogadores).
+- Não são jogáveis. Para apagar 1, a vítima sacrifica 1 carta verdadeira junto (vai para o cemitério). É de graça, na própria vez, mas não pode silenciado (Firewall, selo) nem no Apagão.
+- Nunca vão para baralho nem cemitério.
+
+**Cartas**
+| Carta | Raridade · custo | Efeito |
+|---|---|---|
+| Injeção de Malware | Comum · 1 | Mira: 2 Cartas Corrompidas na mão do oponente. |
+| Propulsor de Sobrecarga | Comum · 2 | Avança 5 casas por oponente com mais de 5 cartas. Sem nenhum, não pode jogar. |
+| Trava de Firewall | Rara · 2 | Mira: o oponente fica silenciado (sem cartas) por 2 rodadas dele. |
+| Colapso Gravitacional de Dados | Épica · 4 | Mira: o oponente recua 2 casas por carta na mão, Corrompidas incluídas. |
+| Protocolo Apocalipse | Épica · 5 | 2 Corrompidas em todos os oponentes, a Sobrecarga explode na hora (não zera o ciclo) e você avança 2 casas por carta destruída. |
+
+> no código: `characters/alva/systems.ts`, `characters/alva/cards.ts`
 
 
 ### 21. Vinicius

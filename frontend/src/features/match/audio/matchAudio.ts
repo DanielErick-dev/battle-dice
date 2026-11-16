@@ -115,6 +115,20 @@ const EFFECT_SOUNDS: Record<TileEffectKind, (sounds: MatchSounds, effect: TileEf
   breezeArmed: (sounds) => sounds.bonus(),
   breezeStolen: (sounds) => sounds.penalty(),
   breezeResisted: (sounds) => sounds.shieldBlock(),
+  inversion: (sounds) => sounds.powerUp(),
+  tileInverted: (sounds, effect) =>
+    ["pushBack", "loseTurn", "discard", "drain", "hell"].includes(effect.inverted ?? "")
+      ? sounds.penalty()
+      : sounds.bonus(),
+  graveyardOpened: (sounds) => sounds.bonus(),
+  magnumOpus: (sounds) => sounds.powerUp(),
+  emp: (sounds) => sounds.thunder(),
+  memoryOverload: (sounds) => sounds.electricRush(1.2),
+  corrupted: (sounds) => sounds.penalty(),
+  firewall: (sounds) => sounds.shieldBlock(),
+  dataCollapse: (sounds) => sounds.penalty(),
+  alvaThrust: (sounds) => sounds.boost(),
+  apocalypse: (sounds) => sounds.thunder(),
 };
 
 function playTransition(previous: MatchView, next: MatchView, sounds: MatchSounds): void {

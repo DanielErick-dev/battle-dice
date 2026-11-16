@@ -29,7 +29,7 @@ export type GameCommand =
   | {
       type: "activateAbility";
       playerId: PlayerId;
-      /** Hand cards (Transmutation) or discard pile cards (Resurrection). */
+      /** Discard pile cards (Resurrection). */
       cardUids?: readonly string[];
       /** In SEAL_KINDS order. */
       sealTiles?: readonly TileId[];
@@ -53,6 +53,10 @@ export type GameCommand =
   /** Zarek sets down the Void's `index`th item: a harm opens a rift right after `tile`, a spell lands on it. */
   | { type: "placeVoid"; playerId: PlayerId; index: number; tile: TileId; doubled?: boolean }
   | { type: "plunderCards"; playerId: PlayerId; cardUids: readonly string[] }
+  /** The Alchemist's pick from the graveyard her Condenser or her cards opened. */
+  | { type: "raidGraveyard"; playerId: PlayerId; cardUids: readonly string[] }
+  /** Deletes one of Unidade Alva's Corrupted Cards, sacrificing `cardUid` with it. */
+  | { type: "purgeCorrupted"; playerId: PlayerId; cardUid: string }
   | { type: "answerWard"; playerId: PlayerId; use: boolean }
   /** A `blessing` on a blessing tile, a divine `cardId` on a relic. */
   | {

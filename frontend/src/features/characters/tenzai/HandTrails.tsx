@@ -6,7 +6,7 @@ import { useMemo, useRef } from "react";
 import { Vector3, type Group, type Mesh, type Object3D } from "three";
 import type { Element } from "@/game/domain/types";
 import { useAge } from "@/features/shared/three/useAge";
-import { FlameCard } from "../akane/FlameCard";
+import { PropCharm } from "./ElementCharms";
 import { handUnit, InHand } from "../core/inHand";
 import { ELEMENT_COLOR } from "./palette";
 
@@ -56,8 +56,9 @@ function HandElement({ hand, figure, element }: { hand: Object3D; figure: Object
     <group ref={root}>
       {element === "fire" && (
         <>
-          <FlameCard width={0.16} seed={1.3} glow={1.6} />
-          <FlameCard width={0.11} position={[0.04, 0.02, 0.03]} seed={4.1} glow={1.4} />
+          <group position-y={0.12}>
+            <PropCharm id="tenzaiFlame" height={0.3} glow={1.2} />
+          </group>
           <Sparkles count={10} scale={0.35} size={3} speed={2} color="#ffb347" />
         </>
       )}
@@ -73,18 +74,16 @@ function HandElement({ hand, figure, element }: { hand: Object3D; figure: Object
       {element === "earth" && (
         <group ref={spin}>
           {[0, 1, 2].map((index) => (
-            <mesh
+            <group
               key={index}
               position={[
                 Math.cos((index * Math.PI * 2) / 3) * 0.14,
                 0.03 * index,
                 Math.sin((index * Math.PI * 2) / 3) * 0.14,
               ]}
-              scale={0.045}
             >
-              <dodecahedronGeometry />
-              <meshStandardMaterial color={index === 1 ? "#a16207" : "#78350f"} flatShading />
-            </mesh>
+              <PropCharm id="tenzaiBoulder" height={0.08} />
+            </group>
           ))}
           <Sparkles count={10} scale={0.4} size={2} speed={0.8} color="#d6b37a" />
         </group>

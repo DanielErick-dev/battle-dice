@@ -5,12 +5,13 @@ import { playerIn, startDraft, updatePlayer } from "../core/draft";
 import { resolveWard } from "../board/harm";
 import { receiveGrace } from "../characters/seraphiel/seraph";
 import { takePlunder } from "../characters/warden/specters";
+import { raidGraveyard } from "../characters/alchemist/condenser";
 import { placeVoid } from "../characters/zarek/place";
-import { assertCanAct, KEEPS_TURN, pendingAnswer, settle } from "./shared";
+import { assertCanAct, currentPlayer, KEEPS_TURN, pendingAnswer, settle } from "./shared";
 import type { CommandHandlers } from "./types";
 
 export const abilityCommands: CommandHandlers<
-  "activateAbility" | "plunderCards" | "answerWard" | "chooseGrace" | "placeVoid"
+  "activateAbility" | "plunderCards" | "raidGraveyard" | "answerWard" | "chooseGrace" | "placeVoid"
 > = {
   // A free action on his own turn: a harm reshapes the board itself.
   placeVoid: (state, { playerId, ...placement }, deps) => {
@@ -49,6 +50,14 @@ export const abilityCommands: CommandHandlers<
     const draft = startDraft({ ...state, pendingPlunder: null }, deps.random);
     takePlunder(draft, pending, cardUids);
     return settle(draft, pending.victim, { endsTurn: pending.endsTurn, extraTurn: pending.extraTurn });
+  },
+
+  // The Alchemist takes her picks from the graveyard; play goes on as the move left it.
+  raidGraveyard: (state, { playerId, cardUids }, deps) => {
+    const pending = pendingAnswer(state, state.pendingRaid, "NO_RAID_PENDING", ({ owner }) => owner === playerId);
+    const draft = startDraft({ ...state, pendingRaid: null }, deps.random);
+    raidGraveyard(draft, pending, cardUids);
+    return settle(draft, currentPlayer(state).id, { endsTurn: pending.endsTurn, extraTurn: pending.extraTurn });
   },
 
   // Resumes a landing paused on the ward prompt.

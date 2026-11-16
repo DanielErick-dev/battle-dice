@@ -9,7 +9,6 @@ export const cardsLines: LogLines<
   | "cardDiscarded"
   | "cardTeleported"
   | "cardsFused"
-  | "cardTransmuted"
   | "cardsResurrected"
   | "energySacrificed"
 > = {
@@ -29,11 +28,6 @@ export const cardsLines: LogLines<
     line(event.playerId, `${who(event.playerId)} se teletransportou para a casa ${event.to}`),
   cardsFused: (event, { who, line }) =>
     line(event.playerId, `${who(event.playerId)} fundiu cartas em ${cardText(event.card.cardId, true).name}`),
-  cardTransmuted: (event, { who, line }) =>
-    line(
-      event.playerId,
-      `${who(event.playerId)} transmutou ${cardText(event.from.cardId, event.from.fused).name} em ${cardText(event.to.cardId, event.to.fused).name}`,
-    ),
   cardsResurrected: (event, { who, line }) =>
     line(event.playerId, `${who(event.playerId)} ressuscitou ${plural(event.cards.length, "carta", "cartas")}`),
   energySacrificed: (event, { who, line }) =>

@@ -106,7 +106,7 @@ export function moveHiddenTrap(draft: Draft, tile: TileId): void {
   );
 }
 
-function applyCurse(draft: Draft, playerId: PlayerId, curse: TrapCurse): void {
+export function applyCurse(draft: Draft, playerId: PlayerId, curse: TrapCurse): void {
   if (curse === "discard") {
     const card = takeRandomCard(draft, playerId);
     draft.events.push({ type: "trapCursed", playerId, curse, card, energyLost: 0 });

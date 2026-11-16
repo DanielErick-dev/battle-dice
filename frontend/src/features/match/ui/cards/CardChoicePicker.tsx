@@ -48,7 +48,7 @@ interface CardChoicePickerProps {
   cards: readonly CardInstance[];
   /** How many may be picked. */
   max: number;
-  /** Exactly `max` must be picked (a Transmutation's sacrifice; a plunder, with no `onCancel` to back out). */
+  /** Exactly `max` must be picked (a graveyard pick or a plunder, with no `onCancel` to back out). */
   required?: boolean;
   confirmLabel: string;
   onPick: (cardUids: string[]) => void;

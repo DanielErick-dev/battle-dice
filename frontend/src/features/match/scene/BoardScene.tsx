@@ -1,8 +1,8 @@
 "use client";
 
-import { Preload } from "@react-three/drei";
+import { PerformanceMonitor, Preload } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { Suspense, useMemo } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { Vector3 } from "three";
 import { getTile } from "@/game/domain/board/board";
 import { withRifts } from "@/game/domain/characters/zarek/rifts";
@@ -122,15 +122,22 @@ export default function BoardScene({
   };
   const focusRealm = realmAt(board, focusTile(view));
 
+  // Sustained low frame rate (a hot laptop GPU, a weak phone): drop to plain resolution and cheap antialiasing.
+  const [strained, setStrained] = useState(false);
+  const effectsQuality: EffectsQuality = strained ? "low" : quality;
+
   // Antialiasing happens in the effect composer (multisampling), not on the canvas.
   return (
     <Canvas
       shadows="percentage"
-      dpr={quality === "high" ? [1, 2] : 1}
+      // Capped at 1.5×: at 2× a big screen renders ~4× the pixels for little visible gain, and the GPU overheats.
+      dpr={effectsQuality === "high" ? [1, 1.5] : 1}
       camera={{ fov: 40 }}
       gl={{ antialias: false }}
       onCreated={({ gl }) => {
         watchContext(gl.domElement);
+        // Dev only: lets the console read gl.info (geometries, textures, programs) while hunting slowdowns.
+        if (process.env.NODE_ENV !== "production") Object.assign(window, { __battleDiceGl: gl });
         // Hell's Drag's hand is cut at the floor as it comes out of it (see HellHand).
         gl.localClippingEnabled = true;
       }}
@@ -191,29 +198,33 @@ export default function BoardScene({
             </Suspense>
           ))}
 
+          {/* Each token apart too: a chair or prop loading the first time it's needed hides only that figure. */}
           {view.players.map((player, seat) => (
-            <PlayerToken
-              key={player.id}
-              player={player}
-              character={characterFor(player.id)}
-              nameTag={
-                view.players.length > 1
-                  ? {
-                      text: `J${seat + 1} ${player.name.split(" ")[0]}${fireStatus(player)}`,
-                      seat: tileSeat(view.players, seat),
-                    }
-                  : undefined
-              }
-              color={playerColor(player.id)}
-              target={tokenTarget(player, view, board, layout)}
-              pathDirection={pathDirection(board, layout, player.position)}
-              signals={tokenSignals(view, player)}
-              wandTip={wandTips.get(player.id)}
-              faceToward={judgedBy(view, layout, player.id)}
-            />
+            <Suspense key={player.id} fallback={null}>
+              <PlayerToken
+                player={player}
+                character={characterFor(player.id)}
+                nameTag={
+                  view.players.length > 1
+                    ? {
+                        text: `J${seat + 1} ${player.name.split(" ")[0]}${fireStatus(player)}`,
+                        seat: tileSeat(view.players, seat),
+                      }
+                    : undefined
+                }
+                color={playerColor(player.id)}
+                target={tokenTarget(player, view, board, layout)}
+                pathDirection={pathDirection(board, layout, player.position)}
+                signals={tokenSignals(view, player)}
+                wandTip={wandTips.get(player.id)}
+                faceToward={judgedBy(view, layout, player.id)}
+              />
+            </Suspense>
           ))}
           {OVERLAY_EFFECTS.map((Effect, index) => (
-            <Effect key={index} fx={fx} />
+            <Suspense key={index} fallback={null}>
+              <Effect fx={fx} />
+            </Suspense>
           ))}
 
           {[0, 1].map((index) => (
@@ -243,7 +254,8 @@ export default function BoardScene({
         <Preload all />
         <SceneWarmup models={models} onReady={onReady} />
       </Suspense>
-      <PostEffects quality={quality} />
+      <PerformanceMonitor onDecline={() => setStrained(true)} flipflops={1} />
+      <PostEffects quality={effectsQuality} />
     </Canvas>
   );
 }

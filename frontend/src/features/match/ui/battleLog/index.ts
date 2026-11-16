@@ -17,6 +17,8 @@ import { verdictLines } from "./verdict";
 import { akaneLines } from "./akane";
 import { viniciusLines } from "./vinicius";
 import { tenzaiLines } from "./tenzai";
+import { alchemistLines } from "./alchemist";
+import { alvaLines } from "./alva";
 import { silentLines } from "./silent";
 import type { LogLine, LogLines, LogTools } from "./lines";
 
@@ -40,6 +42,8 @@ const LINES: LogLines<GameEvent["type"]> = {
   ...akaneLines,
   ...viniciusLines,
   ...tenzaiLines,
+  ...alchemistLines,
+  ...alvaLines,
   ...silentLines,
 };
 

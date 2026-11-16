@@ -5,6 +5,8 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { type Group, type Mesh } from "three";
 import { TILE_SIZE, type Vec3 } from "@/features/shared/board/boardLayout";
+import { FIGURE_HEIGHT } from "@/features/characters/core/figure";
+import { preloadProps, useFittedProp } from "@/features/characters/core/props";
 import { useAge } from "@/features/shared/three/useAge";
 import { clamp01, easeOut } from "./palette";
 
@@ -18,7 +20,14 @@ function jitter(seed: number): number {
   return x - Math.floor(x) - 0.5;
 }
 
-/** A wall of stacked stones across the path; it sinks and cracks as its hp drops. */
+preloadProps(["tenzaiBoulder"]);
+
+const ROWS = 4;
+const PER_ROW = 3;
+/** Always as tall as a figure, so it reads as a real barrier next to whoever it blocks. */
+const WALL_HEIGHT = FIGURE_HEIGHT;
+
+/** A wall of stacked boulders (Meshy) across the path; stones fall off from the top as its hp drops. */
 export function StoneWall({
   position,
   heading,
@@ -35,26 +44,29 @@ export function StoneWall({
   const root = useRef<Group>(null);
   const age = useAge();
   const health = maxHp > 0 ? hp / maxHp : 0;
+  const boulder = useFittedProp("tenzaiBoulder");
   const stones = useMemo(() => {
-    const rows = 3;
-    const perRow = 4;
-    const width = TILE_SIZE * 1.15;
-    return Array.from({ length: rows * perRow }, (_, index) => {
-      const row = Math.floor(index / perRow);
-      const column = index % perRow;
-      const offset = row % 2 === 0 ? 0 : width / perRow / 2;
+    const width = TILE_SIZE * 1.2;
+    const cell = width / PER_ROW;
+    const rowHeight = WALL_HEIGHT / ROWS;
+    const [boulderWidth, , boulderDepth] = boulder.size;
+    return Array.from({ length: ROWS * PER_ROW }, (_, index) => {
+      const row = Math.floor(index / PER_ROW);
+      const column = index % PER_ROW;
+      const offset = row % 2 === 0 ? 0 : cell / 2 - cell / 4;
+      const grow = 1.25 + jitter(seed * 3 + index) * 0.2;
       return {
         key: index,
         position: [
-          -width / 2 + width / perRow / 2 + column * (width / perRow) + offset - (row % 2 ? width / perRow / 4 : 0),
-          0.22 + row * 0.38,
-          jitter(seed + index) * 0.08,
+          -width / 2 + cell / 2 + column * cell + offset - (row % 2 ? cell / 4 : 0),
+          row * rowHeight * 0.92,
+          jitter(seed + index) * 0.1,
         ] as Vec3,
-        scale: [width / perRow - 0.04, 0.36, 0.42 + jitter(seed * 3 + index) * 0.08] as Vec3,
-        tint: index % 3 === 0 ? "#78350f" : index % 3 === 1 ? "#92400e" : "#a16207",
+        scale: [(cell * grow) / boulderWidth, rowHeight * 1.2, (0.7 * grow) / boulderDepth] as Vec3,
+        turn: jitter(seed * 7 + index) * 0.8,
       };
     });
-  }, [seed]);
+  }, [seed, boulder.size]);
 
   // Shown health eases down over a run of punches, knocking stones off from the top one by one.
   const shown = useRef(health);
@@ -82,16 +94,16 @@ export function StoneWall({
             ref={(mesh) => {
               parts.current[index] = mesh;
             }}
+            geometry={boulder.geometry}
+            material={boulder.material}
             position={stone.position}
+            rotation-y={stone.turn}
             scale={stone.scale}
             castShadow
-          >
-            <boxGeometry />
-            <meshStandardMaterial color={stone.tint} roughness={0.95} flatShading />
-          </mesh>
+          />
         ))}
       </group>
-      <Html center position-y={1.75} zIndexRange={[15, 0]} style={{ pointerEvents: "none" }}>
+      <Html center position-y={WALL_HEIGHT + 0.35} zIndexRange={[15, 0]} style={{ pointerEvents: "none" }}>
         <div className="rounded-md bg-black/75 px-1.5 py-0.5 font-mono text-[10px] font-black whitespace-nowrap text-amber-300 ring-1 ring-amber-500/40">
           🪨 {hp}/{maxHp}
         </div>

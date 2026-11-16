@@ -65,14 +65,8 @@ Ideias para discutir e cortar. Os números são ponto de partida.
 | Maldição da Bruxa | Rara · 2 | Mira: o oponente perde os bônus e a carta de lançamento que esperavam a rolagem. |
 | Voo Noturno | Épica · 3 | Levitação por 1 vez, sem gastar a habilidade. |
 
-### Alquimista Esmeralda (Transmutação)
-Resolve a queixa de "não ter carta para transmutar".
-| Carta | Raridade · custo | Efeito |
-|---|---|---|
-| Reagente | Comum · 1 | Compre 1 carta (um ingrediente). |
-| Frasco Instável | Incomum · 2 | Mira: o oponente perde 2 de energia e você ganha 1. |
-| Destilação | Rara · 2 | Transmute 1 carta da mão sem sacrificar outra (sobe 1 nível). |
-| Pedra Filosofal | Épica · 3 | A próxima armadilha visível à frente vira uma casa de energia, para sempre. |
+### Alquimista Esmeralda (Grande Inversão) · implementadas
+As 5 cartas estão em `docs/regras.md` §4 e em `characters/alchemist/cards.ts`: Passo Catalítico, Contaminação de Polaridade, Saqueadora de Cemitério, Troca Equivalente Estrita e Grande Obra da Pedra Filosofal.
 
 ### Monge Ancião (Fúria Adormecida)
 | Carta | Raridade · custo | Efeito |
@@ -194,13 +188,8 @@ Cada carta conta o seu elemento para a passiva (Despertar Primordial).
 | Atraso | Rara · 2 | Mira: a próxima rolagem do oponente anda de ré. |
 | Dobra do Tempo | Lendária · 4 | Você joga de novo depois desta vez. |
 
-### Unidade Alva (Canhão de Plasma)
-| Carta | Raridade · custo | Efeito |
-|---|---|---|
-| Mira Laser | Comum · 1 | Mira: empurra 2 casas. |
-| Escudo de Plasma | Incomum · 2 | Ganha o Escudo Arcano. |
-| Míssil | Rara · 2 | Destrói a próxima armadilha visível à frente (até 10 casas). |
-| Sobrecarga | Épica · 3 | +3 de carga na habilidade, mas perde 2 de energia. |
+### Unidade Alva (Pulso Eletromagnético) · implementadas
+As 5 cartas estão em `docs/regras.md` §20 e em `characters/alva/cards.ts`: Injeção de Malware, Propulsor de Sobrecarga, Trava de Firewall, Colapso Gravitacional de Dados e Protocolo Apocalipse.
 
 ## Próximos passos (Daniel, 29/10)
 

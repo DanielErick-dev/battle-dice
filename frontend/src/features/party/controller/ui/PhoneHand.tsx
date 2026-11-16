@@ -74,7 +74,7 @@ export function PhoneHand({
         <h2 className={PHONE.label}>
           Mão {player.hand.length}/{HAND_LIMIT}
         </h2>
-        <span className="text-[11px] text-zinc-500">Baralho: {player.deck.length}</span>
+        <span className="text-[11px] font-semibold text-zinc-200">Baralho: {player.deck.length}</span>
       </div>
 
       {fusible.map((cardId) => (
@@ -94,7 +94,7 @@ export function PhoneHand({
       )}
 
       {player.hand.length === 0 ? (
-        <p className="hud-panel px-4 py-3 text-sm text-zinc-400">
+        <p className="rounded-2xl bg-white/[0.07] px-4 py-3 text-sm text-zinc-200 ring-1 ring-white/15">
           Sem cartas. Pare numa casa <span className="font-bold text-amber-300">Carta</span> para comprar.
         </p>
       ) : (
@@ -228,7 +228,7 @@ function CardSheet({ card, reason, targets, elements, onPlay, onClose }: CardShe
                   <button type="button" onClick={() => onPlay({ targetId: target.id })} className={PHONE.row}>
                     <Avatar name={target.name} color={playerColor(target.id)} className="size-9 text-base" />
                     <span className="min-w-0 flex-1 truncate text-base font-black">{target.name}</span>
-                    <span className="font-mono text-xs text-zinc-400">casa {target.position}</span>
+                    <span className="font-mono text-xs text-zinc-200">casa {target.position}</span>
                   </button>
                 </li>
               ))}

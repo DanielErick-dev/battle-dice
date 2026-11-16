@@ -14,6 +14,7 @@ import { BlessingBadges } from "@/features/match/ui/hud/BlessingBadges";
 import { DiceFace } from "@/features/match/ui/hud/DiceFace";
 import { ErrorToast } from "@/features/match/ui/hud/ErrorToast";
 import { PlayersPanel } from "@/features/match/ui/hud/PlayersPanel";
+import { CorruptedTray } from "@/features/match/ui/hud/CorruptedTray";
 import { VoidHold } from "@/features/match/ui/hud/VoidHold";
 import { PendingPrompts } from "@/features/match/ui/screen/PendingPrompts";
 import { useAbilityUse } from "@/features/match/ui/screen/useAbilityUse";
@@ -22,7 +23,7 @@ import { statusChips } from "../model/statusChips";
 import { Avatar } from "./Avatar";
 import { PhoneHand } from "./PhoneHand";
 import { PhoneTilePicker } from "./PhoneTilePicker";
-import { PHONE } from "./phoneStyles";
+import { PHONE, PHONE_PANEL } from "./phoneStyles";
 
 interface PhoneMatchProps {
   store: MatchStore;
@@ -69,13 +70,17 @@ function PhoneTable({ store, view, plainBoard, room, onLeave }: PhoneTableProps)
 
   if (!me) return null;
   return (
-    <main className={PHONE.screen}>
+    <main
+      className={PHONE.screen}
+      // The player's own colour washes the top of the screen.
+      style={{ backgroundImage: `radial-gradient(100% 40% at 50% 0%, ${playerColor(me.id)}33, transparent 70%)` }}
+    >
       <div className={cn(PHONE.column, "pb-8")}>
         <header className="flex items-center gap-3">
           <Avatar name={character?.name ?? me.name} color={playerColor(me.id)} className="size-12" />
           <div className="min-w-0 flex-1">
             <p className="truncate text-lg leading-tight font-black">{me.name}</p>
-            <p className="truncate text-xs text-zinc-400">
+            <p className="truncate text-xs text-zinc-200">
               {character ? `${character.epithet} · ` : ""}casa {me.position} · sala{" "}
               <span className="font-mono font-bold tracking-widest">{room}</span>
             </p>
@@ -84,13 +89,17 @@ function PhoneTable({ store, view, plainBoard, room, onLeave }: PhoneTableProps)
             type="button"
             onClick={onLeave}
             aria-label="Sair da sala"
-            className="grid size-11 place-items-center rounded-full bg-white/5 text-zinc-400 ring-1 ring-white/10 active:bg-white/15"
+            className="grid size-11 place-items-center rounded-full bg-white/5 text-zinc-100 ring-1 ring-white/20 active:bg-white/15"
           >
             <LogOut className="size-5" />
           </button>
         </header>
 
-        <section aria-label="Seu estado" className="hud-panel flex flex-col gap-2 p-3">
+        <section
+          aria-label="Seu estado"
+          className={cn(PHONE_PANEL, "flex flex-col gap-2 p-3")}
+          style={{ boxShadow: `inset 0 1px 0 ${playerColor(me.id)}55, 0 0 24px ${playerColor(me.id)}22` }}
+        >
           <EnergyMeter energy={me.energy} className="justify-between" />
           <AbilityMeter
             player={me}
@@ -117,7 +126,7 @@ function PhoneTable({ store, view, plainBoard, room, onLeave }: PhoneTableProps)
         <p
           key={event?.id ?? 0}
           aria-live="polite"
-          className="animate-in fade-in min-h-10 rounded-xl bg-white/[0.04] px-3 py-2 text-sm text-zinc-300 duration-300"
+          className="animate-in fade-in min-h-10 rounded-xl border-l-2 border-amber-300/70 bg-white/[0.07] px-3 py-2 text-sm text-zinc-100 duration-300"
         >
           {event?.text ?? "A partida começou. Boa sorte!"}
         </p>
@@ -134,6 +143,10 @@ function PhoneTable({ store, view, plainBoard, room, onLeave }: PhoneTableProps)
         <div className="flex justify-center">
           <ErrorToast error={view.error} />
         </div>
+
+        {view.winnerId === null && (
+          <CorruptedTray player={me} canAct={controls.canRoll} onPurge={store.purgeCorrupted} />
+        )}
 
         {view.winnerId === null && (
           <PhoneHand
@@ -169,7 +182,7 @@ function PhoneTable({ store, view, plainBoard, room, onLeave }: PhoneTableProps)
               className="flex h-11 items-center justify-between rounded-xl px-1 text-left"
             >
               <span className={PHONE.label}>Mesa · todos os jogadores</span>
-              <ChevronDown className={cn("size-4 text-zinc-400 transition-transform", !showTable && "-rotate-90")} />
+              <ChevronDown className={cn("size-4 text-amber-200 transition-transform", !showTable && "-rotate-90")} />
             </button>
             {showTable && (
               <div className="[&>section]:w-full">
@@ -178,6 +191,7 @@ function PhoneTable({ store, view, plainBoard, room, onLeave }: PhoneTableProps)
                   activePlayerId={view.activePlayerId}
                   viewerId={controls.viewerId}
                   board={board}
+                  inversion={view.inversion}
                 />
               </div>
             )}
@@ -242,7 +256,7 @@ interface TurnPanelProps {
 function TurnPanel({ view, myMove, canRoll, waitingName, winnerName, onRoll }: TurnPanelProps) {
   const roll = view.lastRoll;
   return (
-    <section aria-label="Dado" className="hud-panel flex items-center gap-4 p-4">
+    <section aria-label="Dado" className={cn(PHONE_PANEL, "flex items-center gap-4 p-4")}>
       {/* A boosted or doubled roll goes past a die's six faces: the total as a number then. */}
       {roll && !view.isRolling && roll.total > 6 ? (
         <span className="grid size-20 shrink-0 place-items-center rounded-2xl bg-white/10 text-4xl font-black text-orange-400">

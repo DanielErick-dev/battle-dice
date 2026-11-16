@@ -28,6 +28,22 @@ import {
   riptideLash,
 } from "../characters/tenzai/cards";
 import type { Element } from "../characters/tenzai/types";
+import {
+  alchemyBlocker,
+  catalyticStep,
+  contaminate,
+  magnumOpus,
+  raidGraveyards,
+  strictEquivalence,
+} from "../characters/alchemist/cards";
+import {
+  alvaBlocker,
+  apocalypseProtocol,
+  dataCollapse,
+  firewallLock,
+  malwareInjection,
+  overloadThruster,
+} from "../characters/alva/cards";
 import type { GameState, Player, PlayerId } from "../core/state";
 
 /** Charge the Void Hunger feeds Zarek's Void. */
@@ -76,6 +92,11 @@ export function exclusiveBlocker(table: HarmTable, player: Player, cardId: CardI
         : "NO_TARGET_AHEAD";
     case "elementalExchange":
       return exchangeSource(table.elementals, player.id, null) ? null : "NO_CREATION";
+    case "catalyticStep":
+    case "strictEquivalence":
+      return alchemyBlocker(table, player, cardId);
+    case "overloadThruster":
+      return alvaBlocker(table.players, player, cardId);
     default:
       return null;
   }
@@ -180,6 +201,36 @@ export function playExclusive(
       return;
     case "elementalConvergence":
       convergeAll(draft, playerId);
+      return;
+    case "catalyticStep":
+      catalyticStep(draft, playerId);
+      return;
+    case "polarityContamination":
+      if (targetId !== null) contaminate(draft, playerId, targetId);
+      return;
+    case "graveyardRaider":
+      raidGraveyards(draft, playerId);
+      return;
+    case "strictEquivalence":
+      if (targetId !== null) strictEquivalence(draft, playerId, targetId);
+      return;
+    case "magnumOpus":
+      magnumOpus(draft, playerId);
+      return;
+    case "malwareInjection":
+      if (targetId !== null) malwareInjection(draft, playerId, targetId);
+      return;
+    case "overloadThruster":
+      overloadThruster(draft, playerId);
+      return;
+    case "firewallLock":
+      if (targetId !== null) firewallLock(draft, playerId, targetId);
+      return;
+    case "dataCollapse":
+      if (targetId !== null) dataCollapse(draft, playerId, targetId);
+      return;
+    case "apocalypseProtocol":
+      apocalypseProtocol(draft, playerId);
       return;
     case "riftCall": {
       if (targetId === null) return;

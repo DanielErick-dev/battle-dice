@@ -1,3 +1,4 @@
+import type { InvertedOutcome } from "@/game/domain/characters/alchemist/types";
 import type { AbilityId } from "@/game/domain/abilities/ability";
 import type { AimWard } from "@/game/domain/core/playerStatus";
 import type { CardId } from "@/game/domain/cards/catalog";
@@ -120,7 +121,27 @@ export type TileEffectKind =
   | "breezeArmed"
   /** Over Tenzai; `count` the stolen roll. */
   | "breezeStolen"
-  | "breezeResisted";
+  | "breezeResisted"
+  /** The Alchemist's Great Inversion takes the board; `count` the rounds. */
+  | "inversion"
+  /** Over whoever stopped there: the tile acted the other way round (`outcome`, by `count`). */
+  | "tileInverted"
+  /** Her Condenser opened a graveyard; `count` the cards to pick. */
+  | "graveyardOpened"
+  | "magnumOpus"
+  /** Unidade Alva's EMP; `count` the opponents blacked out. */
+  | "emp"
+  /** Her Memory Overload went off; `count` the cards burnt. */
+  | "memoryOverload"
+  /** Over whoever got her spyware; `count` the Corrupted Cards. */
+  | "corrupted"
+  /** Over the one locked; `count` the rounds. */
+  | "firewall"
+  /** Over the one thrown back; `count` the cards weighing on them. */
+  | "dataCollapse"
+  /** `count` the tiles she flies. */
+  | "alvaThrust"
+  | "apocalypse";
 
 /** A tile effect or turn notice; without travel, `from` and `to` are the same tile. */
 export interface TileEffectView {
@@ -141,6 +162,8 @@ export interface TileEffectView {
   realm?: RealmKind;
   /** Tenzai's element. */
   element?: Element;
+  /** What a tile turned into under the Alchemist's Inversion. */
+  inverted?: InvertedOutcome;
   blessing?: {
     kind: Blessing;
     energyGained: number;

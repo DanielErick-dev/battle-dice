@@ -5,6 +5,7 @@ import { aimWard } from "../core/playerStatus";
 import { judgeAim } from "../characters/themis/verdict";
 import { playerIn, updatePlayer, type Draft } from "../core/draft";
 import { throwOnPile } from "./decks";
+import { feedCondenser } from "../characters/alchemist/condenser";
 import type { DiceRoller } from "../core/dice";
 import { cardBlocker, nextPortalAhead } from "./blocker";
 import { validSacrifices, validTarget, validValue, type CardChoice } from "./choice";
@@ -44,6 +45,7 @@ export function playCard(
     discard: throwOnPile(current.discard, [card, ...sacrificed]),
   }));
   draft.events.push({ type: "cardPlayed", playerId, card, targetId, value });
+  feedCondenser(draft, 1 + sacrificed.length);
   for (const burnt of sacrificed) {
     draft.events.push({ type: "cardDiscarded", playerId, card: burnt, hand: playerIn(draft, playerId).hand });
   }

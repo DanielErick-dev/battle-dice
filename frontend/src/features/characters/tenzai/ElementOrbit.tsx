@@ -5,7 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import { type Group } from "three";
 import type { Element } from "@/game/domain/types";
-import { FlameCard } from "../akane/FlameCard";
+import { PropCharm, WaterDrop } from "./ElementCharms";
 import { CONVERGENCE, ELEMENT_COLOR } from "./palette";
 
 /** The elements he has bent since his last Convergence, circling his waist. */
@@ -33,21 +33,11 @@ function ElementCharm({ element, bright }: { element: Element; bright: boolean }
   const glow = bright ? 2.4 : 1.2;
   switch (element) {
     case "earth":
-      return (
-        <mesh scale={0.11}>
-          <dodecahedronGeometry />
-          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={glow * 0.4} flatShading />
-        </mesh>
-      );
+      return <PropCharm id="tenzaiBoulder" height={0.24} />;
     case "water":
-      return (
-        <mesh scale={0.1} rotation-x={Math.PI / 2}>
-          <torusGeometry args={[1, 0.35, 8, 16]} />
-          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={glow} transparent opacity={0.85} />
-        </mesh>
-      );
+      return <WaterDrop color={color} glow={glow} />;
     case "fire":
-      return <FlameCard width={0.22} position={[0, -0.1, 0]} seed={2.7} glow={glow} />;
+      return <PropCharm id="tenzaiFlame" height={0.34} glow={glow * 0.8} />;
     case "wind":
       return (
         <mesh scale={0.11} rotation-z={0.6}>

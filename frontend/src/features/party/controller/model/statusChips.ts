@@ -1,5 +1,8 @@
 import { ELEMENT_NAME } from "@/features/match/ui/hud/effectCopy/tenzai";
 import type { Player } from "@/game/domain/types";
+import { CONDENSER_CARDS } from "@/game/domain/characters/alchemist/condenser";
+import { isAlchemist } from "@/game/domain/characters/alchemist/inversion";
+import { inBrownout, isAlva, isBlackedOut, OVERLOAD_ROUNDS } from "@/game/domain/characters/alva/systems";
 
 /** A short status shown under the phone's character: what's on them right now. */
 export interface StatusChip {
@@ -23,6 +26,9 @@ export function statusChips(player: Player): StatusChip[] {
     chips.push({ label: `Perde a vez${player.skipTurns > 1 ? ` ×${player.skipTurns}` : ""}`, tone: "bad" });
   if (player.chained > 0) chips.push({ label: `Acorrentado · ${turns(player.chained)}`, tone: "bad" });
   if (player.silencedTurns > 0) chips.push({ label: "Silenciado", tone: "bad" });
+  if (isBlackedOut(player)) chips.push({ label: "Apagão do PEM", tone: "bad" });
+  if (inBrownout(player)) chips.push({ label: "Subtensão", tone: "bad" });
+  if (player.corrupted > 0) chips.push({ label: `Corrompidas ×${player.corrupted}`, tone: "bad" });
   if (player.burning > 0) chips.push({ label: `Pegando fogo · ${turns(player.burning)}`, tone: "bad" });
   if (player.snowbound)
     chips.push({
@@ -36,6 +42,12 @@ export function statusChips(player: Player): StatusChip[] {
   if (player.tenzai.converged > 0)
     chips.push({ label: `Convergência · ${turns(player.tenzai.converged)}`, tone: "good" });
   if (player.tenzai.combustion) chips.push({ label: "Dado de combustão", tone: "good" });
+  if (isAlchemist(player))
+    chips.push({
+      label: `Condensador ${Math.min(player.alchemist.condensed, CONDENSER_CARDS)}/${CONDENSER_CARDS}`,
+      tone: "info",
+    });
+  if (isAlva(player)) chips.push({ label: `Sobrecarga ${player.alva.overload}/${OVERLOAD_ROUNDS}`, tone: "info" });
   if (player.tenzai.orbit.length > 0)
     chips.push({
       label: `Órbita ${player.tenzai.orbit.map((element) => ELEMENT_NAME[element]).join(" · ")}`,

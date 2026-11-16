@@ -152,6 +152,17 @@ const CASES: Readonly<Record<TileEffectKind, readonly Details[]>> = {
   breezeArmed: [{}],
   breezeStolen: [{ count: 6 }],
   breezeResisted: [{}],
+  inversion: [{ count: 2 }],
+  tileInverted: [{ inverted: "advance", count: 4 }, { inverted: "extraTurns", count: 1 }, { inverted: "resisted" }],
+  graveyardOpened: [{ count: 1 }, { count: 3 }],
+  magnumOpus: [{ count: 2 }],
+  emp: [{ count: 3 }],
+  memoryOverload: [{ count: 5 }, { count: 0 }],
+  corrupted: [{ count: 2 }],
+  firewall: [{ count: 2 }],
+  dataCollapse: [{ count: 8 }],
+  alvaThrust: [{ count: 10 }],
+  apocalypse: [{}],
 };
 
 const nameOf = (id: string) => (id === "p1" ? "Bruxa" : null);

@@ -42,6 +42,16 @@ export const CARD_PALETTE: Readonly<Record<CardId, { from: string; to: string }>
   forcedTailwind: { from: "#34d399", to: "#022c22" },
   elementalExchange: { from: "#f97316", to: "#1e1b4b" },
   elementalConvergence: { from: "#67e8f9", to: "#0f172a" },
+  catalyticStep: { from: "#10b981", to: "#052e16" },
+  polarityContamination: { from: "#a855f7", to: "#1e1b4b" },
+  graveyardRaider: { from: "#6ee7b7", to: "#18181b" },
+  strictEquivalence: { from: "#8b5cf6", to: "#0f172a" },
+  magnumOpus: { from: "#dc2626", to: "#1c1917" },
+  malwareInjection: { from: "#65a30d", to: "#0f172a" },
+  overloadThruster: { from: "#0284c7", to: "#0f172a" },
+  firewallLock: { from: "#0369a1", to: "#082f49" },
+  dataCollapse: { from: "#7c3aed", to: "#0f172a" },
+  apocalypseProtocol: { from: "#b91c1c", to: "#0f172a" },
 };
 
 /** Painted illustrations (public/cards/); the drawn artwork stays as the fallback if one fails to load. */
@@ -61,6 +71,16 @@ const CARD_IMAGES: Partial<Record<CardId, string>> = {
   riptideLash: "/cards/riptideLash.webp",
   forcedTailwind: "/cards/forcedTailwind.webp",
   elementalConvergence: "/cards/elementalConvergence.webp",
+  catalyticStep: "/cards/catalyticStep.webp",
+  polarityContamination: "/cards/polarityContamination.webp",
+  graveyardRaider: "/cards/graveyardRaider.webp",
+  strictEquivalence: "/cards/strictEquivalence.webp",
+  magnumOpus: "/cards/magnumOpus.webp",
+  malwareInjection: "/cards/malwareInjection.webp",
+  overloadThruster: "/cards/overloadThruster.webp",
+  firewallLock: "/cards/firewallLock.webp",
+  dataCollapse: "/cards/dataCollapse.webp",
+  apocalypseProtocol: "/cards/apocalypseProtocol.webp",
 };
 
 /** The painted image to show, or null to draw the card (no image, or this one already failed to load). */

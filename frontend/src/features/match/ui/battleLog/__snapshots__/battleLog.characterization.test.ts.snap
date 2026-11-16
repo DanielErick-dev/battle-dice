@@ -58,6 +58,20 @@ exports[`battle log lines, one per branch > advanceTriggered > case 0 1`] = `
 }
 `;
 
+exports[`battle log lines, one per branch > alvaThrust > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "⚡ J1 (Bruxa Carmesim) voou 10 casas com os propulsores",
+}
+`;
+
+exports[`battle log lines, one per branch > apocalypseProtocol > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "⚡ J1 (Bruxa Carmesim) iniciou o Protocolo Apocalipse",
+}
+`;
+
 exports[`battle log lines, one per branch > armourHeld > case 0 1`] = `
 {
   "actor": "p1",
@@ -188,6 +202,13 @@ exports[`battle log lines, one per branch > breezeStolen > case 0 1`] = `
 }
 `;
 
+exports[`battle log lines, one per branch > brownoutSapped > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "⚡ Subtensão: o movimento de J1 (Bruxa Carmesim) caiu de 6 para 3",
+}
+`;
+
 exports[`battle log lines, one per branch > cardBlocked > case 0 1`] = `
 {
   "actor": "p1",
@@ -229,13 +250,6 @@ exports[`battle log lines, one per branch > cardTeleported > case 0 1`] = `
 {
   "actor": "p1",
   "text": "J1 (Bruxa Carmesim) se teletransportou para a casa 9",
-}
-`;
-
-exports[`battle log lines, one per branch > cardTransmuted > case 0 1`] = `
-{
-  "actor": "p1",
-  "text": "J1 (Bruxa Carmesim) transmutou Passo do Vento em Vendaval",
 }
 `;
 
@@ -302,10 +316,26 @@ exports[`battle log lines, one per branch > combustionReady > case 0 1`] = `
 }
 `;
 
+exports[`battle log lines, one per branch > condenserFed > case 0 1`] = `null`;
+
 exports[`battle log lines, one per branch > convergenceAwakened > case 0 1`] = `
 {
   "actor": "p1",
   "text": "✨ J1 (Bruxa Carmesim) entrou na Convergência: intocável por 2 rodadas",
+}
+`;
+
+exports[`battle log lines, one per branch > corruptedInjected > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "⚡ J1 (Bruxa Carmesim) injetou 2 Cartas Corrompidas na mão de J2 (Bjorn)",
+}
+`;
+
+exports[`battle log lines, one per branch > corruptedPurged > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "⚡ J1 (Bruxa Carmesim) apagou uma Carta Corrompida sacrificando Passo do Vento",
 }
 `;
 
@@ -320,6 +350,13 @@ exports[`battle log lines, one per branch > crownGained > case 1 1`] = `
 {
   "actor": "p1",
   "text": "J1 (Bruxa Carmesim) ganhou a Coroa Seráfica",
+}
+`;
+
+exports[`battle log lines, one per branch > dataCollapsed > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "⚡ Colapso de Dados: as 8 cartas de J2 (Bjorn) viraram peso e o arremessaram para trás",
 }
 `;
 
@@ -425,6 +462,13 @@ exports[`battle log lines, one per branch > emberStepReady > case 0 1`] = `
 }
 `;
 
+exports[`battle log lines, one per branch > empPulsed > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "⚡ J1 (Bruxa Carmesim) disparou o PEM: 1 oponente ficou sem cartas e sem habilidade",
+}
+`;
+
 exports[`battle log lines, one per branch > enchantmentStirred > case 0 1`] = `
 {
   "actor": "p1",
@@ -495,6 +539,13 @@ exports[`battle log lines, one per branch > fireQuenched > case 1 1`] = `
 }
 `;
 
+exports[`battle log lines, one per branch > firewallLocked > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "⚡ J2 (Bjorn) ficou travado pelo Firewall: sem cartas por 2 rodadas",
+}
+`;
+
 exports[`battle log lines, one per branch > flamesFaded > case 0 1`] = `null`;
 
 exports[`battle log lines, one per branch > flamesLit > case 0 1`] = `
@@ -549,6 +600,27 @@ exports[`battle log lines, one per branch > gambleRolled > case 1 1`] = `
 exports[`battle log lines, one per branch > gameRestarted > case 0 1`] = `null`;
 
 exports[`battle log lines, one per branch > graceOffered > case 0 1`] = `null`;
+
+exports[`battle log lines, one per branch > graveyardOpened > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "⚗️ J1 (Bruxa Carmesim) abriu o próprio cemitério para pegar 1 carta",
+}
+`;
+
+exports[`battle log lines, one per branch > graveyardOpened > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "⚗️ J1 (Bruxa Carmesim) abriu os cemitérios para pegar 3 cartas",
+}
+`;
+
+exports[`battle log lines, one per branch > graveyardRaided > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "⚗️ J1 (Bruxa Carmesim) pegou do cemitério: Passo do Vento",
+}
+`;
 
 exports[`battle log lines, one per branch > heavenBarred > case 0 1`] = `
 {
@@ -620,6 +692,20 @@ exports[`battle log lines, one per branch > innerFlameKindled > case 0 1`] = `
 }
 `;
 
+exports[`battle log lines, one per branch > inversionEnded > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "⚗️ A Grande Inversão acabou",
+}
+`;
+
+exports[`battle log lines, one per branch > inversionStarted > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "⚗️ J1 (Bruxa Carmesim) inverteu o tabuleiro por 2 rodadas",
+}
+`;
+
 exports[`battle log lines, one per branch > justiceMarchEnded > case 0 1`] = `null`;
 
 exports[`battle log lines, one per branch > justiceMarched > case 0 1`] = `
@@ -657,10 +743,31 @@ exports[`battle log lines, one per branch > levitatedOver > case 0 1`] = `
 }
 `;
 
+exports[`battle log lines, one per branch > magnumOpus > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "⚗️ A Grande Obra de J1 (Bruxa Carmesim): queimou 1 carta da mão e tirou a melhor de 1 oponente",
+}
+`;
+
 exports[`battle log lines, one per branch > marks an unknown player 1`] = `
 {
   "actor": "nobody",
   "text": "? perdeu a vez",
+}
+`;
+
+exports[`battle log lines, one per branch > memoryOverload > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "⚡ Sobrecarga de Memória: J2 (Bjorn) perdeu 1 carta",
+}
+`;
+
+exports[`battle log lines, one per branch > memoryOverload > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "⚡ A Sobrecarga de Memória de J1 (Bruxa Carmesim) explodiu, mas ninguém tinha mais de 5 cartas",
 }
 `;
 
@@ -919,6 +1026,20 @@ exports[`battle log lines, one per branch > tetherSwapped > case 0 1`] = `
 {
   "actor": "p1",
   "text": "J1 (Bruxa Carmesim) trocou de lugar com J2 (Bjorn) (Chicote de Ressaca)",
+}
+`;
+
+exports[`battle log lines, one per branch > tileInverted > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "⚗️ Casa 14 invertida: J1 (Bruxa Carmesim) avançou 4 casas",
+}
+`;
+
+exports[`battle log lines, one per branch > tileInverted > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "⚗️ Casa 26 invertida: J1 (Bruxa Carmesim) perdeu a vez",
 }
 `;
 

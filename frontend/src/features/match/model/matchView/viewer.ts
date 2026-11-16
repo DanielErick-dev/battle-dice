@@ -13,7 +13,7 @@ export interface ViewerControls {
   canPlayCard: boolean;
   canActivateAbility: boolean;
   /** Each pending prompt, true when it's waiting and the viewer is the one to answer it. */
-  answers: { discard: boolean; ward: boolean; grace: boolean; plunder: boolean };
+  answers: { discard: boolean; ward: boolean; grace: boolean; plunder: boolean; raid: boolean };
   /** Someone else the screen waits on (their prompt first, then their turn); null when it's up to the viewer. */
   waitingFor: PlayerId | null;
 }
@@ -25,6 +25,7 @@ function promptOwner(view: MatchView): PlayerId | null {
     view.pendingWard?.playerId ??
     view.pendingGrace?.playerId ??
     view.pendingPlunder?.owner ??
+    view.pendingRaid?.owner ??
     null
   );
 }
@@ -56,6 +57,7 @@ export function viewerControls(
       ward: speaksFor(view.pendingWard?.playerId),
       grace: speaksFor(view.pendingGrace?.playerId),
       plunder: speaksFor(view.pendingPlunder?.owner),
+      raid: speaksFor(view.pendingRaid?.owner),
     },
     waitingFor: view.winnerId === null && !speaksFor(waitingOn) ? waitingOn : null,
   };

@@ -11,6 +11,8 @@ import type { Crown } from "../characters/seraphiel/types";
 import type { PendingPlunder, Specter } from "../characters/warden/types";
 import type { VoidScar, ZarekState } from "../characters/zarek/types";
 import type { Elementals, TenzaiState } from "../characters/tenzai/types";
+import type { AlchemistState, Inversion, PendingRaid } from "../characters/alchemist/types";
+import type { AlvaState } from "../characters/alva/types";
 
 export type { PlayerId };
 
@@ -74,6 +76,14 @@ export interface Player {
   akane: AkaneState;
   /** Tenzai's orbit, Convergence and enchanted die (NO_TENZAI for everyone else). */
   tenzai: TenzaiState;
+  /** The Alchemist's Condenser and banked extra turns; NO_ALCHEMIST for everyone else. */
+  alchemist: AlchemistState;
+  /** Unidade Alva's Memory Overload count; NO_ALVA for everyone else. */
+  alva: AlvaState;
+  /** Her Corrupted Cards: they weigh on the hand past its limit for her effects, and let her see it. */
+  corrupted: number;
+  /** Her EMP, counted down as own turns start: blackout (no cards, no ability) above BROWNOUT_TURNS, brownout below. */
+  emp: number;
 }
 
 /** One physical copy of a card; `uid` tells copies of the same card apart. */
@@ -172,6 +182,10 @@ export interface GameState {
   pendingPlunder: PendingPlunder | null;
   /** Tenzai's walls, bonds and (secret) breezes. */
   elementals: Elementals;
+  /** The Alchemist's Great Inversion, while it lasts. */
+  inversion: Inversion | null;
+  /** The Alchemist picking cards from a graveyard (her Condenser or her cards). */
+  pendingRaid: PendingRaid | null;
   /** Every die and shuffle draws from here, so a stateless server can resolve any command. */
   rng: RngState;
 }

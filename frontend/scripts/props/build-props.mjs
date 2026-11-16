@@ -59,6 +59,13 @@ const PROPS = {
   ashenThrone: { file: "seraphielFallen/props/chair.glb", vertices: 9_000 },
   clockworkThrone: { file: "cronos/props/chair.glb", vertices: 9_000 },
   cyberThrone: { file: "alva/props/chair.glb", vertices: 9_000 },
+  // Unidade Alva's menu habitat, the hangar: machines round the back, a drone hovering over it.
+  hangarReactor: { file: "alva/props/alien-reactor.glb", vertices: 12_000, texture: 1024, sloppy: true },
+  hangarGenerator: { file: "alva/props/power-generator.glb", vertices: 14_000, texture: 1024, sloppy: true },
+  hangarCapsule: { file: "alva/props/crystal-capsule.glb", vertices: 5_500, texture: 1024 },
+  hangarRack: { file: "alva/props/server-rack.glb", vertices: 5_300, texture: 1024 },
+  hangarCore: { file: "alva/props/hypergate-core.glb", vertices: 4_000, texture: 1024 },
+  hangarDrone: { file: "alva/props/sentinel-drone.glb", vertices: 12_000, texture: 1024, sloppy: true },
   obsidianThrone: { file: "kage/props/chair.glb", vertices: 9_000 },
   elderwoodThrone: { file: "archer/props/chair.glb", vertices: 9_000 },
   tideThrone: { file: "auric/props/chair.glb", vertices: 9_000 },
@@ -95,8 +102,6 @@ const PROPS = {
   lanternPost: { file: "island/props/lantern-post.glb", vertices: 2_200, texture: 512 },
   islandBench: { file: "island/props/bench.glb", vertices: 6_000, texture: 1024, sloppy: true },
   woodenBridge: { file: "island/props/bridge.glb", vertices: 12_000, texture: 1024, sloppy: true },
-  // A trap tile's thorny vines (three side by side cover a tile); the thorns spring up when it bites.
-  vineTrap: { file: "board/props/vine-trap.glb", vertices: 8_000, texture: 1024 },
   // Floats over every lost-turn tile.
   hourglass: { file: "board/props/hourglass.glb", vertices: 5_000, texture: 1024 },
   // The Crystal Fairy's snow heaped on a tile.
@@ -110,6 +115,16 @@ const PROPS = {
   campfire: { file: "island/props/campfire.glb", vertices: 9_000, texture: 1024, sloppy: true },
   // Card tiles: the lid is split off in code so it can open (see CardChest).
   cardChest: { file: "board/props/chest.glb", vertices: 9_000, texture: 1024, sloppy: true },
+  // Tenzai's fire and earth: his orbit charms, the flame in his hand and the stones of his wall.
+  tenzaiFlame: { file: "zephyr/props/flame.glb", vertices: 3_000, texture: 512 },
+  tenzaiBoulder: { file: "zephyr/props/boulder.glb", vertices: 2_500, texture: 512 },
+  // The Alchemist's potions and grimoire (her charms) and the counter beside her habitat.
+  elixirEmerald: { file: "alchemist/props/elixir-emerald.glb", vertices: 4_000, texture: 512, sloppy: true },
+  elixirEssence: { file: "alchemist/props/elixir-essence.glb", vertices: 5_000, texture: 512, sloppy: true },
+  arcaneGrimoire: { file: "alchemist/props/grimoire.glb", vertices: 3_000, texture: 512 },
+  alchemyCounter: { file: "alchemist/props/counter.glb", vertices: 9_000, texture: 1024, sloppy: true },
+  witchStaff: { file: "witch/props/staff.glb", vertices: 5_000, texture: 1024 },
+  gravestone: { file: "necromancer/props/gravestone.glb", vertices: 6_000, texture: 1024, sloppy: true },
 };
 
 const { values } = parseArgs({ options: { source: { type: "string" }, only: { type: "string" } } });

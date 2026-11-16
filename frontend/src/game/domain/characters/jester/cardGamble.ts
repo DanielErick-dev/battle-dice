@@ -1,3 +1,4 @@
+import { feedCondenser } from "../alchemist/condenser";
 import { randomId, randomItem } from "../../core/random";
 import type { AbilityPower } from "../../abilities/ability";
 import { CARD_CATALOG, RARITY_LEVEL, rarityLevel } from "../../cards/catalog";
@@ -127,6 +128,7 @@ function discardRandom(draft: Draft, playerId: PlayerId): void {
   const card = randomItem(hand, draft.random);
   const rest = hand.filter((candidate) => candidate.uid !== card.uid);
   updatePlayer(draft, playerId, (player) => ({ hand: rest, discard: throwOnPile(player.discard, [card]) }));
+  feedCondenser(draft, 1);
   draft.events.push({ type: "cardDiscarded", playerId, card, hand: rest });
 }
 

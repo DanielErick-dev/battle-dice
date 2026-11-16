@@ -7,6 +7,9 @@ import { figureTurnInHand, InHand } from "../core/inHand";
 import { AdditiveMaterial } from "../shared/additive";
 import { growOrFade } from "../shared/easing";
 import { useGlowColor } from "../shared/glowColor";
+import { preloadProps, useFittedProp } from "../core/props";
+
+preloadProps(["witchStaff"]);
 
 /** Staff length, and how far below its middle the hand grips it, in model units (Meshy figures stand 1.7). */
 const STAFF_LENGTH = 1.25;
@@ -23,8 +26,6 @@ const LEAN = 0.12;
 /** How quickly the staff appears, and the slower fade once it's put away. */
 const GROW_RATE = 4;
 const FADE_RATE = 2;
-/** Dark wood, so the crystal and the runes carry the colour. */
-const WOOD = "#1e1014";
 const SHARDS = 3;
 
 /** Bound to the hand but kept upright in the figure's frame, so the float pose's wrist turns don't swing it. */
@@ -47,6 +48,7 @@ function Staff({
   color: string;
   active: RefObject<boolean>;
 }) {
+  const staff = useFittedProp("witchStaff");
   const group = useRef<Group>(null);
   const crystal = useRef<Group>(null);
   const shards = useRef<Group>(null);
@@ -90,41 +92,23 @@ function Staff({
 
     if (crystal.current) {
       crystal.current.rotation.y = time * 1.2;
-      crystal.current.position.y = STAFF_LENGTH * (1 - GRIP) + 0.1 + Math.sin(time * 2.2) * 0.012;
+      crystal.current.position.y = STAFF_LENGTH * (1 - GRIP) - 0.06 + Math.sin(time * 2.2) * 0.012;
     }
     if (shards.current) shards.current.rotation.y = -time * 2;
     if (halo.current) halo.current.opacity = (0.4 + Math.sin(time * 5) * 0.1) * amount;
   });
 
-  const top = STAFF_LENGTH * (1 - GRIP);
   return (
     <group ref={group} visible={false}>
-      {/* Shaft, gripped below its middle, thicker towards the head, with a pointed foot. */}
-      <mesh position-y={top - STAFF_LENGTH / 2}>
-        <cylinderGeometry args={[0.018, 0.012, STAFF_LENGTH, 8]} />
-        <meshStandardMaterial color={WOOD} roughness={0.75} />
-      </mesh>
-      <mesh position-y={-STAFF_LENGTH * GRIP - 0.03} rotation-x={Math.PI}>
-        <coneGeometry args={[0.014, 0.07, 8]} />
-        <meshStandardMaterial color={WOOD} roughness={0.6} metalness={0.3} />
-      </mesh>
-      {/* Glowing rune bands. */}
-      {[-0.28, 0.12, top - 0.14].map((y) => (
-        <mesh key={y} position-y={y} rotation-x={Math.PI / 2}>
-          <torusGeometry args={[0.021, 0.004, 6, 20]} />
-          <meshBasicMaterial color={glow} toneMapped={false} />
-        </mesh>
-      ))}
-      {/* Crescent moon cradling the crystal, open to the top. */}
-      <mesh position-y={top + 0.1} rotation-z={Math.PI * 1.25}>
-        <torusGeometry args={[0.085, 0.012, 8, 32, Math.PI * 1.5]} />
-        <meshStandardMaterial color={WOOD} roughness={0.5} metalness={0.4} />
-      </mesh>
+      {/* The Meshy staff, gripped below its middle. */}
+      <mesh
+        geometry={staff.geometry}
+        material={staff.material}
+        scale={STAFF_LENGTH}
+        position-y={-STAFF_LENGTH * GRIP}
+        castShadow
+      />
       <group ref={crystal}>
-        <mesh scale={[1, 1.7, 1]}>
-          <octahedronGeometry args={[0.04]} />
-          <meshBasicMaterial color={glow} toneMapped={false} />
-        </mesh>
         <mesh>
           <sphereGeometry args={[0.1, 16, 12]} />
           <AdditiveMaterial ref={halo} color={glow} />

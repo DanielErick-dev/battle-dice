@@ -1,4 +1,6 @@
+import { raidPiles } from "../characters/alchemist/condenser";
 import { isAbilityReady } from "../abilities/charge";
+import { isOverloaded } from "../characters/alva/systems";
 import { isReactive } from "../abilities/ability";
 import { CARD_CATALOG, DIVINE_CARDS, rarityLevel } from "../cards/catalog";
 import { applyCommand } from "../core/engine";
@@ -21,15 +23,17 @@ export function botMove(state: GameState, playerId: PlayerId): GameCommand | nul
   if (state.status === "finished") return null;
   const prompt = answerPrompt(state, playerId);
   if (prompt !== undefined) return prompt;
-  if (state.pendingDiscard || state.pendingWard || state.pendingGrace || state.pendingPlunder) return null;
+  if (state.pendingDiscard || state.pendingWard || state.pendingGrace || state.pendingPlunder || state.pendingRaid) {
+    return null;
+  }
   const me = state.players[state.currentPlayerIndex];
   if (!me || me.id !== playerId) return null;
-  return playCard(state, me) ?? activateIfReady(state, me) ?? { type: "rollDice", playerId };
+  return purge(state, me) ?? playCard(state, me) ?? activateIfReady(state, me) ?? { type: "rollDice", playerId };
 }
 
 /** The bot's answer to a prompt waiting on it; undefined when none is (null: one waits on someone else). */
 function answerPrompt(state: GameState, playerId: PlayerId): GameCommand | null | undefined {
-  const { pendingDiscard, pendingWard, pendingGrace, pendingPlunder } = state;
+  const { pendingDiscard, pendingWard, pendingGrace, pendingPlunder, pendingRaid } = state;
   if (pendingDiscard?.playerId === playerId) {
     const me = playerOf(state, playerId);
     const cheapest = [...me.hand, pendingDiscard.drawn].sort(
@@ -47,7 +51,23 @@ function answerPrompt(state: GameState, playerId: PlayerId): GameCommand | null 
     const hand = playerOf(state, pendingPlunder.victim).hand;
     return { type: "plunderCards", playerId, cardUids: hand.slice(0, PLUNDER_CARDS).map((card) => card.uid) };
   }
+  if (pendingRaid?.owner === playerId) {
+    // The rarest cards on offer.
+    const { piles, picks } = raidPiles(state.players, pendingRaid);
+    const offered = piles.flatMap((player) => player.discard);
+    const best = [...offered].sort((a, b) => rarityLevel(b.cardId) - rarityLevel(a.cardId)).slice(0, picks);
+    return { type: "raidGraveyard", playerId, cardUids: best.map((card) => card.uid) };
+  }
   return undefined;
+}
+
+/** Clears Unidade Alva's spyware while the hand is heavy enough for her Overload, giving up its commonest card. */
+function purge(state: GameState, me: Player): GameCommand | null {
+  if (me.corrupted === 0 || !isOverloaded(me)) return null;
+  const [cheapest] = [...me.hand].sort((a, b) => rarityLevel(a.cardId) - rarityLevel(b.cardId));
+  if (!cheapest) return null;
+  const command: GameCommand = { type: "purgeCorrupted", playerId: me.id, cardUid: cheapest.uid };
+  return accepted(state, command) ? command : null;
 }
 
 function playCard(state: GameState, me: Player): GameCommand | null {

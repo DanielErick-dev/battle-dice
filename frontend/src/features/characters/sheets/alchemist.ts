@@ -2,11 +2,11 @@ import { model, type CharacterDefinition } from "../types";
 
 export const alchemist = {
   name: "Alquimista Esmeralda",
-  epithet: "Mestra das transmutações",
+  epithet: "Mestra da Grande Inversão",
   color: "#10b981",
   model: model("alchemist"),
   chair: "alchemistThrone",
-  ability: "transmutation",
+  ability: "grandInversion",
   playable: true,
   shieldColor: "#10b981",
   handProp: "vial",

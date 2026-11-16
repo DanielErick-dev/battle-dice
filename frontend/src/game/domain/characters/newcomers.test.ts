@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { at } from "../core/invariant";
-import { PLASMA_PUSH } from "./alva/plasmaCannon";
 import { TIDE_RANGE } from "./auric/cleansingTide";
 import { TIME_ROUNDS } from "./cronos/timeWarp";
 import { abilityCycle, LONG_ABILITY_CYCLE, TIME_WARP_CYCLE } from "../abilities/charge";
@@ -17,7 +16,6 @@ import {
   roll,
   send,
   withPlayer,
-  withPlayers,
   type ActivateOptions,
 } from "../testing";
 import type { GameState } from "../core/state";
@@ -209,15 +207,8 @@ describe("the newcomers' abilities", () => {
     expect(playerOf(state, "hero").position).toBe(3);
   });
 
-  it("Plasma Cannon blasts the next two traps away and knocks the leading opponent back", () => {
-    const start = withPlayers(duel("plasmaCannon"), { hero: { position: 5 }, rival: { position: 30 } });
-    const { state } = activate(start);
-    expect(state.destroyedTraps).toEqual([12, 20]);
-    expect(playerOf(state, "rival").position).toBe(30 - PLASMA_PUSH);
-  });
-
   it("the strongest of them take the long cycle, and Time Warp longer still", () => {
-    for (const ability of ["cleansingTide", "untamed", "plasmaCannon"] as const) {
+    for (const ability of ["cleansingTide", "untamed", "empPulse"] as const) {
       expect(abilityCycle(ability)).toBe(LONG_ABILITY_CYCLE);
     }
     expect(abilityCycle("timeWarp")).toBe(TIME_WARP_CYCLE);

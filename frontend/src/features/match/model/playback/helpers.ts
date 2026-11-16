@@ -6,11 +6,11 @@ import type { PlaybackTimings } from "@/features/shared/config";
 import { type MatchView, type TileEffectView } from "../matchView";
 
 /**
- * How long an ability's use holds the playback: Transmutation's throw and smoke play out before
- * its card changes; Arrow Rain's archer only aims before the volley (its own event) flies.
+ * How long an ability's use holds the playback: the Alchemist's vial is thrown and bursts before her
+ * Inversion takes the board; Arrow Rain's archer only aims before the volley (its own event) flies.
  */
 export function abilityUsedMs(ability: AbilityId, timings: PlaybackTimings): number {
-  if (ability === "transmutation") return timings.transmuteThrowMs;
+  if (ability === "grandInversion") return timings.vialThrowMs;
   if (ability === "arrowRain") return timings.arrowAimMs;
   if (ability === "untamed") return timings.untamedCastMs;
   if (ability === "hellsDrag") return timings.dragCastMs;

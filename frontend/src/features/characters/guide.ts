@@ -38,11 +38,14 @@ export const CHARACTER_GUIDES: Readonly<Record<CharacterId, CharacterGuide>> = {
     ],
   },
   alchemist: {
-    role: "Cartas · qualidade",
-    style: "Troca cartas fracas por uma mais rara: duas comuns viram uma incomum, duas boas viram uma lendária.",
+    role: "Controle · reciclagem",
+    style:
+      "Vira o tabuleiro do avesso: as casas ruins a empurram para a frente e as boas ferem os oponentes. Recicla cartas do cemitério.",
     tips: [
-      "Transmute cartas que você não vai usar logo: o nível delas se soma.",
-      "Com a mão quase vazia ainda dá para tirar uma carta nova.",
+      "Ligue a Grande Inversão quando os oponentes estiverem perto de casas boas: avanço vira recuo, jogar de novo vira perde a vez.",
+      "Com a inversão ligada, procure as armadilhas e o perde a vez: para você, viram avanço e jogadas extras.",
+      "Toda carta que vai para qualquer cemitério enche o Condensador: a cada 4, uma das suas volta para a mão.",
+      "Troca Equivalente Estrita só funciona com você numa casa ruim: pare numa armadilha de propósito e troque com o líder.",
     ],
   },
   monk: {
@@ -171,11 +174,12 @@ export const CHARACTER_GUIDES: Readonly<Record<CharacterId, CharacterGuide>> = {
     ],
   },
   alva: {
-    role: "Ataque · limpeza",
-    style: "Destrói as armadilhas à frente para sempre e empurra o oponente mais adiantado.",
+    role: "Controle · cartas",
+    style: "Infecta as mãos com Cartas Corrompidas, espiona e queima quem acumula cartas.",
     tips: [
-      "Use o Canhão quando o líder estiver ao seu alcance.",
-      "As armadilhas destruídas somem para todos, até ocultas.",
+      "Injete Corrompidas perto da Sobrecarga: elas fazem a mão passar de 5.",
+      "Use o PEM quando os oponentes estiverem com a mão cheia de cartas boas.",
+      "O Colapso pesa mais em quem está com muitas cartas, Corrompidas incluídas.",
     ],
   },
   vinicius: {

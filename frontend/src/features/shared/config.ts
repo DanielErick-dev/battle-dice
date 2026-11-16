@@ -22,10 +22,8 @@ export interface PlaybackTimings {
   fusionMs: number;
   /** A drawn card sliding into the hand. */
   drawMs: number;
-  /** A card changing into another in the middle of the screen (Transmutation). */
-  transmuteMs: number;
-  /** The Transmutation's cast: the vial taken out, thrown (2.3 s in), landing and bursting into smoke, before its card changes. */
-  transmuteThrowMs: number;
+  /** The Alchemist's cast: the vial taken out, thrown (2.3 s in), landing and bursting into smoke, before the Inversion. */
+  vialThrowMs: number;
   /** Each tile of a knock-back (Arcane Blast): faster than walking. */
   pushStepMs: number;
   /** Dormant Fury: the player crouches and throws themselves forward, crackling with lightning. */
@@ -98,8 +96,7 @@ export const DEFAULT_TIMINGS: PlaybackTimings = {
   drawRevealMs: 1500,
   fusionMs: 2600,
   drawMs: 700,
-  transmuteMs: 3600,
-  transmuteThrowMs: 3400,
+  vialThrowMs: 3400,
   pushStepMs: 200,
   // The old man's push-off: he crouches, then is flying forward 1.1 s into his dash clip.
   dashLaunchMs: 1100,

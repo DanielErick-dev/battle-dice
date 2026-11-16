@@ -19,4 +19,3 @@ export const SOIL: NoiseLook = {
   dress: GRAVE_GROUND,
 };
 export const MOUND: NoiseLook = { base: [34, 27, 21], dark: [12, 10, 8], light: [62, 52, 40], fadeOut: false };
-export const STONE: NoiseLook = { base: [70, 72, 68], dark: [36, 38, 35], light: [104, 106, 98], fadeOut: false };

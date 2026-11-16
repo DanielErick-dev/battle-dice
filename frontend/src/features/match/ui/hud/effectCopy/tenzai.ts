@@ -55,7 +55,7 @@ export const tenzaiCopy = {
     title: "BATEU NA MURALHA!",
     tone: "text-amber-500",
     subtitle: ({ count }, name) =>
-      count ? `${name} para atrás dela; restam ${count} de vida` : `${name} derrubou a muralha, mas para atrás dela`,
+      count ? `${name} para atrás dela; restam ${count} de vida` : `${name} derrubou a muralha e segue andando`,
   },
   wallCrumbled: {
     title: "MURALHA CAIU!",

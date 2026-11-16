@@ -41,7 +41,9 @@ const CHEST = { x: 0.55, z: -0.38, width: 0.42, turn: -0.5 };
 export function SunkenTemple() {
   const tiles = useCanvasTexture(TILES);
   const causticsA = useCanvasTexture(CAUSTICS);
-  const causticsB = useCanvasTexture(CAUSTICS);
+  // The second layer shares the first one's pixels: the Voronoi net is costly to paint.
+  const causticsB = useMemo(() => causticsA.clone(), [causticsA]);
+  useEffect(() => () => causticsB.dispose(), [causticsB]);
   const mask = useCanvasTexture(MASK);
   const gilt = useNoiseTexture(GILT);
   const materials = useMemo(

@@ -15,7 +15,7 @@ interface TargetPickerProps {
   /** Why an opponent can't be picked, or undefined when they can. */
   unavailable?: (player: Player) => string | undefined;
   /** Choices that aren't an opponent (Arrow Rain's traps ahead, a power to pick), listed first. */
-  alternatives?: readonly { label: string; detail: string; onPick: () => void }[];
+  alternatives?: readonly { label: string; detail: string; onPick: () => void; unavailable?: string }[];
   onPick?: (targetId: PlayerId) => void;
   onCancel: () => void;
 }
@@ -44,10 +44,16 @@ export function TargetPicker({
         <ul className="flex flex-col gap-2">
           {alternatives.map((alternative) => (
             <li key={alternative.label}>
-              <button type="button" onClick={alternative.onPick} className={row}>
+              <button
+                type="button"
+                disabled={alternative.unavailable !== undefined}
+                title={alternative.unavailable}
+                onClick={alternative.onPick}
+                className={row}
+              >
                 <span className="text-sm font-bold">{alternative.label}</span>
                 <span className="min-w-0 flex-1 text-right text-xs font-semibold text-zinc-300">
-                  {alternative.detail}
+                  {alternative.unavailable ?? alternative.detail}
                 </span>
               </button>
             </li>

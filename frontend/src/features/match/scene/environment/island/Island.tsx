@@ -11,7 +11,7 @@ import { paintDirtRoad } from "./dirtRoad";
 import { GrassTufts } from "./GrassTufts";
 import { useIslandGround } from "./ground";
 import { Bench, Lantern, MESHY_SWAPS, SwappedPiece, TrailSign } from "./Furniture";
-import { bridgeSpans, lanternSpots, scatterProps } from "./scatter";
+import { bridgeSpans, benchSpots, lanternSpots, scatterProps } from "./scatter";
 import { planSettlements } from "./settlements";
 import { groundAt, type IslandShape } from "./terrain";
 import { KIT_SCALE } from "./townPieces";
@@ -66,6 +66,7 @@ export function Island({ trail, shape }: { trail: readonly Vec3[]; shape: Island
   const kitCoast = coastItems.filter((item) => !(item.piece in MESHY_SWAPS));
   const swapped = [...townItems, ...coastItems].filter((item) => item.piece in MESHY_SWAPS);
   const lanterns = useMemo(() => lanternSpots(trail, shape), [trail, shape]);
+  const benches = useMemo(() => benchSpots(trail, shape, BENCH_EVERY), [trail, shape]);
   const bridges = useMemo(() => bridgeSpans(trail, shape), [trail, shape]);
 
   return (
@@ -89,11 +90,9 @@ export function Island({ trail, shape }: { trail: readonly Vec3[]; shape: Island
       {lanterns.map(([x, y, z], index) => (
         <Lantern key={index} position={[x, y, z]} />
       ))}
-      {lanterns
-        .filter((_, index) => index % BENCH_EVERY === 1)
-        .map(([x, y, z], index) => (
-          <Bench key={index} position={[x + 0.9, y, z + 0.4]} turn={index * 1.3} />
-        ))}
+      {benches.map(({ at, turn }, index) => (
+        <Bench key={index} position={at} turn={turn} />
+      ))}
     </group>
   );
 }

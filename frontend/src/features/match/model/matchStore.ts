@@ -32,7 +32,6 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   ABILITY_NOT_READY: "A habilidade ainda está carregando.",
   ENERGY_FULL: "Sua energia já está no máximo.",
   ABILITY_ALREADY_READY: "Sua habilidade já está pronta.",
-  EMPTY_HAND: "Você não tem cartas na mão.",
   EMPTY_DISCARD: "Nenhuma carta foi jogada ainda.",
   HAND_FULL: "Sua mão está cheia.",
   NO_CARDS_LEFT: "Não há mais cartas no seu baralho nem no descarte.",
@@ -59,6 +58,16 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   NO_FIRE: "Não há fogo no tabuleiro nem oponente queimando.",
   INVALID_ELEMENT: "Escolha um elemento.",
   ELEMENT_LOCKED: "Não dá para dobrar o mesmo elemento duas vezes seguidas.",
+  RAID_PENDING: "Esperando a Alquimista escolher as cartas do cemitério.",
+  NO_RAID_PENDING: "Não há cemitério aberto para escolher.",
+  NO_HARM_TILE_AHEAD: "Não há nenhuma casa ruim à sua frente.",
+  NO_GIFT_TILE_AHEAD: "Não há nenhuma casa boa à frente desse oponente.",
+  NOT_ON_HARM_TILE: "Você precisa estar numa casa ruim para trocar.",
+  TARGET_ON_HARM_TILE: "Esse oponente também está numa casa ruim.",
+  GRAVEYARDS_EMPTY: "Os cemitérios estão vazios.",
+  BLACKED_OUT: "Apagão do PEM: sem cartas e sem habilidade.",
+  NO_CORRUPTED: "Não há Carta Corrompida para apagar.",
+  NO_OVERLOADED_OPPONENT: "Nenhum oponente está com mais de 5 cartas.",
   INVALID_WALL: "A muralha só sobe numa casa livre perto de alguém.",
   NO_TARGET_AHEAD: "Não há oponente à frente para prender.",
   NO_CREATION: "Você precisa de uma muralha, laço ou brisa em jogo.",
@@ -176,6 +185,11 @@ export class MatchStore {
     this.dispatch({ type: "sacrificeEnergy", playerId: this.view.activePlayerId });
   };
 
+  purgeCorrupted = (cardUid: string): void => {
+    if (!this.view || !canRoll(this.view)) return;
+    this.dispatch({ type: "purgeCorrupted", playerId: this.view.activePlayerId, cardUid });
+  };
+
   discardCard = (cardUid: string): void => {
     const pending = this.view?.pendingDiscard;
     if (!pending || this.view?.isAnimating) return;
@@ -200,6 +214,12 @@ export class MatchStore {
     const pending = this.view?.pendingPlunder;
     if (!pending || this.view?.isAnimating) return;
     this.dispatch({ type: "plunderCards", playerId: pending.owner, cardUids });
+  };
+
+  raidGraveyard = (cardUids: readonly string[]): void => {
+    const pending = this.view?.pendingRaid;
+    if (!pending) return;
+    this.dispatch({ type: "raidGraveyard", playerId: pending.owner, cardUids });
   };
 
   chooseGrace = (pick: { blessing?: TimedBlessing; cardId?: CardId }): void => {

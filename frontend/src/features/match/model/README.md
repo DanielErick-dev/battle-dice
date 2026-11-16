@@ -39,7 +39,7 @@ Sem essa separação, os bonecos se teletransportariam.
 Ela tem duas partes:
 
 - **O topo**: o que é de todos e dura. Jogadores, vez, dado (`roll`, `lastRoll`), o banner (`effect`), as perguntas pendentes (`pendingWard`, `pendingDiscard`…) e o que está desenhado no tabuleiro (`seals`, `specters`, `blackFlames`, `winter`…). O `syncStep` encaixa tudo isso no estado real no fim de cada jogada.
-- **`view.fx`**: as animações que estão tocando agora, uma de cada tipo (`MatchFx`): a carta jogada (`cast`), comprada (`drawing`), fundida, transmutada, o raio do Monge (`dash`), as flechas (`volley`), a onda (`tide`), o atropelo do Bjorn (`trample`), a mão do inferno (`drag`) e a neve da fada (`frostStream`). Cada uma tem um `id` que muda a cada vez, para a cena e o som tocarem uma vez só. O `syncStep` não mexe nelas: elas existem só na tela, não no jogo.
+- **`view.fx`**: as animações que estão tocando agora, uma de cada tipo (`MatchFx`): a carta jogada (`cast`), comprada (`drawing`), fundida, o raio do Monge (`dash`), as flechas (`volley`), a onda (`tide`), o atropelo do Bjorn (`trample`), a mão do inferno (`drag`) e a neve da fada (`frostStream`). Cada uma tem um `id` que muda a cada vez, para a cena e o som tocarem uma vez só. O `syncStep` não mexe nelas: elas existem só na tela, não no jogo.
 
 Para escrever num passo de animação, use `withFx(view, { tide: ... })` e `nextFxId(view.fx.tide)`.
 Animação nova de personagem = um tipo novo em `matchView/fx.ts` + um campo no `MatchFx` (e `null` no `NO_FX`).

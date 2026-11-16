@@ -6,6 +6,7 @@ import type { Seal } from "../characters/scribe/types";
 import type { Specter } from "../characters/warden/types";
 import type { VoidScar } from "../characters/zarek/types";
 import type { Elementals } from "../characters/tenzai/types";
+import type { Inversion } from "../characters/alchemist/types";
 import type { GameEvent } from "./events";
 import type { CardInstance, GameState, Player, PlayerId } from "./state";
 import type { RandomSource } from "./random";
@@ -33,6 +34,9 @@ export interface Draft {
   winter: Winter | null;
   voidScars: VoidScar[];
   elementals: Elementals;
+  inversion: Inversion | null;
+  /** The Alchemist is to pick from a graveyard; settle turns it into a PendingRaid. */
+  raid: { owner: PlayerId; picks: number; own: boolean } | null;
   /** A Plunder specter caught someone this command; settle turns it into a PendingPlunder. */
   plunder: { owner: PlayerId; victim: PlayerId } | null;
   /** For reshuffles and moving sprung hidden traps. */
@@ -64,6 +68,8 @@ export function startDraft(state: GameState, random: RandomSource): Draft {
     winter: state.winter,
     voidScars: [...state.voidScars],
     elementals: state.elementals,
+    inversion: state.inversion,
+    raid: null,
     plunder: null,
     random,
   };
@@ -85,6 +91,7 @@ export function draftState(draft: Draft): GameState {
     winter: draft.winter,
     voidScars: draft.voidScars,
     elementals: draft.elementals,
+    inversion: draft.inversion,
   };
 }
 

@@ -22,6 +22,8 @@ import { verdictSteps } from "./verdict";
 import { akaneSteps } from "./akane";
 import { viniciusSteps } from "./vinicius";
 import { tenzaiSteps } from "./tenzai";
+import { alchemistSteps } from "./alchemist";
+import { alvaSteps } from "./alva";
 import type { PlaybackStep, StepHandlers } from "./types";
 
 export type { PlaybackStep } from "./types";
@@ -44,6 +46,8 @@ const HANDLERS: StepHandlers<GameEvent["type"]> = {
   ...akaneSteps,
   ...viniciusSteps,
   ...tenzaiSteps,
+  ...alchemistSteps,
+  ...alvaSteps,
 };
 
 export function eventToSteps(event: GameEvent, timings: PlaybackTimings): PlaybackStep[] {
@@ -142,6 +146,8 @@ function syncStep(state: GameState): PlaybackStep {
       rifts: riftsOf(state.board),
       voidScars: state.voidScars,
       pendingPlunder: state.pendingPlunder,
+      pendingRaid: state.pendingRaid,
+      inversion: state.inversion,
       elementals: state.elementals,
       walkEnd: null,
     }),

@@ -13,6 +13,8 @@ export interface GameAudio {
   toggleMuted: () => void;
   musicOn: boolean;
   toggleMusic: () => void;
+  /** The match is on screen (its loading curtain lifted): until then the game stays silent. */
+  setLive: (live: boolean) => void;
 }
 
 /** One engine for the whole session; browsers keep audio locked until the first pointer or key press. */
@@ -23,13 +25,15 @@ export function useGameAudio(): GameAudio {
   const [ambience] = useState(() => new Ambience(engine));
   const muted = usePreference(preferences.muted);
   const musicOn = usePreference(preferences.music);
+  // Silent behind the loading curtain: music starting over a loading bar sounded like a glitch.
+  const [live, setLive] = useState(false);
 
-  useEffect(() => engine.setMuted(muted), [engine, muted]);
+  useEffect(() => engine.setMuted(muted || !live), [engine, muted, live]);
   useEffect(() => engine.setMusicEnabled(musicOn), [engine, musicOn]);
 
   // Run the music and ambience schedulers only while they can be heard.
   useEffect(() => {
-    if (muted || !musicOn) return;
+    if (muted || !musicOn || !live) return;
     const unsubscribe = engine.onRunning(() => {
       music.start();
       ambience.start();
@@ -39,7 +43,7 @@ export function useGameAudio(): GameAudio {
       music.stop();
       ambience.stop();
     };
-  }, [engine, music, ambience, muted, musicOn]);
+  }, [engine, music, ambience, muted, musicOn, live]);
 
   useEffect(() => {
     const unlock = () => engine.unlock();
@@ -60,5 +64,6 @@ export function useGameAudio(): GameAudio {
     toggleMuted: () => preferences.muted.set(!muted),
     musicOn,
     toggleMusic: () => preferences.music.set(!musicOn),
+    setLive,
   };
 }

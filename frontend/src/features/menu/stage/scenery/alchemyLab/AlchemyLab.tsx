@@ -17,13 +17,24 @@ import {
 import { GROUND_RADIUS, taperedTube } from "../kit/geometry";
 import { useCanvasTexture } from "@/features/shared/three/canvasTexture";
 import { Flask } from "./Flask";
-import { FlaskBubbles } from "./FlaskBubbles";
 import { BENCH, BENCH_TOP, flaskHeight, FLASKS } from "./layout";
 import { paintChalkCircle, paintLabFloor } from "./textures";
-import { useSoftDisc } from "../kit/matchAssets";
+import { preloadProps, useFittedProp, useSoftDisc } from "../kit/matchAssets";
 import { itemAt } from "@/features/shared/collections/items";
 
 const CIRCLE_SIZE = 1.3;
+
+preloadProps(["elixirEmerald", "elixirEssence", "arcaneGrimoire", "alchemyCounter"]);
+
+/** The Meshy counter at her left, turned to face her, with potions and her grimoire on top. */
+const COUNTER = { x: -1.0, z: 0.05, turn: Math.PI / 2 - 0.25, width: 0.78 };
+/** Its potions and book, along the top: across (x), in depth (z) and how tall each stands. */
+const COUNTER_ITEMS = [
+  { prop: "elixirEssence", x: -0.26, z: 0.02, height: 0.2, turn: 0.4 },
+  { prop: "elixirEmerald", x: -0.12, z: -0.04, height: 0.16, turn: -0.3 },
+  { prop: "arcaneGrimoire", x: 0.12, z: 0.02, height: 0.07, turn: 0.25 },
+  { prop: "elixirEmerald", x: 0.28, z: -0.02, height: 0.12, turn: 1.1 },
+] as const;
 
 const ALEMBIC = { x: 0.56, z: -0.6, turn: -0.5 };
 
@@ -126,6 +137,13 @@ export function AlchemyLab() {
     [],
   );
   useEffect(() => () => Object.values(geometries).forEach((geometry) => geometry.dispose()), [geometries]);
+  const props = {
+    elixirEmerald: useFittedProp("elixirEmerald"),
+    elixirEssence: useFittedProp("elixirEssence"),
+    arcaneGrimoire: useFittedProp("arcaneGrimoire"),
+  };
+  const counter = useFittedProp("alchemyCounter");
+  const counterScale = COUNTER.width / counter.size[0];
   const flames = useRef<(Sprite | null)[]>([]);
   const drop = useRef<Mesh>(null);
   const circleGlow = useRef<Mesh>(null);
@@ -184,13 +202,17 @@ export function AlchemyLab() {
             </mesh>
           )),
         )}
-        {FLASKS.map((flask, index) => (
-          <group key={index} position={[flask.x, BENCH_TOP, flask.z]}>
-            <Flask {...flask} glass={materials.glass} liquid={itemAt(materials.liquids, index)} cork={materials.cork} />
-            <sprite material={materials.halo} position-y={flaskHeight(flask) * 0.4} scale={flask.size * 6} />
-          </group>
-        ))}
-        <FlaskBubbles />
+        {/* Her potions (Meshy), the emerald and the essence by turns, each glowing where it stands. */}
+        {FLASKS.map((flask, index) => {
+          const potion = props[index % 2 === 0 ? "elixirEmerald" : "elixirEssence"];
+          const height = Math.max(0.1, flaskHeight(flask) * 1.25);
+          return (
+            <group key={index} position={[flask.x, BENCH_TOP, flask.z]}>
+              <mesh geometry={potion.geometry} material={potion.material} scale={height} rotation-y={index} />
+              <sprite material={materials.halo} position-y={height * 0.4} scale={flask.size * 6} />
+            </group>
+          );
+        })}
         {/* Below: a stoppered jar and a ledger. */}
         <group position={[-0.16, 0.1525, 0]}>
           <Flask
@@ -201,12 +223,13 @@ export function AlchemyLab() {
             cork={materials.cork}
           />
         </group>
-        <mesh material={materials.leather} position={[0.12, 0.1525 + 0.02, 0.01]} rotation-y={0.2}>
-          <boxGeometry args={[0.18, 0.04, 0.13]} />
-        </mesh>
-        <mesh material={materials.paper} position={[0.124, 0.1525 + 0.02, 0.01]} rotation-y={0.2}>
-          <boxGeometry args={[0.172, 0.03, 0.133]} />
-        </mesh>
+        <mesh
+          geometry={props.arcaneGrimoire.geometry}
+          material={props.arcaneGrimoire.material}
+          position={[0.12, 0.1525, 0.01]}
+          rotation={[-Math.PI / 2, 0, 0.2]}
+          scale={0.13}
+        />
       </group>
       <group position={[ALEMBIC.x, 0, ALEMBIC.z]} rotation-y={ALEMBIC.turn}>
         {/* A three-legged stand with a burner under the pot. */}
@@ -267,13 +290,16 @@ export function AlchemyLab() {
           />
         </group>
       </group>
-      <group position={[-0.62, 0, 0.26]} rotation-y={0.6}>
-        <mesh material={materials.leather} position-y={0.02}>
-          <boxGeometry args={[0.19, 0.04, 0.14]} />
-        </mesh>
-        <mesh material={materials.paper} position={[0.004, 0.02, 0]}>
-          <boxGeometry args={[0.182, 0.03, 0.143]} />
-        </mesh>
+      <group position={[COUNTER.x, 0, COUNTER.z]} rotation-y={COUNTER.turn}>
+        <mesh geometry={counter.geometry} material={counter.material} scale={counterScale} castShadow />
+        {COUNTER_ITEMS.map((item, index) => (
+          <group key={index} position={[item.x, counterScale, item.z]} rotation-y={item.turn}>
+            <mesh geometry={props[item.prop].geometry} material={props[item.prop].material} scale={item.height} />
+            {item.prop !== "arcaneGrimoire" && (
+              <sprite material={materials.halo} position-y={item.height * 0.45} scale={item.height * 1.6} />
+            )}
+          </group>
+        ))}
       </group>
     </group>
   );

@@ -9,6 +9,8 @@ import { placeHiddenTraps } from "../board/hiddenTraps";
 import type { RandomSource } from "../core/random";
 import type { Board } from "../board/types";
 import { NO_ELEMENTALS, NO_TENZAI } from "../characters/tenzai/types";
+import { NO_ALCHEMIST } from "../characters/alchemist/types";
+import { NO_ALVA } from "../characters/alva/types";
 import { NO_AKANE } from "../characters/akane/types";
 import { NO_ZAREK } from "../characters/zarek/types";
 import type { GameState, Player, PlayerId } from "../core/state";
@@ -57,6 +59,8 @@ export function openingState(
     winter: null,
     pendingPlunder: null,
     elementals: NO_ELEMENTALS,
+    inversion: null,
+    pendingRaid: null,
   };
 }
 
@@ -104,5 +108,9 @@ function dealPlayer({ id, name, ability = null }: NewPlayer, { startTile, cards,
     burnedBy: null,
     akane: NO_AKANE,
     tenzai: NO_TENZAI,
+    alchemist: NO_ALCHEMIST,
+    alva: NO_ALVA,
+    corrupted: 0,
+    emp: 0,
   };
 }

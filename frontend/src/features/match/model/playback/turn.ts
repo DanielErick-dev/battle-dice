@@ -171,7 +171,6 @@ export const turnSteps: StepHandlers<
           ...withFx(view, {
             cast: null,
             drawing: null,
-            transmuting: null,
             frostStream: null,
             volley: null,
             tide: null,

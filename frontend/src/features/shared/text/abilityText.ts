@@ -1,5 +1,6 @@
 import { abilityCycle } from "@/game/domain/abilities/charge";
-import { TRANSMUTATION_CARDS, TRANSMUTATION_FALLBACK_LEVEL } from "@/game/domain/characters/alchemist/transmutation";
+import { INVERSION_TURNS } from "@/game/domain/characters/alchemist/inversion";
+import { CONDENSER_CARDS } from "@/game/domain/characters/alchemist/condenser";
 import { ARROW_RAIN_PINS, ARROW_RAIN_PUSH } from "@/game/domain/characters/archer/arrowRain";
 import { BLOOD_PACT_ENERGY, RUIN_PUSH, SEAL_RANGE } from "@/game/domain/characters/scribe/seals";
 import {
@@ -31,7 +32,13 @@ import {
   INNER_FLAME_MAX,
   SCARLET_ROUNDS,
 } from "@/game/domain/characters/akane/fire";
-import { PLASMA_PUSH, PLASMA_TRAPS } from "@/game/domain/characters/alva/plasmaCannon";
+import {
+  BLACKOUT_TURNS,
+  BROWNOUT_TURNS,
+  OVERLOAD_BURN,
+  OVERLOAD_HAND,
+  OVERLOAD_ROUNDS,
+} from "@/game/domain/characters/alva/systems";
 import { TIDE_RANGE } from "@/game/domain/characters/auric/cleansingTide";
 import { TRAMPLE_PUSH, UNTAMED_TURNS } from "@/game/domain/characters/bjorn/untamed";
 import { TIME_ROUNDS } from "@/game/domain/characters/cronos/timeWarp";
@@ -50,7 +57,6 @@ import { VOID_CAPACITY, VOID_DOUBLE_ENERGY, VOID_SCAR_BACK } from "@/game/domain
 import { ENCHANT_TILES } from "@/game/domain/characters/fairy/bloom";
 import { ENCHANT_ADVANCE, ENCHANT_FREEZE, SNOW_DRAIN } from "@/game/domain/characters/fairy/snow";
 import { WINTER_PICKS, WINTER_TILES } from "@/game/domain/characters/fairy/winter";
-import { MAX_RARITY_LEVEL } from "@/game/domain/cards/catalog";
 import { BLESSING_TURNS, SERAPHIEL_BLESSING_TURNS } from "@/game/domain/board/blessings";
 import { CROWN_BONUS, DRAG_TRAPS } from "@/game/domain/characters/seraphiel/seraph";
 import { MARKS_TO_JUDGE } from "@/game/domain/characters/themis/verdict";
@@ -69,7 +75,7 @@ export const ABILITY_TEXT: Readonly<Record<AbilityId, { name: string; descriptio
   },
   fourElements: {
     name: "Domínio dos 4 Elementos",
-    description: `Carrega em ${abilityCycle("fourElements")} turnos. Ao usar, escolha um elemento (nunca o mesmo da última vez). Terra: ergue uma muralha numa casa livre perto de alguém; ninguém além de você passa até as rolagens que baterem nela somarem ${WALL_HP} (até ${MAX_WALLS} muralhas). Água: prende um oponente por ${TETHER_TURNS} rodadas; sempre que ele andar, você é puxado metade. Fogo: tirando 5 ou 6 nesta rolagem, o dado vale o dobro, explode empurrando ${COMBUSTION_PUSH} casas quem estiver a até ${COMBUSTION_RADIUS} de você, e você rola de novo. Vento: armadilha escondida que rouba a próxima rolagem de ${BREEZE_THRESHOLD}+ de um oponente: ele fica parado e você anda o valor. Passiva, Despertar Primordial: cada elemento novo (habilidade ou carta sua) entra na sua órbita; com os 4, a Convergência: intocável por ${CONVERGENCE_TURNS} rodadas, +${CONVERGENCE_BONUS} no dado e a habilidade pronta de novo.`,
+    description: `Carrega em ${abilityCycle("fourElements")} turnos. Ao usar, escolha um elemento (nunca o mesmo da última vez). Terra: ergue uma muralha numa casa livre perto de alguém; com ${WALL_HP} de vida, ela come o que sobra da rolagem de quem chega nela; se sobrar mais que a vida, ela cai e a pessoa segue andando (até ${MAX_WALLS} muralhas). Água: prende um oponente por ${TETHER_TURNS} rodadas; sempre que ele andar, você é puxado metade. Fogo: tirando 5 ou 6 nesta rolagem, o dado vale o dobro, explode empurrando ${COMBUSTION_PUSH} casas quem estiver a até ${COMBUSTION_RADIUS} de você, e você rola de novo. Vento: armadilha escondida que rouba a próxima rolagem de ${BREEZE_THRESHOLD}+ de um oponente: ele fica parado e você anda o valor. Passiva, Despertar Primordial: cada elemento novo (habilidade ou carta sua) entra na sua órbita; com os 4, a Convergência: intocável por ${CONVERGENCE_TURNS} rodadas, +${CONVERGENCE_BONUS} no dado e a habilidade pronta de novo.`,
     active: "Os elementos responderam",
   },
   fireZone: {
@@ -107,16 +113,17 @@ export const ABILITY_TEXT: Readonly<Record<AbilityId, { name: string; descriptio
     description: `Carrega em ${abilityCycle("timeWarp")} turnos. Ao usar, escolha um oponente e o que fazer com o tempo dele: Parar (fica ${TIME_ROUNDS} rodadas sem jogar) ou Inverter (nas próximas ${TIME_ROUNDS} rodadas o dado dele anda para trás). Soma com o que ele já tinha. Só alcança quem está no mesmo lugar que você (o tabuleiro, o céu ou o inferno). Se o alvo estiver Indomável, no Susanoo, com armadura ou sob a Égide Celestial, o tempo é bloqueado e a habilidade é gasta à toa. A carga só volta a contar depois que essas ${TIME_ROUNDS} rodadas passam (uma casa de habilidade ainda carrega). Sem ninguém ao alcance, você joga de novo depois deste turno.`,
     active: "O tempo obedece",
   },
-  plasmaCannon: {
-    name: "Canhão de Plasma",
-    description: `Carrega em ${abilityCycle("plasmaCannon")} turnos. Ao usar, destrói para sempre as próximas ${PLASMA_TRAPS} armadilhas à frente (ocultas também) e empurra ${PLASMA_PUSH} casas para trás o oponente mais adiantado ao alcance.`,
-    active: "Alvo atingido",
+  empPulse: {
+    name: "Pulso Eletromagnético",
+    description: `Carrega em ${abilityCycle("empPulse")} turnos, contados depois que o PEM acaba. Ao usar, apagão por ${BLACKOUT_TURNS} rodadas: os oponentes não jogam cartas nem usam habilidade. Depois, ${BROWNOUT_TURNS} rodada de subtensão: as cartas de movimento deles valem a metade. Passiva, Sobrecarga de Memória: a cada ${OVERLOAD_ROUNDS} rodadas, quem tiver mais de ${OVERLOAD_HAND} cartas na mão perde ${OVERLOAD_BURN} cartas (as Corrompidas contam, mas nunca queimam).`,
+    active: "Apagão",
   },
-  transmutation: {
-    name: "Transmutação",
-    description: `Carrega em ${abilityCycle("transmutation")} turnos. Ao usar, sacrifique ${TRANSMUTATION_CARDS} cartas da mão: os níveis de raridade delas se somam e você ganha uma carta aleatória desse nível (duas de nível 2 viram uma de nível 4; o máximo é o nível ${MAX_RARITY_LEVEL}, lendária). Com menos de ${TRANSMUTATION_CARDS} cartas na mão, ganha uma carta de nível ${TRANSMUTATION_FALLBACK_LEVEL}.`,
-    active: "Alquimia feita",
+  grandInversion: {
+    name: "Grande Inversão Alquímica",
+    description: `Carrega em ${abilityCycle("grandInversion")} turnos. Ao usar, inverte o tabuleiro por ${INVERSION_TURNS} rodadas: para os oponentes, as casas boas viram ruins (avanço vira recuo, jogar de novo vira perde a vez, carta vira perda, céu vira inferno, bênção vira maldição); para você, as ruins viram boas (armadilha vira avanço, perde a vez vira tantas jogadas extras quanto perderia, maldição vira bênção, inferno vira céu). Passiva, Condensador de Cemitério: a cada ${CONDENSER_CARDS} cartas que vão para qualquer cemitério (as suas também), você escolhe uma do seu cemitério para voltar à mão.`,
+    active: "Tabuleiro invertido",
   },
+
   levitation: {
     name: "Levitação Carmesim",
     description: `Carrega em ${abilityCycle("levitation")} turnos. Ao usar, flutua por ${LEVITATION_TURNS} turnos: nenhuma casa tem efeito sobre você (armadilhas, maldições, bênçãos, portais).`,

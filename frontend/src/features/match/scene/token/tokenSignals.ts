@@ -21,8 +21,11 @@ export function tokenSignals(view: MatchView, player: Player): TokenSignals {
     isFuryAwake: view.abilityInUse === "dormantFury" && view.activePlayerId === id && !isDashing,
     isActive: view.activePlayerId === id,
     isPowered: view.poweredPlayerId === id,
-    // Trampled, they get up off their chair to be shoved.
-    isResting: isSeated(player) && !(trample?.victim === id && trample.phase !== "over"),
+    // Trampled, they get up off their chair to be shoved; carried along a walk, they only sit back down at its end.
+    isResting:
+      isSeated(player) &&
+      !(trample?.victim === id && trample.phase !== "over") &&
+      !(view.walkEnd?.playerId === id && view.walkEnd.tile !== player.position),
     shove:
       trample?.by === id && !trample.susanoo && (trample.phase === "shove" || trample.phase === "flying")
         ? trample.id

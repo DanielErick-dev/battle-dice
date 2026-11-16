@@ -21,7 +21,6 @@ import { preloadChairs } from "@/features/characters/accessories/chairs";
 import { CastOverlay } from "./cards/CastOverlay";
 import { DrawOverlay } from "./cards/DrawOverlay";
 import { FusionOverlay } from "./cards/FusionOverlay";
-import { TransmuteOverlay } from "./cards/TransmuteOverlay";
 import { DicePanel } from "./hud/DicePanel";
 import { EffectBanner } from "./hud/EffectBanner";
 import { ErrorToast } from "./hud/ErrorToast";
@@ -200,6 +199,11 @@ export function MatchTable({
     setReady(true);
     onSceneReady?.();
   }, [onSceneReady]);
+  const { setLive } = audio;
+  useEffect(() => {
+    setLive(ready);
+    return () => setLive(false);
+  }, [setLive, ready]);
   const nameOf = (id: string | null) => view.players.find((player) => player.id === id)?.name ?? null;
   const activePlayer = activePlayerOf(view);
   const controls = viewerControls(view, store.pinnedSeat, store.spectator, store.computerSeats);
@@ -266,6 +270,7 @@ export function MatchTable({
                 activePlayerId={view.activePlayerId}
                 viewerId={controls.viewerId}
                 board={board}
+                inversion={view.inversion}
               />
             </div>
           )}
@@ -331,7 +336,6 @@ export function MatchTable({
       <CastOverlay cast={view.fx.cast} />
       <DrawOverlay drawing={view.fx.drawing} />
       <FusionOverlay fusing={view.fx.fusing} />
-      <TransmuteOverlay transmuting={view.fx.transmuting} />
       {choosing && abilityCtx && controls.canActivateAbility && AbilityPicker && <AbilityPicker ctx={abilityCtx} />}
       {placement && (
         <TilePicking

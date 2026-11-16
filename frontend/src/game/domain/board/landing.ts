@@ -11,6 +11,7 @@ import { repelledBySusanoo, scorch, sweptBySusanoo } from "../characters/kage/fl
 import { stirEnchantment } from "../characters/fairy/snow";
 import { landOnScarlet } from "../characters/akane/fire";
 import { weedOut } from "../characters/vinicius/weeding";
+import { invertedLanding } from "../characters/alchemist/inversion";
 import type { Threat, TileId } from "./types";
 import type { PlayerId } from "../core/state";
 
@@ -50,6 +51,9 @@ export function resolveLanding(draft: Draft, playerId: PlayerId, landed: TileId)
     strikeScar(draft, playerId, scar);
     return;
   }
+
+  // The Alchemist's Inversion turns the tile itself around, before any ward or shield is asked.
+  if (invertedLanding(draft, playerId, landed)) return;
 
   const threat = threatAt(draft, landed);
   const skipping = effect.kind === "skipTurn" && !draft.destroyedTraps.includes(landed);

@@ -4,6 +4,7 @@ import type { TileId } from "../board/types";
 import type { CardEvent } from "../cards/events";
 import type { AkaneEvent } from "../characters/akane/types";
 import type { AlchemistEvent } from "../characters/alchemist/types";
+import type { AlvaEvent } from "../characters/alva/types";
 import type { ArcherEvent } from "../characters/archer/types";
 import type { AuricEvent } from "../characters/auric/types";
 import type { BjornEvent } from "../characters/bjorn/types";
@@ -29,6 +30,7 @@ export type GameEvent =
   | CardEvent
   | AkaneEvent
   | AlchemistEvent
+  | AlvaEvent
   | ArcherEvent
   | AuricEvent
   | BjornEvent

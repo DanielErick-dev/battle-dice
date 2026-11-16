@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   bendableElements,
   BREEZE_THRESHOLD,
+  WALL_REACH,
   COMBUSTION_PUSH,
   TETHER_TURNS,
   tetherTargets,
@@ -19,6 +20,13 @@ const ELEMENT_DETAIL: Readonly<Record<Element, string>> = {
   fire: `5 ou 6: dado ×2, explode (${COMBUSTION_PUSH} casas) e rola de novo`,
   wind: `rouba escondido a próxima rolagem de ${BREEZE_THRESHOLD}+`,
 };
+
+/** Why an element can't be bent right now (bendableElements left it out). */
+function restingReason(element: Element, lastElement: Element | null): string {
+  if (element === lastElement) return "foi o último: descansa agora";
+  if (element === "water") return "nenhum oponente no mesmo lugar para prender";
+  return `nenhuma casa livre até ${WALL_REACH} à frente de alguém`;
+}
 
 /** Domínio dos 4 Elementos: the element first (never the last one), then a tile or an opponent if it needs one. */
 function ElementPicker({ ctx }: { ctx: AbilityContext }) {
@@ -52,10 +60,11 @@ function ElementPicker({ ctx }: { ctx: AbilityContext }) {
           ? `Qual elemento? (${ELEMENT_NAME[player.tenzai.lastElement]} foi o último e descansa agora)`
           : "Qual elemento?"
       }
-      alternatives={ELEMENTS.filter((element) => open.has(element)).map((element) => ({
+      alternatives={ELEMENTS.map((element) => ({
         label: ELEMENT_NAME[element],
         detail: ELEMENT_DETAIL[element],
         onPick: () => pick(element),
+        unavailable: open.has(element) ? undefined : restingReason(element, player.tenzai.lastElement),
       }))}
       onCancel={ctx.cancel}
     />

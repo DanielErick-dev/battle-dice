@@ -34,6 +34,8 @@ export function createInitialView(state: GameState): MatchView {
     rifts: riftsOf(state.board),
     voidScars: state.voidScars,
     pendingPlunder: state.pendingPlunder,
+    pendingRaid: state.pendingRaid,
+    inversion: state.inversion,
     elementals: state.elementals,
     walkEnd: null,
     log: [],

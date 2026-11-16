@@ -47,12 +47,17 @@ export function CardView({
         expanded
           ? "grid before:col-start-1 before:row-start-1 before:aspect-[5/7] before:content-['']"
           : "aspect-[5/7]",
-        dimmed && "saturate-[0.35] brightness-75",
+        // Still readable and in colour: a card you can't play now is only toned down, not greyed into the dark.
+        dimmed && "brightness-[0.85] saturate-[0.75]",
         selected && "ring-2 ring-orange-400 ring-offset-2 ring-offset-black/60",
         className,
       )}
     >
-      <div className="relative col-start-1 row-start-1 flex flex-1 flex-col overflow-hidden rounded-[9px] bg-zinc-950">
+      <div
+        className="relative col-start-1 row-start-1 flex flex-1 flex-col overflow-hidden rounded-[9px] bg-zinc-950"
+        // The card's own colours glow through its body, so a hand isn't a row of black slabs.
+        style={{ backgroundImage: `linear-gradient(170deg, ${palette.from}55, #09090b 70%)` }}
+      >
         <header
           className={cn(
             "flex gap-1 px-2 pt-1.5",
@@ -61,7 +66,9 @@ export function CardView({
         >
           <span
             className={cn(
-              "line-clamp-2 leading-tight font-black text-white uppercase",
+              "line-clamp-2 leading-tight font-black text-white uppercase drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]",
+              // Always two lines tall on the phone: one-line names would lift their art out of line with the rest.
+              compact && "flex min-h-[2.5em] items-end",
               // Long single words (Teletransporte) can't wrap, so they shrink instead.
               text.name.length > 12 ? "text-[9px] tracking-normal" : "text-[11px] tracking-wide",
             )}
@@ -88,7 +95,7 @@ export function CardView({
 
         <div
           // Never squeezed by a long rules text: the text shrinks instead.
-          className="mx-1.5 mt-1 aspect-[10/7] shrink-0 overflow-hidden rounded-md border border-white/15"
+          className="mx-1.5 mt-1 aspect-[10/7] shrink-0 overflow-hidden rounded-md border border-white/25 shadow-[inset_0_0_12px_rgba(0,0,0,0.35)]"
           style={{ background: `radial-gradient(circle at 50% 40%, ${palette.from}, ${palette.to})` }}
         >
           <CardArt cardId={cardId} />
@@ -113,7 +120,7 @@ export function CardView({
           {text.description}
         </p>
         {compact && <div className="flex-1" />}
-        <footer className="flex items-center justify-between gap-1 px-2 py-1 text-[8px] font-bold tracking-[0.2em] text-zinc-400 uppercase">
+        <footer className="flex items-center justify-between gap-1 px-2 py-1 text-[8px] font-bold tracking-[0.2em] text-zinc-200 uppercase">
           <span className="truncate">
             {fused
               ? FUSED_LABEL

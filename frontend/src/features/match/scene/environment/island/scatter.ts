@@ -88,6 +88,29 @@ export function lanternSpots(trail: readonly Vec3[], shape: IslandShape): Vec3[]
   return spots;
 }
 
+/** How far a bench keeps from every tile centre (tiles are 2 wide, plus room for a figure beside them). */
+const BENCH_CLEARANCE = 2.9;
+
+/** Benches set back from the trail, facing it: past the lantern on the same side, never on the road. */
+export function benchSpots(trail: readonly Vec3[], shape: IslandShape, every: number): { at: Vec3; turn: number }[] {
+  const benches: { at: Vec3; turn: number }[] = [];
+  for (let index = 4 + LANTERN_EVERY; index < trail.length - 1; index += LANTERN_EVERY * every) {
+    const [x, , z] = itemAt(trail, index);
+    const [nx, , nz] = itemAt(trail, index + 1);
+    const [dx, dz] = [nx - x, nz - z];
+    const length = Math.hypot(dx, dz) || 1;
+    const side = index % 2 === 0 ? 1 : -1;
+    const [ox, oz] = [(-dz / length) * side, (dx / length) * side];
+    // A step along the trail too, so it sits beside the lantern rather than behind it.
+    const at: Vec3 = [x + ox * 3.6 + (dx / length) * 1.2, TRAIL_GROUND, z + oz * 3.6 + (dz / length) * 1.2];
+    // The trail winds: a bench clear of this stretch can still sit on the next bend.
+    const clear = trail.every(([tx, , tz]) => Math.hypot(tx - at[0], tz - at[2]) > BENCH_CLEARANCE);
+    if (clear && riverDistance(shape, at[0], at[2]) > RIVER_HALF_WIDTH + 1.5)
+      benches.push({ at, turn: Math.atan2(-ox, -oz) });
+  }
+  return benches;
+}
+
 /** One stretch of the trail over the stream: the tiles' centres it runs between. */
 export interface BridgeSpan {
   from: Vec3;

@@ -86,11 +86,11 @@ function drawCaustics(context: CanvasRenderingContext2D, size: number) {
         // Measured around the wrap, so the pattern tiles.
         const dx = Math.min(Math.abs(px - cx), size - Math.abs(px - cx));
         const dy = Math.min(Math.abs(py - cy), size - Math.abs(py - cy));
-        const distance = Math.hypot(dx, dy);
+        const distance = dx * dx + dy * dy;
         if (distance < nearest) [second, nearest] = [nearest, distance];
         else if (distance < second) second = distance;
       }
-      const value = Math.round(255 * Math.exp(-(second - nearest) / 3.5));
+      const value = Math.round(255 * Math.exp(-(Math.sqrt(second) - Math.sqrt(nearest)) / 3.5));
       const at = (py * size + px) * 4;
       image.data[at] = image.data[at + 1] = image.data[at + 2] = value;
       image.data[at + 3] = 255;

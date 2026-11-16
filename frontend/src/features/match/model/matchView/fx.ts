@@ -98,15 +98,6 @@ interface FrostStreamView {
   tile: TileId;
 }
 
-export interface CardTransmuteView {
-  id: number;
-  playerId: PlayerId;
-  from: CardInstance;
-  /** The second card sacrificed with `from`. */
-  sacrificed: CardInstance;
-  to: CardInstance;
-}
-
 export interface CardCastView {
   id: number;
   playerId: PlayerId;
@@ -130,7 +121,6 @@ export interface MatchFx {
   cast: CardCastView | null;
   drawing: CardDrawView | null;
   fusing: CardFusionView | null;
-  transmuting: CardTransmuteView | null;
   dash: DashView | null;
   volley: VolleyView | null;
   tide: TideView | null;
@@ -160,7 +150,6 @@ export const NO_FX: MatchFx = {
   cast: null,
   drawing: null,
   fusing: null,
-  transmuting: null,
   dash: null,
   volley: null,
   tide: null,

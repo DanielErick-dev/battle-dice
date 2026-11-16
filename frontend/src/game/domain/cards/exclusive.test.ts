@@ -53,7 +53,7 @@ describe("characters' own cards", () => {
     expect(owned(playerOf(game, "zarek"))).toContain("voidEcho");
   });
 
-  it("never come out of transmutation or a gamble's pool", () => {
+  it("never come out of a gamble's pool", () => {
     for (let level = 1; level <= MAX_RARITY_LEVEL; level++) {
       const pool = cardsOfLevel(level, { withOpponents: true });
       expect(pool).not.toContain("finalJudgment");

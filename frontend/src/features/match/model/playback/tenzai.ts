@@ -12,11 +12,18 @@ function bending(view: MatchView, fx: Omit<BendingView, "id">): MatchView {
 
 /** Walked along `path` without the tile at the end doing anything (pulled by a bond, carried by a stolen roll). */
 function carried(playerId: PlayerId, path: readonly TileId[], timings: PlaybackTimings): PlaybackStep[] {
-  return path.map((tile) => ({ apply: (view) => withPlayerAt(view, playerId, tile), durationMs: timings.stepMs }));
+  const end = path.at(-1);
+  return path.map((tile) => ({
+    apply: (view) => ({
+      ...withPlayerAt(view, playerId, tile),
+      walkEnd: end === undefined ? null : { playerId, tile: end },
+    }),
+    durationMs: timings.stepMs,
+  }));
 }
 
-/** How long each bending holds the camera on him, so his gesture plays out before the element lands. */
-const BENDING_MS = { earth: 1700, water: 2300, fire: 2000, wind: 2400 } as const;
+/** How long each bending holds the camera on him: his whole gesture (quake/tide/flare/gust, sped up) and a beat after. */
+const BENDING_MS = { earth: 2700, water: 3300, fire: 2600, wind: 3400 } as const;
 /** A run of punches on the wall, the hp coming off with them. */
 const WALL_PUNCH_MS = 2200;
 

@@ -54,17 +54,32 @@ describe("Mastery of the Four Elements", () => {
 });
 
 describe("Tectonic Wall", () => {
-  it("stops a roll short of it, takes the roll off its hp and crumbles at zero", () => {
+  it("eats what's left of a walk up to its hp: a short roll stops behind it and chips it", () => {
     let state = bend(placed(), { element: "earth", wallTile: 23 }).state;
-    expect(state.elementals.walls).toEqual([{ tile: 23, owner: "tenzai", hp: WALL_HP, maxHp: WALL_HP }]);
     const hit = rivalRolls(state, 5);
     expect(playerOf(hit.state, "rival").position).toBe(22);
     expect(eventsOfType(hit.events, "wallHit")).toEqual([
-      { type: "wallHit", playerId: "rival", tile: 23, damage: 5, hp: WALL_HP - 5 },
+      { type: "wallHit", playerId: "rival", tile: 23, damage: 3, hp: WALL_HP - 3 },
     ]);
-    state = rivalRolls(hit.state, 3).state;
+    state = rivalRolls(onTurnOf(hit.state, "rival"), WALL_HP - 3).state;
     expect(state.elementals.walls).toEqual([]);
     expect(playerOf(state, "rival").position).toBe(22);
+  });
+
+  it("crumbles under a long roll, which spends its hp and walks on past it", () => {
+    const state = withPlayers(bend(placed(), { element: "earth", wallTile: 23 }).state, {
+      rival: { position: 21 },
+    });
+    const weakened = {
+      ...state,
+      elementals: { ...state.elementals, walls: [{ ...state.elementals.walls[0]!, hp: 4 }] },
+    };
+    const { state: after, events } = rivalRolls(weakened, 6);
+    expect(eventsOfType(events, "wallCrumbled")).toHaveLength(1);
+    // 6 from 21: one step to reach it, 4 spent on it, one onto the tile it stood on.
+    expect(playerOf(after, "rival").position).toBe(23);
+    const far = rivalRolls(weakened, 12);
+    expect(playerOf(far.state, "rival").position).toBe(21 + 12 - 4);
   });
 
   it("lets its owner walk through", () => {

@@ -40,7 +40,6 @@ export const cardsSteps: StepHandlers<
   | "deckReshuffled"
   | "cardsFused"
   | "cardTeleported"
-  | "cardTransmuted"
   | "cardsResurrected"
   | "energySacrificed"
 > = {
@@ -103,38 +102,6 @@ export const cardsSteps: StepHandlers<
       (player) => ({ deck: player.deck.filter((card) => card.uid !== event.card.uid) }),
       timings,
     );
-  },
-  cardTransmuted: (event, timings) => {
-    // The old card dissolves in alchemical fire into the new one, which then flies to the hand.
-    return [
-      {
-        apply: (view) =>
-          withFx(view, {
-            transmuting: {
-              id: nextFxId(view.fx.transmuting),
-              playerId: event.playerId,
-              from: event.from,
-              sacrificed: event.sacrificed,
-              to: event.to,
-            },
-          }),
-        durationMs: timings.transmuteMs,
-      },
-      {
-        apply: (view) => ({
-          ...withFx(
-            withPlayer(view, event.playerId, (player) => ({
-              hand: player.hand
-                .filter((card) => card.uid !== event.sacrificed.uid)
-                .map((card) => (card.uid === event.from.uid ? event.to : card)),
-            })),
-            { transmuting: null },
-          ),
-          lastDrawnUid: event.to.uid,
-        }),
-        durationMs: timings.drawMs,
-      },
-    ];
   },
   deckReshuffled: (event, timings) => {
     return [

@@ -1,4 +1,14 @@
 import {
+  COLLAPSE_PER_CARD,
+  FIREWALL_TURNS,
+  HARVEST_PER_CARD,
+  MALWARE_CARDS,
+  THRUST_PER_OVERLOADED,
+} from "@/game/domain/characters/alva/cards";
+import { OVERLOAD_HAND } from "@/game/domain/characters/alva/systems";
+import { ALCHEMY_REACH, OPUS_PICKS, RAIDER_PICKS } from "@/game/domain/characters/alchemist/cards";
+import { OPUS_INVERSION_TURNS } from "@/game/domain/characters/alchemist/inversion";
+import {
   FUSED_AEGIS_TURNS,
   FUSED_BLAST_PUSH,
   FUSED_HERB_CHARGE,
@@ -165,6 +175,47 @@ export const CARD_TEXT: Readonly<Record<CardId, { name: string; description: str
     name: "Convergência dos Quatro",
     description:
       "Muralha à frente do líder, laço nele, brisa armada e dado de combustão, tudo de uma vez: desperta a Convergência.",
+  },
+  catalyticStep: {
+    name: "Passo Catalítico",
+    description: `Avança até a primeira casa ruim em até ${ALCHEMY_REACH} à frente e inverte ela para você (armadilha vira avanço, perde a vez vira jogada extra, inferno vira céu).`,
+  },
+  polarityContamination: {
+    name: "Contaminação de Polaridade",
+    description: `Mira: o oponente corre até a casa boa mais próxima em até ${ALCHEMY_REACH} à frente, que vira ruim para ele (avanço vira recuo, carta vira perda).`,
+  },
+  graveyardRaider: {
+    name: "Saqueadora de Cemitério",
+    description: `Escolha ${RAIDER_PICKS} cartas de qualquer cemitério (o seu ou dos oponentes) e traga para a mão.`,
+  },
+  strictEquivalence: {
+    name: "Troca Equivalente Estrita",
+    description:
+      "Só numa casa ruim, mirando quem não está numa: vocês trocam de lugar, a casa ruim pega o oponente e vira bônus para você.",
+  },
+  magnumOpus: {
+    name: "Grande Obra da Pedra Filosofal",
+    description: `Queima sua mão, cada oponente perde a melhor carta, você pega ${OPUS_PICKS} de qualquer cemitério e o tabuleiro inverte por ${OPUS_INVERSION_TURNS} rodadas.`,
+  },
+  malwareInjection: {
+    name: "Injeção de Malware",
+    description: `Injeta ${MALWARE_CARDS} Cartas Corrompidas na mão do oponente escolhido. Elas furam o limite da mão e deixam você ver as cartas dele.`,
+  },
+  overloadThruster: {
+    name: "Propulsor de Sobrecarga",
+    description: `Avança ${THRUST_PER_OVERLOADED} casas para cada oponente com mais de ${OVERLOAD_HAND} cartas na mão (Corrompidas contam).`,
+  },
+  firewallLock: {
+    name: "Trava de Firewall",
+    description: `O oponente escolhido não joga cartas nem apaga Corrompidas por ${FIREWALL_TURNS} rodadas.`,
+  },
+  dataCollapse: {
+    name: "Colapso Gravitacional de Dados",
+    description: `O oponente escolhido recua ${COLLAPSE_PER_CARD} casas para cada carta na mão, Corrompidas incluídas.`,
+  },
+  apocalypseProtocol: {
+    name: "Protocolo Apocalipse",
+    description: `Injeta ${MALWARE_CARDS} Corrompidas em todos os oponentes, explode a Sobrecarga de Memória na hora e você avança ${HARVEST_PER_CARD} casas por carta destruída.`,
   },
 };
 

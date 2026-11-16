@@ -1,5 +1,6 @@
 import { HIDDEN, hideCards, hiddenCard } from "./hidden";
 import type { VoidItem } from "../characters/zarek/types";
+import { spiesOn } from "../characters/alva/systems";
 import type { GameEvent } from "./events";
 import type { GameState, PendingDiscard, Player, PlayerId } from "./state";
 
@@ -33,11 +34,13 @@ export function projectState(state: GameState, viewerId: ViewerId): GameState {
 
 function projectPlayer(state: GameState, player: Player, viewerId: ViewerId): Player {
   const own = player.id === viewerId;
+  const viewer = state.players.find((candidate) => candidate.id === viewerId);
   // The Warden picks the stolen cards from the victim's hand, so he sees it while the pick is pending.
   const plundered = state.pendingPlunder?.victim === player.id && state.pendingPlunder.owner === viewerId;
   return {
     ...player,
-    hand: own || plundered ? player.hand : hideCards(player.hand),
+    // Unidade Alva's spyware streams the hand it sits in.
+    hand: own || plundered || spiesOn(viewer, player) ? player.hand : hideCards(player.hand),
     // Not even the owner knows the order of their own deck.
     deck: hideCards(player.deck),
     abilityCharge: !own && player.ability === "silentVerdict" ? 0 : player.abilityCharge,

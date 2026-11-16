@@ -2,6 +2,7 @@ import { playerIn, updatePlayer, type Draft } from "../core/draft";
 import { randomItem, shuffle } from "../core/random";
 import { throwOnPile } from "./decks";
 import { GameRuleError } from "../core/errors";
+import { feedCondenser } from "../characters/alchemist/condenser";
 import type { CardInstance, PlayerId } from "../core/state";
 
 export const HAND_LIMIT = 8;
@@ -50,6 +51,7 @@ export function conjureCard(draft: Draft, playerId: PlayerId, card: CardInstance
     draft.events.push({ type: "cardDrawn", playerId, card });
   } else {
     updatePlayer(draft, playerId, (player) => ({ discard: throwOnPile(player.discard, [card]) }));
+    feedCondenser(draft, 1);
     draft.events.push({ type: "cardDiscarded", playerId, card, hand });
   }
 }
@@ -87,6 +89,7 @@ export function takeRandomCard(draft: Draft, playerId: PlayerId): CardInstance |
     hand: player.hand.filter((candidate) => candidate.uid !== card.uid),
     discard: throwOnPile(player.discard, [card]),
   }));
+  feedCondenser(draft, 1);
   return card;
 }
 

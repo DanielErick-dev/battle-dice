@@ -1,14 +1,16 @@
 "use client";
 
 import { useMemo } from "react";
-import { ExtrudeGeometry, MeshStandardMaterial, Shape } from "three";
+import { MeshStandardMaterial } from "three";
 import { useDisposal } from "../kit/dispose";
 import { GroundDisc } from "../kit/Floor";
 import { dome } from "../kit/geometry";
 import { GroundMist, type MistLook, type MistPatch } from "../kit/GroundMist";
-import { Prop, usePropMesh } from "../kit/matchAssets";
+import { preloadProps, Prop, useFittedProp, usePropMesh } from "../kit/matchAssets";
 import { useNoiseTexture } from "../kit/textures";
-import { MOUND, SOIL, STONE } from "./textures";
+import { MOUND, SOIL } from "./textures";
+
+preloadProps(["gravestone"]);
 
 const HEADSTONES = [
   { x: -0.66, z: -0.42, height: 0.34, turn: 0.5, lean: -0.12, tilt: 0.05 },
@@ -44,28 +46,25 @@ export function Graveyard() {
   const soil = useNoiseTexture(SOIL);
   // The mounds take the bare grain: the track and its litter belong on the ground.
   const mounds = useNoiseTexture(MOUND);
-  const stone = useNoiseTexture(STONE);
   const skull = usePropMesh("skull");
   const materials = useMemo(
     () => ({
       earth: new MeshStandardMaterial({ map: soil, transparent: true, roughness: 1, depthWrite: false }),
       mound: new MeshStandardMaterial({ map: mounds, color: "#8a8279", roughness: 1 }),
-      stone: new MeshStandardMaterial({ map: stone, roughness: 0.95 }),
       wood: new MeshStandardMaterial({ color: "#2a2018", roughness: 1 }),
       skull: Object.assign(skull.material.clone(), { color: skull.material.color.clone().multiplyScalar(0.6) }),
     }),
-    [soil, mounds, stone, skull.material],
+    [soil, mounds, skull.material],
   );
   useDisposal(materials);
-  const headstone = useMemo(() => headstoneGeometry(), []);
-  useDisposal(headstone);
+  const gravestone = useFittedProp("gravestone");
 
   return (
     <group>
       <GroundDisc material={materials.earth} />
       {HEADSTONES.map(({ x, z, height, turn, lean, tilt }) => (
-        <group key={`${x}:${z}`} position={[x, -0.03, z]} rotation={[lean, turn, tilt]} scale={height}>
-          <mesh geometry={headstone} material={materials.stone} />
+        <group key={`${x}:${z}`} position={[x, -0.03, z]} rotation={[lean, turn, tilt]} scale={height * 1.25}>
+          <mesh geometry={gravestone.geometry} material={gravestone.material} castShadow />
         </group>
       ))}
       <group position={[0.0, -0.02, -0.86]} rotation={[0.08, 0.1, -0.18]}>
@@ -88,27 +87,4 @@ export function Graveyard() {
       <GroundMist patches={WISP_PATCHES} look={WISP_LOOK} />
     </group>
   );
-}
-
-/** A round-topped slab 1 tall, standing on its origin and facing +Z. */
-function headstoneGeometry(): ExtrudeGeometry {
-  const shape = new Shape();
-  shape.moveTo(-0.32, 0);
-  shape.lineTo(-0.32, 0.68);
-  shape.absarc(0, 0.68, 0.32, Math.PI, 0, true);
-  shape.lineTo(0.32, 0);
-  shape.lineTo(-0.32, 0);
-  const geometry = new ExtrudeGeometry(shape, {
-    depth: 0.14,
-    bevelEnabled: true,
-    bevelThickness: 0.03,
-    bevelSize: 0.03,
-    bevelSegments: 3,
-    curveSegments: 16,
-  });
-  geometry.translate(0, 0, -0.07);
-  // Planar UVs from the extrusion are in shape units; scale them so the stone grain reads.
-  const uv = geometry.getAttribute("uv");
-  for (let index = 0; index < uv.count; index++) uv.setXY(index, uv.getX(index) * 1.5, uv.getY(index) * 1.5);
-  return geometry;
 }

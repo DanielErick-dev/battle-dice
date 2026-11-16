@@ -7,14 +7,14 @@ import { levitate } from "./basic";
 import { fireZone } from "../characters/akane/fire";
 import { lightFlames, raiseArmour } from "../characters/kage/flames";
 import { loseArrowRain } from "../characters/archer/arrowRain";
-import { plasmaCannon } from "../characters/alva/plasmaCannon";
+import { empPulse } from "../characters/alva/systems";
 import { playCardGamble } from "../characters/jester/cardGamble";
 import { resurrectCards } from "../characters/necromancer/resurrection";
 import { seize } from "../characters/zarek/seize";
 import { seraphielBlessing } from "../characters/seraphiel/blessing";
 import { summonSpecters } from "../characters/warden/specters";
 import { timeWarp } from "../characters/cronos/timeWarp";
-import { transmuteCards } from "../characters/alchemist/transmutation";
+import { INVERSION_TURNS, startInversion } from "../characters/alchemist/inversion";
 import { unleash } from "../characters/bjorn/untamed";
 import { writeSeals } from "../characters/scribe/seals";
 import type { AbilityId } from "./ability";
@@ -43,8 +43,8 @@ export const ABILITY_EFFECTS: Readonly<Record<AbilityId, AbilityEffect | null>> 
   cleansingTide: (draft, playerId) => cleansingTide(draft, playerId),
   untamed: (draft, playerId) => unleash(draft, playerId),
   timeWarp: (draft, playerId, { power, targetId }) => timeWarp(draft, playerId, power, targetId),
-  plasmaCannon: (draft, playerId) => plasmaCannon(draft, playerId),
-  transmutation: (draft, playerId, { cardUids = [] }) => transmuteCards(draft, playerId, cardUids),
+  empPulse: (draft, playerId) => empPulse(draft, playerId),
+  grandInversion: (draft, playerId) => startInversion(draft, playerId, INVERSION_TURNS),
   resurrection: (draft, playerId, { cardUids = [] }) => resurrectCards(draft, playerId, cardUids),
   forbiddenSeals: (draft, playerId, { sealTiles = [] }) => writeSeals(draft, playerId, sealTiles),
   spectralApparitions: (draft, playerId, { specterTiles = [] }) => summonSpecters(draft, playerId, specterTiles),

@@ -131,61 +131,6 @@ function drawHazard(context: CanvasRenderingContext2D, size: number) {
   }
 }
 
-/** A steel crate face: frame, cross braces, a stencilled number and hazard corners. */
-function drawCrate(context: CanvasRenderingContext2D, size: number) {
-  const random = seededRandom(107);
-  context.fillStyle = "#c9ced6";
-  context.fillRect(0, 0, size, size);
-  context.fillStyle = "#3a4250";
-  const frame = size * 0.08;
-  context.fillRect(0, 0, size, frame);
-  context.fillRect(0, size - frame, size, frame);
-  context.fillRect(0, 0, frame, size);
-  context.fillRect(size - frame, 0, frame, size);
-  context.strokeStyle = "rgba(58,66,80,0.6)";
-  context.lineWidth = size * 0.03;
-  context.beginPath();
-  context.moveTo(frame, frame);
-  context.lineTo(size - frame, size - frame);
-  context.stroke();
-  context.fillStyle = "#e0a91f";
-  for (const [x, y] of [
-    [frame, frame],
-    [size - frame * 3, size - frame * 3],
-  ] as const) {
-    context.fillRect(x, y, frame * 2, frame * 2);
-  }
-  context.fillStyle = "rgba(30,34,42,0.85)";
-  context.font = `bold ${Math.round(size * 0.22)}px monospace`;
-  context.textAlign = "center";
-  context.textBaseline = "middle";
-  context.fillText("07", size * 0.62, size * 0.38);
-  for (let fleck = 0; fleck < 500; fleck++) {
-    context.fillStyle = random() < 0.5 ? "rgba(40,44,52,0.2)" : "rgba(255,255,255,0.2)";
-    context.fillRect(random() * size, random() * size, 1 + random() * 3, 1);
-  }
-}
-
-/** Rows of telemetry bars and a target box, tiling vertically so it can scroll. */
-function drawScreen(context: CanvasRenderingContext2D, size: number) {
-  const random = seededRandom(109);
-  context.fillStyle = "#04121c";
-  context.fillRect(0, 0, size, size);
-  const row = size / 16;
-  for (let line = 0; line < 16; line++) {
-    context.fillStyle = `rgba(120,230,255,${0.4 + random() * 0.5})`;
-    let x = row * 0.5;
-    while (x < size * (0.4 + random() * 0.55)) {
-      const width = row * (0.5 + random() * 2.5);
-      context.fillRect(x, line * row + row * 0.3, width, row * 0.4);
-      x += width + row * 0.4;
-    }
-  }
-  context.strokeStyle = "rgba(255,90,100,0.9)";
-  context.lineWidth = 3;
-  context.strokeRect(size * 0.68, size * 0.2, size * 0.22, size * 0.22);
-}
-
 /** The outer ring of the reticle: a dashed circle, a solid one and ticks at the quarters. */
 function drawReticleRing(context: CanvasRenderingContext2D, size: number) {
   const centre = size / 2;
@@ -255,10 +200,6 @@ export const SEAMS: CanvasLook = { size: 512, draw: drawSeams, linear: true };
 export const PAD: CanvasLook = { size: 512, draw: drawPad };
 
 export const HAZARD: CanvasLook = { size: 512, draw: drawHazard };
-
-export const CRATE: CanvasLook = { size: 256, draw: drawCrate };
-
-export const SCREEN: CanvasLook = { size: 256, draw: drawScreen, tile: true };
 
 export const RETICLE_RING: CanvasLook = { size: 256, draw: drawReticleRing };
 

@@ -87,6 +87,17 @@ export const SHOTS: Record<TileEffectKind, Shot> = {
   breezeArmed: {},
   breezeStolen: { fovKick: 0.7, trauma: 0.3 },
   breezeResisted: {},
+  inversion: { closeUp: { distance: 0.7, seconds: 1.4 }, fovKick: 1 },
+  tileInverted: { closeUp: { distance: 0.75, seconds: 1.1 } },
+  graveyardOpened: {},
+  magnumOpus: { closeUp: { distance: 0.62, seconds: 1.6 }, trauma: 0.6 },
+  emp: { closeUp: { distance: 0.62, seconds: 1.4 }, trauma: 0.5 },
+  memoryOverload: { trauma: 0.4 },
+  corrupted: {},
+  firewall: {},
+  dataCollapse: { trauma: 0.4 },
+  alvaThrust: {},
+  apocalypse: { closeUp: { distance: 0.62, seconds: 1.6 }, trauma: 0.6 },
 };
 
 /** Cards whose cast is filmed too (the rest are covered by the effects they cause). */

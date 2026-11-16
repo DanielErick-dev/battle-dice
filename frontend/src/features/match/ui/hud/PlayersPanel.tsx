@@ -1,5 +1,18 @@
+import { cardText } from "../cards/cardText";
 import { CONTAINED_DIE } from "@/game/domain/characters/themis/cards";
 import { INNER_FLAME_MAX } from "@/game/domain/characters/akane/fire";
+import { CONDENSER_CARDS } from "@/game/domain/characters/alchemist/condenser";
+import { isAlchemist } from "@/game/domain/characters/alchemist/inversion";
+import {
+  inBrownout,
+  isAlva,
+  isBlackedOut,
+  spiesOn,
+  OVERLOAD_BURN,
+  OVERLOAD_HAND,
+  OVERLOAD_ROUNDS,
+} from "@/game/domain/characters/alva/systems";
+import type { Inversion } from "@/game/domain/characters/alchemist/types";
 import { Layers, Sparkles } from "lucide-react";
 import { abilityCycle, isAbilityReady } from "@/game/domain/abilities/charge";
 import { getTile, trackOf } from "@/game/domain/board/board";
@@ -14,6 +27,8 @@ import { inHeaven } from "@/game/domain/board/blessings";
 
 interface PlayersPanelProps {
   players: readonly Player[];
+  /** The Alchemist's Great Inversion, shown on her row while it lasts. */
+  inversion?: Inversion | null;
   activePlayerId: PlayerId;
   /** Whose screen this is (see viewerControls): the active player in hot-seat. */
   viewerId: PlayerId | null;
@@ -24,8 +39,9 @@ const REALM_NAMES = { infernal: "Inferno", celestial: "Céu" } as const;
 const REALM_TONES = { infernal: "text-orange-400", celestial: "text-amber-200" } as const;
 
 /** Two short lines per player so four fit beside the board. */
-export function PlayersPanel({ players, activePlayerId, viewerId, board }: PlayersPanelProps) {
+export function PlayersPanel({ players, activePlayerId, viewerId, board, inversion = null }: PlayersPanelProps) {
   const { finishTile } = board;
+  const viewer = players.find((player) => player.id === viewerId);
   return (
     <section aria-label="Jogadores" className="hud-panel w-60 p-1.5">
       <ul className="flex flex-col gap-1">
@@ -83,6 +99,54 @@ export function PlayersPanel({ players, activePlayerId, viewerId, board }: Playe
                     className="rounded-full bg-orange-500/25 px-1.5 text-[9px] font-bold text-orange-300 uppercase"
                   >
                     🔥 Queimando ×{player.burning}
+                  </span>
+                )}
+                {inversion?.owner === player.id && (
+                  <span
+                    title="Grande Inversão: casas boas ferem os oponentes, casas ruins a favorecem"
+                    className="rounded-full bg-emerald-500/25 px-1.5 text-[9px] font-bold text-emerald-200 uppercase"
+                  >
+                    ⚗️ Inversão ×{Math.max(1, inversion.turnsLeft - (activePlayerId === player.id ? 1 : 0))}
+                  </span>
+                )}
+                {isAlchemist(player) && (
+                  <span
+                    title={`Condensador: a cada ${CONDENSER_CARDS} cartas em qualquer cemitério, ela pega uma do próprio cemitério`}
+                    className="rounded-full bg-emerald-500/15 px-1.5 text-[9px] font-bold text-emerald-200 uppercase"
+                  >
+                    Condensador {Math.min(player.alchemist.condensed, CONDENSER_CARDS)}/{CONDENSER_CARDS}
+                  </span>
+                )}
+                {isAlva(player) && (
+                  <span
+                    title={`Sobrecarga de Memória: a cada ${OVERLOAD_ROUNDS} rodadas, quem tiver mais de ${OVERLOAD_HAND} cartas perde ${OVERLOAD_BURN}`}
+                    className="rounded-full bg-sky-500/15 px-1.5 text-[9px] font-bold text-sky-200 uppercase"
+                  >
+                    Sobrecarga {player.alva.overload}/{OVERLOAD_ROUNDS}
+                  </span>
+                )}
+                {player.corrupted > 0 && (
+                  <span
+                    title="Cartas Corrompidas: contam na mão para a Unidade Alva e deixam ela ver as cartas"
+                    className="rounded-full bg-lime-500/20 px-1.5 text-[9px] font-bold text-lime-300 uppercase"
+                  >
+                    Corrompidas ×{player.corrupted}
+                  </span>
+                )}
+                {isBlackedOut(player) && (
+                  <span
+                    title="Apagão do PEM: sem cartas e sem habilidade"
+                    className="rounded-full bg-sky-400/25 px-1.5 text-[9px] font-bold text-sky-200 uppercase"
+                  >
+                    ⚡ Apagão
+                  </span>
+                )}
+                {inBrownout(player) && (
+                  <span
+                    title="Subtensão: cartas de movimento valem a metade"
+                    className="rounded-full bg-sky-400/15 px-1.5 text-[9px] font-bold text-sky-300 uppercase"
+                  >
+                    ⚡ Subtensão
                   </span>
                 )}
                 {player.akane.innerFlame > 0 && (
@@ -156,6 +220,11 @@ export function PlayersPanel({ players, activePlayerId, viewerId, board }: Playe
                   </span>
                 )}
               </div>
+              {spiesOn(viewer, player) && (
+                <p className="mt-1 pl-3.5 text-[9px] leading-tight text-lime-300" title="Espionagem da Unidade Alva">
+                  📡 {player.hand.map((card) => cardText(card.cardId, card.fused).name).join(" · ") || "mão vazia"}
+                </p>
+              )}
               {player.blessings.length > 0 && (
                 <div className="mt-1 pl-3.5">
                   <BlessingBadges player={player} waiting={inHeaven(board, player.position)} compact />

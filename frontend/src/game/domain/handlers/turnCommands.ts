@@ -16,14 +16,12 @@ import { burntRoll, prepareRoll, settleRoll } from "../characters/akane/fire";
 import { slideOnEmbers } from "../characters/akane/cards";
 import type { DiceBoost, PlayerId } from "../core/state";
 import {
-  clipAtWalls,
+  walkThroughWalls,
   combustionMultiplier,
   detonate,
-  hitWall,
   pullTethered,
   stealRoll,
 } from "../characters/tenzai/elements";
-import type { StoneWall } from "../characters/tenzai/types";
 import { openingState } from "./setup";
 import { assertCanAct, settle } from "./shared";
 import type { CommandHandlers } from "./types";
@@ -79,18 +77,13 @@ export const turnCommands: CommandHandlers<"rollDice" | "forfeitTurn" | "restart
       ? pushPath(state.board, player.position, rolled.value, player.realmEntry)
       : walkPath(state.board, player.position, rolled.value, player.realmEntry);
     const dash = rolled.multiplier !== undefined;
-    let wall: StoneWall | null = null;
     if (reversed)
       draft.events.push({ ...rolled, reversed }, { type: "playerMoved", playerId, path, ...(dash && { dash }) });
     else {
       draft.events.push(rolled);
-      // Tenzai's breeze takes the whole roll for him; otherwise a wall in the way stops the walk short.
+      // Tenzai's breeze takes the whole roll for him; otherwise walls in the way eat part of the walk.
       if (stealRoll(draft, playerId, rolled.value)) path = [];
-      else {
-        ({ path, wall } = clipAtWalls(draft, playerId, path));
-        walkTrampling(draft, playerId, path, dash);
-        if (wall) hitWall(draft, playerId, wall, rolled.value);
-      }
+      else path = walkThroughWalls(draft, playerId, path, (tiles) => walkTrampling(draft, playerId, tiles, dash));
     }
     crossSpecters(draft, playerId, path);
     if (path.length > 0) resolveLanding(draft, playerId, path.at(-1) ?? player.position);

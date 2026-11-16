@@ -2,21 +2,11 @@
 
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
-import {
-  AdditiveBlending,
-  Color,
-  MeshBasicMaterial,
-  MeshStandardMaterial,
-  ShaderMaterial,
-  SpriteMaterial,
-  type Mesh,
-  type Sprite,
-} from "three";
+import { AdditiveBlending, Color, MeshStandardMaterial, ShaderMaterial, type Group, type Mesh } from "three";
 import { useCanvasTexture } from "@/features/shared/three/canvasTexture";
 import { Reticle } from "./Reticle";
-import { LOCKED } from "./layout";
-import { CRATE, DECK, HAZARD, PAD, SCREEN, SEAMS } from "./textures";
-import { useSoftDisc } from "../kit/matchAssets";
+import { DECK, HAZARD, PAD, SEAMS } from "./textures";
+import { preloadProps, useFittedProp } from "../kit/matchAssets";
 import { uniform } from "@/features/shared/three/uniform";
 
 const FLOOR_RADIUS = 1.4;
@@ -29,20 +19,21 @@ const HAZARD_WIDTH = 0.06;
 
 const SEAM = new Color("#5fd8ff");
 
-const CRATES = [
-  { x: -0.64, z: -0.56, size: 0.24, turn: 0.35, y: 0 },
-  { x: -0.38, z: -0.78, size: 0.18, turn: -0.2, y: 0 },
-  { x: -0.62, z: -0.58, size: 0.15, turn: 0.9, y: 0.24 },
+preloadProps(["hangarReactor", "hangarGenerator", "hangarCapsule", "hangarRack", "hangarCore", "hangarDrone"]);
+
+/** Meshy machines round the back of the bay: where, how tall and which way each faces. */
+type Machine = "hangarReactor" | "hangarGenerator" | "hangarCapsule" | "hangarRack" | "hangarCore";
+
+const MACHINES: readonly { prop: Machine; x: number; z: number; height: number; turn: number }[] = [
+  { prop: "hangarReactor", x: -0.95, z: -0.72, height: 1.15, turn: 0.55 },
+  { prop: "hangarGenerator", x: 0.92, z: -0.68, height: 0.5, turn: -0.65 },
+  { prop: "hangarCapsule", x: -0.34, z: -1.05, height: 0.72, turn: 0.15 },
+  { prop: "hangarRack", x: 0.34, z: -1.05, height: 0.72, turn: -0.15 },
+  { prop: "hangarCore", x: -1.08, z: 0.08, height: 0.34, turn: 1.1 },
 ];
 
-const PYLONS = [-0.22, 0.22];
-
-const BEACONS = [
-  { x: -0.62, y: 0.4, z: -0.58, phase: 0 },
-  { x: 0.68, y: 0.56, z: -0.72, phase: 1.3 },
-  { x: -0.22, y: 0.74, z: -0.9, phase: 0.6 },
-  { x: 0.22, y: 0.74, z: -0.9, phase: 2.1 },
-];
+/** The sentinel drone hovering over the bay's right side. */
+const DRONE = { x: 0.88, y: 1.05, z: -0.3, height: 0.36 };
 
 const SEAM_VERTEX = /* glsl */ `
   varying vec2 vUv;
@@ -76,9 +67,14 @@ export function HangarBay() {
   const seams = useCanvasTexture(SEAMS);
   const pad = useCanvasTexture(PAD);
   const hazard = useCanvasTexture(HAZARD);
-  const crate = useCanvasTexture(CRATE);
-  const screen = useCanvasTexture(SCREEN);
-  const disc = useSoftDisc();
+  const machines: Record<Machine, ReturnType<typeof useFittedProp>> = {
+    hangarReactor: useFittedProp("hangarReactor"),
+    hangarGenerator: useFittedProp("hangarGenerator"),
+    hangarCapsule: useFittedProp("hangarCapsule"),
+    hangarRack: useFittedProp("hangarRack"),
+    hangarCore: useFittedProp("hangarCore"),
+  };
+  const drone = useFittedProp("hangarDrone");
   const materials = useMemo(
     () => ({
       deck: new MeshStandardMaterial({
@@ -99,40 +95,20 @@ export function HangarBay() {
       pad: new MeshStandardMaterial({ map: pad, roughness: 0.35, metalness: 0.75 }),
       padSide: new MeshStandardMaterial({ color: "#3a4250", roughness: 0.4, metalness: 0.8 }),
       hazard: new MeshStandardMaterial({ map: hazard, roughness: 0.6, metalness: 0.2 }),
-      crate: new MeshStandardMaterial({ map: crate, roughness: 0.55, metalness: 0.5 }),
-      steel: new MeshStandardMaterial({ color: "#8a94a3", roughness: 0.35, metalness: 0.85 }),
-      dark: new MeshStandardMaterial({ color: "#1c222c", roughness: 0.5, metalness: 0.6 }),
-      screen: new MeshBasicMaterial({ map: screen, color: "#9be8ff", toneMapped: false }),
-      strip: new MeshBasicMaterial({ color: SEAM.clone().multiplyScalar(1.6), transparent: true, toneMapped: false }),
-      beacon: new SpriteMaterial({
-        map: disc,
-        color: LOCKED.clone().multiplyScalar(2),
-        transparent: true,
-        depthWrite: false,
-        blending: AdditiveBlending,
-        toneMapped: false,
-      }),
     }),
-    [deck, seams, pad, hazard, crate, screen, disc],
+    [deck, seams, pad, hazard],
   );
   useEffect(() => () => Object.values(materials).forEach((material) => material.dispose()), [materials]);
-  const beacons = useRef<(Sprite | null)[]>([]);
   const scan = useRef<Mesh>(null);
-  const strips = useRef<(Mesh | null)[]>([]);
+  const hover = useRef<Group>(null);
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
     if (scan.current) uniform(scan.current.material as ShaderMaterial, "uTime").value = t;
-    screen.offset.setY((t * 0.08) % 1);
-    strips.current.forEach((strip) => {
-      if (strip) (strip.material as MeshBasicMaterial).opacity = 0.55 + 0.35 * Math.sin(t * 2.2);
-    });
-    BEACONS.forEach(({ phase }, index) => {
-      const beacon = beacons.current[index];
-      if (!beacon) return;
-      const on = Math.sin(t * 2.6 + phase) > 0.55 ? 1 : 0.15;
-      beacon.scale.setScalar(0.07 * on + 0.02);
-    });
+    if (hover.current) {
+      hover.current.position.y = DRONE.y + Math.sin(t * 1.3) * 0.05;
+      hover.current.rotation.y = -0.6 + Math.sin(t * 0.4) * 0.35;
+    }
   });
 
   return (
@@ -151,52 +127,20 @@ export function HangarBay() {
         <ringGeometry args={[PAD_RADIUS + 0.02, PAD_RADIUS + 0.02 + HAZARD_WIDTH, 96]} />
       </mesh>
       <Reticle />
-      {CRATES.map(({ x, z, size, turn, y }) => (
-        <mesh key={`${x}:${z}:${y}`} material={materials.crate} position={[x, y + size / 2, z]} rotation-y={turn}>
-          <boxGeometry args={[size, size, size]} />
-        </mesh>
-      ))}
-      <group position={[0.62, 0, -0.62]} rotation-y={-0.5}>
-        <mesh material={materials.dark} position-y={0.2}>
-          <boxGeometry args={[0.18, 0.4, 0.14]} />
-        </mesh>
-        <mesh material={materials.steel} position-y={0.41}>
-          <boxGeometry args={[0.24, 0.03, 0.18]} />
-        </mesh>
-        <group position={[0, 0.44, 0.02]} rotation-x={-0.6}>
-          <mesh material={materials.dark}>
-            <boxGeometry args={[0.24, 0.16, 0.015]} />
-          </mesh>
-          <mesh material={materials.screen} position-z={0.009}>
-            <planeGeometry args={[0.21, 0.13]} />
-          </mesh>
-        </group>
-      </group>
-      {PYLONS.map((x) => (
-        <group key={x} position={[x, 0, -0.9]}>
-          <mesh material={materials.steel} position-y={0.36}>
-            <boxGeometry args={[0.05, 0.72, 0.05]} />
-          </mesh>
-          <mesh
-            ref={(mesh) => void (strips.current[PYLONS.indexOf(x)] = mesh)}
-            material={materials.strip}
-            position={[0, 0.36, 0.027]}
-          >
-            <planeGeometry args={[0.012, 0.6]} />
-          </mesh>
-          <mesh material={materials.dark} position-y={0.02}>
-            <boxGeometry args={[0.1, 0.04, 0.1]} />
-          </mesh>
-        </group>
-      ))}
-      {BEACONS.map(({ x, y, z }, index) => (
-        <sprite
-          key={index}
-          ref={(sprite) => void (beacons.current[index] = sprite)}
-          material={materials.beacon}
-          position={[x, y, z]}
+      {MACHINES.map(({ prop, x, z, height, turn }) => (
+        <mesh
+          key={prop}
+          geometry={machines[prop].geometry}
+          material={machines[prop].material}
+          position={[x, 0, z]}
+          rotation-y={turn}
+          scale={height}
+          castShadow
         />
       ))}
+      <group ref={hover} position={[DRONE.x, DRONE.y, DRONE.z]}>
+        <mesh geometry={drone.geometry} material={drone.material} position-y={-DRONE.height / 2} scale={DRONE.height} />
+      </group>
     </group>
   );
 }

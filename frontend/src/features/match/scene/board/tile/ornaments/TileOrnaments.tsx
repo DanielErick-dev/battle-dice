@@ -28,7 +28,9 @@ export function TileOrnaments({ tile, theme, highlighted, arrowAngle, heading, o
       {tile.effect.kind === "portal" && <PortalVortex color={theme.glow} active={highlighted} phase={tile.id * 1.7} />}
       {tile.effect.kind === "trap" && <TrapSpikes sprung={occupied} heading={heading} />}
       {tile.effect.kind === "advance" && <AdvanceChevrons color={theme.glow} angle={arrowAngle ?? 0} />}
-      {tile.effect.kind === "card" && !tile.effect.cardId && <CardChest color={theme.glow} open={occupied} />}
+      {tile.effect.kind === "card" && !tile.effect.cardId && (
+        <CardChest color={theme.glow} open={occupied} heading={heading} />
+      )}
       {!occupied && (
         <>
           {tile.effect.kind === "extraTurn" && <FloatingDie color={theme.glow} />}

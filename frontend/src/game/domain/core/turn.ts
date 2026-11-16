@@ -8,10 +8,15 @@ import { spreadWinter } from "../characters/fairy/winter";
 import { burnDown } from "../characters/kage/flames";
 import { burnDownScarlet, feedTheFire } from "../characters/akane/fire";
 import { wearTethers } from "../characters/tenzai/elements";
+import { wearInversion } from "../characters/alchemist/inversion";
+import { tickOverload } from "../characters/alva/systems";
 
 /** Returns the next player's index. Timed effects wear off as their owner's turn ends; charge and energy come as one starts. */
-export function endTurn(draft: Draft, extraTurn: boolean): number {
+export function endTurn(draft: Draft, earnedExtraTurn: boolean): number {
   const { currentPlayerIndex } = draft.state;
+  // The Alchemist plays her banked extra turns (a lost-turn tile turned her way) one after another.
+  const banked = !earnedExtraTurn && at(draft.players, currentPlayerIndex).alchemist.extraTurns > 0;
+  const extraTurn = earnedExtraTurn || banked;
   let index = currentPlayerIndex;
   // A round on fire pays its Akane, before the burning wears down.
   feedTheFire(draft, at(draft.players, currentPlayerIndex).id);
@@ -27,10 +32,12 @@ export function endTurn(draft: Draft, extraTurn: boolean): number {
     akane: { ...ending.akane, emberStep: false },
     blessings: wearBlessings(draft.state.board, ending),
     ...(ending.ability === "theVoid" && { zarek: { ...ending.zarek, idle: ending.zarek.idle + 1 } }),
+    ...(banked && { alchemist: { ...ending.alchemist, extraTurns: ending.alchemist.extraTurns - 1 } }),
   };
   burnDown(draft, ending.id);
   burnDownScarlet(draft, ending.id);
   wearTethers(draft, ending.id);
+  wearInversion(draft, ending.id);
 
   // Stuck by this very turn, the extra turn still owed is spent as the first lost one.
   const passes = !extraTurn || ending.skipTurns > 0;
@@ -58,6 +65,7 @@ export function endTurn(draft: Draft, extraTurn: boolean): number {
     {
       ...next,
       silencedTurns: Math.max(0, next.silencedTurns - 1),
+      emp: Math.max(0, next.emp - 1),
       energy: Math.min(MAX_ENERGY, energy),
       energyCharge: charged ? 0 : next.energyCharge + 1,
     },
@@ -73,6 +81,7 @@ export function endTurn(draft: Draft, extraTurn: boolean): number {
   draft.events.push({ type: "turnChanged", playerId: next.id });
   if (becameReady && player.ability)
     draft.events.push({ type: "abilityReady", playerId: next.id, ability: player.ability });
+  tickOverload(draft, next.id);
   return index;
 }
 

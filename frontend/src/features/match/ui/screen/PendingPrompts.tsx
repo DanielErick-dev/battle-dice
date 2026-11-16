@@ -1,6 +1,7 @@
 import { blessingTurns } from "@/game/domain/board/blessings";
 import { DIVINE_CARDS } from "@/game/domain/cards/catalog";
 import { PLUNDER_CARDS } from "@/game/domain/characters/warden/specters";
+import { raidPiles } from "@/game/domain/characters/alchemist/condenser";
 import type { MatchStore } from "../../model/matchStore";
 import type { MatchView, ViewerControls } from "../../model/matchView";
 import { CardChoicePicker } from "../cards/CardChoicePicker";
@@ -54,6 +55,18 @@ export function PendingPrompts({ store, view, controls, nameOf }: PendingPrompts
           onPick={store.plunderCards}
         />
       )}
+      {view.pendingRaid && controls.answers.raid && !view.isAnimating && (
+        <CardChoicePicker
+          title={view.pendingRaid.own ? "Condensador de Cemitério" : "Cemitério"}
+          subtitle={`${nameOf(view.pendingRaid.owner)}: escolha ${raidPicks(view)} ${raidPicks(view) === 1 ? "carta" : "cartas"} ${view.pendingRaid.own ? "do seu cemitério" : "de qualquer cemitério"} para a mão.`}
+          accent="emerald"
+          cards={raidPiles(view.players, view.pendingRaid).piles.flatMap((player) => [...player.discard].reverse())}
+          max={raidPicks(view)}
+          required
+          confirmLabel="Trazer de volta"
+          onPick={store.raidGraveyard}
+        />
+      )}
       {view.pendingWard && wardingPlayer?.ability && controls.answers.ward && !view.isAnimating && (
         <WardPrompt ability={wardingPlayer.ability} threat={view.pendingWard.threat} onAnswer={store.answerWard} />
       )}
@@ -62,4 +75,8 @@ export function PendingPrompts({ store, view, controls, nameOf }: PendingPrompts
       )}
     </>
   );
+}
+
+function raidPicks(view: MatchView): number {
+  return view.pendingRaid ? raidPiles(view.players, view.pendingRaid).picks : 0;
 }

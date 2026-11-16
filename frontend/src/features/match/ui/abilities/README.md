@@ -30,7 +30,7 @@ As habilidades sem pergunta nenhuma (a maioria) não aparecem aqui e são usadas
 | `cardGamble.tsx`      | Aposta do Coringa                                                                                                                                |
 | `arrowRain.tsx`       | Chuva de Flechas                                                                                                                                 |
 | `ocularAwakening.tsx` | Despertar Ocular (Kage Rubra)                                                                                                                    |
-| `cardChoices.tsx`     | Transmutação e Ressurreição (escolher cartas)                                                                                                    |
+| `cardChoices.tsx`     | Ressurreição (escolher cartas)                                                                                                                   |
 | `fourElements.tsx`    | Domínio dos 4 Elementos (Tenzai): o elemento, depois a casa da muralha ou o alvo do laço                                                         |
 | `placements.ts`       | Selos, Aparições, Chamas e a Muralha do Tenzai: escolher casas no tabuleiro (no celular do modo festa viram lista, `features/party/controller/`) |
 | `index.ts`            | o registro `ABILITY_FLOWS`                                                                                                                       |

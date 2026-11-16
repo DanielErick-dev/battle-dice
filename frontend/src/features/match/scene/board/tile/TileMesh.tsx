@@ -101,6 +101,7 @@ export function TileMesh({
   });
   const bodyMaterial = useRef<MeshStandardMaterial>(null);
   const underglow = useRef<MeshBasicMaterial>(null);
+  const underglowTint = useRef<string | null>(null);
   const lift = useRef<Group>(null);
 
   useFrame(({ clock }, delta) => {
@@ -112,7 +113,12 @@ export function TileMesh({
     if (underglow.current) {
       const breathe = hovering ? 1 : reachable || onPick ? 0.75 + Math.sin(time * 4 - tile.id * 0.6) * 0.2 : 0.38;
       underglow.current.opacity += (breathe - underglow.current.opacity) * Math.min(1, delta * 8);
-      underglow.current.color.set(hovering ? "#ffffff" : glowColor);
+      const tint = hovering ? "#ffffff" : glowColor;
+      // Parsed only when it changes: 200 tiles re-parsing a colour string every frame adds up.
+      if (underglowTint.current !== tint) {
+        underglowTint.current = tint;
+        underglow.current.color.set(tint);
+      }
     }
     if (lift.current) {
       const target = hovering ? 0.32 : reachable || onPick ? 0.06 : 0;

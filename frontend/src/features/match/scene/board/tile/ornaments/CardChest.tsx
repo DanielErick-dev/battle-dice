@@ -7,12 +7,12 @@ import { BufferAttribute, BufferGeometry, type Group } from "three";
 import { useFittedProp } from "@/features/characters/core/props";
 import { TILE_HEIGHT } from "@/features/shared/board/boardLayout";
 
-const CHEST_WIDTH = 0.85;
+const CHEST_WIDTH = 1.35;
 /** Above this share of its height a triangle belongs to the lid. */
 const LID_SPLIT = 0.62;
 const OPEN_ANGLE = -1.9;
-/** Off-centre, so whoever stands on the tile doesn't stand inside it. */
-const CORNER: [number, number] = [0.5, -0.45];
+/** Centred on the tile (the user's call, to try it out). */
+const CORNER: [number, number] = [0, 0];
 
 /** Splits a prop's triangles into body and lid by height (the export is one mesh). */
 function splitLid(geometry: BufferGeometry, cut: number): { body: BufferGeometry; lid: BufferGeometry } {
@@ -42,7 +42,7 @@ function splitLid(geometry: BufferGeometry, cut: number): { body: BufferGeometry
 }
 
 /** A gem chest (Meshy) on a card tile: its lid swings open and a card rises out when someone stops there. */
-export function CardChest({ color, open }: { color: string; open: boolean }) {
+export function CardChest({ color, open, heading }: { color: string; open: boolean; heading: number }) {
   const chest = useFittedProp("cardChest");
   const [, , depth] = chest.size;
   const scale = CHEST_WIDTH / chest.size[0];
@@ -62,13 +62,13 @@ export function CardChest({ color, open }: { color: string; open: boolean }) {
     if (hinge.current) hinge.current.rotation.x = OPEN_ANGLE * opening.current;
     if (card.current) {
       card.current.visible = opening.current > 0.05;
-      card.current.position.y = 0.3 + opening.current * 0.9 + Math.sin(clock.elapsedTime * 2) * 0.04;
+      card.current.position.y = 0.5 + opening.current * 1.2 + Math.sin(clock.elapsedTime * 2) * 0.04;
       card.current.rotation.y += delta * 1.4;
     }
   });
   const hingeZ = -depth / 2;
   return (
-    <group position={[CORNER[0], TILE_HEIGHT / 2, CORNER[1]]} rotation-y={-0.6}>
+    <group position={[CORNER[0], TILE_HEIGHT / 2, CORNER[1]]} rotation-y={-heading}>
       <group scale={scale}>
         <mesh geometry={body} material={chest.material} castShadow />
         <group ref={hinge} position={[0, LID_SPLIT, hingeZ]}>
@@ -76,7 +76,7 @@ export function CardChest({ color, open }: { color: string; open: boolean }) {
         </group>
       </group>
       <group ref={card}>
-        <RoundedBox args={[0.3, 0.42, 0.02]} radius={0.03} smoothness={2}>
+        <RoundedBox args={[0.42, 0.6, 0.02]} radius={0.03} smoothness={2}>
           <meshStandardMaterial color="#fdf2f8" emissive={color} emissiveIntensity={1.6} />
         </RoundedBox>
       </group>

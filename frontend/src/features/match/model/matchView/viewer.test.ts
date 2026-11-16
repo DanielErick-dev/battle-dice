@@ -16,7 +16,7 @@ function view(patch: Partial<MatchView> = {}): MatchView {
 }
 
 const drawn = { uid: "c1", cardId: "windStep" } as const;
-const NO_ANSWERS = { discard: false, ward: false, grace: false, plunder: false };
+const NO_ANSWERS = { discard: false, ward: false, grace: false, plunder: false, raid: false };
 
 describe("viewerControls", () => {
   describe("hot-seat", () => {

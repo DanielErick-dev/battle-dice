@@ -68,7 +68,7 @@ export type TenzaiEvent =
   | { type: "convergenceAwakened"; playerId: PlayerId; turns: number; bonus: number }
   | { type: "wallRaised"; playerId: PlayerId; tile: TileId; hp: number }
   | { type: "wallStrengthened"; playerId: PlayerId; tile: TileId; hp: number }
-  /** `playerId`'s roll of `damage` ran into the wall on `tile` and stopped before it; `hp` is what's left. */
+  /** `playerId`'s walk spent `damage` on the wall on `tile`; `hp` is what's left (at 0 it crumbles and the walk goes on). */
   | { type: "wallHit"; playerId: PlayerId; tile: TileId; damage: number; hp: number }
   | { type: "wallCrumbled"; owner: PlayerId; tile: TileId }
   | { type: "tetherBound"; playerId: PlayerId; targetId: PlayerId; turns: number }

@@ -1,3 +1,4 @@
+import type { Inversion, PendingRaid } from "@/game/domain/characters/alchemist/types";
 import type { AbilityId } from "@/game/domain/abilities/ability";
 import type { GameEvent } from "@/game/domain/core/events";
 import type { MatchStats } from "@/game/domain/stats/matchStats";
@@ -100,6 +101,10 @@ export interface MatchView {
   elementals: Elementals;
   /** A Warden picking the cards their Plunder apparition takes from `victim`. */
   pendingPlunder: { owner: PlayerId; victim: PlayerId } | null;
+  /** The Alchemist's graveyard pick, once the playback reaches it. */
+  pendingRaid: PendingRaid | null;
+  /** The Alchemist's Great Inversion while it lasts (shown from its cast on). */
+  inversion: Inversion | null;
   /** The tile a walk ends on: the figure slows to a stop on its way there. */
   walkEnd: { playerId: PlayerId; tile: TileId } | null;
   /** The battle log: events as their animation starts, the latest last (see playback logEvent). */

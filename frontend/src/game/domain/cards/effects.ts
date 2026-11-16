@@ -1,3 +1,4 @@
+import { sapMovement } from "../characters/alva/systems";
 import { MAX_ENERGY } from "../core/energy";
 import { announceReady, chargeInDraft, fillAbility } from "../abilities/charge";
 import { unpinPassed } from "../characters/archer/arrowRain";
@@ -62,7 +63,7 @@ export function applyCardEffect(
     case "windStep": {
       // Under Cronos's reversed time the wind blows them back the way they came, like their rolls.
       const { reversedRolls, realmEntry } = playerIn(draft, playerId);
-      const windTiles = card.fused ? FUSED_WIND_STEP_TILES : WIND_STEP_TILES;
+      const windTiles = sapMovement(draft, playerId, card.fused ? FUSED_WIND_STEP_TILES : WIND_STEP_TILES);
       const reversed = reversedRolls > 0;
       const path = reversed
         ? pushPath(board, position, windTiles, realmEntry)
@@ -110,7 +111,7 @@ export function applyCardEffect(
         diceBonuses: [
           ...player.diceBonuses,
           {
-            amount: card.fused ? FUSED_LUCKY_BONUS : LUCKY_CHARM_BONUS,
+            amount: sapMovement(draft, playerId, card.fused ? FUSED_LUCKY_BONUS : LUCKY_CHARM_BONUS),
             rolls: 1,
           },
         ],
@@ -121,7 +122,10 @@ export function applyCardEffect(
       break;
     case "ancestralAwakening":
       updatePlayer(draft, playerId, (player) => ({
-        diceBonuses: [...player.diceBonuses, { amount: AWAKENING_BONUS, rolls: AWAKENING_ROLLS }],
+        diceBonuses: [
+          ...player.diceBonuses,
+          { amount: sapMovement(draft, playerId, AWAKENING_BONUS), rolls: AWAKENING_ROLLS },
+        ],
       }));
       break;
     case "berserkFury":

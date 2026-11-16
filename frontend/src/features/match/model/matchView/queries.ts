@@ -10,7 +10,8 @@ export function canRoll(view: MatchView): boolean {
     view.pendingDiscard === null &&
     view.pendingWard === null &&
     view.pendingGrace === null &&
-    view.pendingPlunder === null
+    view.pendingPlunder === null &&
+    view.pendingRaid === null
   );
 }
 

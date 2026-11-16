@@ -40,7 +40,18 @@ export type CardId =
   | "riptideLash"
   | "forcedTailwind"
   | "elementalExchange"
-  | "elementalConvergence";
+  | "elementalConvergence"
+  // The Alchemist's own (see characters/alchemist/cards.ts).
+  | "catalyticStep"
+  | "polarityContamination"
+  | "graveyardRaider"
+  | "strictEquivalence"
+  | "magnumOpus"
+  | "malwareInjection"
+  | "overloadThruster"
+  | "firewallLock"
+  | "dataCollapse"
+  | "apocalypseProtocol";
 
 export type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary";
 
@@ -144,6 +155,23 @@ export const CARD_CATALOG: Readonly<Record<CardId, CardDefinition>> = {
   elementalExchange: card("elementalExchange", "rare", { exclusive: "fourElements", cost: 3 }),
   // His trump: all four elements at once, which wakes the Convergence.
   elementalConvergence: card("elementalConvergence", "epic", { exclusive: "fourElements", cost: 5 }),
+
+  catalyticStep: card("catalyticStep", "common", { exclusive: "grandInversion" }),
+  polarityContamination: card("polarityContamination", "common", {
+    exclusive: "grandInversion",
+    targetsOpponent: true,
+    cost: 2,
+  }),
+  graveyardRaider: card("graveyardRaider", "rare", { exclusive: "grandInversion" }),
+  strictEquivalence: card("strictEquivalence", "rare", { exclusive: "grandInversion", targetsOpponent: true, cost: 3 }),
+  // Her trump: hands burnt, the best of each opponent's gone, three picks from any graveyard, a long Inversion.
+  magnumOpus: card("magnumOpus", "epic", { exclusive: "grandInversion", cost: 5 }),
+  malwareInjection: card("malwareInjection", "common", { exclusive: "empPulse", targetsOpponent: true }),
+  overloadThruster: card("overloadThruster", "common", { exclusive: "empPulse", cost: 2 }),
+  firewallLock: card("firewallLock", "rare", { exclusive: "empPulse", targetsOpponent: true, cost: 2 }),
+  dataCollapse: card("dataCollapse", "epic", { exclusive: "empPulse", targetsOpponent: true }),
+  // Her trump: spyware in every hand, the Overload set off, and a flight on what it burnt.
+  apocalypseProtocol: card("apocalypseProtocol", "epic", { exclusive: "empPulse", cost: 5, needsOpponent: true }),
 };
 
 /** One kind per celestial tile. */

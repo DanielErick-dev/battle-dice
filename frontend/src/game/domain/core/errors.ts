@@ -21,7 +21,6 @@ export type GameErrorCode =
   | "ABILITY_NOT_READY"
   | "ENERGY_FULL"
   | "ABILITY_ALREADY_READY"
-  | "EMPTY_HAND"
   | "EMPTY_DISCARD"
   | "HAND_FULL"
   | "NO_CARDS_LEFT"
@@ -49,7 +48,17 @@ export type GameErrorCode =
   | "ELEMENT_LOCKED"
   | "INVALID_WALL"
   | "NO_TARGET_AHEAD"
-  | "NO_CREATION";
+  | "NO_CREATION"
+  | "RAID_PENDING"
+  | "NO_RAID_PENDING"
+  | "NO_HARM_TILE_AHEAD"
+  | "NO_GIFT_TILE_AHEAD"
+  | "NOT_ON_HARM_TILE"
+  | "TARGET_ON_HARM_TILE"
+  | "GRAVEYARDS_EMPTY"
+  | "BLACKED_OUT"
+  | "NO_CORRUPTED"
+  | "NO_OVERLOADED_OPPONENT";
 
 export class GameRuleError extends Error {
   constructor(readonly code: GameErrorCode) {

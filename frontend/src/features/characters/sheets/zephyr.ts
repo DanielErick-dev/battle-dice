@@ -9,6 +9,8 @@ export const zephyr = {
   model: model("zephyr"),
   ability: "fourElements",
   meditates: true,
+  // His bending clips are the show: no generic spin-and-hop on top of them.
+  castsStill: true,
   playable: true,
   shieldColor: "#86efac",
   chair: "elementalThrone",

@@ -91,7 +91,7 @@ Por fim, **rola o dado**: anda, resolve a casa onde parou e a vez passa. **Rolar
 | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 3     | Conjuração Dupla, Bênção do Serafim, Transmutação, Aposta do Coringa |
 | 4     | O Vazio (+1 por armadilha), Veredito Silencioso (reativo, carga secreta) |
-| 5     | Levitação Carmesim, Fúria Adormecida, Chuva de Flechas, Ressurreição, Escritura dos 4 Selos, Aparições Espectrais, Florescimento Feérico, Maré Purificadora, Zona de Incêndio, Indomável, Canhão de Plasma, Domínio dos 4 Elementos |
+| 5     | Levitação Carmesim, Fúria Adormecida, Chuva de Flechas, Ressurreição, Escritura dos 4 Selos, Aparições Espectrais, Florescimento Feérico, Maré Purificadora, Zona de Incêndio, Indomável, Pulso Eletromagnético, Domínio dos 4 Elementos |
 | 6     | Despertar Ocular                                                                                                                                                                                           |
 | 7     | Arrastar ao Inferno, Engrenagem do Tempo                                                                                                                                                                   |
 
@@ -275,7 +275,7 @@ Silenciado (selo do Escriba), sem energia, Escudo Arcano já erguido, carta de l
 1. Cartas e habilidades que miram um oponente **sempre deixam escolher** oponentes protegidos. O jogo não esconde ninguém: o jogador precisa prestar atenção.
 2. Mirar num protegido **gasta** a carta ou a habilidade, não faz nada e mostra **BLOQUEADO!**.
 3. Oponentes em outro reino nem aparecem como alvo.
-4. Efeitos em área (Chuva de Flechas, Canhão de Plasma, atropelo) simplesmente pulam os protegidos.
+4. Efeitos em área (Chuva de Flechas, PEM da Unidade Alva, atropelo) simplesmente pulam os protegidos.
 
 ## 8. Animações: o que cada clipe significa
 
@@ -355,7 +355,7 @@ Todos são jogáveis. Cada um tem: uma **cor** (anel no chão, HUD, menus, cor d
 | 17  | Auric                  | Senhor das marés douradas              | Maré Purificadora                       | 5     | dourado             |
 | 18  | Seraphiel / Anjo Caído | Asas que abençoam o caminho            | Bênção do Serafim / Arrastar ao Inferno | 3 / 7 | marfim              |
 | 19  | Cronos                 | O tempo gira a seu favor               | Engrenagem do Tempo                     | 7     | bronze              |
-| 20  | Unidade Alva           | Alvo travado                           | Canhão de Plasma                        | 5     | branco              |
+| 20  | Unidade Alva           | Alvo travado                           | Pulso Eletromagnético                   | 5     | branco              |
 | 21  | Vinicius               | Capina tudo                            | Capina (passiva)                        | —     | âmbar               |
 
 ---
@@ -531,7 +531,7 @@ Todos são jogáveis. Cada um tem: uma **cor** (anel no chão, HUD, menus, cor d
 ### 20. Unidade Alva
 
 - **Estilo:** mecha branco, sentinela de combate tecnológica ("alvo travado").
-- **Habilidade, Canhão de Plasma (carga 5):** destrói **para sempre** as próximas 2 armadilhas à frente (inclusive escondidas) e empurra **6 casas** para trás o oponente **mais adiantado** ao alcance.
+- **Habilidade, Pulso Eletromagnético (carga 5, contada depois que acaba):** 2 rodadas de apagão (oponentes sem cartas e sem habilidade) e 1 de subtensão (cartas de movimento pela metade). **Passiva, Sobrecarga de Memória:** a cada 3 rodadas, quem tiver mais de 5 cartas perde 5 reais. Cartas Corrompidas furam o limite da mão e deixam ela espionar. Detalhes em `regras.md` §20.
 - **Animações:** só idle e run.
 - **Cenário:** Hangar (plataforma de lançamento hexagonal com varredura de luz nas juntas e mira holográfica no chão). **Trono:** trono cibernético.
 
@@ -554,7 +554,7 @@ O autor pediu que os poderes "sigam uma lógica". Hoje:
 - **O Susanoo** barra quase tudo, mas a armadilha escondida e o fogo negro de outro "atacam por dentro".
 - **O Indomável do Bjorn** barra tudo e ainda desfaz o tempo invertido do Cronos.
 - **O Guardião** perde as aparições se alguém passar por ele.
-- **A Arqueira, a Fada, o Zarek, a Unidade Alva, o Vinicius e o Anjo Caído** limpam armadilhas de jeitos diferentes (prender, nevar, engolir, explodir, capinar, o inferno engolir).
+- **A Arqueira, a Fada, o Zarek, o Vinicius e o Anjo Caído** limpam armadilhas de jeitos diferentes (prender, nevar, engolir, capinar, o inferno engolir).
 - Bloqueio de mira, nesta ordem: Indomável → Susanoo → Armadura Espectral → Égide Celestial.
 
 ## 11. Telas, câmera e som

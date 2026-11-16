@@ -1,7 +1,7 @@
 // Registry of abilities that ask something first; a new one gets its own file and a line here (see README).
 import type { AbilityId } from "@/game/domain/abilities/ability";
 import { arrowRain } from "./arrowRain";
-import { resurrection, transmutation } from "./cardChoices";
+import { resurrection } from "./cardChoices";
 import { cardGamble } from "./cardGamble";
 import { fourElements } from "./fourElements";
 import { hellsDrag } from "./hellsDrag";
@@ -22,7 +22,6 @@ export const ABILITY_FLOWS: Partial<Readonly<Record<AbilityId, AbilityFlow>>> = 
   spectralApparitions,
   theVoid,
   timeWarp,
-  transmutation,
 };
 
 export { placementOf } from "./placements";

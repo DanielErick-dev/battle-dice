@@ -5,7 +5,7 @@ export const alva = {
   epithet: "Alvo travado",
   color: "#e2e8f0",
   model: model("alva"),
-  ability: "plasmaCannon",
+  ability: "empPulse",
   playable: true,
   shieldColor: "#e2e8f0",
   chair: "cyberThrone",

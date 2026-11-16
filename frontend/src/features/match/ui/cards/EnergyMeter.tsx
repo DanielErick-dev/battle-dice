@@ -33,7 +33,7 @@ export function EnergyMeter({ energy, className }: { energy: number; className?:
     >
       <span className="text-[10px] font-black tracking-wider text-amber-300">ENERGIA</span>
       <EnergyOrbs shown={shown} className="gap-1" orbClassName="size-2.5 ring-1 ring-white/15" />
-      <span className="font-mono text-[10px] text-zinc-400">
+      <span className="font-mono text-[10px] font-bold text-amber-100">
         {shown}/{MAX_ENERGY}
       </span>
     </span>
@@ -58,7 +58,7 @@ export function EnergyOrbs({
           className={cn(
             "rounded-full transition-all",
             orbClassName,
-            i < shown ? "energy-orb energy-orb-fill" : "bg-white/10",
+            i < shown ? "energy-orb energy-orb-fill" : "bg-amber-100/15 ring-1 ring-amber-200/25",
           )}
         />
       ))}

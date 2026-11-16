@@ -4,6 +4,7 @@ import { draftState, playerIn, type Draft } from "../core/draft";
 import { crownAndFall } from "../characters/seraphiel/seraph";
 import { endTurn } from "../core/turn";
 import { feedTheVoid } from "../characters/zarek/feed";
+import { drainCondenser } from "../characters/alchemist/condenser";
 import type { GameState, Player, PlayerId } from "../core/state";
 import type { GameTransition } from "./types";
 
@@ -19,6 +20,7 @@ export function assertCanAct(state: GameState, playerId: PlayerId): void {
   if (state.pendingWard) throw new GameRuleError("WARD_PENDING");
   if (state.pendingGrace) throw new GameRuleError("GRACE_PENDING");
   if (state.pendingPlunder) throw new GameRuleError("PLUNDER_PENDING");
+  if (state.pendingRaid) throw new GameRuleError("RAID_PENDING");
 }
 
 /** The paused prompt being answered, checked to exist and belong to the player. */
@@ -45,10 +47,13 @@ export function settle(
   const { state } = draft;
   crownAndFall(draft);
   feedTheVoid(draft);
+  drainCondenser(draft, state.pendingRaid !== null);
+  // The Alchemist's graveyard pick waits like a plunder, across any other pause.
+  const pendingRaid = draft.raid ? { ...draft.raid, endsTurn, extraTurn } : state.pendingRaid;
   // A plunder waits for its Warden's pick across any other pause, then holds the turn itself.
   const pendingPlunder = draft.plunder ? { ...draft.plunder, endsTurn, extraTurn } : state.pendingPlunder;
   const paused = (pause: Partial<GameState>): GameTransition => ({
-    state: { ...draftState(draft), ...pause, pendingPlunder },
+    state: { ...draftState(draft), ...pause, pendingPlunder, pendingRaid },
     events: draft.events,
   });
 
@@ -66,6 +71,7 @@ export function settle(
         pendingWard: null,
         pendingGrace: null,
         pendingPlunder: null,
+        pendingRaid: null,
       },
       events: draft.events,
     };
@@ -80,7 +86,7 @@ export function settle(
     return paused({ pendingDiscard });
   }
 
-  if (pendingPlunder) return paused({});
+  if (pendingPlunder || pendingRaid) return paused({});
 
   // Stuck before rolling (a card or ability left them losing a turn): the turn is over there and then.
   const acting = currentPlayer(state);

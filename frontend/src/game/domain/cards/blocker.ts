@@ -5,6 +5,7 @@ import type { GameErrorCode } from "../core/errors";
 import { mainTileOf } from "../board/board";
 import { isFrozen } from "../characters/fairy/winter";
 import { exclusiveBlocker, type HarmTable } from "./exclusive";
+import { isBlackedOut } from "../characters/alva/systems";
 import type { RealmEntry, TileId } from "../board/types";
 import type { Player } from "../core/state";
 
@@ -15,6 +16,7 @@ export type CardTable = HarmTable;
 export function cardBlocker(table: CardTable, player: Player, cardId: CardId): GameErrorCode | null {
   const { board } = table;
   if (player.silencedTurns > 0) return "SILENCED";
+  if (isBlackedOut(player)) return "BLACKED_OUT";
   if (player.energy < cardCost(cardId)) return "NOT_ENOUGH_ENERGY";
   if (cardId === "arcaneShield" && player.shielded) return "ALREADY_SHIELDED";
   const { dice } = CARD_CATALOG[cardId];

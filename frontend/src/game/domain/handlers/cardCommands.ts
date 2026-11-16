@@ -1,13 +1,17 @@
+import { feedCondenser } from "../characters/alchemist/condenser";
 import { playCard } from "../cards/play";
 import { GameRuleError } from "../core/errors";
 import { throwOnPile } from "../cards/decks";
 import { giveCard, sacrificeEnergy } from "../cards/hand";
 import { playerIn, startDraft, updatePlayer } from "../core/draft";
 import { fuseCards } from "../cards/fusion";
+import { purgeCorrupted } from "../characters/alva/systems";
 import { assertCanAct, currentPlayer, KEEPS_TURN, pendingAnswer, settle } from "./shared";
 import type { CommandHandlers } from "./types";
 
-export const cardCommands: CommandHandlers<"playCard" | "discardCard" | "fuseCards" | "sacrificeEnergy"> = {
+export const cardCommands: CommandHandlers<
+  "playCard" | "discardCard" | "fuseCards" | "sacrificeEnergy" | "purgeCorrupted"
+> = {
   playCard: (state, command, deps) => {
     const { playerId, cardUid } = command;
     assertCanAct(state, playerId);
@@ -36,6 +40,7 @@ export const cardCommands: CommandHandlers<"playCard" | "discardCard" | "fuseCar
 
     const hand = candidates.filter((candidate) => candidate.uid !== cardUid);
     updatePlayer(draft, playerId, (player) => ({ hand, discard: throwOnPile(player.discard, [card]) }));
+    feedCondenser(draft, 1);
     draft.events.push({ type: "cardDiscarded", playerId, card, hand });
     // The next card waiting on a full hand comes in, asking for another discard if it still doesn't fit.
     for (const next of pending.queued) giveCard(draft, next.playerId, next.card);
@@ -46,6 +51,13 @@ export const cardCommands: CommandHandlers<"playCard" | "discardCard" | "fuseCar
     assertCanAct(state, playerId);
     const draft = startDraft(state, deps.random);
     sacrificeEnergy(draft, playerId);
+    return settle(draft, playerId, KEEPS_TURN);
+  },
+
+  purgeCorrupted: (state, { playerId, cardUid }, deps) => {
+    assertCanAct(state, playerId);
+    const draft = startDraft(state, deps.random);
+    purgeCorrupted(draft, playerId, cardUid);
     return settle(draft, playerId, KEEPS_TURN);
   },
 

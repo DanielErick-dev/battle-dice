@@ -81,7 +81,7 @@ export function clipAtWalls(
   return { path: path.slice(0, index), wall };
 }
 
-/** A roll ran into `wall`: it takes the roll's value off its hp and crumbles at zero. */
+/** A roll ran into `wall`: it takes `damage` off its hp and crumbles at zero. */
 export function hitWall(draft: Draft, playerId: PlayerId, wall: StoneWall, damage: number): void {
   const hp = Math.max(0, wall.hp - damage);
   draft.events.push({ type: "wallHit", playerId, tile: wall.tile, damage, hp });
@@ -92,6 +92,32 @@ export function hitWall(draft: Draft, playerId: PlayerId, wall: StoneWall, damag
   setWalls(draft, (walls) =>
     walls.map((candidate) => (candidate.tile === wall.tile ? { ...candidate, hp } : candidate)),
   );
+}
+
+/**
+ * Walks `path` through walls that aren't the walker's: each one eats what's left of the walk, up to its hp.
+ * Left with more than that, the wall crumbles and the walk goes on; otherwise it stops behind the wall.
+ * `walk(tiles)` emits the moves of each stretch; the whole path walked is returned.
+ */
+export function walkThroughWalls(
+  draft: Draft,
+  playerId: PlayerId,
+  path: readonly TileId[],
+  walk: (tiles: readonly TileId[]) => void,
+): TileId[] {
+  const walked: TileId[] = [];
+  let rest = [...path];
+  for (;;) {
+    const { path: stretch, wall } = clipAtWalls(draft, playerId, rest);
+    if (stretch.length > 0) walk(stretch);
+    walked.push(...stretch);
+    if (!wall) return walked;
+    const left = rest.length - stretch.length;
+    hitWall(draft, playerId, wall, Math.min(left, wall.hp));
+    if (left <= wall.hp) return walked;
+    // The steps spent on the wall come off the end: the walk resumes from right before it.
+    rest = rest.slice(stretch.length, rest.length - wall.hp);
+  }
 }
 
 function crumble(draft: Draft, wall: StoneWall): void {

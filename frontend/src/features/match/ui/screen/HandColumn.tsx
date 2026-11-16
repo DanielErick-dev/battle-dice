@@ -6,6 +6,7 @@ import { CardHand } from "../cards/CardHand";
 import { AbilityMeter } from "../hud/AbilityMeter";
 import { BlessingBadges } from "../hud/BlessingBadges";
 import { VoidHold } from "../hud/VoidHold";
+import { CorruptedTray } from "../hud/CorruptedTray";
 
 interface HandColumnProps {
   store: MatchStore;
@@ -63,6 +64,7 @@ export function HandColumn({
                   canActivate={controls.canActivateAbility}
                 />
                 <VoidHold player={player} canAct={controls.canRoll} onRelease={onReleaseVoidItem} />
+                <CorruptedTray player={player} canAct={controls.canRoll} onPurge={store.purgeCorrupted} />
                 <BlessingBadges player={player} waiting={inHeaven(board, player.position)} />
               </>
             }

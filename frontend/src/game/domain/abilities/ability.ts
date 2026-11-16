@@ -10,9 +10,9 @@ export type AbilityId =
   | "untamed" // nothing harms the Berserker for a while; trampling is his passive (characters/bjorn/)
   | "silentVerdict" // Themis's: armed once charged, turns what's aimed at her on the attacker (characters/themis/)
   | "timeWarp" // halts or reverses an opponent on the same tile; alone, an extra turn
-  | "plasmaCannon" // blasts traps ahead and knocks the leading opponent back
+  | "empPulse" // Unidade Alva's EMP: opponents lose cards and abilities, then moves are halved (characters/alva/)
   | "levitation" // no tile does anything to the player, blessings and portals included
-  | "transmutation" // characters/alchemist/
+  | "grandInversion" // the Alchemist's: tiles turn against her opponents and in her favour (characters/alchemist/)
   | "dormantFury" // this turn's roll times DORMANT_FURY_MULTIPLIER, card modifiers included
   | "arrowRain" // characters/archer/
   | "cardGamble" // characters/jester/
