@@ -37,6 +37,8 @@ Hoje há só 4 bênçãos fixas e 3 relíquias, sem decisões. Candidatas:
 
 - **Tom do jogo mais sombrio (Daniel, 2026-10-29):** o mapa e a sombra do Vazio estão com cara "fofa/infantil". O Vazio vagando parece uma sombrinha fofa; deveria ser algo escuro e ameaçador (trocar por um modelo do Meshy, sem forma feita em código). O mapa em geral também deveria ser mais escuro e sombrio. **Mapa: feito em 2026-10-29** (noite nublada e fria, cores escuras, sem figurantes, navios, golfinhos, pássaros, bandeiras, flores, cogumelos e plantações). **Falta:** o modelo do Vazio.
 
+- **Mapa vivo e dragão com coluna procedural (Daniel, 2026-11-16):** a lista completa, item por item, está em `docs/mapa-vivo.md`.
+
 ## Problemas para resolver
 - **Casa pequena com 3 ou 4 personagens:** quando vários param na mesma casa de "perde a vez", todos sentam no próprio trono e os tronos não cabem na laje (um atravessa o outro). Na largada já foi resolvido com uma praça maior; nas outras casas ainda falta decidir. Ideias: tronos menores quando a casa está cheia, só o primeiro senta no trono e os outros no chão, ou os personagens saem para a beira da estrada ao lado da casa.
 

@@ -36,3 +36,29 @@ O Daniel sentiu travadas quando o personagem corre e umas piscadas na tela no ma
 - `__battleDiceGl.info.render.calls` e `.triangles` no console, parado e correndo.
 - `__battleDiceGl.info.programs.length`: se cresce no meio da partida, é compilação de shader (travada).
 - Aba Performance: gravar 5 s com o personagem correndo e ver se o tempo vai para scripts (`useFrame`), para a GPU ou para layout (Html).
+
+## Fluidez: ideias gerais (2026-11-16)
+
+Além do peso da cena, o que faz o jogo *parecer* fluido. Também fica para depois, um item = uma tarefa.
+
+### Técnico (quadros estáveis)
+- [ ] **Qualidade adaptativa de verdade:** hoje o `PerformanceMonitor` só desce para "baixo" uma vez e não volta. Fazer em degraus (resolução, depois bloom, depois sombra, depois quantidade de grama e partículas), subindo de novo quando sobrar folga.
+- [ ] **Pré-compilar tudo do elenco no carregamento:** efeitos, cartas e habilidades dos personagens da partida montados escondidos debaixo do mapa, para nenhum shader compilar no meio do jogo.
+- [ ] **Nada de estado do React por quadro:** o que muda todo quadro vai por `ref` e `useFrame`, nunca por `setState` (cada `setState` re-renderiza a árvore). Revisar HUD e efeitos.
+- [ ] **Sem criar objetos dentro de laços por quadro** (`new Vector3`, arrays, `clone()`): reaproveitar objetos para o coletor de lixo não dar soluços.
+- [ ] **Piscina de partículas e efeitos:** reaproveitar os mesmos objetos de explosão, respingo e faísca em vez de montar e desmontar a cada uso.
+- [ ] **Bots e cálculos pesados fora da tela principal:** se a jogada dos bots ou a simulação pesar, rodar num Web Worker para não travar a animação.
+- [ ] **Carregamento em etapas:** carregar primeiro o tabuleiro e os personagens da partida, e o resto (props distantes, efeitos raros) logo depois, em segundo plano.
+- [ ] **Texturas comprimidas para a placa de vídeo (KTX2/Basis):** ocupam muito menos memória do que webp depois de abertas e sobem mais rápido.
+- [ ] **Medir sempre:** um contador de FPS e de tempo de quadro escondido (tecla de atalho) para jogar de olho no desempenho.
+
+### Sensação (game feel)
+- [ ] **Resposta imediata ao clique:** o botão e a carta reagem na hora (brilho, som, leve encolhida), mesmo que a ação ainda esteja processando.
+- [ ] **Transições em vez de cortes:** câmera, painéis e trocas de turno sempre deslizam com aceleração e desaceleração suaves (easing), nunca saltam.
+- [ ] **Câmera com folga:** segue o personagem com um leve atraso e amortecimento, e prevê para onde ele vai, em vez de grudar nele.
+- [ ] **Animações que se emendam:** toda troca de clipe com mistura (já temos em boa parte); revisar as que ainda cortam seco.
+- [ ] **Acelerar a partida:** botão de velocidade 2× nas animações longas e opção de pular a animação de habilidade já vista.
+- [ ] **Ritmo do turno:** tirar esperas mortas entre um evento e outro; sobrepor o que pode acontecer junto (o dado rolando enquanto a câmera já vai para o personagem).
+- [ ] **Som sincronizado:** passos, impacto e magia no quadro exato da animação; um som atrasado faz parecer travado mesmo a 60 FPS.
+- [ ] **Pequenos impactos:** tremida curta de câmera, pausa de poucos milissegundos no golpe (hit-stop) e partículas no impacto deixam as ações com peso.
+- [ ] **Telas de carregamento vivas:** dica ou animação enquanto carrega, para a espera não parecer travamento.
