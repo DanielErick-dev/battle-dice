@@ -32,6 +32,8 @@ export interface Player {
   deck: readonly CardInstance[];
   /** Played and discarded cards; shuffled back into the deck when it runs out. */
   discard: readonly CardInstance[];
+  /** Uids of the discard-pile cards that were played: the graveyard the Alchemist picks from. */
+  graveyard: readonly string[];
   /** Arcane Shield up: the next trap is ignored. */
   shielded: boolean;
   diceBoost: DiceBoost | null;

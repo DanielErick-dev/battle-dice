@@ -111,7 +111,8 @@ Energia paga as cartas. Também vem de casas de energia (+2), da Fonte de Luz (+
 | Casa | O que faz |
 |---|---|
 | **Início / Chegada** | Sempre lisas. Chegar à última vence. |
-| **Portal** | Leva você para a frente, até o destino dele. No Torneio, todo portal abre um **reino** (céu ou inferno, ver abaixo). |
+| **Portal** | Leva você para a frente, até o destino dele. No Torneio, os portais abrem um **reino** (céu ou inferno, ver abaixo), menos os **portais de atalho**. |
+| **Portal de atalho** | Só no Torneio, **4** deles a partir da casa 30: te teleporta direto de **18 a 22 casas** para a frente, até o portal de saída (uma casa lisa). Não abre reino. |
 | **Armadilha** | Manda você de volta para a casa de destino. Algumas são **amaldiçoadas**: também descartam 1 carta aleatória da mão ou drenam **2** de energia. |
 | **Avanço** | Você anda até o destino, casa por casa. As aparições do caminho atacam, mas a casa de chegada não faz nada. |
 | **Vez extra** | Você joga de novo. |
@@ -486,7 +487,9 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 2. **Para os oponentes**, casas boas viram ruins: avançar N vira recuar N; jogar de novo vira perde a vez (1); casa de carta vira descartar 1 carta aleatória; portal do céu leva ao inferno; bênção vira maldição (energia e fonte drenam energia, as outras custam uma carta). As casas ruins continuam ruins.
 3. **Para ela**, casas ruins viram boas: armadilha que recua N vira avançar N (escondida: avança 5); perde a vez vira **tantas jogadas extras quanto perderia**, jogadas em seguida; maldição de descarte vira comprar 1 carta, a de drenar vira +2 de energia; portal do inferno leva ao céu. As casas boas continuam boas.
 
-**Passiva, Condensador de Cemitério:** conta toda carta que vai para qualquer cemitério (jogada, descartada, queimada; dela ou dos oponentes). A cada **4**, ela escolhe **1 carta do próprio cemitério** para voltar à mão. Cheio, o Condensador para de contar até ela pegar a carta: muitas cartas de uma vez (a Sobrecarga da Unidade Alva, por exemplo) dão só uma escolha. Se o cemitério dela estiver vazio, a escolha espera.
+**Passiva, Condensador de Cemitério:** conta toda carta que vai para qualquer cemitério (jogada, descartada, queimada; dela ou dos oponentes). A cada **4**, ela escolhe **1 carta do próprio cemitério** para voltar à mão. Cheio, o Condensador para de contar até ela pegar a carta: muitas cartas de uma vez (a Sobrecarga da Unidade Alva, por exemplo) dão só uma escolha. Se o cemitério dela estiver vazio, a escolha espera. Vale **3 vezes por partida**; depois o Condensador se esgota.
+
+**Cemitério** = só as cartas que o jogador **jogou** (as descartadas por mão cheia, queimadas ou roubadas vão para o descarte, mas não para o cemitério). O Condensador e as cartas dela (Saqueador de Cemitério, Magnum Opus) só oferecem cartas jogadas. Quando o baralho acaba e o descarte é embaralhado de volta, o cemitério esvazia junto.
 
 **Detalhes e exceções**
 - A inversão age antes de escudos e defesas: para ela não há nada a defender; um oponente intocável (Indomável, Convergência) não sofre nada na casa estragada.
@@ -725,7 +728,7 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - Com os **4**, a órbita se esvazia e vem a **Convergência**: intocável por **2 rodadas**, contando a atual (bloqueia o mesmo que o Indomável: o que os outros miram, armadilhas, maldições e perde a vez), **+3** na rolagem desta vez e a habilidade **pronta de novo**.
 
 **Detalhes e exceções**
-- Muralhas param qualquer andar para a frente que não seja rolagem (cartas, casa de avanço, laço, brisa). Só a rolagem tira vida delas e pode atravessá-las. Empurrões, teleportes e o tempo invertido passam por elas.
+- Muralhas param qualquer andar para a frente que não seja rolagem (cartas, casa de avanço, laço, brisa). Só a rolagem tira vida delas e pode atravessá-las. Exceção: o avanço de uma casa ruim invertida pela Grande Inversão da Alquimista bate na muralha como uma rolagem (tira vida e atravessa se sobrar). Empurrões, teleportes e o tempo invertido passam por elas.
 - Mira de Água virada pelo Veredito da Têmis prende o próprio Tenzai nela.
 
 > no código: `characters/tenzai/` (`elements.ts`, `cards.ts`), `handlers/turnCommands.ts` (muralha, brisa, combustão e laço na rolagem)

@@ -9,6 +9,7 @@ import { Hourglass } from "./Hourglass";
 import { PortalVortex } from "./PortalVortex";
 import { RelicCard } from "./RelicCard";
 import { TrapSpikes } from "./TrapSpikes";
+import { VineTrap } from "./VineTrap";
 
 interface TileOrnamentsProps {
   tile: Tile;
@@ -19,14 +20,32 @@ interface TileOrnamentsProps {
   heading: number;
   /** Someone stands on it: what floats over the tile makes way for them. */
   occupied: boolean;
+  /** On the island's mossy walkway: its traps are thorny vines instead of iron spikes. */
+  mossy: boolean;
+  /** Where a shortcut portal comes out: its exit portal stands here. */
+  warpExit: boolean;
 }
 
+/** The exit end of a shortcut portal, a cooler tone than its mouth. */
+const WARP_EXIT_COLOR = "#a5f3fc";
+
 /** What stands on a tile and shows its effect: a portal, spikes, chevrons, a die, an hourglass, a card. */
-export function TileOrnaments({ tile, theme, highlighted, arrowAngle, heading, occupied }: TileOrnamentsProps) {
+export function TileOrnaments({
+  tile,
+  theme,
+  highlighted,
+  arrowAngle,
+  heading,
+  occupied,
+  mossy,
+  warpExit,
+}: TileOrnamentsProps) {
   return (
     <>
       {tile.effect.kind === "portal" && <PortalVortex color={theme.glow} active={highlighted} phase={tile.id * 1.7} />}
-      {tile.effect.kind === "trap" && <TrapSpikes sprung={occupied} heading={heading} />}
+      {warpExit && <PortalVortex color={WARP_EXIT_COLOR} active={highlighted} phase={tile.id * 1.7} />}
+      {tile.effect.kind === "trap" &&
+        (mossy ? <VineTrap sprung={occupied} heading={heading} /> : <TrapSpikes sprung={occupied} heading={heading} />)}
       {tile.effect.kind === "advance" && <AdvanceChevrons color={theme.glow} angle={arrowAngle ?? 0} />}
       {tile.effect.kind === "card" && !tile.effect.cardId && (
         <CardChest color={theme.glow} open={occupied} heading={heading} />

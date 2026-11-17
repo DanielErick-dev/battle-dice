@@ -2,15 +2,15 @@
 
 import { Sparkles } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useRef } from "react";
-import { Color, type Group, MeshStandardMaterial, SphereGeometry } from "three";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { Color, type Group, type InstancedMesh, MeshStandardMaterial, Object3D, SphereGeometry } from "three";
 import { useFittedProp, type PropId } from "@/features/characters/core/props";
 import type { Vec3 } from "@/features/shared/board/boardLayout";
 
 /** How tall a lamp post stands next to the trail: a little over a figure (3). */
 const POST_HEIGHT = 3.2;
 /** Where the Meshy post's lantern hangs off its arm, as shares of the post's height (measured on the model). */
-const LAMP_AT = { x: -0.09, y: 0.76 };
+const LAMP_AT = { x: -0.09, y: 0.72 };
 const lampGeometry = new SphereGeometry(0.1, 12, 8);
 const lampMaterial = new MeshStandardMaterial({
   color: "#fff1c1",
@@ -18,17 +18,44 @@ const lampMaterial = new MeshStandardMaterial({
   toneMapped: false,
 });
 
-/** A vintage lamp post (Meshy) with a glowing lamp: no light of its own, only glow through the bloom. */
-export function Lantern({ position }: { position: Vec3 }) {
+/**
+ * The vintage lamp posts (Meshy) along the road, each with a glowing lamp on its arm turned out by its `turn`:
+ * all the posts in one draw and all the lamps in another; their light on the ground is a lamp pool (lampGlow).
+ */
+export function Lanterns({ spots }: { spots: readonly { at: Vec3; turn: number }[] }) {
   const post = useFittedProp("lanternPost");
+  const posts = useRef<InstancedMesh>(null);
+  const lamps = useRef<InstancedMesh>(null);
+  useLayoutEffect(() => {
+    if (!posts.current || !lamps.current) return;
+    const place = new Object3D();
+    spots.forEach(({ at: [x, y, z], turn }, index) => {
+      place.position.set(x, y, z);
+      place.rotation.set(0, turn, 0);
+      place.scale.setScalar(POST_HEIGHT);
+      place.updateMatrix();
+      posts.current!.setMatrixAt(index, place.matrix);
+      place.scale.setScalar(1);
+      place.translateX(POST_HEIGHT * LAMP_AT.x);
+      place.position.y += POST_HEIGHT * LAMP_AT.y;
+      place.updateMatrix();
+      lamps.current!.setMatrixAt(index, place.matrix);
+    });
+    for (const mesh of [posts.current, lamps.current]) {
+      mesh.instanceMatrix.needsUpdate = true;
+      mesh.computeBoundingSphere();
+    }
+  }, [spots]);
+  if (spots.length === 0) return null;
   return (
-    <group position={position}>
-      <mesh geometry={post.geometry} material={post.material} scale={POST_HEIGHT} castShadow />
-      <mesh
-        geometry={lampGeometry}
-        material={lampMaterial}
-        position={[POST_HEIGHT * LAMP_AT.x, POST_HEIGHT * LAMP_AT.y, 0]}
+    <group>
+      <instancedMesh
+        key={`p${spots.length}`}
+        ref={posts}
+        args={[post.geometry, post.material, spots.length]}
+        castShadow
       />
+      <instancedMesh key={`l${spots.length}`} ref={lamps} args={[lampGeometry, lampMaterial, spots.length]} />
     </group>
   );
 }
@@ -53,9 +80,80 @@ export function Bench({ position, turn }: { position: Vec3; turn: number }) {
 /** Kit pieces drawn as a Meshy model instead: which prop, and how tall. */
 export const MESHY_SWAPS: Readonly<Record<string, { prop: PropId; height: number }>> = {
   building_windmill_blue: { prop: "islandWindmill", height: 3.2 },
-  "boat-row-small": { prop: "bambooBoat", height: 0.7 },
+  // As tall as half a figure: smaller, they were lost on the water.
+  "boat-row-small": { prop: "bambooBoat", height: 1.6 },
   campfire_logs: { prop: "campfire", height: 1.4 },
 };
+
+/** Countryside kit pieces drawn as a Meshy model, many copies at once: how tall per unit of the piece's scale. */
+export const SCATTER_SWAPS: Readonly<Record<string, { prop: PropId; heightPerScale: number }>> = {
+  plant_bush: { prop: "islandShrub", heightPerScale: 0.3 },
+  plant_bushDetailed: { prop: "islandShrub", heightPerScale: 0.3 },
+  plant_bushLarge: { prop: "islandShrub", heightPerScale: 0.36 },
+  rock_largeA: { prop: "islandRock", heightPerScale: 0.28 },
+  rock_largeC: { prop: "islandRock", heightPerScale: 0.28 },
+  rock_largeE: { prop: "islandRock", heightPerScale: 0.28 },
+  rock_tallC: { prop: "islandRock", heightPerScale: 0.34 },
+  // Variety among the bushes (see coast.ts BUSH_VARIETY).
+  rock_small: { prop: "islandRock", heightPerScale: 0.14 },
+  tree_young: { prop: "islandPine", heightPerScale: 0.55 },
+  flower_shadow: { prop: "shadowFlower", heightPerScale: 0.42 },
+  flower_nebula: { prop: "nebulaBloom", heightPerScale: 0.42 },
+};
+
+/** How far round its middle each scattered prop spreads, per unit of its height (a rock: 1.8 wide per 1 tall). */
+export const SCATTER_REACH: Partial<Record<PropId, number>> = {
+  islandRock: 0.9,
+  islandShrub: 0.55,
+  islandPine: 0.35,
+  shadowFlower: 0.45,
+  nebulaBloom: 0.35,
+};
+
+/** Props whose petals glow faintly at night, lit by their own colours. */
+const GLOWING: ReadonlySet<PropId> = new Set(["shadowFlower", "nebulaBloom"]);
+
+type ScatterItem = { piece: string; x: number; y: number; z: number; turn: number; scale: number };
+
+/** Every copy of one Meshy prop among the countryside pieces (see SCATTER_SWAPS), in a single draw. */
+export function ScatterProps({ prop, items }: { prop: PropId; items: readonly ScatterItem[] }) {
+  const model = useFittedProp(prop);
+  const material = useMemo(() => {
+    if (!GLOWING.has(prop)) return model.material;
+    const glow = model.material.clone();
+    glow.emissiveMap = glow.map;
+    glow.emissive = new Color("#ffffff");
+    glow.emissiveIntensity = 0.55;
+    return glow;
+  }, [prop, model.material]);
+  useEffect(() => () => void (material !== model.material && material.dispose()), [material, model.material]);
+  const mesh = useRef<InstancedMesh>(null);
+  useLayoutEffect(() => {
+    const current = mesh.current;
+    if (!current) return;
+    const transform = new Object3D();
+    items.forEach((item, index) => {
+      const height = item.scale * (SCATTER_SWAPS[item.piece]?.heightPerScale ?? 0.3);
+      // Sunk a little so a bumpy base never shows a gap over the slope.
+      transform.position.set(item.x, item.y - height * 0.06, item.z);
+      transform.rotation.set(0, item.turn, 0);
+      transform.scale.setScalar(height);
+      transform.updateMatrix();
+      current.setMatrixAt(index, transform.matrix);
+    });
+    current.instanceMatrix.needsUpdate = true;
+    current.computeBoundingSphere();
+  }, [items]);
+  return (
+    <instancedMesh
+      key={items.length}
+      ref={mesh}
+      args={[model.geometry, material, items.length]}
+      castShadow
+      receiveShadow
+    />
+  );
+}
 
 /** A swapped kit piece (see MESHY_SWAPS); a campfire also crackles with sparks, a boat rocks on the swell. */
 export function SwappedPiece({ item }: { item: { piece: string; x: number; y: number; z: number; turn: number } }) {
@@ -65,7 +163,7 @@ export function SwappedPiece({ item }: { item: { piece: string; x: number; y: nu
   useFrame(({ clock }) => {
     if (!floats || !rocking.current) return;
     const time = clock.elapsedTime + item.x;
-    rocking.current.position.y = Math.sin(time * 1.1) * 0.05;
+    rocking.current.position.y = Math.sin(time * 1.1) * 0.08;
     rocking.current.rotation.z = Math.sin(time * 0.8) * 0.06;
     rocking.current.rotation.x = Math.sin(time * 0.6 + 1) * 0.04;
   });

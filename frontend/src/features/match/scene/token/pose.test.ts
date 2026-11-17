@@ -246,3 +246,20 @@ describe("a sequence of clips", () => {
     expect(sequenceStep([], lengths, 0.5, 0.5)).toEqual({ kind: "over" });
   });
 });
+
+describe("knocked back by a trap", () => {
+  it("limps back facing the way it goes, not the way ahead", () => {
+    const pose = stepPose(
+      createTokenActs(),
+      input(0, {
+        signals: signals({ limping: true }),
+        lengths: { limp: 1 },
+        motion: run(false),
+        heading: Math.PI,
+        path: [0, 0, 1],
+      }),
+    );
+    expect(pose.clip).toBe("limp");
+    expect(pose.heading).toBe(Math.PI);
+  });
+});

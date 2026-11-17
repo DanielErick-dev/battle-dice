@@ -1,3 +1,4 @@
+import { CONDENSER_CARDS, CONDENSER_RECOVERIES } from "@/game/domain/characters/alchemist/condenser";
 import type { InvertedOutcome } from "@/game/domain/characters/alchemist/types";
 import type { CopyEntries } from "./types";
 
@@ -40,3 +41,10 @@ export const alchemistCopy = {
     subtitle: ({ count }) => `A Pedra Filosofal consome tudo: ${count ?? 0} oponentes perdem a melhor carta`,
   },
 } satisfies CopyEntries;
+
+/** The Alchemist's Condenser chip: how full it is and how many picks are left, or that they're all spent. */
+export function condenserLabel(state: { condensed: number; recoveries: number }): string {
+  const left = CONDENSER_RECOVERIES - state.recoveries;
+  if (left <= 0) return "Condensador esgotado";
+  return `Condensador ${Math.min(state.condensed, CONDENSER_CARDS)}/${CONDENSER_CARDS} · ${left}×`;
+}

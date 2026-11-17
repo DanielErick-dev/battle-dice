@@ -17,7 +17,12 @@ export interface BoardRecipe {
   portalsFrom?: number;
   /** Extra card tiles spread over the stretch from `from` (a fraction of the board) to the end, when hands run dry. */
   lateCards?: { count: number; from: number };
+  /** Shortcut portals spread from tile `from` on: each one sends you WARP_REACH tiles on, onto its exit portal. */
+  warps?: { count: number; from: number };
 }
+
+/** How far a shortcut portal sends you on. */
+export const WARP_REACH: readonly [number, number] = [18, 22];
 
 /** [min, max] tiles; traps go back, the others forward. */
 const REACH: Readonly<Record<"portal" | "trap" | "advance", readonly [number, number]>> = {
@@ -34,6 +39,7 @@ export function generateBoard({
   trapZones: zoneRecipe,
   portalsFrom = 2,
   lateCards,
+  warps,
 }: BoardRecipe): BoardDefinition {
   const random = seededRandom(seed);
   const effects: Record<TileId, TileEffect> = {};
@@ -89,7 +95,29 @@ export function generateBoard({
     }
   }
 
-  return { size, effects: openRealms(curseTraps(effects, seed)), trapZones };
+  // Laid after everything else, in their own stream, so adding them moves nothing; realms never open on them.
+  const shortcuts = new Set<TileId>();
+  if (warps) {
+    const warpRandom = seededRandom(seed ^ 0x3a4b);
+    const span = (size - warps.from - WARP_REACH[1]) / warps.count;
+    for (let index = 0; index < warps.count; index++) {
+      const first = warps.from + Math.floor(index * span);
+      const tiles = shuffle(range(first, first + Math.floor(span) - 1), warpRandom);
+      for (const tile of tiles) {
+        if (!isFree(tile)) continue;
+        const destination = shuffle(range(WARP_REACH[0], WARP_REACH[1]), warpRandom)
+          .map((distance) => tile + distance)
+          .find(isFree);
+        if (destination === undefined) continue;
+        reserved.add(destination);
+        effects[tile] = { kind: "portal", to: destination };
+        shortcuts.add(tile);
+        break;
+      }
+    }
+  }
+
+  return { size, effects: openRealms(curseTraps(effects, seed), shortcuts), trapZones };
 }
 
 /** Each portal among the first `opening` stretches swaps with the next non-portal after them. */
@@ -119,10 +147,12 @@ function spreadTrapZones(
 
 const realmOf = (portal: number): RealmKind => (portal % 2 === 0 ? "infernal" : "celestial");
 
-/** Every portal opens a realm track, alternating infernal and celestial along the path. */
-function openRealms(effects: Record<TileId, TileEffect>): Record<TileId, TileEffect> {
+/** Every portal but the shortcuts opens a realm track, alternating infernal and celestial along the path. */
+function openRealms(effects: Record<TileId, TileEffect>, shortcuts: ReadonlySet<TileId>): Record<TileId, TileEffect> {
   const portals = Object.entries(effects)
-    .flatMap(([tile, effect]) => (effect.kind === "portal" ? [{ tile: Number(tile), effect }] : []))
+    .flatMap(([tile, effect]) =>
+      effect.kind === "portal" && !shortcuts.has(Number(tile)) ? [{ tile: Number(tile), effect }] : [],
+    )
     .sort((a, b) => a.tile - b.tile);
   return {
     ...effects,

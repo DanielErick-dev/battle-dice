@@ -7,6 +7,7 @@ import { AbilityMeter } from "../hud/AbilityMeter";
 import { BlessingBadges } from "../hud/BlessingBadges";
 import { VoidHold } from "../hud/VoidHold";
 import { CorruptedTray } from "../hud/CorruptedTray";
+import { SpywareView } from "../hud/SpywareView";
 
 interface HandColumnProps {
   store: MatchStore;
@@ -65,6 +66,7 @@ export function HandColumn({
                 />
                 <VoidHold player={player} canAct={controls.canRoll} onRelease={onReleaseVoidItem} />
                 <CorruptedTray player={player} canAct={controls.canRoll} onPurge={store.purgeCorrupted} />
+                <SpywareView player={player} players={view.players} />
                 <BlessingBadges player={player} waiting={inHeaven(board, player.position)} />
               </>
             }

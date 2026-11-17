@@ -62,6 +62,7 @@ function reshuffleDiscard(draft: Draft, playerId: PlayerId): void {
   updatePlayer(draft, playerId, () => ({
     deck: shuffle(discard, draft.random),
     discard: [],
+    graveyard: [],
   }));
   draft.events.push({ type: "deckReshuffled", playerId, size: discard.length });
 }

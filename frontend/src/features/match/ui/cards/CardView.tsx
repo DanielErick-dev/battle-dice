@@ -45,7 +45,8 @@ export function CardView({
         "game-card relative flex w-full flex-col overflow-hidden rounded-xl p-[3px] select-none",
         // In focus an invisible 5:7 spacer shares the grid cell, so the card keeps its shape and only grows for long text.
         expanded
-          ? "grid before:col-start-1 before:row-start-1 before:aspect-[5/7] before:content-['']"
+          ? // One column pinned to the card's width: a tall text would otherwise widen it past the frame.
+            "grid grid-cols-1 before:col-start-1 before:row-start-1 before:aspect-[5/7] before:w-full before:content-['']"
           : "aspect-[5/7]",
         // Still readable and in colour: a card you can't play now is only toned down, not greyed into the dark.
         dimmed && "brightness-[0.85] saturate-[0.75]",

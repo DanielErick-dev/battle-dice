@@ -35,6 +35,7 @@ export function Ocean({ level, size, shoreHalfSize, shoreCenterZ, moonPosition }
           uShallow: { value: new Color("#0a1d26") },
           uSky: { value: new Color("#1b2430") },
           uFoam: { value: new Color("#8fa2b2") },
+          uLagoon: { value: new Color("#0f4a52") },
           uMoonColor: { value: new Color("#d9e2ec") },
           uMoonPosition: { value: new Vector3() },
           uShoreHalf: { value: new Vector2() },

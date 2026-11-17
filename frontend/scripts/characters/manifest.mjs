@@ -67,14 +67,14 @@ const MODELS = {
     // The Runebound Acolyte body (body.glb); every clip was made on his first body, so all of them live in parts/.
     body: "body",
     retargetParts: true,
-    // His menu intro sits slowly into the lotus, which he then holds floating (float); the bendings are match clips.
+    // His menu intro (his own export) hands over to the lotus, held floating (float); the bendings are match clips.
     sequences: {
       idle: ["idle"],
       run: ["run"],
       punch: ["punch"],
       ouch: ["ouch"],
       limp: ["limp"],
-      intro: ["meditate*0.6"],
+      intro: ["intro"],
       float: ["meditate@2.8-2.97"],
       // Sped up: at their own pace the water and wind gestures dragged on for 4–6 s.
       quake: ["quake*1.15"],
@@ -83,7 +83,9 @@ const MODELS = {
       gust: ["gust*1.9"],
       meditate: ["meditate*0.6"],
       lotus: ["meditate@2.8-2.97"],
-      vault: ["vault*1.4"],
+      // From take-off to landing, quick enough to clear the wall at the tile's start within one step; its forward
+      // travel is pinned (IN_PLACE_CLIPS), the walk carries him over.
+      vault: ["vault@0.25-1.5*1.6"],
     },
   },
   // Themis: her intro plants the sword in the ground, kneeling, then rises and gestures (the scale appears in

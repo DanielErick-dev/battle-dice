@@ -13,6 +13,7 @@ import { TileOrnaments } from "./ornaments/TileOrnaments";
 import { themeFor } from "./theme/tileTheme";
 import { TileTag } from "./TileTag";
 import { useSlabGeometry } from "./useSlabGeometry";
+import { PathSlab } from "./PathSlab";
 
 const HIGHLIGHT_FALLBACK = "#f97316";
 
@@ -46,6 +47,10 @@ interface TileMeshProps {
   onPick?: (tile: number) => void;
   /** The pointer over it while it can be picked (an enchanted hand; the plain pointer without one). */
   pickCursor?: PickCursor;
+  /** The island's mossy walkway (see PathSlab) instead of a carved stone slab; road slabs only. */
+  mossy?: boolean;
+  /** A shortcut portal comes out here (see WARP_REACH). */
+  warpExit?: boolean;
 }
 
 /** Pixels the pointer may move between press and release for it to still count as a click, not a drag. */
@@ -69,6 +74,8 @@ export function TileMesh({
   occupied = false,
   onPick,
   pickCursor: cursor,
+  mossy = false,
+  warpExit = false,
 }: TileMeshProps) {
   /** The pointer is over it while it can be picked: it rises and lights up. */
   const [hovered, setHovered] = useState(false);
@@ -91,13 +98,18 @@ export function TileMesh({
   const theme = useMemo(() => themeFor(tile, { inTrapZone, destroyed }), [tile, inTrapZone, destroyed]);
   const emissive = theme.glowIntensity > 0 ? theme.glow : HIGHLIGHT_FALLBACK;
   const glowColor = theme.kind === "regular" ? accent : theme.glow;
+  const walkway = mossy && slab ? slab.outline : null;
+  // Over a modelled walkway the face isn't drawn (its number and rune are on plaques, see TileNumbers): a token canvas.
   const faceTexture = useTileFaceTexture({
     tileId: tile.id,
     theme,
     accent,
     // The face is laid along the way: its arrows point relative to that.
     arrowAngle: arrowAngle === null ? null : arrowAngle - heading,
-    resolution: textureSize,
+    resolution: walkway ? 4 : textureSize,
+    bare: walkway !== null,
+    runeless: walkway !== null,
+    numberless: walkway !== null,
   });
   const bodyMaterial = useRef<MeshStandardMaterial>(null);
   const underglow = useRef<MeshBasicMaterial>(null);
@@ -108,10 +120,20 @@ export function TileMesh({
     const time = clock.elapsedTime;
     if (bodyMaterial.current) {
       const pulse = highlighted ? 1.2 + Math.sin(time * 10) * 0.6 : hovering ? 0.9 + Math.sin(time * 8) * 0.25 : 0;
-      bodyMaterial.current.emissiveIntensity = theme.glowIntensity * 0.35 + pulse;
+      // A modelled walkway keeps its own colours: it only lights up when flashed or hovered.
+      bodyMaterial.current.emissiveIntensity = (walkway ? 0 : theme.glowIntensity * 0.35) + pulse;
     }
     if (underglow.current) {
-      const breathe = hovering ? 1 : reachable || onPick ? 0.75 + Math.sin(time * 4 - tile.id * 0.6) * 0.2 : 0.38;
+      // A modelled walkway only glows under the pointer while it can be picked: otherwise its own stones show.
+      const breathe = hovering
+        ? walkway
+          ? 0.5
+          : 1
+        : walkway
+          ? 0
+          : reachable || onPick
+            ? 0.75 + Math.sin(time * 4 - tile.id * 0.6) * 0.2
+            : 0.38;
       underglow.current.opacity += (breathe - underglow.current.opacity) * Math.min(1, delta * 8);
       const tint = hovering ? "#ffffff" : glowColor;
       // Parsed only when it changes: 200 tiles re-parsing a colour string every frame adds up.
@@ -128,13 +150,21 @@ export function TileMesh({
 
   return (
     <group position={position}>
-      <mesh geometry={shapes.glow} position-y={-TILE_HEIGHT / 2 + 0.03} scale={[1.12, 1, 1.12]}>
+      {/* Over a modelled walkway the glow lies on top of it (beneath, its stones poke through and flicker). */}
+      <mesh
+        geometry={shapes.glow}
+        position-y={walkway ? TILE_HEIGHT / 2 + 0.05 : -TILE_HEIGHT / 2 + 0.03}
+        scale={walkway ? [0.92, 1, 0.92] : [1.12, 1, 1.12]}
+        renderOrder={walkway ? 2 : 0}
+      >
         <meshBasicMaterial
           ref={underglow}
           color={glowColor}
           transparent
-          opacity={0.38}
+          opacity={walkway ? 0 : 0.38}
           depthWrite={false}
+          polygonOffset={walkway !== null}
+          polygonOffsetFactor={-4}
           blending={AdditiveBlending}
           toneMapped={false}
         />
@@ -166,19 +196,26 @@ export function TileMesh({
             setHovered(false);
           }}
         >
-          <mesh geometry={shapes.body} castShadow receiveShadow>
-            <meshStandardMaterial
-              ref={bodyMaterial}
-              color={STONE_SIDE}
-              emissive={emissive}
-              roughness={0.9}
-              flatShading
-            />
-          </mesh>
-
-          <mesh geometry={shapes.face} position-y={TILE_HEIGHT / 2 + 0.004} receiveShadow>
-            <meshStandardMaterial map={faceTexture} roughness={0.85} />
-          </mesh>
+          {walkway ? (
+            <>
+              <PathSlab outline={walkway} materialRef={bodyMaterial} emissive={emissive} />
+            </>
+          ) : (
+            <>
+              <mesh geometry={shapes.body} castShadow receiveShadow>
+                <meshStandardMaterial
+                  ref={bodyMaterial}
+                  color={STONE_SIDE}
+                  emissive={emissive}
+                  roughness={0.9}
+                  flatShading
+                />
+              </mesh>
+              <mesh geometry={shapes.face} position-y={TILE_HEIGHT / 2 + 0.004} receiveShadow>
+                <meshStandardMaterial map={faceTexture} roughness={0.85} />
+              </mesh>
+            </>
+          )}
         </group>
         {peeking && theme.label && <TileTag theme={theme} />}
 
@@ -190,6 +227,8 @@ export function TileMesh({
             arrowAngle={arrowAngle}
             heading={heading}
             occupied={occupied}
+            mossy={walkway !== null}
+            warpExit={warpExit}
           />
         )}
 

@@ -13,7 +13,7 @@ export const SHOTS: Record<TileEffectKind, Shot> = {
   advance: { closeUp: { distance: 0.78, seconds: 1.2 }, fovKick: 1 },
   trap: { trauma: 0.8 },
   hiddenTrap: { closeUp: { distance: 0.62, seconds: 1.2 }, trauma: 1 },
-  skipTurn: { trauma: 0.3 },
+  skipTurn: { trauma: 0.3, closeUp: { distance: 0.75, seconds: 2.2 } },
   turnSkipped: { trauma: 0.2 },
   snowDrained: {},
   voidSwallowed: { closeUp: { distance: 0.7, seconds: 1.2 }, trauma: 0.3 },

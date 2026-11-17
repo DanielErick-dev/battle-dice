@@ -150,8 +150,6 @@ export function stepPose(acts: TokenActs, input: PoseInput): Pose {
   if (acts.vaultStartedAt !== null && now - acts.vaultStartedAt >= (lengths.vault ?? 0)) acts.vaultStartedAt = null;
   const vaulting = acts.vaultStartedAt !== null;
   const limping = signals.limping && moving && lengths.limp !== undefined;
-  // Walking back hurt, the figure keeps facing the way ahead.
-  if (limping) heading = headingOf(input.path) ?? heading;
   // The Convergence: sits down into the lotus once, then holds it while floating.
   if (!signals.meditating) acts.meditateStartedAt = null;
   else acts.meditateStartedAt ??= now;

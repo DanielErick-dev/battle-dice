@@ -44,28 +44,28 @@ export const alchemistSteps: StepHandlers<
   graveyardOpened: (event, timings) => [
     {
       apply: (view) => ({
-        ...view,
+        ...(event.own
+          ? withPlayer(view, event.playerId, (player) => ({
+              alchemist: { ...player.alchemist, recoveries: player.alchemist.recoveries + 1 },
+            }))
+          : view),
         effect: { ...playerTileEffect(view, event.playerId, "graveyardOpened"), count: event.picks },
       }),
       durationMs: timings.noticeMs,
     },
   ],
+  // Only off the graveyards: each card then reaches her hand through its own cardDrawn (or discard prompt).
   graveyardRaided: (event, timings) => [
     {
       apply: (view) => {
         const taken = new Set(event.cards.map(({ card }) => card.uid));
-        const raided = {
+        return {
           ...view,
           players: view.players.map((player) => ({
             ...player,
             discard: player.discard.filter((card) => !taken.has(card.uid)),
+            graveyard: player.graveyard.filter((uid) => !taken.has(uid)),
           })),
-        };
-        return {
-          ...withPlayer(raided, event.playerId, (player) => ({
-            hand: [...player.hand, ...event.cards.map(({ card }) => card)],
-          })),
-          lastDrawnUid: event.cards.at(-1)?.card.uid ?? view.lastDrawnUid,
         };
       },
       durationMs: timings.drawMs,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import type { CharacterId } from "@/features/characters";
 import type { BoardLayout } from "@/features/shared/board/boardLayout";
 import { RealmParticles } from "../../realm/RealmParticles";
 import { Ocean } from "../ocean/Ocean";
@@ -10,7 +11,15 @@ import { Island } from "./Island";
 import { islandShape, WATER_LEVEL } from "./terrain";
 
 /** The island map whole: the island in the night sea under its sky, which changes with the realms. */
-export function IslandWorld({ layout, scale }: { layout: BoardLayout; scale: number }) {
+export function IslandWorld({
+  layout,
+  scale,
+  characters,
+}: {
+  layout: BoardLayout;
+  scale: number;
+  characters: readonly CharacterId[];
+}) {
   const skyRadius = 95 * scale;
   const moonPosition: [number, number, number] = [-0.3 * skyRadius, 0.28 * skyRadius, -0.8 * skyRadius];
   const shape = useMemo(() => islandShape(layout.trail), [layout.trail]);
@@ -28,7 +37,7 @@ export function IslandWorld({ layout, scale }: { layout: BoardLayout; scale: num
         shoreCenterZ={shape.centerZ}
         moonPosition={moonPosition}
       />
-      <Island trail={layout.trail} shape={shape} />
+      <Island trail={layout.trail} shape={shape} characters={characters} />
     </group>
   );
 }

@@ -31,6 +31,7 @@ export const OCEAN_FRAGMENT = /* glsl */ `
   uniform vec3 uShallow;
   uniform vec3 uSky;
   uniform vec3 uFoam;
+  uniform vec3 uLagoon;
   uniform vec3 uMoonColor;
   uniform vec3 uMoonPosition;
   uniform vec2 uShoreHalf;
@@ -75,7 +76,9 @@ export const OCEAN_FRAGMENT = /* glsl */ `
   /** Roughly how far out from the island's waterline (its rounded-rectangle shape, see island/terrain.ts). */
   float shoreDistance(vec2 p) {
     vec2 q = abs((p - vec2(0.0, uShoreCenterZ)) / uShoreHalf);
-    float reach = pow(pow(q.x, 4.0) + pow(q.y, 4.0), 0.25);
+    // Factored by the larger side so q^4 can't overflow far out at sea (an Inf here turns into NaN below).
+    float big = max(max(q.x, q.y), 1e-4);
+    float reach = big * pow(1.0 + pow(min(q.x, q.y) / big, 4.0), 0.25);
     return (reach - 0.94) * min(uShoreHalf.x, uShoreHalf.y);
   }
 
@@ -95,6 +98,14 @@ export const OCEAN_FRAGMENT = /* glsl */ `
     color += uMoonColor * glitter * 0.9;
 
     float shore = shoreDistance(vWorld.xz);
+    // Shallows off the beach turn clear teal, with a soft shimmer of moonlit ripples on the sand below.
+    float shallows = smoothstep(5.0, 0.0, shore) * smoothstep(-0.9, -0.2, shore);
+    float shimmer = noise(vWorld.xz * 0.9 + vec2(uTime * 0.35, -uTime * 0.25)) * noise(vWorld.xz * 1.7 - uTime * 0.3);
+    color = mix(color, uLagoon * (0.8 + shimmer * 0.9), shallows * 0.55);
+    // The stream (inland water) runs to the sea: brighter streaks drift down it.
+    float stream = smoothstep(-0.9, -1.6, shore);
+    float flow = smoothstep(0.55, 0.8, noise(vWorld.xz * vec2(0.9, 0.22) - vec2(0.0, uTime * 0.7)));
+    color = mix(color, uLagoon * 1.1, stream * (0.25 + flow * 0.3));
     float bands = 0.5 + 0.5 * sin(shore * 7.0 - uTime * 2.2 + w.x * 12.0);
     // Breaking only along the outer coast: inland water (the stream) stays clear.
     float coast = smoothstep(-0.9, -0.2, shore);
@@ -104,6 +115,8 @@ export const OCEAN_FRAGMENT = /* glsl */ `
 
     if (uCelestial > 0.001) color = mix(color, clouds(vWorld.xz, fresnel), uCelestial);
 
+    // One NaN pixel is smeared over the whole screen by the bloom, blacking it out.
+    if (any(isnan(color)) || any(isinf(color))) color = uDeep;
     gl_FragColor = vec4(color, 1.0);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>

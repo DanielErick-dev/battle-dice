@@ -19,7 +19,7 @@ import {
   withPlayers,
 } from "../../testing";
 import { INVERSION_TURNS } from "./inversion";
-import { CONDENSER_CARDS } from "./condenser";
+import { CONDENSER_CARDS, CONDENSER_RECOVERIES } from "./condenser";
 import { OPUS_PICKS, RAIDER_PICKS } from "./cards";
 
 // 14: trap back to 10 · 16: lost turn · 24: advance to 28 · 26: extra turn · 30: card draw.
@@ -76,6 +76,18 @@ describe("Great Alchemical Inversion", () => {
     expect(playerOf(robbed, "rival").hand).toHaveLength(0);
   });
 
+  it("walks a turned trap into a wall like a roll: the wall loses what's left of the walk", () => {
+    const base = withPlayer(inverted(), "alchemist", { position: 10 });
+    const walled = {
+      ...base,
+      elementals: { ...base.elementals, walls: [{ tile: 16, owner: "rival", hp: 8, maxHp: 8 }] },
+    };
+    // The trap at 14 turns into 4 ahead: one tile to 15, then 3 into the wall.
+    const { state } = roll(onTurnOf(walled, "alchemist"), "alchemist", 4);
+    expect(playerOf(state, "alchemist").position).toBe(15);
+    expect(state.elementals.walls[0]?.hp).toBe(5);
+  });
+
   it("leaves harms as they are for her opponents and gifts as they are for her", () => {
     const base = withPlayers(inverted(), { rival: { position: 10 }, alchemist: { position: 20 } });
     expect(playerOf(roll(onTurnOf(base, "rival"), "rival", 4).state, "rival").position).toBe(10);
@@ -88,7 +100,8 @@ describe("Graveyard Condenser", () => {
     const start = withPlayers(duel(), {
       alchemist: {
         discard: [card("luckyCharm", "mine")],
-        alchemist: { condensed: CONDENSER_CARDS - 1, extraTurns: 0 },
+        graveyard: ["mine"],
+        alchemist: { condensed: CONDENSER_CARDS - 1, extraTurns: 0, recoveries: 0 },
       },
       rival: { hand: [card("healingHerb")], energy: 10 },
     });
@@ -104,7 +117,8 @@ describe("Graveyard Condenser", () => {
     const start = withPlayers(duel(), {
       alchemist: {
         discard: [card("luckyCharm", "mine")],
-        alchemist: { condensed: CONDENSER_CARDS - 1, extraTurns: 0 },
+        graveyard: ["mine"],
+        alchemist: { condensed: CONDENSER_CARDS - 1, extraTurns: 0, recoveries: 0 },
       },
       rival: { hand: [card("healingHerb")], energy: 10 },
     });
@@ -116,7 +130,62 @@ describe("Graveyard Condenser", () => {
   });
 });
 
+describe("Graveyard Condenser: played cards only", () => {
+  const ready = (overrides: object = {}) =>
+    withPlayers(duel(), {
+      alchemist: {
+        discard: [card("fateSwap", "dropped"), card("luckyCharm", "mine")],
+        graveyard: ["mine"],
+        alchemist: { condensed: CONDENSER_CARDS - 1, extraTurns: 0, recoveries: 0 },
+        ...overrides,
+      },
+      rival: { hand: [card("healingHerb")], energy: 10 },
+    });
+
+  it("never offers a card she discarded without playing it", () => {
+    const { state } = play(onTurnOf(ready(), "rival"), "rival", "test:healingHerb");
+    expectRuleError(
+      () => send(state, { type: "raidGraveyard", playerId: "alchemist", cardUids: ["dropped"] }),
+      "UNKNOWN_CARD",
+    );
+  });
+
+  it("waits while nothing she played is in her graveyard", () => {
+    const { state } = play(onTurnOf(ready({ graveyard: [] }), "rival"), "rival", "test:healingHerb");
+    expect(state.pendingRaid).toBeNull();
+  });
+
+  it("puts a card she plays into her graveyard", () => {
+    const start = withPlayers(duel(), { alchemist: { hand: [card("healingHerb", "herb")], energy: 10 } });
+    expect(playerOf(play(start, "alchemist", "herb").state, "alchemist").graveyard).toEqual(["herb"]);
+  });
+
+  it(`stops after ${CONDENSER_RECOVERIES} picks in a match`, () => {
+    const spent = { alchemist: { condensed: CONDENSER_CARDS - 1, extraTurns: 0, recoveries: CONDENSER_RECOVERIES } };
+    const { state } = play(onTurnOf(ready(spent), "rival"), "rival", "test:healingHerb");
+    expect(state.pendingRaid).toBeNull();
+    expect(playerOf(state, "alchemist").alchemist.condensed).toBe(CONDENSER_CARDS - 1);
+  });
+
+  it("counts each pick it gives", () => {
+    const { state } = play(onTurnOf(ready(), "rival"), "rival", "test:healingHerb");
+    expect(playerOf(state, "alchemist").alchemist.recoveries).toBe(1);
+  });
+});
+
 describe("The Alchemist's cards", () => {
+  it("Graveyard Raider can't fetch itself (or any card that opens a graveyard)", () => {
+    const start = withPlayers(withHand(duel(), "alchemist", "graveyardRaider"), {
+      rival: { discard: [card("windStep", "w")], graveyard: ["w"] },
+    });
+    const { state } = play(start, "alchemist", "test:graveyardRaider");
+    expectRuleError(
+      () => send(state, { type: "raidGraveyard", playerId: "alchemist", cardUids: ["test:graveyardRaider"] }),
+      "UNKNOWN_CARD",
+    );
+    expect(send(state, { type: "raidGraveyard", playerId: "alchemist", cardUids: ["w"] }).state.pendingRaid).toBeNull();
+  });
+
   it("Catalytic Step runs on to the first harm ahead and turns it in her favour", () => {
     const start = withPlayers(withHand(duel(), "alchemist", "catalyticStep"), { alchemist: { position: 5 } });
     const { state } = play(start, "alchemist", "test:catalyticStep");
@@ -132,7 +201,7 @@ describe("The Alchemist's cards", () => {
 
   it(`Graveyard Raider takes ${RAIDER_PICKS} cards from anyone's graveyard`, () => {
     const start = withPlayers(withHand(duel(), "alchemist", "graveyardRaider"), {
-      rival: { discard: copies("berserkFury", 2, "theirs") },
+      rival: { discard: copies("berserkFury", 2, "theirs"), graveyard: ["theirs0", "theirs1"] },
     });
     const { state } = play(start, "alchemist", "test:graveyardRaider");
     expect(state.pendingRaid).toMatchObject({ owner: "alchemist", picks: RAIDER_PICKS, own: false });
@@ -175,14 +244,18 @@ describe("The Alchemist's cards", () => {
 describe("Graveyard Condenser cap", () => {
   it("fills up to one pick, however many cards go at once", () => {
     const start = withPlayers(duel(), {
-      alchemist: { discard: [card("luckyCharm", "mine")], alchemist: { condensed: 0, extraTurns: 0 } },
+      alchemist: {
+        discard: [card("luckyCharm", "mine")],
+        graveyard: ["mine"],
+        alchemist: { condensed: 0, extraTurns: 0, recoveries: 0 },
+      },
       rival: { hand: copies("windStep", 6, "w"), energy: 10 },
     });
     // Six cards burnt at once: still a single pick, and nothing banked for another.
     const burnt = withPlayer(start, "rival", { hand: [card("healingHerb")], discard: copies("windStep", 6, "w") });
     const { state } = play(
       onTurnOf(
-        withPlayer(burnt, "alchemist", { alchemist: { condensed: CONDENSER_CARDS - 1, extraTurns: 0 } }),
+        withPlayer(burnt, "alchemist", { alchemist: { condensed: CONDENSER_CARDS - 1, extraTurns: 0, recoveries: 0 } }),
         "rival",
       ),
       "rival",

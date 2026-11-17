@@ -8,8 +8,8 @@ import type { EventOf, PlaybackStep, StepHandlers } from "./types";
 /** A portal or a trap carries the player off: the tile flares up, then they travel to where it sends them. */
 /** Most traps send you a few tiles back along the same numbered stretch: limped back tile by tile. */
 const LIMP_MAX_TILES = 12;
-/** The thorns sting and the figure reels on the trap tile (the "ouch" clip) before it starts limping back. */
-const TRAP_STING_MS = 1700;
+/** The trap flares under them for a moment before they run back. */
+const TRAP_STING_MS = 350;
 
 function carriedAwaySteps(event: EventOf<"portalEntered" | "trapTriggered">, timings: PlaybackTimings): PlaybackStep[] {
   const kind = event.type === "portalEntered" ? "portal" : "trap";

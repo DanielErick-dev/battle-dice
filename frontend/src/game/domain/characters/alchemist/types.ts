@@ -7,9 +7,11 @@ export interface AlchemistState {
   condensed: number;
   /** Extra turns banked by a lost-turn tile turned in her favour, played one after another. */
   extraTurns: number;
+  /** Graveyard picks her Condenser has given her this match (capped at CONDENSER_RECOVERIES). */
+  recoveries: number;
 }
 
-export const NO_ALCHEMIST: AlchemistState = { condensed: 0, extraTurns: 0 };
+export const NO_ALCHEMIST: AlchemistState = { condensed: 0, extraTurns: 0, recoveries: 0 };
 
 /** The Great Alchemical Inversion: while it lasts, tiles turn against her opponents and in her favour. */
 export interface Inversion {

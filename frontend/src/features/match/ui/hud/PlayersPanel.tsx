@@ -1,7 +1,8 @@
 import { cardText } from "../cards/cardText";
 import { CONTAINED_DIE } from "@/game/domain/characters/themis/cards";
 import { INNER_FLAME_MAX } from "@/game/domain/characters/akane/fire";
-import { CONDENSER_CARDS } from "@/game/domain/characters/alchemist/condenser";
+import { CONDENSER_CARDS, CONDENSER_RECOVERIES } from "@/game/domain/characters/alchemist/condenser";
+import { condenserLabel } from "./effectCopy/alchemist";
 import { isAlchemist } from "@/game/domain/characters/alchemist/inversion";
 import {
   inBrownout,
@@ -111,10 +112,10 @@ export function PlayersPanel({ players, activePlayerId, viewerId, board, inversi
                 )}
                 {isAlchemist(player) && (
                   <span
-                    title={`Condensador: a cada ${CONDENSER_CARDS} cartas em qualquer cemitério, ela pega uma do próprio cemitério`}
+                    title={`Condensador: a cada ${CONDENSER_CARDS} cartas em qualquer cemitério, ela recupera uma carta que jogou (${CONDENSER_RECOVERIES} vezes por partida)`}
                     className="rounded-full bg-emerald-500/15 px-1.5 text-[9px] font-bold text-emerald-200 uppercase"
                   >
-                    Condensador {Math.min(player.alchemist.condensed, CONDENSER_CARDS)}/{CONDENSER_CARDS}
+                    {condenserLabel(player.alchemist)}
                   </span>
                 )}
                 {isAlva(player) && (

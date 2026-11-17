@@ -21,9 +21,20 @@ const PIRATE_SCALE = 0.4;
 const BUSHES = ["plant_bushDetailed", "plant_bush", "plant_bushLarge"];
 const BOULDERS = ["rock_largeA", "rock_largeC", "rock_largeE", "rock_tallC"];
 const SHORE_ROCKS = ["rocks-sand-a", "rocks-sand-b", "rocks-sand-c"];
+/** What each of ten bush spots becomes: one in ten left bare, half of the rest something other than a bush. */
+const BUSH_VARIETY = ["none", "flowers", "bush", "rock_small", "bush", "tree_young", "bush", "flowers", "bush", "bush"];
+/** A few flowers round a spot: offsets and sizes. */
+const FLOWER_CLUSTER: readonly [number, number, number][] = [
+  [0, 0, 1],
+  [0.45, 0.3, 0.75],
+  [-0.35, 0.4, 0.6],
+];
+
+/** Where round the island (radians, 0 = east, π/2 = towards the camera) the fishing boats lie at anchor. */
+const BOAT_ANGLES = [0.1, 0.55, 1.15, 1.95, 2.6, 3.05];
 
 /** Points round the waterline, `count` of them, walking out from the middle until the ground meets the sea. */
-function shoreline(shape: IslandShape, count: number): { x: number; z: number; angle: number }[] {
+export function shoreline(shape: IslandShape, count: number): { x: number; z: number; angle: number }[] {
   return Array.from({ length: count }, (_, index) => {
     const angle = (index / count) * Math.PI * 2;
     const [cx, cz] = [Math.cos(angle), Math.sin(angle)];
@@ -77,16 +88,30 @@ export function planCoast(
     );
   }
 
-  // Fishing boats riding at anchor off the front and the sides, a little way out from the beach.
-  for (const { x, z, angle } of shoreline(shape, 24)) {
-    if (Math.sin(angle) < -0.2 || random() < 0.55) continue;
-    const out = 2.2 + random() * 1.5;
-    add("boat-row-small", x + Math.cos(angle) * out, WATER_LEVEL - 0.05, z + Math.sin(angle) * out, 0.6);
+  // Fishing boats riding at anchor round the front and the sides, a little way out from the beach, where they show.
+  for (const angle of BOAT_ANGLES) {
+    const shore = shoreline(shape, 72).reduce((best, spot) =>
+      Math.abs(spot.angle - angle) < Math.abs(best.angle - angle) ? spot : best,
+    );
+    const out = 3 + random() * 2;
+    add(
+      "boat-row-small",
+      shore.x + Math.cos(shore.angle) * out,
+      WATER_LEVEL - 0.05,
+      shore.z + Math.sin(shore.angle) * out,
+      0.6,
+    );
   }
-  // The countryside: the spots the island scattered get kit pieces.
-  scatter.bushes.forEach((spot, index) =>
-    add(cycle(BUSHES, index), spot.x, spot.y, spot.z, NATURE_SCALE * (0.8 + spot.size)),
-  );
+  // The countryside: the spots the island scattered get kit pieces, the bushes mixed with flowers, stones and saplings.
+  scatter.bushes.forEach((spot, index) => {
+    const scale = NATURE_SCALE * (0.8 + spot.size);
+    const variety = cycle(BUSH_VARIETY, index);
+    if (variety === "bush") add(cycle(BUSHES, index), spot.x, spot.y, spot.z, scale);
+    else if (variety === "flowers") {
+      const flower = index % 4 < 2 ? "flower_shadow" : "flower_nebula";
+      FLOWER_CLUSTER.forEach(([dx, dz, size]) => add(flower, spot.x + dx, spot.y, spot.z + dz, scale * size));
+    } else if (variety !== "none") add(variety, spot.x, spot.y, spot.z, scale);
+  });
   scatter.rocks.forEach((spot, index) => add(cycle(BOULDERS, index), spot.x, spot.y, spot.z, NATURE_SCALE * spot.size));
   // Fallen logs and stumps in the woods, along the trail's middle stretch.
   for (let attempt = 0; attempt < 400; attempt++) {

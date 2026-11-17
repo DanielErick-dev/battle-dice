@@ -4,7 +4,7 @@ export type Vec3 = [number, number, number];
 
 export const TILE_SIZE = 2;
 export const TILE_HEIGHT = 0.32;
-const TILE_GAP = 0.3;
+export const TILE_GAP = 0.3;
 /** Half the width of a slab of the road (see tileSlab): a little wider than a tile is long. */
 const SLAB_HALF_WIDTH = TILE_SIZE * 0.56;
 export const TILE_PITCH = TILE_SIZE + TILE_GAP;

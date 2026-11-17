@@ -1,8 +1,10 @@
 /** What the camera watches and where the dice land. */
 import { getTile } from "@/game/domain/board/board";
 import type { Board, RealmKind } from "@/game/domain/types";
-import type { MatchView } from "../../model/matchView";
+import type { MatchView, TileEffectKind } from "../../model/matchView";
 import { TILE_PITCH, type BoardLayout, type Vec3 } from "@/features/shared/board/boardLayout";
+
+const SITTING_DOWN: readonly TileEffectKind[] = ["timeBent", "skipTurn", "heavenBarred"];
 
 /** The tile of whoever is moving, else whoever plays next. */
 export function focusTile(view: MatchView): number | null {
@@ -31,8 +33,8 @@ export function focusPoint(view: MatchView, layout: BoardLayout): Vec3 {
     const judge = view.players.find((player) => player.id === verdict.judgeId);
     if (judge) return layout.position(judge.position);
   }
-  // Cronos bending an opponent's time: watched on them.
-  if (view.effect?.kind === "timeBent") return layout.position(view.effect.from);
+  // Whoever just lost turns (Cronos, an aimed card, a tile) is watched until they've sat down.
+  if (view.effect && SITTING_DOWN.includes(view.effect.kind)) return layout.position(view.effect.from);
   // A rolling tide is watched from halfway along its reach.
   const tideMiddle = view.fx.tide?.rolling ? view.fx.tide.path[Math.floor(view.fx.tide.path.length / 2)] : undefined;
   if (tideMiddle !== undefined) return layout.position(tideMiddle);

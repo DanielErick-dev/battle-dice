@@ -118,7 +118,7 @@ export const turnSteps: StepHandlers<
           ...withPlayer(view, event.playerId, (player) => ({ skipTurns: player.skipTurns + (event.turns ?? 1) })),
           effect: { kind: "skipTurn", ...tileOf(event), ...(event.by && { aimed: true }) },
         }),
-        durationMs: timings.noticeMs,
+        durationMs: Math.max(timings.noticeMs, timings.sitDownMs),
       },
     ];
   },
@@ -142,10 +142,15 @@ export const turnSteps: StepHandlers<
     ];
   },
   playerPushed: (event, timings) => {
-    return event.path.map((tile) => ({
-      apply: (view) => withPlayerAt(view, event.playerId, tile),
-      durationMs: timings.pushStepMs,
-    }));
+    // The camera goes over to whoever is knocked back, sees them take it and fly, then hands back to the turn.
+    return [
+      { apply: (view) => ({ ...view, movingPlayerId: event.playerId }), durationMs: timings.pushFocusMs },
+      ...event.path.map((tile) => ({
+        apply: (view: MatchView) => withPlayerAt(view, event.playerId, tile),
+        durationMs: timings.pushStepMs,
+      })),
+      { apply: (view) => ({ ...view, movingPlayerId: null }), durationMs: timings.pushFocusMs },
+    ];
   },
   playerWon: (event) => {
     return [{ apply: (view) => ({ ...view, winnerId: event.playerId }), durationMs: 0 }];

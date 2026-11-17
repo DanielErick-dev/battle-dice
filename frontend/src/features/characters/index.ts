@@ -95,10 +95,16 @@ export function rosterOf(characters: readonly CharacterId[]): RosterEntry[] {
   });
 }
 
-/** The character a local player plays: what follows the seat in their id (see rosterOf). */
-export function characterFor(playerId: PlayerId): CharacterDefinition | null {
+/** The id of the character a local player plays: what follows the seat in their id (see rosterOf). */
+export function characterIdFor(playerId: PlayerId): CharacterId | null {
   const id = playerId.slice(playerId.indexOf(":") + 1);
-  return isCharacterId(id) ? CHARACTERS[id] : null;
+  return isCharacterId(id) ? id : null;
+}
+
+/** The character a local player plays. */
+export function characterFor(playerId: PlayerId): CharacterDefinition | null {
+  const id = characterIdFor(playerId);
+  return id ? CHARACTERS[id] : null;
 }
 
 const FALLBACK_COLOR = "#38bdf8";

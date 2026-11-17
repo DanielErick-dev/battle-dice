@@ -21,9 +21,12 @@ export function engrave(ctx: CanvasRenderingContext2D, color: string, strength: 
   ctx.restore();
 }
 
-/** The tile's number, small, carved near the slab's left edge (the way runs left to right on the face). */
-export function paintNumber(ctx: CanvasRenderingContext2D, text: string, accent: string) {
-  const [cx, cy, radius] = [CENTER, 74, 40];
+/**
+ * The tile's number, small, near the slab's left edge (the way runs left to right on the face);
+ * on a modelled slab at the back of its walkway instead, where the kerbs and grass can't hide it.
+ */
+export function paintNumber(ctx: CanvasRenderingContext2D, text: string, accent: string, onWalkway = false) {
+  const [cx, cy, radius] = onWalkway ? [78, CENTER, 40] : [CENTER, 74, 40];
   ctx.save();
   ctx.fillStyle = "rgba(10,10,18,0.78)";
   ctx.beginPath();

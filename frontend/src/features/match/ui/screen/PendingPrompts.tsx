@@ -60,7 +60,9 @@ export function PendingPrompts({ store, view, controls, nameOf }: PendingPrompts
           title={view.pendingRaid.own ? "Condensador de Cemitério" : "Cemitério"}
           subtitle={`${nameOf(view.pendingRaid.owner)}: escolha ${raidPicks(view)} ${raidPicks(view) === 1 ? "carta" : "cartas"} ${view.pendingRaid.own ? "do seu cemitério" : "de qualquer cemitério"} para a mão.`}
           accent="emerald"
-          cards={raidPiles(view.players, view.pendingRaid).piles.flatMap((player) => [...player.discard].reverse())}
+          cards={raidPiles(view.players, view.pendingRaid)
+            .offered.map(({ card }) => card)
+            .reverse()}
           max={raidPicks(view)}
           required
           confirmLabel="Trazer de volta"

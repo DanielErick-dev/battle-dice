@@ -43,6 +43,7 @@ export function playCard(
     energy: current.energy - cardCost(card.cardId),
     hand: current.hand.filter((candidate) => !spent.has(candidate.uid)),
     discard: throwOnPile(current.discard, [card, ...sacrificed]),
+    graveyard: [...current.graveyard, card.uid],
   }));
   draft.events.push({ type: "cardPlayed", playerId, card, targetId, value });
   feedCondenser(draft, 1 + sacrificed.length);

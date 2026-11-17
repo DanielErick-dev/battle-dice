@@ -53,9 +53,11 @@ function answerPrompt(state: GameState, playerId: PlayerId): GameCommand | null 
   }
   if (pendingRaid?.owner === playerId) {
     // The rarest cards on offer.
-    const { piles, picks } = raidPiles(state.players, pendingRaid);
-    const offered = piles.flatMap((player) => player.discard);
-    const best = [...offered].sort((a, b) => rarityLevel(b.cardId) - rarityLevel(a.cardId)).slice(0, picks);
+    const { offered, picks } = raidPiles(state.players, pendingRaid);
+    const best = offered
+      .map(({ card }) => card)
+      .sort((a, b) => rarityLevel(b.cardId) - rarityLevel(a.cardId))
+      .slice(0, picks);
     return { type: "raidGraveyard", playerId, cardUids: best.map((card) => card.uid) };
   }
   return undefined;

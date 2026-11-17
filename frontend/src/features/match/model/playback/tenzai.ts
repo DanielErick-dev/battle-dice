@@ -229,6 +229,8 @@ export const tenzaiSteps: StepHandlers<
           breezes: view.elementals.breezes.filter((breeze) => breeze.owner !== event.playerId),
         },
         effect: { ...playerTileEffect(view, event.victimId, "breezeStolen"), count: event.value },
+        // Straight over to Tenzai: it's his move, not the roller's.
+        movingPlayerId: event.playerId,
       }),
       durationMs: timings.fireStrikeMs,
     },

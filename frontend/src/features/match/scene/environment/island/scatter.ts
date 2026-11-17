@@ -4,9 +4,11 @@ import type { Placed } from "../shared/Instances";
 import { hidesTiles, TRAIL_GROUND, type Blocker } from "../shared/trailPlan";
 import { groundAt, RIVER_HALF_WIDTH, riverDistance, trailDistance, TRAIL_EARTH, type IslandShape } from "./terrain";
 import { itemAt } from "@/features/shared/collections/items";
+import type { LampPool } from "../shared/lampGlow";
 
-/** A lantern by the trail every this many tiles. */
-const LANTERN_EVERY = 9;
+/** A lamp post by the trail every this many tiles, and a bench every this many. */
+const LANTERN_EVERY = 4;
+const BENCH_STEP = 9;
 
 /** Big pines, at most: each a heavy model, so the woods stay light. */
 const MAX_PINES = 90;
@@ -73,17 +75,55 @@ export function scatterProps(shape: IslandShape, trail: readonly Vec3[], blocker
   return { trees, groves, bushes, rocks, tufts };
 }
 
-/** Beside the trail every LANTERN_EVERY tiles, on alternate sides; none over the stream. */
-export function lanternSpots(trail: readonly Vec3[], shape: IslandShape): Vec3[] {
-  const spots: Vec3[] = [];
-  for (let index = 4; index < trail.length - 1; index += LANTERN_EVERY) {
+/** How far from the trail's middle a lamp post stands: on the road's edge, just past the slabs' kerbs. */
+const KERB_OFFSET = 1.75;
+/** How far its lamp hangs out over the road on the post's arm (see Furniture LAMP_AT). */
+export const LAMP_REACH = 0.29;
+/** A post keeps this far from every other stretch of the winding trail, so it never stands on the next row. */
+const POST_CLEARANCE = 2.3;
+
+/** A lamp post: where it stands, which way it turns (its arm out over the road), and where its light falls. */
+export interface LanternSpot {
+  at: Vec3;
+  turn: number;
+  pool: LampPool;
+}
+
+/**
+ * Lamp posts every LANTERN_EVERY tiles along the road's edge, like a lit road someone laid: on its far side
+ * from the camera where there's room, so they never stand between the camera and the slabs; none over the stream.
+ */
+export function lanternSpots(trail: readonly Vec3[], shape: IslandShape): LanternSpot[] {
+  const spots: LanternSpot[] = [];
+  for (let index = 2; index < trail.length - 1; index += LANTERN_EVERY) {
     const [x, , z] = itemAt(trail, index);
+    const [px, , pz] = itemAt(trail, index - 1);
     const [nx, , nz] = itemAt(trail, index + 1);
-    const [dx, dz] = [nx - x, nz - z];
+    const [dx, dz] = [nx - px, nz - pz];
     const length = Math.hypot(dx, dz) || 1;
-    const side = index % 2 === 0 ? 1 : -1;
-    const spot: Vec3 = [x - (dz / length) * 2 * side, TRAIL_GROUND, z + (dx / length) * 2 * side];
-    if (riverDistance(shape, spot[0], spot[2]) > RIVER_HALF_WIDTH + 1) spots.push(spot);
+    const [ox, oz] = [-dz / length, dx / length];
+    const sides = [1, -1]
+      .map((side) => ({ side, sx: x + ox * side * KERB_OFFSET, sz: z + oz * side * KERB_OFFSET }))
+      .sort((a, b) => a.sz - b.sz);
+    const free = sides.find(
+      ({ sx, sz }) =>
+        riverDistance(shape, sx, sz) > RIVER_HALF_WIDTH + 1 &&
+        trail.every(
+          ([tx, , tz], other) => Math.abs(other - index) <= 2 || Math.hypot(tx - sx, tz - sz) > POST_CLEARANCE,
+        ),
+    );
+    if (!free) continue;
+    // From the post towards the road's middle: the arm and its lamp reach that way.
+    const [tx, tz] = [-ox * free.side, -oz * free.side];
+    spots.push({
+      at: [free.sx, TRAIL_GROUND, free.sz],
+      turn: Math.atan2(tz, -tx),
+      pool: {
+        x: free.sx + tx * (LAMP_REACH + 0.35),
+        z: free.sz + tz * (LAMP_REACH + 0.35),
+        along: Math.atan2(dz, dx),
+      },
+    });
   }
   return spots;
 }
@@ -91,10 +131,10 @@ export function lanternSpots(trail: readonly Vec3[], shape: IslandShape): Vec3[]
 /** How far a bench keeps from every tile centre (tiles are 2 wide, plus room for a figure beside them). */
 const BENCH_CLEARANCE = 2.9;
 
-/** Benches set back from the trail, facing it: past the lantern on the same side, never on the road. */
+/** Benches set back from the trail, facing it, never on the road. */
 export function benchSpots(trail: readonly Vec3[], shape: IslandShape, every: number): { at: Vec3; turn: number }[] {
   const benches: { at: Vec3; turn: number }[] = [];
-  for (let index = 4 + LANTERN_EVERY; index < trail.length - 1; index += LANTERN_EVERY * every) {
+  for (let index = 4 + BENCH_STEP; index < trail.length - 1; index += BENCH_STEP * every) {
     const [x, , z] = itemAt(trail, index);
     const [nx, , nz] = itemAt(trail, index + 1);
     const [dx, dz] = [nx - x, nz - z];

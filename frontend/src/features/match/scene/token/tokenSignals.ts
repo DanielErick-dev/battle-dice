@@ -42,7 +42,8 @@ export function tokenSignals(view: MatchView, player: Player): TokenSignals {
     verdict: view.fx.verdict?.judgeId === id ? view.fx.verdict.id : null,
     outburst: outburstOf(view, id, own),
     weeded: own?.kind === "weeded" ? effectKey(own) : null,
-    overWall: view.elementals.walls.some((wall) => wall.tile === player.position),
+    // Only stepping onto a wall's tile mid-walk crosses it: a wall raised under someone, or a teleport onto it, doesn't.
+    overWall: view.walkEnd?.playerId === id && view.elementals.walls.some((wall) => wall.tile === player.position),
     meditating: player.tenzai.converged > 0,
     // Stung by a trap, they stagger back tile by tile (see carriedAwaySteps).
     limping: own?.kind === "trap",
@@ -52,7 +53,7 @@ export function tokenSignals(view: MatchView, player: Player): TokenSignals {
 /** Tenzai's gesture for each element he bends. */
 const BENDING_CLIPS = { earth: "quake", water: "tide", fire: "flare", wind: "gust" } as const;
 
-/** A one-off clip the figure acts out: Akane's fury, Tenzai bending, punching a wall, a trap's sting. */
+/** A one-off clip the figure acts out: Akane's fury, Tenzai bending, punching a wall. */
 function outburstOf(view: MatchView, id: string, own: TileEffectView | null): TokenSignals["outburst"] {
   const { blaze, bending } = view.fx;
   if (blaze?.playerId === id && blaze.act) return { id: blaze.id, clip: blaze.act };
@@ -62,7 +63,6 @@ function outburstOf(view: MatchView, id: string, own: TileEffectView | null): To
     if (clip) return { id: 1000 + bending.id, clip };
   }
   if (own?.kind === "wallHit") return { id: 2000 + effectKey(own), clip: "punch" };
-  if (own?.kind === "trap" || own?.kind === "hiddenTrap") return { id: 3000 + effectKey(own), clip: "ouch" };
   return null;
 }
 

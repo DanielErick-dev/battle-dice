@@ -1,5 +1,6 @@
 "use client";
 
+import { isBlackedOut } from "@/game/domain/characters/alva/systems";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { CardTable } from "@/game/domain/cards/blocker";
@@ -15,6 +16,7 @@ import { cardBlockReason, cardTargetsFor, exchangeElements } from "./cardBlockRe
 import { ELEMENT_NAME } from "../hud/effectCopy/tenzai";
 import { CardChoicePicker } from "./CardChoicePicker";
 import { CardView } from "./CardView";
+import { CorruptedCard, corruptedSlots } from "./CorruptedCard";
 import { CARD_TEXT, cardText } from "./cardText";
 import { EnergyMeter } from "./EnergyMeter";
 
@@ -99,6 +101,30 @@ export function CardHand({
     play(card);
   };
 
+  const handLocked = isBlackedOut(player) || player.silencedTurns > 0;
+  // Unidade Alva's Corrupted Cards show in the hand among the real ones, and count towards its overlap.
+  const slots = corruptedSlots(player.hand.length, player.corrupted);
+  const shown = player.hand.length + player.corrupted;
+  // A fuller hand overlaps more so a full hand (eight) still fits on screen.
+  const overlap =
+    shown > 6
+      ? "-mt-28 sm:-mt-[9.6rem]"
+      : shown > 4
+        ? "-mt-24 sm:-mt-[8.5rem]"
+        : shown > 3
+          ? "-mt-24 sm:-mt-32"
+          : "-mt-16 sm:-mt-20";
+  const corruptedAt = (after: number) =>
+    slots.flatMap((slot, index) =>
+      slot === after
+        ? [
+            <li key={`corrupted${index}`} className={cn("relative w-28 sm:w-36", (after >= 0 || index > 0) && overlap)}>
+              <CorruptedCard />
+            </li>,
+          ]
+        : [],
+    );
+
   return (
     <section ref={section} aria-label="Mão de cartas" className="flex flex-col items-end gap-2">
       <div className="flex items-center gap-2">
@@ -173,29 +199,21 @@ export function CardHand({
         )}
 
       <ul className="flex flex-col items-end">
+        {player.hand.length === 0 && corruptedAt(-1)}
         {player.hand.map((card, index) => {
           const reason = blockedReason(card);
           const isSelected = card.uid === selectedUid;
           const isFocused = card.uid === focusedUid;
           // Right under the card in focus: no overlap, so its whole text shows.
           const belowFocused = index > 0 && player.hand[index - 1]?.uid === focusedUid;
-          return (
+          return [
             <li
               key={card.uid}
               className={cn(
                 "relative transition-all duration-300",
                 isFocused ? "w-36 sm:w-48" : "w-28 sm:w-36",
                 belowFocused && "mt-2",
-                // A fuller hand overlaps more so a full hand (eight) still fits on screen.
-                index > 0 &&
-                  !belowFocused &&
-                  (player.hand.length > 6
-                    ? "-mt-28 sm:-mt-[9.6rem]"
-                    : player.hand.length > 4
-                      ? "-mt-24 sm:-mt-[8.5rem]"
-                      : player.hand.length > 3
-                        ? "-mt-24 sm:-mt-32"
-                        : "-mt-16 sm:-mt-20"),
+                index > 0 && !belowFocused && overlap,
                 isSelected ? "z-20 -translate-x-6" : isFocused ? "z-10 -translate-x-3" : "",
                 card.uid === lastDrawnUid && "animate-in slide-in-from-right-24 fade-in duration-500",
               )}
@@ -219,6 +237,8 @@ export function CardHand({
                     cardId={card.cardId}
                     fused={card.fused}
                     dimmed={reason !== null}
+                    // Blacked out or silenced, the whole hand is dead for now: greyed right down, not just toned.
+                    className={handLocked ? "brightness-[0.45] grayscale-[0.7]" : undefined}
                     selected={isSelected}
                     expanded={isFocused}
                   />
@@ -245,8 +265,9 @@ export function CardHand({
                   onClose={() => setSelectedUid(null)}
                 />
               )}
-            </li>
-          );
+            </li>,
+            ...corruptedAt(index),
+          ];
         })}
       </ul>
     </section>

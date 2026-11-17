@@ -13,7 +13,7 @@ interface SpotlightShot {
   elevation?: number;
 }
 
-/** Ability casts, Themis turning an attack away, Bjorn's shove, a lost turn thrown at someone and the Fall. */
+/** Ability casts, Themis turning an attack away, Bjorn's shove, a lost turn and the Fall. */
 export function spotlightOf(view: MatchView): SpotlightShot | null {
   const { effect } = view;
   const { trample, verdict } = view.fx;
@@ -24,8 +24,8 @@ export function spotlightOf(view: MatchView): SpotlightShot | null {
     return { key: `shove${trample.id}`, playerId: trample.by, distance: 0.7, seconds: 1.6 };
   if (effect?.kind === "abilityUsed")
     return { key: `cast${effectKey(effect)}`, playerId: effect.playerId, distance: 0.6, seconds: 2.6 };
-  // A lost turn thrown at them: seen from the front as they sit down to wait.
-  if (effect?.kind === "skipTurn" && effect.aimed)
+  // A lost turn (a tile, a card, Cronos halting time): seen from the front as they sit down to wait.
+  if (effect?.kind === "skipTurn" || (effect?.kind === "timeBent" && effect.time === "halt"))
     return { key: `benched${effectKey(effect)}`, playerId: effect.playerId, distance: 0.7, seconds: 2.6 };
   if (effect?.kind === "fallen")
     return { key: `fall${effectKey(effect)}`, playerId: effect.playerId, distance: 0.65, seconds: 2.4 };

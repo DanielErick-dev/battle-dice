@@ -7,7 +7,7 @@ import { drawCard, discardRandom } from "../../cards/hand";
 import { gainEnergy } from "../../core/energy";
 import { moveTo, playerIn, updatePlayer, type Draft } from "../../core/draft";
 import { isUntouchable } from "../../core/playerStatus";
-import { clipAtWalls } from "../tenzai/elements";
+import { walkThroughWalls } from "../tenzai/elements";
 import type { Blessing, Board, RealmKind, TileId, TrapCurse } from "../../board/types";
 import type { Player, PlayerId } from "../../core/state";
 import type { InvertedOutcome } from "./types";
@@ -211,14 +211,26 @@ function blessInstead(draft: Draft, playerId: PlayerId, tile: TileId, curse: Tra
   draft.events.push({ type: "tileInverted", playerId, tile, outcome: "energy", amount: gained });
 }
 
-/** Walks her `tiles` forward from where she stands (walls still stop her); the tile she reaches does nothing. */
+/**
+ * Walks her `tiles` forward from where she stands; the tile she reaches does nothing. A wall takes the blow as it
+ * would a roll's (it loses what's left of the walk, crumbling if that's more than its hp).
+ */
 function advance(draft: Draft, playerId: PlayerId, tile: TileId, tiles: number): void {
   const player = playerIn(draft, playerId);
-  const { path } = clipAtWalls(draft, playerId, walkPath(draft.state.board, player.position, tiles, player.realmEntry));
-  draft.events.push({ type: "tileInverted", playerId, tile, outcome: "advance", amount: path.length });
-  if (path.length === 0) return;
-  draft.events.push({ type: "playerMoved", playerId, path });
-  moveTo(draft, playerId, path.at(-1) ?? player.position);
+  const way = walkPath(draft.state.board, player.position, tiles, player.realmEntry);
+  const announceAt = draft.events.length;
+  const walked = walkThroughWalls(draft, playerId, way, (stretch) =>
+    draft.events.push({ type: "playerMoved", playerId, path: [...stretch] }),
+  );
+  // Announced ahead of the walk and any blow on a wall, with how far she really got.
+  draft.events.splice(announceAt, 0, {
+    type: "tileInverted",
+    playerId,
+    tile,
+    outcome: "advance",
+    amount: walked.length,
+  });
+  if (walked.length > 0) moveTo(draft, playerId, walked.at(-1) ?? player.position);
 }
 
 /** Into the first tile of `realm`, coming back out where they were taken from; false without that realm. */

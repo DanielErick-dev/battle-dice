@@ -34,9 +34,10 @@ describe("the camera's spotlight", () => {
     expect(spotlightOf(viewWith({ fx: { trample: { ...trample, susanoo: true } } as never }))).toBeNull();
   });
 
-  it("films whoever a card made lose a turn, but not a lost-turn tile", () => {
+  it("films whoever loses a turn, to a card or a tile, and whoever Cronos halts", () => {
     expect(spotlightOf(viewWith({ effect: { ...effect("skipTurn", "p1"), aimed: true } }))?.playerId).toBe("p1");
-    expect(spotlightOf(viewWith({ effect: effect("skipTurn", "p1") }))).toBeNull();
+    expect(spotlightOf(viewWith({ effect: effect("skipTurn", "p1") }))?.playerId).toBe("p1");
+    expect(spotlightOf(viewWith({ effect: { ...effect("timeBent", "p3"), time: "halt" } }))?.playerId).toBe("p3");
   });
 
   it("leaves the camera alone for moves that aren't a figure's own", () => {

@@ -13,7 +13,8 @@ import sharp from "sharp";
 const OUTPUT_DIR = path.resolve(fileURLToPath(import.meta.url), "../../../public/models/props");
 const TEXTURE_SIZE = 512;
 
-// Prop id → source file, vertex budget, texture size (default TEXTURE_SIZE) and `sloppy` (see sloppySimplify).
+// Prop id → source file, vertex budget, texture size (default TEXTURE_SIZE), `sloppy` (see sloppySimplify)
+// and `cropZ` (see cropBehind).
 const PROPS = {
   skull: { file: "necromancer/props/skull.glb", vertices: 6_000 },
   skeletalHand: { file: "necromancer/props/hand.glb", vertices: 4_000 },
@@ -116,10 +117,22 @@ const PROPS = {
   // More island furniture: a stone windmill, a bamboo boat by the shore, a hanging sign and campfires by the tents.
   islandWindmill: { file: "island/props/windmill.glb", vertices: 4_100, texture: 1024 },
   bambooBoat: { file: "island/props/boat.glb", vertices: 4_000, texture: 1024 },
+  // The countryside's boulders and bushes, many copies each.
+  islandRock: { file: "island/props/rock.glb", vertices: 4_000, texture: 1024, sloppy: true },
+  islandShrub: { file: "island/props/shrub.glb", vertices: 6_000, texture: 1024, sloppy: true },
+  // Variety among the bushes: two dark glowing flowers (many copies) and the river's sea dragon (moved in code).
+  shadowFlower: { file: "island/props/shadow-flower.glb", vertices: 3_000, texture: 512, sloppy: true },
+  nebulaBloom: { file: "island/props/nebula-bloom.glb", vertices: 3_000, texture: 512, sloppy: true },
+  seaDragon: { file: "island/props/sea-dragon.glb", vertices: 12_000, texture: 1024, sloppy: true },
   hangingSign: { file: "island/props/sign.glb", vertices: 6_000, texture: 1024, sloppy: true },
   campfire: { file: "island/props/campfire.glb", vertices: 9_000, texture: 1024, sloppy: true },
   // Card tiles: the lid is split off in code so it can open (see CardChest).
   cardChest: { file: "board/props/chest.glb", vertices: 9_000, texture: 1024, sloppy: true },
+  // The trail's slab, warped onto every tile of the road (about 200 of them), so kept light; only its front
+  // part (walkway, kerbs, grass): its back holds two bushes that would hide the figures.
+  pathSlab: { file: "board/props/path-slab.glb", vertices: 5_000, texture: 1024, sloppy: true, cropZ: 0.45 },
+  // A strip of thorny vines, laid side by side across a trap tile.
+  vineTrap: { file: "board/props/vine-trap.glb", vertices: 16_000, texture: 1024, sloppy: true },
   // Tenzai's fire and earth: his orbit charms, the flame in his hand and the stones of his wall.
   tenzaiFlame: { file: "zephyr/props/flame.glb", vertices: 3_000, texture: 512 },
   tenzaiBoulder: { file: "zephyr/props/boulder.glb", vertices: 2_500, texture: 512 },
@@ -144,7 +157,7 @@ await MeshoptSimplifier.ready;
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ "meshopt.encoder": MeshoptEncoder });
 await mkdir(OUTPUT_DIR, { recursive: true });
 
-for (const [id, { file, vertices, texture = TEXTURE_SIZE, sloppy = false }] of Object.entries(PROPS)) {
+for (const [id, { file, vertices, texture = TEXTURE_SIZE, sloppy = false, cropZ }] of Object.entries(PROPS)) {
   if (values.only && values.only !== id) continue;
   const document = await io.read(path.join(values.source, file));
   const root = document.getRoot();
@@ -152,6 +165,7 @@ for (const [id, { file, vertices, texture = TEXTURE_SIZE, sloppy = false }] of O
   for (const material of root.listMaterials()) {
     material.setNormalTexture(null).setMetallicRoughnessTexture(null).setMetallicFactor(0).setRoughnessFactor(0.8);
   }
+  if (cropZ !== undefined) await document.transform(cropBehind(cropZ));
   const count = root.listMeshes()[0].listPrimitives()[0].getAttribute("POSITION").getCount();
   await document.transform(
     dedup(),
@@ -159,6 +173,7 @@ for (const [id, { file, vertices, texture = TEXTURE_SIZE, sloppy = false }] of O
     sloppy
       ? sloppySimplify(Math.min(1, vertices / count))
       : simplify({ simplifier: MeshoptSimplifier, ratio: Math.min(1, vertices / count), error: 0.01 }),
+    repairNormals(),
     textureCompress({ encoder: sharp, targetFormat: "webp", resize: [texture, texture] }),
     prune(),
     meshopt({ encoder: MeshoptEncoder, level: "medium" }),
@@ -169,6 +184,52 @@ for (const [id, { file, vertices, texture = TEXTURE_SIZE, sloppy = false }] of O
   await io.write(output, document);
   const { size } = await stat(output);
   console.log(`${id}: ${(size / 1024).toFixed(0)} KB → ${path.relative(process.cwd(), output)}`);
+}
+
+/** Drops the triangles in the back `share` of the model's depth (lowest z), by their centres. */
+function cropBehind(share) {
+  return (document) => {
+    for (const mesh of document.getRoot().listMeshes()) {
+      for (const primitive of mesh.listPrimitives()) {
+        const positions = primitive.getAttribute("POSITION");
+        const indices = primitive.getIndices();
+        const [min, max] = [positions.getMin([]), positions.getMax([])];
+        const cut = min[2] + (max[2] - min[2]) * share;
+        const point = [0, 0, 0];
+        const kept = [];
+        const all = indices.getArray();
+        for (let index = 0; index < all.length; index += 3) {
+          let z = 0;
+          for (let corner = 0; corner < 3; corner++) z += positions.getElement(all[index + corner], point)[2] / 3;
+          if (z >= cut) kept.push(all[index], all[index + 1], all[index + 2]);
+        }
+        indices.setArray(new Uint32Array(kept));
+        compactPrimitive(primitive);
+      }
+    }
+  };
+}
+
+/**
+ * Zero-length normals (collapsed triangles) become NaN in the shader, and the bloom smears
+ * one NaN pixel over the whole screen: they point straight up instead.
+ */
+function repairNormals() {
+  return (document) => {
+    for (const mesh of document.getRoot().listMeshes()) {
+      for (const primitive of mesh.listPrimitives()) {
+        const normals = primitive.getAttribute("NORMAL");
+        if (!normals) continue;
+        const normal = [0, 0, 0];
+        for (let index = 0; index < normals.getCount(); index++) {
+          normals.getElement(index, normal);
+          const length = Math.hypot(...normal);
+          if (Number.isFinite(length) && length > 1e-6) continue;
+          normals.setElement(index, [0, 1, 0]);
+        }
+      }
+    }
+  };
 }
 
 /**

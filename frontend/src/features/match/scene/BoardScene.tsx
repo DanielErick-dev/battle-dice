@@ -8,7 +8,7 @@ import { getTile } from "@/game/domain/board/board";
 import { withRifts } from "@/game/domain/characters/zarek/rifts";
 import { frozenTiles } from "@/game/domain/characters/fairy/winter";
 import type { Board, PlayerId } from "@/game/domain/types";
-import { characterFor, playerColor } from "@/features/characters";
+import { characterFor, characterIdFor, playerColor } from "@/features/characters";
 import type { EffectsQuality } from "@/features/shared/config";
 import type { MatchView } from "../model/matchView";
 import { createBoardLayout, withRiftPositions } from "@/features/shared/board/boardLayout";
@@ -30,6 +30,9 @@ import { directionBetween, openTrackPortals, reachableTiles } from "./board/boar
 import { TileLinks } from "./board/TileLinks";
 import { TileMesh } from "./board/tile/TileMesh";
 import { pathColor } from "./board/tile/theme/pathColor";
+import { themeFor } from "./board/tile/theme/tileTheme";
+import { showsRune, TileNumbers } from "./board/tile/TileNumber";
+import { SQUARE_SLAB } from "@/features/shared/board/slab";
 import { SceneLights } from "./SceneLights";
 import { fireStatus, judgedBy, tileSeat } from "./token/tokenCues";
 import { pathDirection, tokenTarget } from "./token/tokenPlacement";
@@ -88,6 +91,20 @@ export default function BoardScene({
   const board = useMemo(() => withRifts(plainBoard, view.rifts), [plainBoard, view.rifts]);
   const layout = useMemo(() => withRiftPositions(roadLayout, board), [roadLayout, board]);
   const playerIds = view.players.map((player) => player.id).join(",");
+  // Shortcut portals (no realm) come out on these tiles.
+  const warpExits = useMemo(
+    () => new Set(board.tiles.flatMap(({ effect }) => (effect.kind === "portal" && !effect.realm ? [effect.to] : []))),
+    [board],
+  );
+  // Who plays, as a stable list: the island's landmarks follow it.
+  const characters = useMemo(
+    () =>
+      playerIds
+        .split(",")
+        .map(characterIdFor)
+        .filter((id) => id !== null),
+    [playerIds],
+  );
   const wandTips = useMemo(() => new Map(playerIds.split(",").map((id) => [id, new Vector3()])), [playerIds]);
   // Only where someone has stopped: a tile walked over on the way (spikes, a chest) stays as it was.
   const passing = (player: (typeof view.players)[number]) =>
@@ -109,6 +126,26 @@ export default function BoardScene({
   const scale = boardScaleFor(layout);
   const shadowExtent = Math.max(layout.width, layout.depth) / 2 + 3;
   const textureSize = board.finishTile > HIGH_RES_TILE_LIMIT ? 256 : 512;
+  // The island's tiles show their numbers on plaques by the road, all drawn at once (see TileNumbers).
+  const destroyedKey = view.destroyedTraps.join(",");
+  const numberPlaques = useMemo(
+    () =>
+      mainTiles.map((tile) => {
+        const accent = tile.rift ? RIFT_ACCENT : pathColor((tile.id - 1) / (board.finishTile - 1));
+        const theme = themeFor(tile, {
+          inTrapZone: trapZoneTiles.has(tile.id),
+          destroyed: destroyedKey.split(",").includes(String(tile.id)),
+        });
+        return {
+          text: theme.badge ?? String(tile.id),
+          rune: showsRune(tile, theme) ? theme : undefined,
+          accent: theme.kind === "regular" ? accent : theme.glow,
+          position: layout.position(tile.id),
+          outline: layout.slab(tile.id)?.outline ?? SQUARE_SLAB,
+        };
+      }),
+    [mainTiles, board.finishTile, trapZoneTiles, destroyedKey, layout],
+  );
   const highlighted = new Set(view.effect ? [view.effect.from, view.effect.to] : []);
   const reachable = reachableTiles(view, board);
   const lastTile = board.finishTile;
@@ -156,7 +193,7 @@ export default function BoardScene({
         <RealmAtmosphere realm={focusRealm}>
           <SceneLights scale={scale} shadowExtent={shadowExtent} />
 
-          <ArenaEnvironment layout={roadLayout} scale={scale} mapId={mapId} />
+          <ArenaEnvironment layout={roadLayout} scale={scale} mapId={mapId} characters={characters} />
           {/* Pools of particles in world space, fed by emitters on the tokens. */}
           <HealingParticles />
           {mainTiles.map((tile) => (
@@ -176,8 +213,11 @@ export default function BoardScene({
               occupied={occupiedTiles.has(tile.id)}
               onPick={picking?.tiles.has(tile.id) ? picking.onPick : undefined}
               pickCursor={picking?.cursor}
+              mossy={mapId === "island"}
+              warpExit={warpExits.has(tile.id)}
             />
           ))}
+          {mapId === "island" && <TileNumbers plaques={numberPlaques} />}
           {picking?.picked.map(({ tile, tag, color }) => (
             <PickedTileMark key={`picked${tile}`} position={layout.position(tile)} tag={tag} color={color} />
           ))}

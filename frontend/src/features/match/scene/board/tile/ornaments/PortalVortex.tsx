@@ -3,7 +3,7 @@
 import { Sparkles } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
-import { AdditiveBlending, Color, type ShaderMaterial } from "three";
+import { AdditiveBlending, Color, type Group, type ShaderMaterial } from "three";
 import { TILE_HEIGHT, TILE_SIZE } from "@/features/shared/board/boardLayout";
 import { uniform } from "@/features/shared/three/uniform";
 
@@ -59,9 +59,15 @@ interface PortalVortexProps {
   phase: number;
 }
 
+/** Floats this high over the slab, bobbing gently by BOB at BOB_SPEED (radians a second). */
+const HOVER = 0.55;
+const BOB = 0.06;
+const BOB_SPEED = 1.6;
+
 /** Colours above 1.0 on purpose so the bloom makes it glow; `active` (someone travelling through) spins it up. */
 export function PortalVortex({ color, active, phase }: PortalVortexProps) {
   const material = useRef<ShaderMaterial>(null);
+  const hover = useRef<Group>(null);
   const uniforms = useMemo(
     () => ({
       uTime: { value: phase },
@@ -77,25 +83,29 @@ export function PortalVortex({ color, active, phase }: PortalVortexProps) {
     uniform(current, "uTime").value += delta;
     const energy = uniform(current, "uEnergy");
     energy.value += ((active ? 1 : 0) - energy.value) * Math.min(1, delta * ENERGY_RATE);
+    const time = uniform(current, "uTime").value;
+    if (hover.current) hover.current.position.y = HOVER + Math.sin(time * BOB_SPEED) * BOB;
   });
 
   return (
     <group position={[0, TILE_HEIGHT / 2 + 0.02, -0.17]}>
-      <mesh rotation-x={-Math.PI / 2}>
-        <circleGeometry args={[RADIUS, 64]} />
-        <shaderMaterial
-          ref={material}
-          vertexShader={VERTEX}
-          fragmentShader={FRAGMENT}
-          uniforms={uniforms}
-          transparent
-          depthWrite={false}
-        />
-      </mesh>
-      <mesh rotation-x={-Math.PI / 2} position-y={-0.005}>
-        <circleGeometry args={[RADIUS * 1.35, 48]} />
-        <meshBasicMaterial color={color} transparent opacity={0.18} depthWrite={false} blending={AdditiveBlending} />
-      </mesh>
+      <group ref={hover}>
+        <mesh rotation-x={-Math.PI / 2}>
+          <circleGeometry args={[RADIUS, 64]} />
+          <shaderMaterial
+            ref={material}
+            vertexShader={VERTEX}
+            fragmentShader={FRAGMENT}
+            uniforms={uniforms}
+            transparent
+            depthWrite={false}
+          />
+        </mesh>
+        <mesh rotation-x={-Math.PI / 2} position-y={-0.005}>
+          <circleGeometry args={[RADIUS * 1.35, 48]} />
+          <meshBasicMaterial color={color} transparent opacity={0.18} depthWrite={false} blending={AdditiveBlending} />
+        </mesh>
+      </group>
       <Sparkles count={22} scale={[1.1, 1.3, 1.1]} position-y={0.55} size={3} speed={0.8} color={color} />
     </group>
   );

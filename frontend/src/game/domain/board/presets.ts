@@ -47,6 +47,8 @@ export const POWER_TOURNAMENT_BOARD: BoardDefinition = generateBoard({
   portalsFrom: 25,
   // Decks run thin late in the race: more card tiles from the middle on.
   lateCards: { count: 8, from: 0.4 },
+  // Shortcut portals (about 20 tiles on), once the race has spread out.
+  warps: { count: 4, from: 30 },
 });
 
 function cards(tiles: readonly TileId[]): Record<TileId, TileEffect> {

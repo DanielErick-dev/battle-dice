@@ -1,5 +1,6 @@
 "use client";
 
+import { BoardSpells } from "./hud/BoardSpells";
 import { playerColor } from "@/features/characters";
 import { EndGamePanel } from "./hud/EndGamePanel";
 import dynamic from "next/dynamic";
@@ -278,6 +279,8 @@ export function MatchTable({
             <BattleLog log={view.log} players={view.players} />
           </div>
         </header>
+
+        <BoardSpells players={view.players} activePlayerId={view.activePlayerId} inversion={view.inversion} />
 
         <div className="absolute inset-x-0 top-24 flex justify-center px-4 sm:top-6">
           <ErrorToast error={view.error} />

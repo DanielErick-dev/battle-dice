@@ -48,6 +48,10 @@ export interface PlaybackTimings {
   snowHopMs: number;
   /** Time bent on an opponent: the camera goes over to them and stays (halted, they sit down on their chair). */
   timeBentMs: number;
+  /** Held on someone knocked back, before they fly and once they've landed. */
+  pushFocusMs: number;
+  /** Held on a player who just lost turns, long enough to watch them sit down. */
+  sitDownMs: number;
   /** A trample on someone seated on their chair: they get up before Bjorn shoves. */
   trampleRiseMs: number;
   /** A trample: Bjorn steps ahead of the one he ran into, turns on them and shoves, up to the blow. */
@@ -109,6 +113,8 @@ export const DEFAULT_TIMINGS: PlaybackTimings = {
   tideMs: 2300,
   untamedCastMs: 2200,
   timeBentMs: 2800,
+  pushFocusMs: 450,
+  sitDownMs: 2200,
   snowHopMs: 2100,
   trampleRiseMs: 1200,
   trampleShoveMs: 750,

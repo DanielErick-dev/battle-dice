@@ -8,7 +8,7 @@ export const WATER_LEVEL = -1.05;
 /** Where the trodden earth gives way to grass, from the trail's centre line. */
 export const TRAIL_EARTH = 1.6;
 /** Room past the trail's sides and front, and (wider) at the back for the mountains. */
-const MARGIN = { side: 8, front: 6, back: 11 };
+const MARGIN = { side: 10, front: 8, back: 11 };
 
 /** The island round a trail: its extent, and the trail's segments to measure distances from. */
 export interface IslandShape {
@@ -22,8 +22,8 @@ export interface IslandShape {
   river: { x: number; bend: number };
 }
 
-/** Half the stream's width, and how far below the sea's surface its bed lies. */
-export const RIVER_HALF_WIDTH = 1.5;
+/** Half the stream's width (wide enough that the trail needs a real bridge), and how deep below the sea its bed lies. */
+export const RIVER_HALF_WIDTH = 2.6;
 const RIVER_BED = 0.5;
 
 /** The stream's centre line at depth `z`. */
@@ -77,12 +77,15 @@ export function trailNearest(shape: IslandShape, x: number, z: number): { distan
 export const CASTLE_FROM = 0.7;
 export const VILLAGE_UNTIL = 0.36;
 
+/** Over the land mask (see landMask): where the beach meets the sea, and where it gives way to grass. */
+const BEACH = { from: 0.3, to: 0.99 };
+
 /** 0 out at sea, 1 well inland: a rounded rectangle with a ragged shore. */
 function landMask(shape: IslandShape, x: number, z: number): number {
   const u = Math.abs(x / shape.halfWidth);
   const v = Math.abs((z - shape.centerZ) / shape.halfDepth);
   const reach = (u ** 4 + v ** 4) ** 0.25 + (noise(x * 0.18, z * 0.18) - 0.5) * 0.12;
-  return 1 - smoothstep(0.82, 1.02, reach);
+  return 1 - smoothstep(0.74, 1.02, reach);
 }
 
 /** The ground's height and what it's covered in at a point. */
@@ -99,13 +102,22 @@ export function groundAt(shape: IslandShape, x: number, z: number): { height: nu
   // The stream cuts through everything, the trail too: it crosses on bridges.
   const banks = smoothstep(RIVER_HALF_WIDTH * 0.6, RIVER_HALF_WIDTH + 0.9, riverDistance(shape, x, z));
   const inland = WATER_LEVEL - RIVER_BED + (ground - WATER_LEVEL + RIVER_BED) * banks;
-  const height = WATER_LEVEL - 0.9 + (inland - WATER_LEVEL + 0.9) * smoothstep(0, 0.7, land);
+  // A sandy beach rims the island, settling just over the water; never under the trail, nor below the mountains.
+  const beach =
+    (1 - smoothstep(BEACH.from, BEACH.to, land)) *
+    smoothstep(TRAIL_EARTH + 1, TRAIL_EARTH + 2.5, distance) *
+    (1 - behind);
+  const beachTop = WATER_LEVEL + 0.2 + (noise(x * 0.3, z * 0.3) - 0.5) * 0.14;
+  const shore = inland + (Math.min(inland, beachTop) - inland) * beach;
+  // The trail's ground never slides into the sea, however near the shore it runs.
+  const solid = Math.max(land, 1 - smoothstep(TRAIL_EARTH + 1, TRAIL_EARTH + 3, distance));
+  const height = WATER_LEVEL - 0.9 + (shore - WATER_LEVEL + 0.9) * smoothstep(0, BEACH.from, solid);
   const cover: Cover =
     height > 4.2
       ? "snow"
       : peaks > 1.4
         ? "rock"
-        : height < WATER_LEVEL + 0.45
+        : height < WATER_LEVEL + 0.45 || beach > 0.6
           ? "sand"
           : banks < 0.98
             ? "bank"

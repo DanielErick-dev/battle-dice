@@ -107,7 +107,7 @@ export const cardsSteps: StepHandlers<
     return [
       {
         apply: (view) => ({
-          ...withPlayer(view, event.playerId, (player) => ({ deck: player.discard, discard: [] })),
+          ...withPlayer(view, event.playerId, (player) => ({ deck: player.discard, discard: [], graveyard: [] })),
         }),
         durationMs: timings.drawMs,
       },
@@ -151,6 +151,7 @@ export const cardsSteps: StepHandlers<
             withPlayer(view, event.playerId, (player) => ({
               hand: player.hand.filter((card) => card.uid !== event.card.uid),
               discard: throwOnPile(player.discard, [event.card]),
+              graveyard: [...player.graveyard, event.card.uid],
               energy: player.energy - cardCost(event.card.cardId),
             })),
             { cast: { id: nextFxId(view.fx.cast), ...event } },

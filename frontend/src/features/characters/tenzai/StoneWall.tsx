@@ -27,6 +27,9 @@ const PER_ROW = 3;
 /** Always as tall as a figure, so it reads as a real barrier next to whoever it blocks. */
 const WALL_HEIGHT = FIGURE_HEIGHT;
 
+/** Across the start of its tile (the side walkers come from), so it stands between them and the tile. */
+const AT_TILE_START = -TILE_SIZE * 0.4;
+
 /** A wall of stacked boulders (Meshy) across the path; stones fall off from the top as its hp drops. */
 export function StoneWall({
   position,
@@ -87,21 +90,23 @@ export function StoneWall({
 
   return (
     <group position={position} rotation-y={heading}>
-      <group ref={root}>
-        {stones.map((stone, index) => (
-          <mesh
-            key={stone.key}
-            ref={(mesh) => {
-              parts.current[index] = mesh;
-            }}
-            geometry={boulder.geometry}
-            material={boulder.material}
-            position={stone.position}
-            rotation-y={stone.turn}
-            scale={stone.scale}
-            castShadow
-          />
-        ))}
+      <group position-z={AT_TILE_START}>
+        <group ref={root}>
+          {stones.map((stone, index) => (
+            <mesh
+              key={stone.key}
+              ref={(mesh) => {
+                parts.current[index] = mesh;
+              }}
+              geometry={boulder.geometry}
+              material={boulder.material}
+              position={stone.position}
+              rotation-y={stone.turn}
+              scale={stone.scale}
+              castShadow
+            />
+          ))}
+        </group>
       </group>
       <Html center position-y={WALL_HEIGHT + 0.35} zIndexRange={[15, 0]} style={{ pointerEvents: "none" }}>
         <div className="rounded-md bg-black/75 px-1.5 py-0.5 font-mono text-[10px] font-black whitespace-nowrap text-amber-300 ring-1 ring-amber-500/40">

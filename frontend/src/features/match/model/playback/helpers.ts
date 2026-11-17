@@ -54,6 +54,8 @@ export function carried(playerId: PlayerId, path: readonly TileId[], timings: Pl
     apply: (view) => ({
       ...withPlayerAt(view, playerId, tile),
       walkEnd: end === undefined ? null : { playerId, tile: end },
+      // Carried on someone else's turn (a stolen breeze, a bond's pull): the camera rides with them.
+      movingPlayerId: playerId,
     }),
     durationMs: timings.stepMs,
   }));

@@ -57,6 +57,9 @@ const POUR_MS = 1000;
 const POUR_DROP_MS = 550;
 const TIP_RATE = 7;
 
+/** Share of a meditating figure's intro after which it starts to levitate. */
+const MEDITATE_RISE_AT = 0.7;
+
 /** The figure's intro once (when it has one), then its showcase loop; a levitating one rises off the pedestal. */
 export function Presentation({
   characterId,
@@ -140,7 +143,6 @@ export function Presentation({
       const introMs = (lengths.intro ?? 0) * 1000;
       const floats = showcase === "float";
       inIntro.current = introMs > 0;
-      if (character.meditates) hovering.current = true;
       propOut.current = introMs > 0;
       timers.current = [
         window.setTimeout(() => {
@@ -157,6 +159,9 @@ export function Presentation({
           introMs > 0 ? introMs : floats ? RISE_DELAY_MS : 0,
         ),
       ];
+      // Tenzai's intro ends crouched: he starts rising into his floating lotus before it's over, on his own.
+      if (introMs > 0 && character.meditates)
+        timers.current.push(window.setTimeout(() => (hovering.current = true), introMs * MEDITATE_RISE_AT));
       if (introMs > 0 && frost) timers.current.push(window.setTimeout(sounds.groundBreak, frost.impactSeconds * 1000));
       swordAway.current = false;
       if (introMs > 0 && introVoice)

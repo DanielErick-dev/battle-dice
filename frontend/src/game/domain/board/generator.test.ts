@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { generateBoard, type BoardRecipe } from "./generator";
+import { generateBoard, WARP_REACH, type BoardRecipe } from "./generator";
 
 const RECIPE: BoardRecipe = {
   size: 200,
@@ -27,6 +27,22 @@ describe("generateBoard", () => {
       expect(tile).toBeGreaterThanOrEqual(80);
     }
     for (const [tile, effect] of Object.entries(plain)) expect(late[Number(tile)]).toEqual(effect);
+  });
+
+  it("adds shortcut portals about 20 tiles long, opening no realm, without moving anything else", () => {
+    const plain = generateBoard(RECIPE).effects;
+    const warped = generateBoard({ ...RECIPE, warps: { count: 4, from: 30 } }).effects;
+    const added = Object.entries(warped).filter(([tile]) => !(Number(tile) in plain));
+    expect(added).toHaveLength(4);
+    for (const [tile, effect] of added) {
+      expect(effect.kind).toBe("portal");
+      if (effect.kind !== "portal") continue;
+      expect(effect.realm).toBeUndefined();
+      expect(effect.to - Number(tile)).toBeGreaterThanOrEqual(WARP_REACH[0]);
+      expect(effect.to - Number(tile)).toBeLessThanOrEqual(WARP_REACH[1]);
+      expect(warped[effect.to]).toBeUndefined();
+    }
+    for (const [tile, effect] of Object.entries(plain)) expect(warped[Number(tile)]).toEqual(effect);
   });
 
   it("builds the same board from the same seed", () => {

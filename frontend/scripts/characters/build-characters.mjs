@@ -34,6 +34,8 @@ const IN_PLACE_CLIPS = [
   "scoff",
   "strike",
   "fume",
+  // The token's own walk carries the figure over the wall: the export's run-up would fly it ahead, then snap back.
+  "vault",
 ];
 /** Share of travel an in-place clip keeps: a dash lunges forward a little yet stays on its tile. */
 const KEPT_TRAVEL = { dash: 0.4 };
@@ -76,10 +78,14 @@ async function buildCharacter(model, output) {
   const root = document.getRoot();
   // Meshy adds a one-frame ".001" rest pose next to each clip; the clips are copied in below.
   root.listAnimations().forEach((animation) => animation.dispose());
-  // A new `body` may lack a bone the old clips move (a fingertip): those channels are dropped, not fatal.
+  // A body may lack a bone another body's clips move (a fingertip): those channels are dropped, not fatal.
   const bones = new Set(root.listNodes().map((node) => node.getName()));
   const add = (name, channels) =>
-    addAnimation(document, name, model.body ? channels.filter((channel) => bones.has(channel.bone)) : channels);
+    addAnimation(
+      document,
+      name,
+      channels.filter((channel) => bones.has(channel.bone)),
+    );
 
   for (const name of REQUIRED_CLIPS) {
     if (sequences[name]) add(name, await sequenceChannels(model, name));

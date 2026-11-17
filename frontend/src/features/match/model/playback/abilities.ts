@@ -112,7 +112,7 @@ export const abilitiesSteps: StepHandlers<
           ),
           effect: { ...playerTileEffect(view, event.targetId, "timeBent"), time: event.power, count: event.rounds },
         }),
-        durationMs: timings.timeBentMs,
+        durationMs: event.power === "halt" ? Math.max(timings.timeBentMs, timings.sitDownMs) : timings.timeBentMs,
       },
       // Then the camera goes back to Cronos.
       { apply: (view) => ({ ...view, effect: null }), durationMs: 0 },

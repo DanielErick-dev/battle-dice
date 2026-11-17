@@ -1,6 +1,6 @@
 import { ELEMENT_NAME } from "@/features/match/ui/hud/effectCopy/tenzai";
 import type { Player } from "@/game/domain/types";
-import { CONDENSER_CARDS } from "@/game/domain/characters/alchemist/condenser";
+import { condenserLabel } from "@/features/match/ui/hud/effectCopy/alchemist";
 import { isAlchemist } from "@/game/domain/characters/alchemist/inversion";
 import { inBrownout, isAlva, isBlackedOut, OVERLOAD_ROUNDS } from "@/game/domain/characters/alva/systems";
 
@@ -46,7 +46,7 @@ export function statusChips(player: Player): StatusChip[] {
   if (player.tenzai.combustion) chips.push({ label: "Dado de combustão", tone: "good" });
   if (isAlchemist(player))
     chips.push({
-      label: `Condensador ${Math.min(player.alchemist.condensed, CONDENSER_CARDS)}/${CONDENSER_CARDS}`,
+      label: condenserLabel(player.alchemist),
       tone: "info",
     });
   if (isAlva(player)) chips.push({ label: `Sobrecarga ${player.alva.overload}/${OVERLOAD_ROUNDS}`, tone: "info" });

@@ -5,6 +5,7 @@ import { BufferGeometry, DoubleSide, Float32BufferAttribute } from "three";
 import { useDisposable } from "@/features/characters/shared/disposal";
 import { useCanvasTexture, type Painter } from "@/features/shared/three/canvasTexture";
 import type { Vec3 } from "@/features/shared/board/boardLayout";
+import { withLampGlow } from "./lampGlow";
 import { roadRibbon } from "./roadRibbon";
 
 /** The road the slabs are set in, following the ground and painted by the map. */
@@ -36,6 +37,7 @@ export function TrailRoad({
   return (
     <mesh geometry={geometry} receiveShadow renderOrder={1}>
       <meshStandardMaterial
+        ref={(material) => void (material && withLampGlow(material))}
         map={texture}
         transparent
         depthWrite={false}
