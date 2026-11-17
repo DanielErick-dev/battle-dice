@@ -39,6 +39,14 @@ Hoje há só 4 bênçãos fixas e 3 relíquias, sem decisões. Candidatas:
 
 - **Mapa vivo e dragão com coluna procedural (Daniel, 2026-11-16):** a lista completa, item por item, está em `docs/mapa-vivo.md`.
 
+- **Modo luta com os personagens do Battle Dice (Daniel, 2026-11-16):** jogo de luta 2.5D nosso (no estilo dos jogos de luta de navegador que o Daniel jogava, mas com personagens, arte e cenários próprios). Os modelos 3D vistos de lado, e os golpes vêm das animações prontas do Meshy. Depois do MVP e das cartas armadilha; pode ser projeto à parte ou um modo dentro do Battle Dice (ex.: duelo quando dois caem na mesma casa).
+  - **Fase 1, local:** dois jogadores no mesmo teclado ou controle, mais um bot de treino. De 4 a 6 personagens (os com mais animações), 2 ou 3 cenários dos habitats.
+  - **Controles (por jogador):** `K` pula (duas vezes = pulo duplo), `L` arranca correndo, `J` soco (repetido = combo), `U`/`I`/`O` especiais, `P` transformação. Variações por comando: `↓ + U`, `→ → + U` (correndo + especial) etc. dão versões diferentes do especial.
+  - **Especiais tirados das habilidades do tabuleiro:** a muralha do Tenzai bloqueia projéteis, a chuva de flechas da Arqueira cobre uma área, o Vazio do Zarek puxa o adversário. A transformação vira a forma máxima (Convergência do Tenzai, Ápice do Vazio do Zarek, Seraphiel caído).
+  - **Barras:** vida, e energia que enche batendo e apanhando. O especial final e a transformação gastam energia.
+  - **Sensação:** caixas de acerto por quadro, micropausa no impacto, empurrão no golpe e tremida de câmera. Ajustar jogando muito.
+  - **Fase 2, online:** exige rollback (netcode de jogo de luta), bem mais difícil que o online por turnos. Aproveitar o backend FastAPI.
+
 ## Problemas para resolver
 - **Casa pequena com 3 ou 4 personagens:** quando vários param na mesma casa de "perde a vez", todos sentam no próprio trono e os tronos não cabem na laje (um atravessa o outro). Na largada já foi resolvido com uma praça maior; nas outras casas ainda falta decidir. Ideias: tronos menores quando a casa está cheia, só o primeiro senta no trono e os outros no chão, ou os personagens saem para a beira da estrada ao lado da casa.
 
