@@ -6,7 +6,10 @@ import { engrave, paintNumber } from "./carving";
 import { runePath } from "./rune";
 import { paintEmberCracks, paintShattered, paintStone } from "./stone";
 
-/** Paints a road slab's face (see TileMesh), laid along the way, into a texture so it lives in the 3D scene. */
+/**
+ * Paints a road slab's face (see TileMesh), laid along the way, into a texture so it lives in the 3D scene; none at
+ * resolution 0 (a modelled walkway shows no face: ~200 unused textures otherwise).
+ */
 export function useTileFaceTexture({
   tileId,
   theme,
@@ -16,8 +19,9 @@ export function useTileFaceTexture({
   bare,
   runeless,
   numberless,
-}: TileFace): CanvasTexture {
+}: TileFace): CanvasTexture | null {
   const texture = useMemo(() => {
+    if (resolution === 0) return null;
     const canvas = document.createElement("canvas");
     canvas.width = resolution;
     canvas.height = resolution;
@@ -33,7 +37,7 @@ export function useTileFaceTexture({
     return result;
   }, [tileId, theme, accent, arrowAngle, resolution, bare, runeless, numberless]);
 
-  useEffect(() => () => texture.dispose(), [texture]);
+  useEffect(() => () => texture?.dispose(), [texture]);
   return texture;
 }
 

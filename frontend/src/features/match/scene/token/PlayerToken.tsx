@@ -13,6 +13,7 @@ import { levitationLift, stepLevitation } from "@/features/characters/witch/levi
 import { NameTag } from "@/features/characters/shared/NameTag";
 import { RestChair } from "@/features/characters/accessories/RestChair";
 import { TOKEN_EFFECTS } from "../effects";
+import { WarmGroup } from "../WarmGroup";
 import type { TokenEffect, TokenFx, TokenSignals } from "../effects/types";
 import { advanceMotion, createTokenMotion, easeInOut, followTarget, turnTowards } from "./motion";
 import { stepPose } from "./pose";
@@ -240,11 +241,15 @@ export function PlayerToken({
 
 /** Each effect waits for its own models apart: one still loading never blanks the figure or the scene. */
 function TokenEffects({ effects, token }: { effects: readonly TokenEffect[]; token: TokenFx }) {
-  return effects.map((Effect, index) => (
-    <Suspense key={index} fallback={null}>
-      <Effect token={token} />
-    </Suspense>
-  ));
+  return (
+    <WarmGroup>
+      {effects.map((Effect, index) => (
+        <Suspense key={index} fallback={null}>
+          <Effect token={token} />
+        </Suspense>
+      ))}
+    </WarmGroup>
+  );
 }
 
 /** Stand-in figure while a model loads, or for a player without one. */

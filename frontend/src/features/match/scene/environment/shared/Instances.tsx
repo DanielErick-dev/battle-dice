@@ -1,6 +1,7 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useMemo, useRef } from "react";
+import { chunked } from "./chunks";
 import { Color, Object3D, type BufferGeometry, type InstancedMesh, type Material } from "three";
 
 /** One copy of something set down on the map: where, how big, which way turned (and leaning). */
@@ -15,8 +16,25 @@ export interface Placed {
   color?: string;
 }
 
-/** One instanced mesh holding every placement; `shape` sets each instance's own transform on top. */
-export function Instances({
+/** Every placement, one instanced mesh per square of the map (see chunked); `shape` sets each instance's own transform. */
+export function Instances(props: {
+  geometry: BufferGeometry;
+  material: Material;
+  items: readonly Placed[];
+  shape?: (place: Object3D, item: Placed) => void;
+  shadows?: boolean;
+}) {
+  const groups = useMemo(() => chunked(props.items), [props.items]);
+  return (
+    <>
+      {groups.map((items, index) => (
+        <InstanceChunk key={index} {...props} items={items} />
+      ))}
+    </>
+  );
+}
+
+function InstanceChunk({
   geometry,
   material,
   items,

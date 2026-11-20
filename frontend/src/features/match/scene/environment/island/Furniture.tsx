@@ -3,7 +3,17 @@
 import { Sparkles } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
-import { Color, type Group, type InstancedMesh, MeshStandardMaterial, Object3D, SphereGeometry } from "three";
+import {
+  type BufferGeometry,
+  Color,
+  type Group,
+  type InstancedMesh,
+  type Material,
+  MeshStandardMaterial,
+  Object3D,
+  SphereGeometry,
+} from "three";
+import { chunked } from "../shared/chunks";
 import { useFittedProp, type PropId } from "@/features/characters/core/props";
 import type { Vec3 } from "@/features/shared/board/boardLayout";
 
@@ -145,6 +155,26 @@ export function ScatterProps({ prop, items }: { prop: PropId; items: readonly Sc
     return glow;
   }, [prop, model.material]);
   useEffect(() => () => void (material !== model.material && material.dispose()), [material, model.material]);
+  const groups = useMemo(() => chunked(items), [items]);
+  return (
+    <>
+      {groups.map((group, index) => (
+        <ScatterChunk key={index} geometry={model.geometry} material={material} items={group} />
+      ))}
+    </>
+  );
+}
+
+/** One square of the map's copies of a scattered prop (see chunked), culled on its own. */
+function ScatterChunk({
+  geometry,
+  material,
+  items,
+}: {
+  geometry: BufferGeometry;
+  material: Material;
+  items: readonly ScatterItem[];
+}) {
   const mesh = useRef<InstancedMesh>(null);
   useLayoutEffect(() => {
     const current = mesh.current;
@@ -163,13 +193,7 @@ export function ScatterProps({ prop, items }: { prop: PropId; items: readonly Sc
     current.computeBoundingSphere();
   }, [items]);
   return (
-    <instancedMesh
-      key={items.length}
-      ref={mesh}
-      args={[model.geometry, material, items.length]}
-      castShadow
-      receiveShadow
-    />
+    <instancedMesh key={items.length} ref={mesh} args={[geometry, material, items.length]} castShadow receiveShadow />
   );
 }
 

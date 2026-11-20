@@ -2,7 +2,7 @@
 
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AdditiveBlending, type Group, type MeshBasicMaterial, type MeshStandardMaterial } from "three";
+import { AdditiveBlending, type Group, type Mesh, type MeshBasicMaterial, type MeshStandardMaterial } from "three";
 import type { Tile } from "@/game/domain/types";
 import { TILE_HEIGHT, type BoardLayout, type Vec3 } from "@/features/shared/board/boardLayout";
 import { SQUARE_SLAB } from "@/features/shared/board/slab";
@@ -99,25 +99,35 @@ export function TileMesh({
   const emissive = theme.glowIntensity > 0 ? theme.glow : HIGHLIGHT_FALLBACK;
   const glowColor = theme.kind === "regular" ? accent : theme.glow;
   const walkway = mossy && slab ? slab.outline : null;
-  // Over a modelled walkway the face isn't drawn (its number and rune are on plaques, see TileNumbers): a token canvas.
+  // Over a modelled walkway the face isn't drawn (its number and rune are on plaques, see TileNumbers): no texture.
   const faceTexture = useTileFaceTexture({
     tileId: tile.id,
     theme,
     accent,
     // The face is laid along the way: its arrows point relative to that.
     arrowAngle: arrowAngle === null ? null : arrowAngle - heading,
-    resolution: walkway ? 4 : textureSize,
+    resolution: walkway ? 0 : textureSize,
     bare: walkway !== null,
     runeless: walkway !== null,
     numberless: walkway !== null,
   });
   const bodyMaterial = useRef<MeshStandardMaterial>(null);
   const underglow = useRef<MeshBasicMaterial>(null);
+  const underglowMesh = useRef<Mesh>(null);
   const underglowTint = useRef<string | null>(null);
   const lift = useRef<Group>(null);
 
+  // Idle tiles (most of ~200) skip their frame once settled: nothing about them changes until something lights them up.
+  const animated = (highlighted && !walkway) || hovering || reachable || onPick !== undefined;
+  const settled = useRef(false);
+  useEffect(() => {
+    settled.current = false;
+  }, [animated, glowColor, walkway]);
+
   useFrame(({ clock }, delta) => {
+    if (!animated && settled.current) return;
     const time = clock.elapsedTime;
+    let moving = false;
     if (bodyMaterial.current) {
       // A flash lit the whole mossy slab in the trail's orange: a modelled walkway lights up only under the pointer.
       const flashed = highlighted && !walkway;
@@ -136,6 +146,9 @@ export function TileMesh({
             ? 0.75 + Math.sin(time * 4 - tile.id * 0.6) * 0.2
             : 0.38;
       underglow.current.opacity += (breathe - underglow.current.opacity) * Math.min(1, delta * 8);
+      moving ||= Math.abs(breathe - underglow.current.opacity) > 0.005;
+      // Unlit, it isn't drawn at all: 200 invisible see-through draws a frame add up.
+      if (underglowMesh.current) underglowMesh.current.visible = underglow.current.opacity > 0.01;
       const tint = hovering ? "#ffffff" : glowColor;
       // Parsed only when it changes: 200 tiles re-parsing a colour string every frame adds up.
       if (underglowTint.current !== tint) {
@@ -146,13 +159,17 @@ export function TileMesh({
     if (lift.current) {
       const target = hovering ? 0.32 : reachable || onPick ? 0.06 : 0;
       lift.current.position.y += (target - lift.current.position.y) * Math.min(1, delta * 8);
+      moving ||= Math.abs(target - lift.current.position.y) > 0.001;
     }
+    settled.current = !moving;
   });
 
   return (
     <group position={position}>
       {/* Over a modelled walkway the glow lies on top of it (beneath, its stones poke through and flicker). */}
       <mesh
+        ref={underglowMesh}
+        visible={!walkway}
         geometry={shapes.glow}
         position-y={walkway ? TILE_HEIGHT / 2 + 0.05 : -TILE_HEIGHT / 2 + 0.03}
         scale={walkway ? [0.92, 1, 0.92] : [1.12, 1, 1.12]}

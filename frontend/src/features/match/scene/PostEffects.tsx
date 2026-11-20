@@ -2,26 +2,19 @@
 
 import { Bloom, EffectComposer, ToneMapping, Vignette } from "@react-three/postprocessing";
 import { ToneMappingMode } from "postprocessing";
-import type { EffectsQuality } from "@/features/shared/config";
-
-const SETTINGS = {
-  high: { multisampling: 4, levels: 8, intensity: 1.15 },
-  low: { multisampling: 0, levels: 5, intensity: 0.9 },
-} as const;
+import type { QualityStep } from "./quality";
 
 /** Bloom picks up anything brighter than 1.0; tone mapping must be the last pass since this renders offscreen. */
-export function PostEffects({ quality }: { quality: EffectsQuality }) {
-  const settings = SETTINGS[quality];
-
+export function PostEffects({ step }: { step: QualityStep }) {
   return (
-    <EffectComposer multisampling={settings.multisampling}>
+    <EffectComposer multisampling={step.multisampling}>
       <Bloom
         mipmapBlur
         luminanceThreshold={1}
         luminanceSmoothing={0.25}
-        intensity={settings.intensity}
+        intensity={step.bloomIntensity}
         radius={0.75}
-        levels={settings.levels}
+        levels={step.bloomLevels}
       />
       <Vignette offset={0.32} darkness={0.55} />
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />

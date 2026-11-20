@@ -87,7 +87,7 @@ export function CharacterStage({ characterId, className }: { characterId: Charac
         <Canvas
           dpr={[1, 2]}
           camera={{ position: [0, 1.25, 4.4], fov: CAMERA_FOV }}
-          gl={{ alpha: true }}
+          gl={{ alpha: true, powerPreference: "high-performance" }}
           // The Necromancer's dead are cut at the floor as they climb out of it (see BoneRise).
           onCreated={({ gl }) => {
             gl.localClippingEnabled = true;

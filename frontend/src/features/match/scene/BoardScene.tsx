@@ -24,9 +24,11 @@ import type { BoardPicking } from "./board/pickCursor";
 import { PlayerToken } from "./token/PlayerToken";
 import { PerfMeter } from "./PerfMeter";
 import { PostEffects } from "./PostEffects";
+import { firstStep, QUALITY_STEPS, stepQuality } from "./quality";
 import { RealmAtmosphere } from "./realm/RealmAtmosphere";
 import { RealmTrackView } from "./realm/RealmTrackView";
 import { SceneWarmup } from "./SceneWarmup";
+import { WarmGroup } from "./WarmGroup";
 import { directionBetween, openTrackPortals, reachableTiles } from "./board/boardState";
 import { TileLinks } from "./board/TileLinks";
 import { TileMesh } from "./board/tile/TileMesh";
@@ -165,18 +167,19 @@ export default function BoardScene({
   };
   const focusRealm = realmAt(board, focusTile(view));
 
-  // Sustained low frame rate (a hot laptop GPU, a weak phone): drop to plain resolution and cheap antialiasing.
-  const [strained, setStrained] = useState(false);
-  const effectsQuality: EffectsQuality = strained ? "low" : quality;
+  // Slow frames (a hot laptop GPU, a weak phone) step the rendering down a rung at a time; room to spare steps it back.
+  const [step, setStep] = useState(() => firstStep(quality));
+  const rung = QUALITY_STEPS[Math.max(step, firstStep(quality))] ?? QUALITY_STEPS[0]!;
 
   // Antialiasing happens in the effect composer (multisampling), not on the canvas.
   return (
     <Canvas
       shadows="percentage"
       // Capped at 1.5×: at 2× a big screen renders ~4× the pixels for little visible gain, and the GPU overheats.
-      dpr={effectsQuality === "high" ? [1, 1.5] : 1}
+      dpr={rung.dpr}
       camera={{ fov: 40 }}
-      gl={{ antialias: false }}
+      // Asks a laptop with two GPUs for the dedicated one (the browser may still choose otherwise).
+      gl={{ antialias: false, powerPreference: "high-performance" }}
       onCreated={({ gl }) => {
         watchContext(gl.domElement);
         // Dev only: lets the console read gl.info (geometries, textures, programs) while hunting slowdowns.
@@ -240,7 +243,9 @@ export default function BoardScene({
           {/* Apart, so an effect whose models are still loading never blanks the whole scene. */}
           {BOARD_EFFECTS.map((Effect, index) => (
             <Suspense key={index} fallback={null}>
-              <Effect fx={fx} />
+              <WarmGroup>
+                <Effect fx={fx} />
+              </WarmGroup>
             </Suspense>
           ))}
 
@@ -269,7 +274,9 @@ export default function BoardScene({
           ))}
           {OVERLAY_EFFECTS.map((Effect, index) => (
             <Suspense key={index} fallback={null}>
-              <Effect fx={fx} />
+              <WarmGroup>
+                <Effect fx={fx} />
+              </WarmGroup>
             </Suspense>
           ))}
 
@@ -301,9 +308,14 @@ export default function BoardScene({
         <Preload all />
         <SceneWarmup models={models} onReady={onReady} />
       </Suspense>
-      <PerformanceMonitor onDecline={() => setStrained(true)} flipflops={1} />
-      <PostEffects quality={effectsQuality} />
-      <PerfMeter quality={effectsQuality} />
+      <PerformanceMonitor
+        onDecline={() => setStep((current) => stepQuality(current, 1, quality))}
+        onIncline={() => setStep((current) => stepQuality(current, -1, quality))}
+        // Past this many changes back and forth it settles where it is, so the look doesn't keep shifting.
+        flipflops={6}
+      />
+      <PostEffects step={rung} />
+      <PerfMeter quality={`degrau ${step} de ${QUALITY_STEPS.length - 1}`} />
     </Canvas>
   );
 }
