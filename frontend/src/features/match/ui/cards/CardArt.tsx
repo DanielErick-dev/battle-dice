@@ -102,6 +102,11 @@ const CARD_IMAGES: Partial<Record<CardId, string>> = {
   amaterasuBreeze: "/cards/amaterasuBreeze.webp",
   susanooSword: "/cards/susanooSword.webp",
   eternalEclipse: "/cards/eternalEclipse.webp",
+  frostBreath: "/cards/frostBreath.webp",
+  slipperyTrack: "/cards/slipperyTrack.webp",
+  crystalWings: "/cards/crystalWings.webp",
+  glacialHarvest: "/cards/glacialHarvest.webp",
+  absoluteZero: "/cards/absoluteZero.webp",
 };
 
 /** The painted image to show, or null to draw the card (no image, or this one already failed to load). */

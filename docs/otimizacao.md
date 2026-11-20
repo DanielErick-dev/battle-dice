@@ -65,15 +65,15 @@ Além do peso da cena, o que faz o jogo *parecer* fluido. Também fica para depo
 - [x] **Medir sempre:** um contador de FPS e de tempo de quadro escondido (tecla de atalho) para jogar de olho no desempenho.
 
 ### Sensação (game feel)
-- [ ] **Resposta imediata ao clique:** o botão e a carta reagem na hora (brilho, som, leve encolhida), mesmo que a ação ainda esteja processando.
+- [x] **Resposta imediata ao clique:** (2026-11-19: todo botão encolhe e clareia no toque, regra global em `globals.css`) o botão e a carta reagem na hora (brilho, som, leve encolhida), mesmo que a ação ainda esteja processando.
 - [ ] **Transições em vez de cortes:** câmera, painéis e trocas de turno sempre deslizam com aceleração e desaceleração suaves (easing), nunca saltam.
-- [ ] **Câmera com folga:** segue o personagem com um leve atraso e amortecimento, e prevê para onde ele vai, em vez de grudar nele.
+- [x] **Câmera com folga:** (2026-11-19: segue a figura em movimento, não a casa) segue o personagem com um leve atraso e amortecimento, e prevê para onde ele vai, em vez de grudar nele.
 - [ ] **Animações que se emendam:** toda troca de clipe com mistura (já temos em boa parte); revisar as que ainda cortam seco.
 - [ ] **Acelerar a partida:** botão de velocidade 2× nas animações longas e opção de pular a animação de habilidade já vista.
 - [ ] **Ritmo do turno:** tirar esperas mortas entre um evento e outro; sobrepor o que pode acontecer junto (o dado rolando enquanto a câmera já vai para o personagem).
 - [ ] **Som sincronizado:** passos, impacto e magia no quadro exato da animação; um som atrasado faz parecer travado mesmo a 60 FPS.
 - [ ] **Pequenos impactos:** tremida curta de câmera, pausa de poucos milissegundos no golpe (hit-stop) e partículas no impacto deixam as ações com peso.
-- [ ] **Telas de carregamento vivas:** dica ou animação enquanto carrega, para a espera não parecer travamento.
+- [x] **Telas de carregamento vivas:** (2026-11-19: dicas dos personagens da partida e das regras, trocando a cada 4,5 s, `hud/loadingTips.ts`) dica ou animação enquanto carrega, para a espera não parecer travamento.
 
 ## Falta (anotado em 2026-11-19)
 
@@ -81,4 +81,4 @@ Além do peso da cena, o que faz o jogo *parecer* fluido. Também fica para depo
 - **Atlas de faces nos outros mapas** (masmorra e terra devastada): cada casa ainda pinta a própria textura de face (item 9).
 - **Transparências** (item 5): revisar faíscas (`Sparkles`) e brilhos aditivos que podem virar recorte.
 - **Carregamento em etapas, texturas KTX2 e piscina de partículas** (lista de fluidez).
-- **Sensação de jogo** (lista "Sensação"): resposta imediata ao clique, velocidade 2×, ritmo do turno.
+- **Sensação de jogo que ainda falta:** velocidade 2× e pular animação já vista (os tempos da reprodução e os das animações 3D precisam acelerar juntos: mexer com o Daniel testando); encurtar as esperas entre eventos (`noticeMs` 1,3 s é o tempo de leitura dos avisos: ajustar vendo); pausa curta no impacto (hit-stop).

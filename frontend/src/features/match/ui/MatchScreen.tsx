@@ -1,7 +1,7 @@
 "use client";
 
 import { BoardSpells } from "./hud/BoardSpells";
-import { playerColor } from "@/features/characters";
+import { characterIdFor, playerColor } from "@/features/characters";
 import { EndGamePanel } from "./hud/EndGamePanel";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
@@ -27,6 +27,7 @@ import { EffectBanner } from "./hud/EffectBanner";
 import { ErrorToast } from "./hud/ErrorToast";
 import { HourglassPanel, PauseOverlay } from "./hud/Hourglass";
 import { LoadingCurtain } from "./hud/LoadingCurtain";
+import { loadingTips } from "./hud/loadingTips";
 import { PlayersPanel } from "./hud/PlayersPanel";
 import { BattleLog } from "./hud/BattleLog";
 import { TilePicking } from "./hud/TilePicking";
@@ -206,6 +207,18 @@ export function MatchTable({
     return () => setLive(false);
   }, [setLive, ready]);
   const nameOf = (id: string | null) => view.players.find((player) => player.id === id)?.name ?? null;
+  const castKey = view.players.map((player) => player.id).join(",");
+  const tips = useMemo(
+    () =>
+      loadingTips(
+        castKey
+          .split(",")
+          .map(characterIdFor)
+          .filter((id) => id !== null),
+        castKey.length,
+      ),
+    [castKey],
+  );
   const activePlayer = activePlayerOf(view);
   const controls = viewerControls(view, store.pinnedSeat, store.spectator, store.computerSeats);
   const viewer = view.players.find((player) => player.id === controls.viewerId);
@@ -358,7 +371,7 @@ export function MatchTable({
       )}
       <PendingPrompts store={store} view={view} controls={controls} nameOf={nameOf} />
       {children}
-      <LoadingCurtain ready={ready} />
+      <LoadingCurtain ready={ready} tips={tips} />
       {pausedBy !== null && (
         <PauseOverlay name={nameOf(pausedBy) ?? ""} pausesLeft={pausesLeft(pausedBy)} onResume={resume} />
       )}
