@@ -6,7 +6,7 @@ Enquanto isso, o que entrar de novo já segue as regras abaixo:
 - objeto repetido é instanciado;
 - recorte (`alphaTest`) em vez de transparência sempre que der;
 - nada de um `useFrame` por objeto;
-- o que aparece no meio da partida fica escondido debaixo do mapa, e não com `visible=false`, pra o shader já estar compilado;
+- o que já está montado no carregamento pode ficar com `visible=false`: o `SceneWarmup` compila o que está escondido (antes ficava debaixo do mapa, e era desenhado lá embaixo à toa); o que só monta no meio da partida passa pelo `WarmGroup`;
 - suspeito novo vem pra esta lista.
 
 O Daniel sentiu travadas quando o personagem corre e umas piscadas na tela no mapa da ilha. Ainda não medimos nada (sem devtools nesta máquina). Abaixo estão os suspeitos, do que provavelmente pesa mais para o que pesa menos. Antes de mexer em cada um, medir com o `__battleDiceGl.info` no console (programas, texturas, chamadas de desenho por quadro) e com o Performance do navegador.
@@ -30,6 +30,8 @@ O Daniel sentiu travadas quando o personagem corre e umas piscadas na tela no ma
 
 - **Efeitos novos compilam em segundo plano (2026-11-19):** `scene/WarmGroup.tsx` envolve os efeitos do tabuleiro, os de sobreposição e os de cada personagem. Quando algo novo monta e a compilação cria um shader novo, só aquele grupo espera invisível alguns quadros (com a compilação paralela do navegador) em vez de travar o jogo todo. Se nada é novo (mais flechas de uma rajada), aparece na hora.
 - **Sem texturas de face inúteis na ilha (2026-11-19):** a laje de musgo cobre a face da casa, então as ~200 texturas de face não são mais criadas lá.
+
+- **Nada desenhado debaixo do mapa (2026-11-19):** os corvos em espera e os dragões mergulhados ficavam a 60 unidades abaixo do chão, ainda dentro da vista da câmera (e os corvos com esqueleto sem descarte), sendo desenhados com sombra a cada quadro. Agora ficam escondidos.
 
 ## Suspeitos, por prioridade
 

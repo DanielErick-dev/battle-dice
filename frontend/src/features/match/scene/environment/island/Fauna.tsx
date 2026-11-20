@@ -188,8 +188,10 @@ const FLIGHT_REACH = 14;
 const FLIGHT_HEIGHT = 6;
 /** The flying crow's wingspan, matched to the sat one's height. */
 const CROW_SPAN = 0.95;
-/** Out of sight below the island, never hidden: a hidden model's shaders would compile on its first flight. */
-const PARKED_Y = -60;
+/**
+ * Models not in use are hidden (SceneWarmup compiles hidden ones at load, so the first flight doesn't stall).
+ * They can't be left to the camera's culling: skinned, they're drawn whatever the camera sees (see useRigged).
+ */
 
 /** Crows sat by the road going through their little round; one takes off as a figure comes near and lands back later. */
 export function Crows({ spots }: { spots: readonly CrowSpot[] }) {
@@ -244,16 +246,13 @@ export function Crows({ spots }: { spots: readonly CrowSpot[] }) {
         Object.assign(flight, { phase: "sat", since: time });
       }
 
+      satHolder.visible = flight.phase === "sat";
+      flyHolder.visible = flight.phase === "leaving" || flight.phase === "returning";
       if (flight.phase === "sat") {
-        flyHolder.position.y = PARKED_Y;
         perch(rig, satHolder, spot, time);
         return;
       }
-      satHolder.position.y = PARKED_Y;
-      if (flight.phase === "away") {
-        flyHolder.position.y = PARKED_Y;
-        return;
-      }
+      if (flight.phase === "away") return;
       // Leaving it climbs steeply at first; coming back it glides down and flares onto its spot.
       const leaving = flight.phase === "leaving";
       const t = Math.min(1, (time - flight.since) / (leaving ? LEAVE_SECONDS : RETURN_SECONDS));
@@ -290,7 +289,7 @@ export function Crows({ spots }: { spots: readonly CrowSpot[] }) {
         </group>
       ))}
       {flying.map((crow, index) => (
-        <group key={`fly${index}`} ref={(node) => void (flyHolders.current[index] = node)} position-y={PARKED_Y}>
+        <group key={`fly${index}`} ref={(node) => void (flyHolders.current[index] = node)} visible={false}>
           <primitive object={crow} />
         </group>
       ))}

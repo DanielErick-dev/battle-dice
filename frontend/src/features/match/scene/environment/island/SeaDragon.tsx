@@ -9,8 +9,9 @@ import { shoreline } from "./coast";
 import { riverX, WATER_LEVEL, type IslandShape } from "./terrain";
 
 /**
- * Out of sight it waits deep under the (opaque) sea rather than turning invisible: an invisible mesh isn't compiled
- * up front, and compiling it the moment it first leaps stalls a frame.
+ * Out of sight it waits deep under the sea and hidden: down there the camera's view still reaches it, so it would
+ * be drawn (shadow too) every frame for nothing. SceneWarmup compiles hidden meshes at load, so its first leap
+ * doesn't stall.
  */
 const HIDDEN_Y = -60;
 /** The Meshy model's head points along -x: turned round so it leads along +x, the way the code moves it. */
@@ -79,7 +80,9 @@ export function SeaDragon({ shape }: { shape: IslandShape }) {
         leap.current = null;
         nextAt.current = now + UNDER.least + random() * UNDER.spread;
         group.position.y = HIDDEN_Y;
+        group.visible = false;
       } else {
+        group.visible = true;
         const at = (share: number) => {
           const along = (share - 0.5) * LEAP.distance;
           const y = WATER_LEVEL - DIVE + (LEAP.height + DIVE) * Math.sin(Math.PI * share);
@@ -115,7 +118,7 @@ export function SeaDragon({ shape }: { shape: IslandShape }) {
   const scale = LENGTH / model.size[0];
   return (
     <group>
-      <group ref={body}>
+      <group ref={body} visible={false}>
         {/* Fitted standing on its base: lowered by half its height so it turns about its middle. */}
         <mesh
           geometry={model.geometry}
@@ -174,8 +177,10 @@ export function RiverDragon({ shape }: { shape: IslandShape }) {
       swim.current = null;
       nextAt.current = now + SWIM_PAUSE.least + random() * SWIM_PAUSE.spread;
       group.position.y = HIDDEN_Y;
+      group.visible = false;
       return;
     }
+    group.visible = true;
     const way = current.down ? 1 : -1;
     const z = current.down ? fromZ + travelled : toZ - travelled;
     const x = riverX(shape, z);
@@ -189,7 +194,7 @@ export function RiverDragon({ shape }: { shape: IslandShape }) {
   });
 
   return (
-    <group ref={body} position-y={HIDDEN_Y}>
+    <group ref={body} position-y={HIDDEN_Y} visible={false}>
       <mesh
         geometry={model.geometry}
         material={model.material}
