@@ -143,7 +143,10 @@ describe("Ocular Awakening", () => {
   });
 
   it("never burns Kage Rubra herself, whoever holds the fire", () => {
-    const zareks = { ...duel("ocularAwakening"), blackFlames: [{ tile: 24, owner: "rival", turnsLeft: 3, hits: 0 }] };
+    const zareks = {
+      ...duel("ocularAwakening"),
+      blackFlames: [{ tile: 24, owner: "rival", turnsLeft: 3, burnsLeft: 2 }],
+    };
     const { state, events } = roll(withPlayer(zareks, "hero", { position: 22, energy: 5 }), "hero", 2);
     expect(playerOf(state, "hero")).toMatchObject({ energy: 5, position: 24 });
     expect(eventsOfType(events, "flamesScorched")).toEqual([]);
@@ -325,7 +328,7 @@ describe("Eternal Winter", () => {
   it("winter beats fire: she may freeze a burning tile, putting it out, and the ice can't be set alight", () => {
     const burning = {
       ...winter(duel("fairyBloom"), 4),
-      blackFlames: [{ tile: 30, owner: "rival", turnsLeft: 5, hits: 0 }],
+      blackFlames: [{ tile: 30, owner: "rival", turnsLeft: 5, burnsLeft: 2 }],
     };
     const { state } = activateFor(ready(withPlayer(burning, "hero", { position: 10 })), "hero", { frostTiles: [30] });
     expect(state.blackFlames).toEqual([]);

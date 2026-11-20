@@ -185,7 +185,7 @@ describe("Zarek's Void", () => {
   describe("stealing a spell", () => {
     const burning = () => ({
       ...readyAbility(holding([]), "zarek"),
-      blackFlames: [{ tile: 20, owner: "rival", turnsLeft: 3, hits: 1 }],
+      blackFlames: [{ tile: 20, owner: "rival", turnsLeft: 3, burnsLeft: 1 }],
     });
 
     it("counts his turns since the Void last acted", () => {
@@ -230,7 +230,7 @@ describe("Zarek's Void", () => {
         "ABILITY_NOT_READY",
       );
       expectRuleError(() => activate(burning(), "zarek", { seizeTile: 21 }), "INVALID_VOID");
-      const own = { ...burning(), blackFlames: [{ tile: 20, owner: "zarek", turnsLeft: 3, hits: 1 }] };
+      const own = { ...burning(), blackFlames: [{ tile: 20, owner: "zarek", turnsLeft: 3, burnsLeft: 1 }] };
       expectRuleError(() => activate(own, "zarek", { seizeTile: 20 }), "INVALID_VOID");
     });
   });

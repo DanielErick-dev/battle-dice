@@ -120,6 +120,20 @@ const PROPS = {
   // The countryside's boulders and bushes, many copies each.
   islandRock: { file: "island/props/rock.glb", vertices: 4_000, texture: 1024, sloppy: true },
   islandShrub: { file: "island/props/shrub.glb", vertices: 6_000, texture: 1024, sloppy: true },
+  // Woodland variety: a dead tree, a mossy log, glowing mushrooms and a mossy rock cluster, many copies each.
+  islandDeadTree: { file: "island/props/dead-tree.glb", vertices: 8_000, texture: 1024, sloppy: true },
+  islandDriftwood: { file: "island/props/driftwood.glb", vertices: 3_000, texture: 1024, sloppy: true },
+  islandGlowcaps: { file: "island/props/glowcaps.glb", vertices: 4_000, texture: 1024, sloppy: true },
+  islandMossyRocks: { file: "island/props/mossy-rocks.glb", vertices: 4_000, texture: 1024, sloppy: true },
+  // Our own houses (only a handful, in the village: detailed) and the island's spike trap (one per trap tile).
+  islandCottage: { file: "island/props/cottage.glb", vertices: 40_000, texture: 2048, sloppy: true },
+  islandWindHouse: { file: "island/props/wind-house.glb", vertices: 40_000, texture: 2048, sloppy: true },
+  spikeTrap: { file: "board/props/spike-trap.glb", vertices: 8_000, texture: 1024, sloppy: true },
+  // Rigged fauna, animated in code by their bones (see Fauna.tsx); sloppy only drops triangles, so the skin weights hold.
+  islandBat: { file: "island/props/bat.glb", vertices: 4_000, texture: 512 },
+  islandCrow: { file: "island/props/midnight-sentinel.glb", vertices: 20_000, texture: 1024, sloppy: true },
+  // The same crow with its wings spread and rigged: swapped in when a perched one takes off.
+  islandCrowFlight: { file: "island/props/crow-flight.glb", vertices: 12_000, texture: 1024, sloppy: true },
   // Variety among the bushes: two dark glowing flowers (many copies) and the river's sea dragon (moved in code).
   shadowFlower: { file: "island/props/shadow-flower.glb", vertices: 3_000, texture: 512, sloppy: true },
   nebulaBloom: { file: "island/props/nebula-bloom.glb", vertices: 3_000, texture: 512, sloppy: true },
@@ -131,8 +145,6 @@ const PROPS = {
   // The trail's slab, warped onto every tile of the road (about 200 of them), so kept light; only its front
   // part (walkway, kerbs, grass): its back holds two bushes that would hide the figures.
   pathSlab: { file: "board/props/path-slab.glb", vertices: 5_000, texture: 1024, sloppy: true, cropZ: 0.45 },
-  // A strip of thorny vines, laid side by side across a trap tile.
-  vineTrap: { file: "board/props/vine-trap.glb", vertices: 16_000, texture: 1024, sloppy: true },
   // Tenzai's fire and earth: his orbit charms, the flame in his hand and the stones of his wall.
   tenzaiFlame: { file: "zephyr/props/flame.glb", vertices: 3_000, texture: 512 },
   tenzaiBoulder: { file: "zephyr/props/boulder.glb", vertices: 2_500, texture: 512 },
@@ -157,7 +169,9 @@ await MeshoptSimplifier.ready;
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ "meshopt.encoder": MeshoptEncoder });
 await mkdir(OUTPUT_DIR, { recursive: true });
 
-for (const [id, { file, vertices, texture = TEXTURE_SIZE, sloppy = false, cropZ }] of Object.entries(PROPS)) {
+for (const [id, { file, vertices, texture = TEXTURE_SIZE, sloppy = false, cropZ, error = 0.01 }] of Object.entries(
+  PROPS,
+)) {
   if (values.only && values.only !== id) continue;
   const document = await io.read(path.join(values.source, file));
   const root = document.getRoot();
@@ -172,7 +186,7 @@ for (const [id, { file, vertices, texture = TEXTURE_SIZE, sloppy = false, cropZ 
     weld(),
     sloppy
       ? sloppySimplify(Math.min(1, vertices / count))
-      : simplify({ simplifier: MeshoptSimplifier, ratio: Math.min(1, vertices / count), error: 0.01 }),
+      : simplify({ simplifier: MeshoptSimplifier, ratio: Math.min(1, vertices / count), error }),
     repairNormals(),
     textureCompress({ encoder: sharp, targetFormat: "webp", resize: [texture, texture] }),
     prune(),

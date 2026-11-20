@@ -20,7 +20,7 @@ import { runePath } from "./face/rune";
 import type { TileTheme } from "./theme/tileTheme";
 
 /** The plaque's size in world units (a tile is 2 wide), and one plaque's cell on the shared canvas in pixels. */
-const PLAQUE = { width: 0.86, height: 0.56 };
+const PLAQUE = { width: 0.62, height: 0.4 };
 const CELL = { width: 160, height: 104 };
 /** Plaques per row of the shared canvas: 16 × 160 px keeps it within 2560 px wide. */
 const ATLAS_COLUMNS = 16;
@@ -31,6 +31,26 @@ const ABOVE_WALKWAY = 0.32;
 const LEAN = -0.5;
 /** Plaques turn again only once the camera has swung round by more than this (radians). */
 const TURN_STEP = 0.004;
+
+/**
+ * Where the plaque stands: the middle of the side kerb nearer the camera (it looks from +z). The kerbs run along the
+ * road, so plaques never line up between tiles where the road comes towards the camera; a square slab (no road
+ * order) uses its front edge.
+ */
+export function plaqueEdge(outline: SlabOutline): { x: number; z: number; outX: number; outZ: number } {
+  if (outline.length !== 4) return frontEdge(outline);
+  // Corners go back-right, front-right, front-left, back-left: edges 0 and 2 are the kerbs.
+  const kerbs = [0, 2].map((index) => {
+    const [ax, az] = outline[index]!;
+    const [bx, bz] = outline[index + 1]!;
+    const [x, z] = [(ax + bx) / 2, (az + bz) / 2];
+    const length = Math.hypot(x, z) || 1;
+    return { x, z, outX: x / length, outZ: z / length };
+  });
+  const [right, left] = kerbs as [(typeof kerbs)[0], (typeof kerbs)[0]];
+  // Nearer the camera; level (the road running towards it), the right-hand one.
+  return left.z > right.z + 0.05 ? left : right;
+}
 
 /** The middle of the slab's edge nearest the camera (it looks from +z), and the way out of the slab there. */
 export function frontEdge(outline: SlabOutline): { x: number; z: number; outX: number; outZ: number } {
@@ -197,7 +217,7 @@ export function TileNumbers({ plaques }: { plaques: readonly NumberPlaque[] }) {
   const spots = useMemo(
     () =>
       plaques.flatMap(({ position: [x, y, z], outline, rune }) => {
-        const edge = frontEdge(outline);
+        const edge = plaqueEdge(outline);
         const at = new Vector3(
           x + edge.x + edge.outX * OUT_PAST_EDGE,
           y + TILE_HEIGHT / 2 + ABOVE_WALKWAY,

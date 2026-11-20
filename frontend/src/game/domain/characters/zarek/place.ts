@@ -1,4 +1,4 @@
-import { FLAME_TURNS } from "../kage/flames";
+import { FLAME_HITS, FLAME_TURNS } from "../kage/flames";
 import { getTile, linkRift } from "../../board/board";
 import { inHellTrack } from "../../board/tileGround";
 import { GameRuleError } from "../../core/errors";
@@ -53,7 +53,7 @@ function release(draft: Draft, playerId: PlayerId, index: number): void {
 function castSpell(draft: Draft, owner: PlayerId, item: VoidSpell, tile: TileId): void {
   switch (item.kind) {
     case "flame":
-      draft.blackFlames = [...draft.blackFlames, { tile, owner, turnsLeft: FLAME_TURNS, hits: 0 }];
+      draft.blackFlames = [...draft.blackFlames, { tile, owner, turnsLeft: FLAME_TURNS, burnsLeft: FLAME_HITS }];
       return;
     case "snow":
       draft.enchantedTiles = [...draft.enchantedTiles, { tile, owner }];

@@ -119,8 +119,9 @@ export function TileMesh({
   useFrame(({ clock }, delta) => {
     const time = clock.elapsedTime;
     if (bodyMaterial.current) {
-      const pulse = highlighted ? 1.2 + Math.sin(time * 10) * 0.6 : hovering ? 0.9 + Math.sin(time * 8) * 0.25 : 0;
-      // A modelled walkway keeps its own colours: it only lights up when flashed or hovered.
+      // A flash lit the whole mossy slab in the trail's orange: a modelled walkway lights up only under the pointer.
+      const flashed = highlighted && !walkway;
+      const pulse = flashed ? 1.2 + Math.sin(time * 10) * 0.6 : hovering ? 0.9 + Math.sin(time * 8) * 0.25 : 0;
       bodyMaterial.current.emissiveIntensity = (walkway ? 0 : theme.glowIntensity * 0.35) + pulse;
     }
     if (underglow.current) {

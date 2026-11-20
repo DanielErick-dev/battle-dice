@@ -23,7 +23,16 @@ export function useShownEnergy(energy: number): number {
 }
 
 /** Energy as a labelled row of orbs, filled up to the current amount, with the count. */
-export function EnergyMeter({ energy, className }: { energy: number; className?: string }) {
+export function EnergyMeter({
+  energy,
+  className,
+  bright = false,
+}: {
+  energy: number;
+  className?: string;
+  /** Bigger orbs with lit empties: phones are read at arm's length, often in a dim room. */
+  bright?: boolean;
+}) {
   const shown = useShownEnergy(energy);
   return (
     <span
@@ -31,9 +40,16 @@ export function EnergyMeter({ energy, className }: { energy: number; className?:
       title={ENERGY_HELP}
       aria-label={`Energia: ${energy} de ${MAX_ENERGY}`}
     >
-      <span className="text-[10px] font-black tracking-wider text-amber-300">ENERGIA</span>
-      <EnergyOrbs shown={shown} className="gap-1" orbClassName="size-2.5 ring-1 ring-white/15" />
-      <span className="font-mono text-[10px] font-bold text-amber-100">
+      <span className={cn("font-black tracking-wider text-amber-300", bright ? "text-xs" : "text-[10px]")}>
+        ENERGIA
+      </span>
+      <EnergyOrbs
+        shown={shown}
+        className="gap-1"
+        orbClassName={bright ? "size-3.5 ring-1 ring-white/30" : "size-2.5 ring-1 ring-white/15"}
+        emptyClassName={bright ? "bg-white/30 ring-1 ring-white/50" : undefined}
+      />
+      <span className={cn("font-mono font-bold text-amber-100", bright ? "text-sm" : "text-[10px]")}>
         {shown}/{MAX_ENERGY}
       </span>
     </span>
@@ -45,10 +61,12 @@ export function EnergyOrbs({
   shown,
   className,
   orbClassName,
+  emptyClassName = "bg-amber-100/15 ring-1 ring-amber-200/25",
 }: {
   shown: number;
   className?: string;
   orbClassName?: string;
+  emptyClassName?: string;
 }) {
   return (
     <span className={cn("flex items-center", className)}>
@@ -58,7 +76,7 @@ export function EnergyOrbs({
           className={cn(
             "rounded-full transition-all",
             orbClassName,
-            i < shown ? "energy-orb energy-orb-fill" : "bg-amber-100/15 ring-1 ring-amber-200/25",
+            i < shown ? "energy-orb energy-orb-fill" : emptyClassName,
           )}
         />
       ))}

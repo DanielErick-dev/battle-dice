@@ -120,6 +120,8 @@ export const turnSteps: StepHandlers<
         }),
         durationMs: Math.max(timings.noticeMs, timings.sitDownMs),
       },
+      // Sat down: the camera lets go of them and goes on to whoever plays.
+      { apply: (view) => ({ ...view, effect: null }), durationMs: 0 },
     ];
   },
   turnSkipped: (event, timings) => {

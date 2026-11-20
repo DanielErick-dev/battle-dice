@@ -22,7 +22,8 @@ import type { PropId } from "@/features/characters/core/props";
 import { bridgeSpans, benchSpots, lanternSpots, scatterProps, type LanternSpot } from "./scatter";
 import { lampGlow, paintLampPools } from "../shared/lampGlow";
 import { planSettlements } from "./settlements";
-import { groundAt, WATER_LEVEL, type IslandShape } from "./terrain";
+import { Bats, Crows, crowSpots } from "./Fauna";
+import { groundAt, trailNearest, VILLAGE_UNTIL, WATER_LEVEL, type IslandShape } from "./terrain";
 import { KIT_SCALE } from "./townPieces";
 import { RiverDragon, SeaDragon } from "./SeaDragon";
 import { Woods } from "./Woods";
@@ -77,6 +78,29 @@ function grounded<T extends { piece: string; x: number; y: number; z: number; sc
   });
 }
 
+/** Our houses are big and detailed: only every HOUSE_EVERY-th of the kit's spots in the village, none by the beach. */
+const HOUSE_EVERY = 2;
+const HOUSE_CLEARANCE = 2.2;
+const HOUSE_PROPS: ReadonlySet<PropId> = new Set(["islandCottage", "islandWindHouse"]);
+
+function villageHouses<T extends { piece: string; x: number; z: number }>(
+  shape: IslandShape,
+  placements: readonly T[],
+): T[] {
+  let houses = 0;
+  return placements.filter((placement) => {
+    const swap = SCATTER_SWAPS[placement.piece];
+    if (!swap || !HOUSE_PROPS.has(swap.prop)) return true;
+    if (trailNearest(shape, placement.x, placement.z).along > VILLAGE_UNTIL) return false;
+    const sandy = [0, 1, 2, 3, 4, 5, 6, 7].some((step) => {
+      const angle = (step / 8) * Math.PI * 2;
+      const [x, z] = [placement.x + Math.cos(angle) * HOUSE_CLEARANCE, placement.z + Math.sin(angle) * HOUSE_CLEARANCE];
+      return groundAt(shape, x, z).cover === "sand";
+    });
+    return !sandy && houses++ % HOUSE_EVERY === 0;
+  });
+}
+
 /** How far round a lamp its light falls on the ground. */
 const LAMP_POOL_RADIUS = 2.2;
 
@@ -126,7 +150,7 @@ export function Island({ trail, shape, characters }: IslandProps) {
   const coast = useMemo(() => planCoast(shape, trail, town, rawScatter), [shape, trail, town, rawScatter]);
   const townItems = useMemo(
     () =>
-      town.placements.map((placement) => ({
+      villageHouses(shape, town.placements).map((placement) => ({
         ...placement,
         y: settled(shape, placement, TOWN_FOOTPRINT * placement.scale),
         scale: placement.scale * KIT_SCALE,
@@ -144,12 +168,12 @@ export function Island({ trail, shape, characters }: IslandProps) {
   const scattered = useMemo(
     () =>
       [...new Set(Object.values(SCATTER_SWAPS).map(({ prop }) => prop))]
-        .map((prop) => ({ prop, items: grounded(shape, coastItems, prop) }))
+        .map((prop) => ({ prop, items: grounded(shape, [...townItems, ...coastItems], prop) }))
         .filter(({ items }) => items.length > 0),
-    [shape, coastItems],
+    [shape, townItems, coastItems],
   );
-  // Only our own models stand on the island: the downloaded kits' houses, fences, logs and crates are left out
-  // (their plan still keeps the spots, for our own buildings later); a campfire went with the kit's tents.
+  // Only our own models stand on the island: the kits' fences, crates and other buildings are left out (their spots
+  // are kept); houses and taverns are drawn as ours through SCATTER_SWAPS; a campfire went with the kit's tents.
   const swapped = [...townItems, ...coastItems].filter(
     (item) => item.piece in MESHY_SWAPS && item.piece !== "campfire_logs",
   );
@@ -157,12 +181,15 @@ export function Island({ trail, shape, characters }: IslandProps) {
   useLampPools(lanterns, shape);
   const benches = useMemo(() => benchSpots(trail, shape, BENCH_EVERY), [trail, shape]);
   const bridges = useMemo(() => bridgeSpans(trail, shape), [trail, shape]);
+  const crows = useMemo(() => crowSpots(shape, trail), [shape, trail]);
 
   return (
     <group>
       <mesh geometry={ground.geometry} material={ground.material} receiveShadow />
       <TrailRoad trail={trail} heightAt={(x, z) => groundAt(shape, x, z).height} paint={paintDirtRoad} />
       <Woods trees={scatter.trees} groves={scatter.groves} />
+      <Bats shape={shape} />
+      <Crows spots={crows} />
       {scattered.map(({ prop, items }) => (
         <ScatterProps key={prop} prop={prop} items={items} />
       ))}

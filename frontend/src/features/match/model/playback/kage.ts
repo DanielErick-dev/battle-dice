@@ -1,9 +1,11 @@
 /** Kage Rubra: black fire and the Susanoo. */
-import { FLAME_TURNS } from "@/game/domain/characters/kage/flames";
+import { FLAME_HITS, FLAME_TURNS } from "@/game/domain/characters/kage/flames";
 import { nextFxId, withFx, withPlayer, withPlayerAt } from "../matchView";
 import type { StepHandlers } from "./types";
 
-export const kageSteps: StepHandlers<"susanooRepelled" | "flamesLit" | "flamesScorched" | "flamesFaded"> = {
+export const kageSteps: StepHandlers<
+  "susanooRepelled" | "flamesLit" | "flamesScorched" | "flamesRenewed" | "flamesFaded"
+> = {
   susanooRepelled: (event, timings) => {
     // They reach her tile and the Susanoo throws them back; they get up there.
     return [
@@ -36,7 +38,12 @@ export const kageSteps: StepHandlers<"susanooRepelled" | "flamesLit" | "flamesSc
           ...view,
           blackFlames: [
             ...view.blackFlames,
-            ...event.tiles.map((tile) => ({ tile, owner: event.playerId, turnsLeft: FLAME_TURNS, hits: 0 })),
+            ...event.tiles.map((tile) => ({
+              tile,
+              owner: event.playerId,
+              turnsLeft: FLAME_TURNS,
+              burnsLeft: FLAME_HITS,
+            })),
           ],
           // The fairy's snow under the fire melts.
           enchantedTiles: view.enchantedTiles.filter((enchanted) => !event.tiles.includes(enchanted.tile)),
@@ -66,6 +73,19 @@ export const kageSteps: StepHandlers<"susanooRepelled" | "flamesLit" | "flamesSc
       },
     ];
   },
+  flamesRenewed: (event, timings) => [
+    {
+      apply: (view) => ({
+        ...view,
+        blackFlames: view.blackFlames.map((flame) =>
+          event.tiles.includes(flame.tile)
+            ? { ...flame, turnsLeft: flame.turnsLeft + event.turns, burnsLeft: flame.burnsLeft + event.burns }
+            : flame,
+        ),
+      }),
+      durationMs: timings.noticeMs,
+    },
+  ],
   flamesFaded: (event) => {
     return [
       {

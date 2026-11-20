@@ -9,7 +9,7 @@ import { Hourglass } from "./Hourglass";
 import { PortalVortex } from "./PortalVortex";
 import { RelicCard } from "./RelicCard";
 import { TrapSpikes } from "./TrapSpikes";
-import { VineTrap } from "./VineTrap";
+import { SpikeTrap } from "./SpikeTrap";
 
 interface TileOrnamentsProps {
   tile: Tile;
@@ -45,7 +45,11 @@ export function TileOrnaments({
       {tile.effect.kind === "portal" && <PortalVortex color={theme.glow} active={highlighted} phase={tile.id * 1.7} />}
       {warpExit && <PortalVortex color={WARP_EXIT_COLOR} active={highlighted} phase={tile.id * 1.7} />}
       {tile.effect.kind === "trap" &&
-        (mossy ? <VineTrap sprung={occupied} heading={heading} /> : <TrapSpikes sprung={occupied} heading={heading} />)}
+        (mossy ? (
+          <SpikeTrap sprung={occupied} heading={heading} />
+        ) : (
+          <TrapSpikes sprung={occupied} heading={heading} />
+        ))}
       {tile.effect.kind === "advance" && <AdvanceChevrons color={theme.glow} angle={arrowAngle ?? 0} />}
       {tile.effect.kind === "card" && !tile.effect.cardId && (
         <CardChest color={theme.glow} open={occupied} heading={heading} />

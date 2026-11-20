@@ -45,8 +45,8 @@ export function tokenSignals(view: MatchView, player: Player): TokenSignals {
     // Only stepping onto a wall's tile mid-walk crosses it: a wall raised under someone, or a teleport onto it, doesn't.
     overWall: view.walkEnd?.playerId === id && view.elementals.walls.some((wall) => wall.tile === player.position),
     meditating: player.tenzai.converged > 0,
-    // Stung by a trap, they stagger back tile by tile (see carriedAwaySteps).
-    limping: own?.kind === "trap",
+    // The limp read as a stutter (and threw the camera off): they run back normally now.
+    limping: false,
   };
 }
 

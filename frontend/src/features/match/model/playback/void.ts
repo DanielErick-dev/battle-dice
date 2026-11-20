@@ -186,7 +186,7 @@ function riftKind(kind: TileEffect["kind"]): VoidItem["kind"] {
 function withSpell(view: MatchView, owner: PlayerId, tile: TileId, item: VoidItem): MatchView {
   switch (item.kind) {
     case "flame":
-      return { ...view, blackFlames: [...view.blackFlames, { tile, owner, turnsLeft: 0, hits: 0 }] };
+      return { ...view, blackFlames: [...view.blackFlames, { tile, owner, turnsLeft: 0, burnsLeft: 0 }] };
     case "snow":
       return { ...view, enchantedTiles: [...view.enchantedTiles, { tile, owner }] };
     case "seal":

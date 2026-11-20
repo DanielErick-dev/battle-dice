@@ -17,7 +17,7 @@ export interface CardPlayContext {
 
 /** The opponents a card in hand can be aimed at (see cardTargets). */
 export function cardTargetsFor({ table, player, players }: CardPlayContext, card: CardInstance): Player[] {
-  return cardTargets(table.board, players, player.id, card.cardId);
+  return cardTargets(table, players, player.id, card.cardId);
 }
 
 /** The elements Tenzai's Elemental Exchange can turn one of his creations into. */
@@ -59,11 +59,19 @@ export function cardBlockReason(context: CardPlayContext, card: CardInstance): s
       return "Precisa de outra carta na mão para queimar";
     case "NO_TARGET_AHEAD":
       return "Nenhum oponente desprotegido à sua frente";
+    case "NO_SNOW_AHEAD":
+      return "Nenhuma neve ou gelo seu nas próximas 10 casas";
+    case "NO_SNOWBOUND":
+      return "Nenhum oponente preso na neve ou no gelo";
+    case "NO_BLACK_FIRE":
+      return "Não há fogo negro no tabuleiro";
     case "NO_CREATION":
       return "Precisa de uma muralha, laço ou brisa sua em jogo";
   }
   if (CARD_CATALOG[card.cardId].targetsOpponent && cardTargetsFor(context, card).length === 0) {
     if (card.cardId === "abyssCall") return "Ninguém fora do céu ou do inferno ao seu alcance";
+    if (card.cardId === "scarletMirage") return "Nenhum oponente a até 6 casas de um fogo negro seu";
+    if (card.cardId === "slipperyTrack") return "Nenhum oponente a até 4 casas de uma neve ou gelo seu";
     return card.cardId === "riftCall" ? "Nenhum oponente com uma fenda sua atrás dele" : "Sem oponentes";
   }
   return null;

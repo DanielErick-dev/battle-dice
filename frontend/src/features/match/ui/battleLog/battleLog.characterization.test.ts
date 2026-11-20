@@ -83,7 +83,15 @@ const CASES: Readonly<Record<GameEvent["type"], readonly Fields[]>> = {
   ],
   winterBegan: none,
   tilesFrozen: [{ tiles: [1] }, { tiles: [1, 2] }],
+  absoluteZero: [
+    { frozen: ["p2"], rounds: 2 },
+    { frozen: ["p2", "p3"], rounds: 2 },
+  ],
   flamesLit: [{ tiles: [1] }, { tiles: [1, 2] }],
+  flamesRenewed: [
+    { tiles: [1], turns: 5, burns: 2 },
+    { tiles: [1, 2], turns: 5, burns: 2 },
+  ],
   flamesScorched: [
     { owner: "p2", energyLost: 0 },
     { owner: "p2", energyLost: 2 },

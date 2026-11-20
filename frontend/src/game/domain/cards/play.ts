@@ -13,7 +13,7 @@ import { applyCardEffect } from "./effects";
 import type { PlayerId } from "../core/state";
 
 /** Turned back by Themis's Silent Verdict, these do nothing to whoever aimed them. */
-const VERDICT_UNDOES: readonly CardId[] = ["fateSwap", "riftCall", "forcedTailwind"];
+const VERDICT_UNDOES: readonly CardId[] = ["fateSwap", "riftCall", "forcedTailwind", "scarletMirage", "slipperyTrack"];
 
 /** Movement cards resolve the tile they end on, like a roll would. */
 export function playCard(

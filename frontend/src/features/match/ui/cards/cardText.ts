@@ -6,6 +6,31 @@ import {
   MALWARE_CARDS,
   THRUST_PER_OVERLOADED,
 } from "@/game/domain/characters/alva/cards";
+import {
+  BLOOD_TEAR_CHARGE,
+  BREEZE_BURNS,
+  BREEZE_STEP,
+  BREEZE_TURNS,
+  ECLIPSE_FIRES,
+  ECLIPSE_GAP,
+  ECLIPSE_HYPNOSIS,
+  MIRAGE_REACH,
+  SWORD_PUSH,
+  SWORD_STEP,
+  SWORD_SUSANOO_STEP,
+} from "@/game/domain/characters/kage/cards";
+import { ARMOUR_TURNS, FLAME_ENERGY, FLAME_PUSH } from "@/game/domain/characters/kage/flames";
+import {
+  FROST_BREATH_CHARGE,
+  HARVEST_DRAIN,
+  SLIDE_REACH,
+  WINGS_REACH,
+  ZERO_FREEZE,
+  ZERO_RANDOM_TILES,
+  ZERO_TRAPS,
+  ZERO_WINTER_PUSH,
+} from "@/game/domain/characters/fairy/cards";
+import { ENCHANT_ADVANCE } from "@/game/domain/characters/fairy/snow";
 import { OVERLOAD_HAND } from "@/game/domain/characters/alva/systems";
 import { ALCHEMY_REACH, OPUS_PICKS, RAIDER_PICKS } from "@/game/domain/characters/alchemist/cards";
 import { OPUS_INVERSION_TURNS } from "@/game/domain/characters/alchemist/inversion";
@@ -217,6 +242,46 @@ export const CARD_TEXT: Readonly<Record<CardId, { name: string; description: str
   dataCollapse: {
     name: "Colapso Gravitacional de Dados",
     description: `O oponente escolhido recua ${COLLAPSE_PER_CARD} casas para cada carta na mão, Corrompidas incluídas.`,
+  },
+  bloodTear: {
+    name: "Lágrima de Sangue",
+    description: `O Despertar Ocular ganha +${BLOOD_TEAR_CHARGE} de carga e você acende 1 fogo negro na casa logo atrás de você.`,
+  },
+  scarletMirage: {
+    name: "Miragem Rubra",
+    description: `Um oponente a até ${MIRAGE_REACH} casas de um fogo negro seu é puxado para cima dele e se queima na hora.`,
+  },
+  amaterasuBreeze: {
+    name: "Brisa de Amaterasu",
+    description: `Todo fogo negro ganha +${BREEZE_TURNS} rodadas e +${BREEZE_BURNS} queimas e se espalha 1 casa à frente. Você avança ${BREEZE_STEP} casas por fogo negro no mapa.`,
+  },
+  susanooSword: {
+    name: "Espada do Susanoo",
+    description: `Avance ${SWORD_STEP} casas e ative o Susanoo por 1 rodada. Já no Susanoo: avance ${SWORD_SUSANOO_STEP} e empurre ${SWORD_PUSH} casas para trás quem você atravessar.`,
+  },
+  eternalEclipse: {
+    name: "Eclipse Eterno",
+    description: `Triunfo. Susanoo por ${ARMOUR_TURNS} rodadas, ${ECLIPSE_FIRES} fogos negros a partir de ${ECLIPSE_GAP} casas à frente de cada oponente, e os ${ECLIPSE_HYPNOSIS} mais adiantados pisam no fogo (−${FLAME_ENERGY} de energia, voltam ${FLAME_PUSH} casas).`,
+  },
+  frostBreath: {
+    name: "Sopro de Geada",
+    description: `Neve encantada para sempre na casa onde você está e +${FROST_BREATH_CHARGE} de carga no Florescimento Feérico.`,
+  },
+  slipperyTrack: {
+    name: "Pista Escorregadia",
+    description: `Um oponente a até ${SLIDE_REACH} casas de uma neve ou gelo seu escorrega para cima dela e fica preso na hora.`,
+  },
+  crystalWings: {
+    name: "Voo das Asas de Cristal",
+    description: `Voe até a próxima neve ou gelo seu à frente (até ${WINGS_REACH} casas): ela te leva +${ENCHANT_ADVANCE}, em cadeia, e dá +1 de carga.`,
+  },
+  glacialHarvest: {
+    name: "Colheita Glacial",
+    description: `De cada oponente preso na neve ou no gelo, roube 1 carta aleatória; de quem está sem cartas, drene ${HARVEST_DRAIN} de energia.`,
+  },
+  absoluteZero: {
+    name: "Zero Absoluto",
+    description: `Triunfo. Todos os oponentes ficam presos onde estão por ${ZERO_FREEZE} rodadas. No Inverno Eterno, o gelo avança +${ZERO_WINTER_PUSH} casas; sem ele, ${ZERO_TRAPS} armadilhas e ${ZERO_RANDOM_TILES} casa ao acaso viram neve.`,
   },
   apocalypseProtocol: {
     name: "Protocolo Apocalipse",

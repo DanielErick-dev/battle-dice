@@ -74,7 +74,7 @@ describe("movement cards", () => {
   });
 
   it("Mystic Gate passes a portal under black fire or ice by: it's no portal while covered", () => {
-    const burning = { ...holding("mysticGate"), blackFlames: [{ tile: 10, owner: "p2", turnsLeft: 3, hits: 0 }] };
+    const burning = { ...holding("mysticGate"), blackFlames: [{ tile: 10, owner: "p2", turnsLeft: 3, burnsLeft: 2 }] };
     expect(cardBlocker(burning, aria(burning), "mysticGate")).toBe("NO_PORTAL_AHEAD");
     const frozen = { ...holding("mysticGate"), winter: { owner: "p2", frontier: 1, iced: [10] } };
     expect(cardBlocker(frozen, aria(frozen), "mysticGate")).toBe("NO_PORTAL_AHEAD");

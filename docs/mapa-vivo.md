@@ -50,8 +50,8 @@ Marque `[x]` quando fizer.
 - [ ] Respingo e ondas em anel quando algo cai ou pula na água (já existe no dragão: reaproveitar).
 
 ## 6. Fauna sombria
-- [ ] Corvos pousados que levantam voo quando um personagem passa perto.
-- [ ] Morcegos rondando as montanhas.
+- [ ] Corvos pousados que levantam voo quando um personagem passa perto. *Feito em parte (2026-11-19): pousados na beira da estrada, olham em volta, bicam, grasnam e saltitam. Para voar falta um modelo de corvo de asas abertas (o atual tem as asas presas ao corpo no esqueleto).*
+- [x] Morcegos rondando as montanhas (`island/Fauna.tsx`, asas animadas pelos ossos).
 - [ ] Olhos brilhando na mata escura, que somem quando a câmera chega perto.
 - [ ] Dragão com coluna procedural (abaixo).
 
@@ -62,6 +62,7 @@ Marque `[x]` quando fizer.
 - [ ] Mergulho de cabeça e saída de cabeça, com respingo nos dois.
 
 ## 7. O mapa reage aos personagens
+- [ ] **Coveiro da armadilha (próximo, pedido em 2026-11-19):** quem cai na armadilha de espinhos da ilha é levado de volta por um coveiro sombrio com um carrinho de mão (modelos do Meshy: *gravedigger* + *wheelbarrow*). A armadilha (`SpikeTrap.tsx`) já sobe quando alguém pisa.
 - [ ] Poeira levantando no passo de quem corre.
 - [ ] Grama amassando por onde passam (some aos poucos).
 - [ ] Folhas voando quando alguém passa correndo.

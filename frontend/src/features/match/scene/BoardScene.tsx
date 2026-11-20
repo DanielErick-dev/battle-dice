@@ -14,7 +14,7 @@ import type { MatchView } from "../model/matchView";
 import { createBoardLayout, withRiftPositions } from "@/features/shared/board/boardLayout";
 import { boardScaleFor, CameraRig, type CameraFraming } from "./camera/CameraRig";
 import { cameraSpotlight, fireChase, voidChase } from "./camera/cameraCues";
-import { diceLanding, dieRoll, focusPoint, focusTile, realmAt } from "./camera/cameraFocus";
+import { diceLanding, dieRoll, focusFigureId, focusPoint, focusTile, realmAt } from "./camera/cameraFocus";
 import { PickedTileMark } from "@/features/characters/shared/PickedTileMark";
 import { DiceThrow } from "./board/DiceThrow";
 import { BOARD_EFFECTS, OVERLAY_EFFECTS, type BoardFx } from "./effects";
@@ -22,6 +22,7 @@ import { ArenaEnvironment, HORIZON_COLOR } from "./environment/ArenaEnvironment"
 import type { MapId } from "@/features/shared/presets/maps";
 import type { BoardPicking } from "./board/pickCursor";
 import { PlayerToken } from "./token/PlayerToken";
+import { PerfMeter } from "./PerfMeter";
 import { PostEffects } from "./PostEffects";
 import { RealmAtmosphere } from "./realm/RealmAtmosphere";
 import { RealmTrackView } from "./realm/RealmTrackView";
@@ -285,6 +286,7 @@ export default function BoardScene({
           <CameraRig
             layout={layout}
             focus={focusPoint(view, layout)}
+            focusFigure={focusFigureId(view)}
             // A realm track is off the board: framing the whole board would lose the player.
             framing={cameraFraming === "board" && focusRealm !== null ? "close" : cameraFraming}
             effect={view.effect}
@@ -301,6 +303,7 @@ export default function BoardScene({
       </Suspense>
       <PerformanceMonitor onDecline={() => setStrained(true)} flipflops={1} />
       <PostEffects quality={effectsQuality} />
+      <PerfMeter quality={effectsQuality} />
     </Canvas>
   );
 }

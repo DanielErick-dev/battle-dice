@@ -35,7 +35,8 @@ export function TrailRoad({
     }, [trail]),
   );
   return (
-    <mesh geometry={geometry} receiveShadow renderOrder={1}>
+    // Paint on the ground: first of the see-through things after the sky, or it blends over portals and sparkles.
+    <mesh geometry={geometry} receiveShadow renderOrder={-0.5}>
       <meshStandardMaterial
         ref={(material) => void (material && withLampGlow(material))}
         map={texture}

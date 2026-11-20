@@ -7,14 +7,16 @@ export interface BlackFlame {
   owner: PlayerId;
   /** Counted down as its owner's turns end. */
   turnsLeft: number;
-  /** It goes out at FLAME_HITS. */
-  hits: number;
+  /** Scorches left before it goes out (FLAME_HITS when lit). */
+  burnsLeft: number;
 }
 
 export type KageEvent =
   | { type: "flamesLit"; playerId: PlayerId; tiles: readonly TileId[] }
   /** A playerPushed follows. */
   | { type: "flamesScorched"; playerId: PlayerId; owner: PlayerId; tile: TileId; energyLost: number; charged: boolean }
+  /** Amaterasu's Breeze: every black fire gains `turns` rounds and `burns` scorches. */
+  | { type: "flamesRenewed"; playerId: PlayerId; tiles: readonly TileId[]; turns: number; burns: number }
   | { type: "flamesFaded"; owner: PlayerId; tiles: readonly TileId[] }
   /** Thrown back for stopping on her tile, or `ahead` when she stopped on theirs. */
   | { type: "susanooRepelled"; playerId: PlayerId; by: PlayerId; tile: TileId; to: TileId; ahead: boolean };

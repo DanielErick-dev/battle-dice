@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SQUARE_SLAB } from "@/features/shared/board/slab";
-import { frontEdge, showsRune } from "./TileNumber";
+import { frontEdge, plaqueEdge, showsRune } from "./TileNumber";
 
 describe("the tile number's plaque", () => {
   it("stands on the edge nearest the camera (+z)", () => {
@@ -32,5 +32,32 @@ describe("the rune medallion over the number", () => {
     expect(showsRune(tile("none"), theme("regular"))).toBe(false);
     expect(showsRune(tile("portal"), theme("portal"))).toBe(false);
     expect(showsRune(tile("card"), theme("card"))).toBe(false);
+  });
+});
+
+describe("where a number plaque stands", () => {
+  // Corners back-right, front-right, front-left, back-left, for a road running towards the camera (+z).
+  const towardCamera = [
+    [-1, -1],
+    [-1, 1],
+    [1, 1],
+    [1, -1],
+  ] as const;
+
+  it("on a side kerb when the road comes towards the camera, never between tiles", () => {
+    const edge = plaqueEdge(towardCamera);
+    expect(Math.abs(edge.x)).toBeCloseTo(1);
+    expect(edge.z).toBeCloseTo(0);
+  });
+
+  it("on the kerb facing the camera when the road runs across the view", () => {
+    // Heading +x: back-right is (-1, 1), so the right kerb is the one at +z.
+    const across = [
+      [-1, 1],
+      [1, 1],
+      [1, -1],
+      [-1, -1],
+    ] as const;
+    expect(plaqueEdge(across)).toMatchObject({ x: 0, z: 1 });
   });
 });

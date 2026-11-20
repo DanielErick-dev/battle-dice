@@ -54,7 +54,7 @@ export function PhoneTilePicker({
     >
       <header className="mx-auto flex w-full max-w-md flex-col gap-2 px-4 pt-4 pb-3">
         <h2 className={cn("text-xl font-black tracking-wide uppercase", tone)}>{title}</h2>
-        <p className="text-sm text-zinc-300">
+        <p className="text-sm text-zinc-100">
           {short
             ? "Não há casas livres suficientes."
             : next
@@ -92,10 +92,10 @@ export function PhoneTilePicker({
                       {option.realm ? `${option.realm} · ` : ""}
                       {option.title}
                     </span>
-                    {option.distance && <span className="text-xs text-zinc-400">{option.distance}</span>}
+                    {option.distance && <span className="text-xs text-zinc-200">{option.distance}</span>}
                   </span>
                   {option.notes.length > 0 && (
-                    <span className="mt-0.5 block text-xs text-zinc-300">{option.notes.join(" · ")}</span>
+                    <span className="mt-0.5 block text-xs text-zinc-100">{option.notes.join(" · ")}</span>
                   )}
                   {option.occupants.length > 0 && (
                     <span className="mt-0.5 block text-xs font-semibold text-sky-300">

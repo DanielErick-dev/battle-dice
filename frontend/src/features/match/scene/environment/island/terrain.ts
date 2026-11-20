@@ -85,7 +85,8 @@ function landMask(shape: IslandShape, x: number, z: number): number {
   const u = Math.abs(x / shape.halfWidth);
   const v = Math.abs((z - shape.centerZ) / shape.halfDepth);
   const reach = (u ** 4 + v ** 4) ** 0.25 + (noise(x * 0.18, z * 0.18) - 0.5) * 0.12;
-  return 1 - smoothstep(0.74, 1.02, reach);
+  // A wide ramp: the beach takes its share of it (see BEACH), so this sets how broad the sand is.
+  return 1 - smoothstep(0.7, 1.12, reach);
 }
 
 /** The ground's height and what it's covered in at a point. */
@@ -117,7 +118,7 @@ export function groundAt(shape: IslandShape, x: number, z: number): { height: nu
       ? "snow"
       : peaks > 1.4
         ? "rock"
-        : height < WATER_LEVEL + 0.45 || beach > 0.6
+        : height < WATER_LEVEL + 0.45 || beach > 0.5
           ? "sand"
           : banks < 0.98
             ? "bank"

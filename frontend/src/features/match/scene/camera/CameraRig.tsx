@@ -25,6 +25,7 @@ import {
   VICTORY_DISTANCE,
 } from "./rigTuning";
 import { CAST_SHOTS, SHOTS, type Shot } from "./shots";
+import { figurePositions } from "../token/figureTrack";
 import type { CameraChase, CameraFraming, CameraSpotlight } from "./types";
 
 export { boardScaleFor } from "./rigTuning";
@@ -34,6 +35,8 @@ interface CameraRigProps {
   layout: BoardLayout;
   /** Where the action is (the moving or active player). */
   focus: Vec3;
+  /** The figure whose live position is followed instead of `focus` (its tile), when the camera is just watching. */
+  focusFigure: string | null;
   /** How the camera frames the play: following the focus up close or from midway, or the whole board. */
   framing: CameraFraming;
   /** Effect being shown; each new one gets its shot. */
@@ -56,6 +59,7 @@ interface CameraRigProps {
 export function CameraRig({
   layout,
   focus,
+  focusFigure,
   framing,
   effect,
   celebrating,
@@ -184,7 +188,12 @@ export function CameraRig({
     } else {
       // On a realm bridge the target rises with the player so they stay framed.
       if (chasing) goal.set(chase.position.x, chase.position.y * 0.8, chase.position.z);
-      else goal.set(tracking ? focus[0] : 0, tracking ? focus[1] * 0.8 : 0, tracking ? focus[2] : 0);
+      else {
+        // The figure itself as it runs, not its tile jumping one step at a time; the height stays the tile's.
+        const live = focusFigure ? figurePositions.get(focusFigure) : undefined;
+        goal.set(live ? live.x : focus[0], focus[1] * 0.8, live ? live.z : focus[2]);
+        if (!tracking) goal.set(0, 0, 0);
+      }
       step.subVectors(goal, orbit.target).multiplyScalar(free ? 0 : k);
       orbit.target.add(step);
       camera.position.add(step);

@@ -45,7 +45,7 @@ describe("tileOptions", () => {
         { tile: 4, owner: "p2:witch", kind: HIDDEN as typeof HIDDEN },
       ],
       specters: [{ tile: 4, owner: "p2:witch", kind: "plunder" as const }],
-      blackFlames: [{ tile: 4, owner: "p2:witch", turnsLeft: 2, hits: 0 }],
+      blackFlames: [{ tile: 4, owner: "p2:witch", turnsLeft: 2, burnsLeft: 2 }],
       destroyedTraps: [4],
     };
     const [option] = tileOptions([4], board, covered, "p1:scribe");

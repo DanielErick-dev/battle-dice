@@ -16,10 +16,15 @@ export const HELL_ICE_ROUNDS = 10;
 /** Once per round, never freezing the finish itself; hell melts its ice a round more. */
 export function spreadWinter(draft: Draft): void {
   meltHellIce(draft);
+  pushFrontier(draft, WINTER_TILES);
+}
+
+/** The winter's ice reaches `tiles` further along the path from where it had got to (never onto the finish). */
+export function pushFrontier(draft: Draft, tiles: number): void {
   const { winter } = draft;
   const { finishTile } = draft.state.board;
   if (!winter || winter.frontier >= finishTile - 1) return;
-  const to = Math.min(finishTile - 1, winter.frontier + WINTER_TILES);
+  const to = Math.min(finishTile - 1, winter.frontier + tiles);
   draft.events.push({ type: "winterSpread", owner: winter.owner, from: winter.frontier + 1, to });
   // Akane's scarlet fire holds the ice off: those tiles stay thawed.
   const held = draft.scarletFlames.map((flame) => flame.tile).filter((tile) => tile > winter.frontier && tile <= to);

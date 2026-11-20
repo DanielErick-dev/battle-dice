@@ -45,6 +45,16 @@ import {
   malwareInjection,
   overloadThruster,
 } from "../characters/alva/cards";
+import {
+  absoluteZero,
+  crystalWings,
+  frostBreath,
+  glacialHarvest,
+  slipperyTrack,
+  snowboundOpponents,
+  wingsTile,
+} from "../characters/fairy/cards";
+import { amaterasuBreeze, bloodTear, eternalEclipse, scarletMirage, susanooSword } from "../characters/kage/cards";
 import type { GameState, Player, PlayerId } from "../core/state";
 
 /** Charge the Void Hunger feeds Zarek's Void. */
@@ -98,6 +108,12 @@ export function exclusiveBlocker(table: HarmTable, player: Player, cardId: CardI
       return alchemyBlocker(table, player, cardId);
     case "overloadThruster":
       return alvaBlocker(table.players, player, cardId);
+    case "amaterasuBreeze":
+      return table.blackFlames.length > 0 ? null : "NO_BLACK_FIRE";
+    case "crystalWings":
+      return wingsTile(table, player) !== null ? null : "NO_SNOW_AHEAD";
+    case "glacialHarvest":
+      return snowboundOpponents(table.players, player.id).length > 0 ? null : "NO_SNOWBOUND";
     default:
       return null;
   }
@@ -235,6 +251,36 @@ export function playExclusive(
       return;
     case "voidApex":
       voidApex(draft, playerId);
+      return;
+    case "bloodTear":
+      bloodTear(draft, playerId);
+      return;
+    case "scarletMirage":
+      if (targetId !== null) scarletMirage(draft, playerId, targetId);
+      return;
+    case "amaterasuBreeze":
+      amaterasuBreeze(draft, playerId);
+      return;
+    case "susanooSword":
+      susanooSword(draft, playerId);
+      return;
+    case "eternalEclipse":
+      eternalEclipse(draft, playerId);
+      return;
+    case "frostBreath":
+      frostBreath(draft, playerId);
+      return;
+    case "slipperyTrack":
+      if (targetId !== null) slipperyTrack(draft, playerId, targetId);
+      return;
+    case "crystalWings":
+      crystalWings(draft, playerId);
+      return;
+    case "glacialHarvest":
+      glacialHarvest(draft, playerId);
+      return;
+    case "absoluteZero":
+      absoluteZero(draft, playerId);
       return;
     case "riftCall": {
       if (targetId === null) return;

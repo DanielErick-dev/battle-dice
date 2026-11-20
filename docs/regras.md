@@ -675,7 +675,14 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - O fogo negro dos outros e a **armadilha escondida** atravessam o Susanoo. A Armadura comum, o Indomável e a Bruxa Carmesim ignoram o fogo.
 - A Maré Purificadora do Auric apaga o fogo.
 
-> no código: `characters/kage/flames.ts`, `core/playerStatus.ts` (`inSusanoo`)
+**Cartas exclusivas**
+- **Lágrima de Sangue** (incomum, 2): +2 de carga no Despertar Ocular e 1 fogo negro na primeira casa atrás dela que possa pegar fogo.
+- **Miragem Rubra** (rara, 2): mira um oponente a até 6 casas (à frente ou atrás) de um fogo negro dela. Ele é puxado para cima do fogo e se queima na hora (regra normal, gasta 1 queima). Proteções contra cartas miradas barram; o Veredito da Têmis só desfaz a carta.
+- **Brisa de Amaterasu** (épica, 3): todo fogo negro ganha +5 rodadas e +2 queimas (o que tinha 1 queima passa a ter 3) e se espalha para a próxima casa à frente que possa pegar fogo (o fogo novo nasce com 10 rodadas e 2 queimas). Depois ela avança 2 casas por fogo negro no mapa. Precisa de fogo negro no tabuleiro.
+- **Espada do Susanoo** (épica, 3): avança 4 casas e ativa o Susanoo até a próxima vez dela. Se já estiver no Susanoo, avança 8 e empurra 5 casas para trás quem ela atravessar (protegidos ficam; quem está na casa onde ela para é empurrado pelo próprio Susanoo).
+- **Eclipse Eterno** (triunfo, 5): Susanoo por 3 rodadas; 2 fogos negros na frente de cada oponente do caminho principal (o primeiro a pelo menos 2 casas); os 2 oponentes mais adiantados pisam no fogo mais próximo à frente (perdem 2 de energia, voltam 10 casas, +1 de carga para ela). A Armadura impede a hipnose.
+
+> no código: `characters/kage/flames.ts`, `characters/kage/cards.ts`, `core/playerStatus.ts` (`inSusanoo`)
 
 ---
 
@@ -707,7 +714,16 @@ Todas as fichas seguem o mesmo modelo: **habilidade**, **carga**, **o que faz**,
 - A **Erva Curativa** (e a Aurora Divina) solta quem está preso.
 - O fogo negro derrete a neve. A **Maré Purificadora** também lava a neve, e aí a armadilha que estava debaixo **volta a funcionar** (uma escondida encantada, não: ela já tinha sumido). O gelo do Inverno não é lavado.
 
-> no código: `characters/fairy/` (`bloom.ts`, `winter.ts`, `snow.ts`)
+**Cartas exclusivas**
+- **Sopro de Geada** (incomum, 1): a casa onde ela está vira neve encantada para sempre (se a neve puder ficar ali: não no início, na chegada, em fogo, nem onde já há neve ou gelo) e o Florescimento ganha +2 de carga. A carga vem mesmo se a casa não puder nevar.
+- **Pista Escorregadia** (rara, 2): mira um oponente a até 4 casas (à frente ou atrás) de uma neve ou gelo dela. Ele escorrega para cima e para ali, preso como em qualquer neve dela (2 rodadas, +1 de carga para ela). Proteções contra cartas miradas barram; o Veredito da Têmis só desfaz a carta.
+- **Voo das Asas de Cristal** (épica, 3): ela voa até a primeira neve ou gelo dela nas próximas 10 casas e pousa ali, como se tivesse parado com o dado: avança +5, em cadeia, e ganha +1 de carga. Só pode ser jogada se houver neve ou gelo dela nesse alcance.
+- **Colheita Glacial** (épica, 3): de cada oponente preso na neve ou no gelo, rouba 1 carta aleatória; de quem está sem cartas, drena 2 de energia para ela. Protegidos ficam de fora. Só pode ser jogada com alguém preso.
+- **Zero Absoluto** (triunfo, 5): todos os oponentes ficam presos onde estão por 2 rodadas, com o dreno da neve. A Armadura protege, e a Bruxa Carmesim flutua por cima. Depois:
+  - **com o Inverno Eterno ativo**, o gelo avança +16 casas a partir da última casa que o inverno já congelou (não de onde ela está);
+  - **sem o Inverno**, as 6 armadilhas mais próximas dela e 1 casa comum ao acaso viram neve encantada para sempre.
+
+> no código: `characters/fairy/` (`bloom.ts`, `winter.ts`, `snow.ts`, `cards.ts`)
 
 ---
 

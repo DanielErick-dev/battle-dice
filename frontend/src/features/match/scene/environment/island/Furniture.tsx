@@ -99,6 +99,18 @@ export const SCATTER_SWAPS: Readonly<Record<string, { prop: PropId; heightPerSca
   tree_young: { prop: "islandPine", heightPerScale: 0.55 },
   flower_shadow: { prop: "shadowFlower", heightPerScale: 0.42 },
   flower_nebula: { prop: "nebulaBloom", heightPerScale: 0.42 },
+  glowcaps: { prop: "islandGlowcaps", heightPerScale: 0.3 },
+  rocks_mossy: { prop: "islandMossyRocks", heightPerScale: 0.26 },
+  // The woods: a mossy log lying long (its height is a fraction of its length) and dead trees taller than a figure.
+  log: { prop: "islandDriftwood", heightPerScale: 0.13 },
+  tree_dead: { prop: "islandDeadTree", heightPerScale: 0.75 },
+  // Our own houses on the kit town's spots, as tall as the kit's (see townPieces.ts) so they fill the same footprint.
+  building_home_A_blue: { prop: "islandCottage", heightPerScale: 0.93 },
+  building_home_A_red: { prop: "islandCottage", heightPerScale: 0.93 },
+  building_home_B_blue: { prop: "islandWindHouse", heightPerScale: 1.28 },
+  building_home_B_red: { prop: "islandWindHouse", heightPerScale: 1.28 },
+  building_tavern_blue: { prop: "islandCottage", heightPerScale: 1.3 },
+  building_tavern_red: { prop: "islandWindHouse", heightPerScale: 1.4 },
 };
 
 /** How far round its middle each scattered prop spreads, per unit of its height (a rock: 1.8 wide per 1 tall). */
@@ -108,10 +120,16 @@ export const SCATTER_REACH: Partial<Record<PropId, number>> = {
   islandPine: 0.35,
   shadowFlower: 0.45,
   nebulaBloom: 0.35,
+  islandGlowcaps: 0.45,
+  islandMossyRocks: 0.95,
+  islandDriftwood: 1.8,
+  islandDeadTree: 0.55,
+  islandCottage: 0.5,
+  islandWindHouse: 0.45,
 };
 
 /** Props whose petals glow faintly at night, lit by their own colours. */
-const GLOWING: ReadonlySet<PropId> = new Set(["shadowFlower", "nebulaBloom"]);
+const GLOWING: ReadonlySet<PropId> = new Set(["shadowFlower", "nebulaBloom", "islandGlowcaps"]);
 
 type ScatterItem = { piece: string; x: number; y: number; z: number; turn: number; scale: number };
 

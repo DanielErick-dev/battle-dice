@@ -37,7 +37,7 @@ export function PhoneMatch({ store, room, onLeave }: PhoneMatchProps) {
   if (!view || !store.board) {
     return (
       <main className={PHONE.screen}>
-        <p className="m-auto text-sm tracking-widest text-zinc-400 uppercase">Entrando na sala {room}…</p>
+        <p className="m-auto text-sm tracking-widest text-zinc-200 uppercase">Entrando na sala {room}…</p>
       </main>
     );
   }
@@ -100,7 +100,7 @@ function PhoneTable({ store, view, plainBoard, room, onLeave }: PhoneTableProps)
           className={cn(PHONE_PANEL, "flex flex-col gap-2 p-3")}
           style={{ boxShadow: `inset 0 1px 0 ${playerColor(me.id)}55, 0 0 24px ${playerColor(me.id)}22` }}
         >
-          <EnergyMeter energy={me.energy} className="justify-between" />
+          <EnergyMeter energy={me.energy} className="justify-between" bright />
           <AbilityMeter
             player={me}
             inUse={controls.ownsTurn && view.abilityInUse !== null && view.abilityInUse === me.ability}
@@ -126,7 +126,7 @@ function PhoneTable({ store, view, plainBoard, room, onLeave }: PhoneTableProps)
         <p
           key={event?.id ?? 0}
           aria-live="polite"
-          className="animate-in fade-in min-h-10 rounded-xl border-l-2 border-amber-300/70 bg-white/[0.07] px-3 py-2 text-sm text-zinc-100 duration-300"
+          className="animate-in fade-in min-h-10 rounded-xl border-l-2 border-amber-300/70 bg-white/[0.12] px-3 py-2 text-base text-white duration-300"
         >
           {event?.text ?? "A partida começou. Boa sorte!"}
         </p>
@@ -259,7 +259,7 @@ function TurnPanel({ view, myMove, canRoll, waitingName, winnerName, onRoll }: T
     <section aria-label="Dado" className={cn(PHONE_PANEL, "flex items-center gap-4 p-4")}>
       {/* A boosted or doubled roll goes past a die's six faces: the total as a number then. */}
       {roll && !view.isRolling && roll.total > 6 ? (
-        <span className="grid size-20 shrink-0 place-items-center rounded-2xl bg-white/10 text-4xl font-black text-orange-400">
+        <span className="grid size-20 shrink-0 place-items-center rounded-2xl bg-white/20 text-4xl font-black text-orange-300">
           {roll.total}
         </span>
       ) : (
@@ -276,7 +276,7 @@ function TurnPanel({ view, myMove, canRoll, waitingName, winnerName, onRoll }: T
             </button>
           </>
         ) : (
-          <p className="grid h-14 place-items-center rounded-2xl bg-white/5 px-2 text-center text-base font-bold text-zinc-300 ring-1 ring-white/10">
+          <p className="grid h-14 place-items-center rounded-2xl bg-white/[0.12] px-2 text-center text-base font-bold text-zinc-100 ring-1 ring-white/25">
             Vez de {waitingName ?? "…"}…
           </p>
         )}

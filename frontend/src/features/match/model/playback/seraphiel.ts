@@ -53,8 +53,10 @@ export const seraphielSteps: StepHandlers<
             to: event.tile,
           },
         }),
-        durationMs: timings.noticeMs,
+        durationMs: Math.max(timings.noticeMs, timings.sitDownMs),
       },
+      // Chained: the camera lets go of them and goes on to whoever plays.
+      { apply: (view) => ({ ...view, effect: null }), durationMs: 0 },
     ];
   },
   graceOffered: (event) => {

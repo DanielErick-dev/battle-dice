@@ -8,6 +8,8 @@ import { zarekArt } from "./zarek";
 import { tenzaiArt } from "./tenzai";
 import { alchemistArt } from "./alchemist";
 import { alvaArt } from "./alva";
+import { kageArt } from "./kage";
+import { fairyArt } from "./fairy";
 
 /** Procedural artwork for each card (inline SVG, 100×70 viewBox): no image files or rights. */
 export const ART: Readonly<Record<CardId, ReactNode>> = {
@@ -19,4 +21,6 @@ export const ART: Readonly<Record<CardId, ReactNode>> = {
   ...tenzaiArt,
   ...alchemistArt,
   ...alvaArt,
+  ...kageArt,
+  ...fairyArt,
 };

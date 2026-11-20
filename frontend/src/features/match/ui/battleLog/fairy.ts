@@ -2,7 +2,7 @@ import { plural, type LogLines } from "./lines";
 
 /** The Crystal Fairy. */
 export const fairyLines: LogLines<
-  "snowDrained" | "tilesEnchanted" | "enchantmentStirred" | "winterBegan" | "tilesFrozen"
+  "snowDrained" | "tilesEnchanted" | "enchantmentStirred" | "winterBegan" | "tilesFrozen" | "absoluteZero"
 > = {
   snowDrained: (event, { who, line }) =>
     line(
@@ -21,4 +21,9 @@ export const fairyLines: LogLines<
   winterBegan: (event, { who, line }) => line(event.playerId, `${who(event.playerId)} trouxe o Inverno Eterno`),
   tilesFrozen: (event, { who, line }) =>
     line(event.playerId, `${who(event.playerId)} congelou ${plural(event.tiles.length, "casa", "casas")}`),
+  absoluteZero: (event, { who, line }) =>
+    line(
+      event.playerId,
+      `O Zero Absoluto de ${who(event.playerId)} congelou ${plural(event.frozen.length, "oponente", "oponentes")} por ${plural(event.rounds, "rodada", "rodadas")}`,
+    ),
 };

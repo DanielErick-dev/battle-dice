@@ -5,8 +5,26 @@ import { playerTileEffect } from "./helpers";
 import type { StepHandlers } from "./types";
 
 export const fairySteps: StepHandlers<
-  "snowDrained" | "tilesEnchanted" | "tilesFrozen" | "winterBegan" | "winterSpread" | "enchantmentStirred"
+  | "snowDrained"
+  | "tilesEnchanted"
+  | "tilesFrozen"
+  | "winterBegan"
+  | "winterSpread"
+  | "enchantmentStirred"
+  | "absoluteZero"
 > = {
+  // Everyone it caught is snowed in where they stand (the state's skipped turns come with the final sync).
+  absoluteZero: (event, timings) => [
+    {
+      apply: (view) =>
+        event.frozen.reduce(
+          (current, id) =>
+            withPlayer(current, id, () => ({ snowbound: { owner: event.playerId, rounds: event.rounds } })),
+          view,
+        ),
+      durationMs: timings.noticeMs,
+    },
+  ],
   // The snow drinks from its prisoner, and loosens its grip a round.
   snowDrained: (event, timings) => {
     return [

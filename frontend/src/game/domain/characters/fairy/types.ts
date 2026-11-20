@@ -42,4 +42,6 @@ export type FairyEvent =
   /** No harm was left ahead to snow. */
   | { type: "winterBegan"; playerId: PlayerId }
   | { type: "winterSpread"; owner: PlayerId; from: TileId; to: TileId }
-  | { type: "tilesFrozen"; playerId: PlayerId; tiles: TileId[] };
+  | { type: "tilesFrozen"; playerId: PlayerId; tiles: TileId[] }
+  /** Absolute Zero: `frozen` are stuck where they stand for `rounds`, drained like in her snow. */
+  | { type: "absoluteZero"; playerId: PlayerId; frozen: readonly PlayerId[]; rounds: number };

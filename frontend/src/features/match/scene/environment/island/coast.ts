@@ -19,10 +19,29 @@ const NATURE_SCALE = 2.4;
 /** Pirate Kit pieces come big: this brings a ship to a few tiles long. */
 const PIRATE_SCALE = 0.4;
 const BUSHES = ["plant_bushDetailed", "plant_bush", "plant_bushLarge"];
-const BOULDERS = ["rock_largeA", "rock_largeC", "rock_largeE", "rock_tallC"];
+const BOULDERS = [
+  "rock_largeA",
+  "rocks_mossy",
+  "rock_largeC",
+  "rocks_mossy",
+  "rock_largeE",
+  "rocks_mossy",
+  "rock_tallC",
+];
 const SHORE_ROCKS = ["rocks-sand-a", "rocks-sand-b", "rocks-sand-c"];
-/** What each of ten bush spots becomes: one in ten left bare, half of the rest something other than a bush. */
-const BUSH_VARIETY = ["none", "flowers", "bush", "rock_small", "bush", "tree_young", "bush", "flowers", "bush", "bush"];
+/** What each of ten bush spots becomes: one in ten left bare, most of the rest something other than a bush. */
+const BUSH_VARIETY = [
+  "none",
+  "flowers",
+  "bush",
+  "rock_small",
+  "bush",
+  "tree_young",
+  "glowcaps",
+  "flowers",
+  "bush",
+  "bush",
+];
 /** A few flowers round a spot: offsets and sizes. */
 const FLOWER_CLUSTER: readonly [number, number, number][] = [
   [0, 0, 1],
@@ -113,7 +132,7 @@ export function planCoast(
     } else if (variety !== "none") add(variety, spot.x, spot.y, spot.z, scale);
   });
   scatter.rocks.forEach((spot, index) => add(cycle(BOULDERS, index), spot.x, spot.y, spot.z, NATURE_SCALE * spot.size));
-  // Fallen logs and stumps in the woods, along the trail's middle stretch.
+  // Mossy fallen logs and dead trees in the woods, along the trail's middle stretch.
   for (let attempt = 0; attempt < 400; attempt++) {
     const x = (random() * 2 - 1) * shape.halfWidth;
     const z = shape.centerZ + (random() * 2 - 1) * shape.halfDepth;
@@ -123,7 +142,7 @@ export function planCoast(
     if (cover !== "grass" && cover !== "meadow") continue;
     if (town.blockers.some((blocker) => Math.hypot(blocker.x - x, blocker.z - z) < blocker.radius + 0.4)) continue;
     if (random() < 0.5) continue;
-    add(random() < 0.6 ? "log" : "stump_round", x, height, z, NATURE_SCALE * (0.8 + random() * 0.4));
+    add(random() < 0.6 ? "log" : "tree_dead", x, height, z, NATURE_SCALE * (0.8 + random() * 0.4));
   }
   // A campfire before every tent.
   for (const tent of town.placements.filter(({ piece }) => piece === "tent")) {

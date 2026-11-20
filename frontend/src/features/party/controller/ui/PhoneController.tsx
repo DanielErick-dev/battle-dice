@@ -65,7 +65,7 @@ export function PhoneController({ room, seat, name, clientId, onLeave }: PhoneCo
   if (status.kind === "connecting" || status.kind === "failed" || status.kind === "closed") {
     return (
       <main className={PHONE.screen}>
-        <p className="m-auto text-sm tracking-widest text-zinc-400 uppercase">Entrando na sala {room}…</p>
+        <p className="m-auto text-sm tracking-widest text-zinc-200 uppercase">Entrando na sala {room}…</p>
       </main>
     );
   }
@@ -82,7 +82,7 @@ export function PhoneController({ room, seat, name, clientId, onLeave }: PhoneCo
           <section className="hud-panel flex w-full max-w-sm flex-col items-center gap-3 p-6 text-center">
             <WifiOff className="size-10 text-amber-300" />
             <h2 className="text-lg font-black tracking-wider text-amber-200 uppercase">Reconectando…</h2>
-            <p className="text-sm text-zinc-300">
+            <p className="text-sm text-zinc-100">
               A TV não respondeu. Tentando de novo (tentativa {status.attempt}). O seu lugar continua guardado.
             </p>
             <button type="button" onClick={connection.retryNow} className={PHONE.secondary}>
@@ -91,7 +91,7 @@ export function PhoneController({ room, seat, name, clientId, onLeave }: PhoneCo
             <button
               type="button"
               onClick={() => onLeave(null)}
-              className="text-xs font-bold tracking-wider text-zinc-400 uppercase underline-offset-4 hover:underline"
+              className="text-xs font-bold tracking-wider text-zinc-200 uppercase underline-offset-4 hover:underline"
             >
               Voltar ao início
             </button>

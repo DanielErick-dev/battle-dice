@@ -51,6 +51,20 @@ exports[`battle log lines, one per branch > abilityUsed > case 0 1`] = `
 }
 `;
 
+exports[`battle log lines, one per branch > absoluteZero > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "O Zero Absoluto de J1 (Bruxa Carmesim) congelou 1 oponente por 2 rodadas",
+}
+`;
+
+exports[`battle log lines, one per branch > absoluteZero > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "O Zero Absoluto de J1 (Bruxa Carmesim) congelou 2 oponentes por 2 rodadas",
+}
+`;
+
 exports[`battle log lines, one per branch > advanceTriggered > case 0 1`] = `
 {
   "actor": "p1",
@@ -559,6 +573,20 @@ exports[`battle log lines, one per branch > flamesLit > case 1 1`] = `
 {
   "actor": "p1",
   "text": "J1 (Bruxa Carmesim) acendeu o fogo negro em 2 casas",
+}
+`;
+
+exports[`battle log lines, one per branch > flamesRenewed > case 0 1`] = `
+{
+  "actor": "p1",
+  "text": "A Brisa de Amaterasu de J1 (Bruxa Carmesim) reavivou 1 fogo negro",
+}
+`;
+
+exports[`battle log lines, one per branch > flamesRenewed > case 1 1`] = `
+{
+  "actor": "p1",
+  "text": "A Brisa de Amaterasu de J1 (Bruxa Carmesim) reavivou 2 fogos negros",
 }
 `;
 

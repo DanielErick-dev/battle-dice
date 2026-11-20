@@ -42,6 +42,20 @@ export function focusPoint(view: MatchView, layout: BoardLayout): Vec3 {
   return tile === null ? [0, 0, 0] : layout.position(tile);
 }
 
+/**
+ * Whose figure the camera follows live when it's just watching the play (not an effect's own spot): the one
+ * moving, else whoever plays. Following the figure, not its tile, keeps the camera from lurching tile by tile.
+ */
+export function focusFigureId(view: MatchView): string | null {
+  if (view.fx.drag && view.fx.drag.phase !== "over") return null;
+  if (view.fx.frostStream || (view.fx.volley && !view.fx.volley.settled && view.fx.volley.targets.length > 0))
+    return null;
+  if (view.fx.verdict && view.effect?.kind === "verdict") return null;
+  if (view.effect && SITTING_DOWN.includes(view.effect.kind)) return null;
+  if (view.fx.tide?.rolling) return null;
+  return view.movingPlayerId ?? view.activePlayerId;
+}
+
 /** The realm a tile belongs to, or null on the main path: the world takes on its look. */
 export function realmAt(board: Board, tile: number | null): RealmKind | null {
   return tile === null ? null : (getTile(board, tile).track?.realm ?? null);

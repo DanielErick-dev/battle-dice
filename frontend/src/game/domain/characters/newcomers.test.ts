@@ -59,8 +59,8 @@ describe("the newcomers' abilities", () => {
     const spelled: GameState = {
       ...withPlayer(duel("cleansingTide"), "hero", { position: 10 }),
       blackFlames: [
-        { tile: 24, owner: "rival", turnsLeft: 5, hits: 0 },
-        { tile: 10 + TIDE_RANGE + 1, owner: "rival", turnsLeft: 5, hits: 0 },
+        { tile: 24, owner: "rival", turnsLeft: 5, burnsLeft: 2 },
+        { tile: 10 + TIDE_RANGE + 1, owner: "rival", turnsLeft: 5, burnsLeft: 2 },
       ],
       enchantedTiles: [{ tile: 12, owner: "rival" }],
       pinnedTraps: [20],

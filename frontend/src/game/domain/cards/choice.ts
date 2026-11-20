@@ -4,8 +4,9 @@ import { opponentsInSpace } from "../board/reach";
 import type { Draft } from "../core/draft";
 import { DICE_SIDES } from "../core/dice";
 import { dragTargets } from "../characters/seraphiel/seraph";
-import { riftBehind } from "./exclusive";
-import type { Board } from "../board/types";
+import { riftBehind, type HarmTable } from "./exclusive";
+import { mirageFire } from "../characters/kage/cards";
+import { slideTile } from "../characters/fairy/cards";
 import type { Element } from "../characters/tenzai/types";
 import type { CardInstance, Player, PlayerId } from "../core/state";
 
@@ -19,8 +20,19 @@ export interface CardChoice {
 }
 
 /** Anyone in the same place, protected or not; the Call of the Abyss only reaches the main path (see dragTargets). */
-export function cardTargets(board: Board, players: readonly Player[], playerId: PlayerId, cardId: CardId): Player[] {
+export function cardTargets(
+  table: Pick<HarmTable, "board" | "blackFlames" | "enchantedTiles" | "winter" | "scarletFlames">,
+  players: readonly Player[],
+  playerId: PlayerId,
+  cardId: CardId,
+): Player[] {
+  const { board, blackFlames } = table;
   const inSpace = opponentsInSpace(board, players, playerId);
+  // Only those close enough to her snow or ice can slide onto it.
+  if (cardId === "slipperyTrack") return inSpace.filter((player) => slideTile(table, playerId, player) !== null);
+  // Only those close enough to one of her black fires can be lured onto it.
+  if (cardId === "scarletMirage")
+    return inSpace.filter((player) => mirageFire(board, blackFlames, playerId, player) !== null);
   // Only those with one of the player's rifts somewhere behind them can be called back to it.
   if (cardId === "riftCall") return inSpace.filter((player) => riftBehind(board, player, playerId) !== null);
   if (cardId !== "abyssCall") return inSpace;
@@ -34,9 +46,18 @@ export function validTarget(
   cardId: CardId,
   targetId: PlayerId | undefined,
 ): PlayerId {
-  const target = cardTargets(draft.state.board, draft.players, playerId, cardId).find(
-    (player) => player.id === targetId,
-  );
+  const target = cardTargets(
+    {
+      board: draft.state.board,
+      blackFlames: draft.blackFlames,
+      enchantedTiles: draft.enchantedTiles,
+      winter: draft.winter,
+      scarletFlames: draft.scarletFlames,
+    },
+    draft.players,
+    playerId,
+    cardId,
+  ).find((player) => player.id === targetId);
   if (!target) throw new GameRuleError("INVALID_TARGET");
   return target.id;
 }

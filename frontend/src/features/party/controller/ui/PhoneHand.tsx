@@ -191,7 +191,9 @@ function CardSheet({ card, reason, targets, elements, onPlay, onClose }: CardShe
         </div>
 
         {reason ? (
-          <p className="rounded-xl bg-white/5 px-4 py-3 text-center text-sm font-semibold text-zinc-300">{reason}</p>
+          <p className="rounded-xl bg-white/[0.12] px-4 py-3 text-center text-sm font-semibold text-zinc-100">
+            {reason}
+          </p>
         ) : elements.length > 0 ? (
           <>
             <p className={cn(PHONE.label, "text-center")}>Vira qual elemento?</p>

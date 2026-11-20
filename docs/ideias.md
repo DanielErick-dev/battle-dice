@@ -55,6 +55,7 @@ Hoje há só 4 bênçãos fixas e 3 relíquias, sem decisões. Candidatas:
 - **Multiplayer online** (prioridade): backend FastAPI + WebSocket na AWS, escrito pelo Daniel.
 - **Organizador:** coleção de cartas e deck builder com moedas, roletas e carta diária, compartilhado com o projeto Yu-Gi-Oh. Ele alimenta os `decks` do `createGame`.
 - **Decks por personagem.**
+- **App de celular para o modo festa (2026-11-19):** um app próprio no lugar da página no navegador. Evita que o modo escuro do navegador escureça as cores (como no Samsung Internet) e permite vibração, tela sempre acesa e entrar na sala sem digitar o endereço. Dá para começar como PWA (página instalável) e depois empacotar com Capacitor ou React Native.
 - **Visão do projeto:** "Yu-Gi-Oh com RPG e tabuleiro".
 
 ## Pós-MVP (pedidos de 2026-10-26)

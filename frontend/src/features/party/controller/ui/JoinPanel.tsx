@@ -34,7 +34,7 @@ export function JoinPanel({ initialRoom, initialName, clientId, notice, onSeat }
       <div className={PHONE.column}>
         <header className="pt-4 pb-2 text-center">
           <h1 className="text-2xl font-black tracking-wider text-orange-400 uppercase">Battle Dice</h1>
-          <p className="mt-1 text-sm text-zinc-400">Seu celular é o controle. O tabuleiro fica na TV.</p>
+          <p className="mt-1 text-sm text-zinc-200">Seu celular é o controle. O tabuleiro fica na TV.</p>
         </header>
 
         {notice && (
@@ -101,18 +101,18 @@ function SeatList({ room, name, clientId, onBack, onSeat }: SeatListProps) {
 
   return (
     <section aria-label="Lugares" className="flex flex-col gap-3">
-      <p className="text-center text-sm text-zinc-400">
+      <p className="text-center text-sm text-zinc-200">
         Sala <span className="font-mono font-black tracking-widest text-white">{room}</span>
       </p>
 
-      {peek.kind === "loading" && <p className="py-8 text-center text-sm text-zinc-400">Procurando a sala…</p>}
+      {peek.kind === "loading" && <p className="py-8 text-center text-sm text-zinc-200">Procurando a sala…</p>}
       {peek.kind === "error" && (
         <p role="alert" className="hud-panel px-4 py-3 text-sm font-semibold text-red-200">
           {joinRefusalMessage(peek.reason)}
         </p>
       )}
       {peek.kind === "ready" && seats.length === 0 && (
-        <p className="py-8 text-center text-sm text-zinc-400">Carregando os lugares…</p>
+        <p className="py-8 text-center text-sm text-zinc-200">Carregando os lugares…</p>
       )}
 
       {seats.length > 0 && (
@@ -131,13 +131,13 @@ function SeatList({ room, name, clientId, onBack, onSeat }: SeatListProps) {
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-base font-black">{seat.playerName}</span>
                     {seat.character && (
-                      <span className="block truncate text-xs text-zinc-400">{seat.character.epithet}</span>
+                      <span className="block truncate text-xs text-zinc-200">{seat.character.epithet}</span>
                     )}
                   </span>
                   <span
                     className={cn(
                       "rounded-full px-2.5 py-1 text-[10px] font-black tracking-wider uppercase",
-                      seat.takenBy ? "bg-white/10 text-zinc-400" : "bg-emerald-500/20 text-emerald-300",
+                      seat.takenBy ? "bg-white/10 text-zinc-200" : "bg-emerald-500/20 text-emerald-300",
                     )}
                   >
                     {seat.takenBy ? seat.takenBy : "Livre"}
@@ -147,7 +147,7 @@ function SeatList({ room, name, clientId, onBack, onSeat }: SeatListProps) {
             ))}
           </ul>
           {seats.every((seat) => seat.takenBy !== null) && (
-            <p className="text-center text-sm text-zinc-400">{joinRefusalMessage("ROOM_FULL")}</p>
+            <p className="text-center text-sm text-zinc-200">{joinRefusalMessage("ROOM_FULL")}</p>
           )}
         </>
       )}

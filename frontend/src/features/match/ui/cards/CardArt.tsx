@@ -38,6 +38,16 @@ export const CARD_PALETTE: Readonly<Record<CardId, { from: string; to: string }>
   voidEcho: { from: "#7c3aed", to: "#030712" },
   riftCall: { from: "#5b21b6", to: "#0a0a0a" },
   voidApex: { from: "#7c3aed", to: "#0a0a0a" },
+  bloodTear: { from: "#b91c1c", to: "#0a0a0a" },
+  scarletMirage: { from: "#9f1239", to: "#0c0a09" },
+  amaterasuBreeze: { from: "#3f3f46", to: "#000000" },
+  susanooSword: { from: "#e11d48", to: "#1e1b4b" },
+  eternalEclipse: { from: "#dc2626", to: "#000000" },
+  frostBreath: { from: "#a5f3fc", to: "#164e63" },
+  slipperyTrack: { from: "#67e8f9", to: "#0c4a6e" },
+  crystalWings: { from: "#e0f2fe", to: "#1e3a8a" },
+  glacialHarvest: { from: "#7dd3fc", to: "#0f172a" },
+  absoluteZero: { from: "#f0f9ff", to: "#082f49" },
   tectonicFortification: { from: "#a16207", to: "#1c1917" },
   riptideLash: { from: "#0284c7", to: "#082f49" },
   forcedTailwind: { from: "#34d399", to: "#022c22" },
@@ -87,6 +97,11 @@ const CARD_IMAGES: Partial<Record<CardId, string>> = {
   firewallLock: "/cards/firewallLock.webp",
   dataCollapse: "/cards/dataCollapse.webp",
   apocalypseProtocol: "/cards/apocalypseProtocol.webp",
+  bloodTear: "/cards/bloodTear.webp",
+  scarletMirage: "/cards/scarletMirage.webp",
+  amaterasuBreeze: "/cards/amaterasuBreeze.webp",
+  susanooSword: "/cards/susanooSword.webp",
+  eternalEclipse: "/cards/eternalEclipse.webp",
 };
 
 /** The painted image to show, or null to draw the card (no image, or this one already failed to load). */

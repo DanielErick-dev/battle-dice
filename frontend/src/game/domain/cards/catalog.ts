@@ -52,7 +52,19 @@ export type CardId =
   | "firewallLock"
   | "dataCollapse"
   | "apocalypseProtocol"
-  | "voidApex";
+  | "voidApex"
+  // Kage Rubra's own (see characters/kage/cards.ts).
+  | "bloodTear"
+  | "scarletMirage"
+  | "amaterasuBreeze"
+  | "susanooSword"
+  | "eternalEclipse"
+  // The Crystal Fairy's own (see characters/fairy/cards.ts).
+  | "frostBreath"
+  | "slipperyTrack"
+  | "crystalWings"
+  | "glacialHarvest"
+  | "absoluteZero";
 
 export type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary";
 
@@ -151,6 +163,18 @@ export const CARD_CATALOG: Readonly<Record<CardId, CardDefinition>> = {
   riftCall: card("riftCall", "epic", { exclusive: "theVoid", targetsOpponent: true }),
   // His trump: every opponent not protected falls into the Void, their rolls walking him, and his harms come home.
   voidApex: card("voidApex", "epic", { exclusive: "theVoid", cost: 5, needsOpponent: true }),
+  bloodTear: card("bloodTear", "uncommon", { exclusive: "ocularAwakening" }),
+  scarletMirage: card("scarletMirage", "rare", { exclusive: "ocularAwakening", targetsOpponent: true }),
+  amaterasuBreeze: card("amaterasuBreeze", "epic", { exclusive: "ocularAwakening" }),
+  susanooSword: card("susanooSword", "epic", { exclusive: "ocularAwakening" }),
+  // Her trump: a long Susanoo, fire ahead of everyone, and the two leaders walked into it.
+  eternalEclipse: card("eternalEclipse", "epic", { exclusive: "ocularAwakening", cost: 5, needsOpponent: true }),
+  frostBreath: card("frostBreath", "uncommon", { exclusive: "fairyBloom", cost: 1 }),
+  slipperyTrack: card("slipperyTrack", "rare", { exclusive: "fairyBloom", targetsOpponent: true }),
+  crystalWings: card("crystalWings", "epic", { exclusive: "fairyBloom" }),
+  glacialHarvest: card("glacialHarvest", "epic", { exclusive: "fairyBloom", needsOpponent: true }),
+  // Her trump: everyone frozen in place, and the winter pushed on (or the traps snowed over before it).
+  absoluteZero: card("absoluteZero", "epic", { exclusive: "fairyBloom", cost: 5, needsOpponent: true }),
 
   tectonicFortification: card("tectonicFortification", "common", { exclusive: "fourElements" }),
   riptideLash: card("riptideLash", "common", { exclusive: "fourElements", cost: 2, needsOpponent: true }),

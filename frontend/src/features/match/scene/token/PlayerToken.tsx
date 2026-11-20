@@ -1,7 +1,7 @@
 "use client";
 
 import { useFrame } from "@react-three/fiber";
-import { Suspense, useCallback, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import type { Group, Mesh, Vector3 } from "three";
 import { isFallen } from "@/game/domain/characters/seraphiel/seraph";
 import type { Player } from "@/game/domain/types";
@@ -16,6 +16,7 @@ import { TOKEN_EFFECTS } from "../effects";
 import type { TokenEffect, TokenFx, TokenSignals } from "../effects/types";
 import { advanceMotion, createTokenMotion, easeInOut, followTarget, turnTowards } from "./motion";
 import { stepPose } from "./pose";
+import { figurePositions } from "./figureTrack";
 import { actTraits, createTokenActs } from "./poseModel";
 
 interface PlayerTokenProps {
@@ -96,6 +97,14 @@ export function PlayerToken({
   const charged = useRef(false);
   const propHeld = useRef(false);
   const wandOut = useRef(false);
+
+  // Its live position, shared by reference: the crows read it to take off as it comes near.
+  useEffect(() => {
+    const node = group.current;
+    if (!node) return;
+    figurePositions.set(player.id, node.position);
+    return () => void figurePositions.delete(player.id);
+  }, [player.id]);
 
   useFrame((state, delta) => {
     levitating.current = isLevitating;

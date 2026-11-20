@@ -29,11 +29,7 @@ export function flammableTiles(board: Board, position: TileId, taken: readonly T
 
 /** Up to FLAME_TILES picked tiles. */
 export function lightFlames(draft: Draft, playerId: PlayerId, tiles: readonly TileId[]): void {
-  const allowed = flammableTiles(draft.state.board, playerIn(draft, playerId).position, [
-    ...draft.blackFlames.map((flame) => flame.tile),
-    ...draft.scarletFlames.map((flame) => flame.tile),
-    ...frozenTiles(draft.winter, draft.state.board.startTile),
-  ]);
+  const allowed = flammableTiles(draft.state.board, playerIn(draft, playerId).position, unburnableTiles(draft));
   if (
     tiles.length === 0 ||
     tiles.length > FLAME_TILES ||
@@ -42,13 +38,28 @@ export function lightFlames(draft: Draft, playerId: PlayerId, tiles: readonly Ti
   ) {
     throw new GameRuleError("INVALID_FLAMES");
   }
+  kindle(draft, playerId, tiles);
+}
+
+/** Tiles no new black fire can take: already burning (black or scarlet) or frozen. */
+export function unburnableTiles(draft: Draft): TileId[] {
+  return [
+    ...draft.blackFlames.map((flame) => flame.tile),
+    ...draft.scarletFlames.map((flame) => flame.tile),
+    ...frozenTiles(draft.winter, draft.state.board.startTile),
+  ];
+}
+
+/** Sets `tiles` on `owner`'s black fire, unchecked (callers pick them from flammableTiles). */
+export function kindle(draft: Draft, owner: PlayerId, tiles: readonly TileId[]): void {
+  if (tiles.length === 0) return;
   draft.blackFlames = [
     ...draft.blackFlames,
-    ...tiles.map((tile) => ({ tile, owner: playerId, turnsLeft: FLAME_TURNS, hits: 0 })),
+    ...tiles.map((tile) => ({ tile, owner, turnsLeft: FLAME_TURNS, burnsLeft: FLAME_HITS })),
   ];
   // Fire beats frost: the fairy's snow under it melts away for good.
   draft.enchantedTiles = draft.enchantedTiles.filter((enchanted) => !tiles.includes(enchanted.tile));
-  draft.events.push({ type: "flamesLit", playerId, tiles: [...tiles] });
+  draft.events.push({ type: "flamesLit", playerId: owner, tiles: [...tiles] });
 }
 
 export function raiseArmour(draft: Draft, playerId: PlayerId): void {
@@ -69,10 +80,10 @@ export function scorch(draft: Draft, playerId: PlayerId, tile: TileId): void {
     return;
   }
   // Each fire scorches FLAME_HITS times before it burns itself out.
-  const hits = flame.hits + 1;
+  const burnsLeft = flame.burnsLeft - 1;
   draft.blackFlames = draft.blackFlames
-    .map((candidate) => (candidate === flame ? { ...candidate, hits } : candidate))
-    .filter((candidate) => candidate.hits < FLAME_HITS);
+    .map((candidate) => (candidate === flame ? { ...candidate, burnsLeft } : candidate))
+    .filter((candidate) => candidate.burnsLeft > 0);
   const energyLost = Math.min(FLAME_ENERGY, playerIn(draft, playerId).energy);
   updatePlayer(draft, playerId, (player) => ({ energy: player.energy - energyLost }));
   // Every victim feeds the fire's owner: a turn of charge for their ability.
@@ -94,7 +105,7 @@ export function scorch(draft: Draft, playerId: PlayerId, tile: TileId): void {
   const pushed = pushPath(draft.state.board, from, FLAME_PUSH);
   draft.events.push({ type: "playerPushed", playerId, by: flame.owner, path: pushed });
   updatePlayer(draft, playerId, () => ({ position: pushed.at(-1) ?? from }));
-  if (hits >= FLAME_HITS) draft.events.push({ type: "flamesFaded", owner: flame.owner, tiles: [flame.tile] });
+  if (burnsLeft <= 0) draft.events.push({ type: "flamesFaded", owner: flame.owner, tiles: [flame.tile] });
 }
 
 /** One of `owner`'s turns is a whole round for their fires. */
